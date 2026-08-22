@@ -28,6 +28,37 @@
   letter-spacing: -0.025em;
 }
 
+.home-water-deferred__message {
+  max-width: 38rem;
+  margin: 0;
+  color: var(--portal-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.home-water-deferred__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  margin-top: 0.25rem;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid rgba(7, 30, 47, 0.12);
+  border-radius: 999px;
+  color: var(--portal-sky-deep);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.home-water-deferred__link:hover,
+.home-water-deferred__link:focus-visible {
+  border-color: rgba(7, 30, 47, 0.24);
+  background: rgba(255, 255, 255, 0.78);
+}
+
 .home-water-deferred__progress {
   position: relative;
   width: min(12rem, 62vw);
@@ -63,6 +94,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .home-water-deferred__link {
+    transition: none;
+  }
+
   .home-water-deferred__progress::after {
     width: 100%;
     animation: none;
@@ -76,8 +111,14 @@
   }
 
   .home-water-deferred h2,
-  .home-water-deferred__eyebrow {
+  .home-water-deferred__eyebrow,
+  .home-water-deferred__message,
+  .home-water-deferred__link {
     color: CanvasText;
+  }
+
+  .home-water-deferred__link {
+    border: 1px solid CanvasText;
   }
 
   .home-water-deferred__progress {
