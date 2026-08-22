@@ -58,6 +58,10 @@ export type HomeHydrologyData = {
   lagoon: LagoonMonitoringNetworkData;
 };
 
+export type HomeHydrologyResult =
+  | ({ status: "ready" } & HomeHydrologyData)
+  | { status: "unavailable" };
+
 function getLiveLaranjalCamera(cameraData: WeatherCameraData) {
   const camera = cameraData.cameras.find((item) => item.id === "laranjal");
   if (
@@ -99,13 +103,37 @@ function HomeWaterLoading() {
   );
 }
 
-function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyData> }) {
+function HomeWaterUnavailable() {
+  return (
+    <section className="home-water-deferred" aria-live="polite">
+      <p className="home-water-deferred__eyebrow">Águas</p>
+      <h2>Dados hidrológicos temporariamente indisponíveis</h2>
+      <p className="home-water-deferred__message">
+        A meteorologia principal continua disponível. Consulte a página de situação hidrológica para
+        acompanhar o estado das fontes e tentar novamente.
+      </p>
+      <Link className="home-water-deferred__link" to="/situacao-hidrologica-pelotas">
+        Ver situação hidrológica
+      </Link>
+    </section>
+  );
+}
+
+function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyResult> }) {
   return (
     <Suspense fallback={<HomeWaterLoading />}>
       <Await promise={hydrology}>
-        {({ laranjal, guaiba, lagoon }) => (
-          <HomeWaterEditorial laranjal={laranjal} guaiba={guaiba} lagoon={lagoon} />
-        )}
+        {(result) =>
+          result.status === "ready" ? (
+            <HomeWaterEditorial
+              laranjal={result.laranjal}
+              guaiba={result.guaiba}
+              lagoon={result.lagoon}
+            />
+          ) : (
+            <HomeWaterUnavailable />
+          )
+        }
       </Await>
     </Suspense>
   );
@@ -116,7 +144,7 @@ export function ProductionHome({
   hydrology,
 }: {
   data: WeatherIntelligenceData;
-  hydrology: Promise<HomeHydrologyData>;
+  hydrology: Promise<HomeHydrologyResult>;
 }) {
   const recoveredData = useOpenMeteoIntelligenceRecovery(data);
   const weather = useMemo(
