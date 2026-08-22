@@ -55,6 +55,8 @@ A Home continua iniciando meteorologia e hidrologia em paralelo, porém apenas `
 
 Enquanto a hidrologia ainda não resolveu, a seção mostra um estado acessível `Atualizando níveis e medições...`. Nenhum dado hidrológico é inventado e nenhuma fonte foi removida.
 
+Uma rejeição inesperada da cadeia hidrológica é convertida em estado local `unavailable`. Nesse caso, a Home meteorológica permanece renderizada e somente o bloco de águas informa indisponibilidade temporária, com link para `/situacao-hidrologica-pelotas`. A falha de uma fonte secundária não deve promover toda a Home ao error boundary global.
+
 Essa decisão segue a hierarquia atual da Home: meteorologia principal, previsão, radar e observação aparecem antes do bloco hidrológico. Portanto, uma oscilação de fonte secundária não deve segurar a primeira entrega do conteúdo meteorológico principal.
 
 ## Contratos e CI
@@ -64,7 +66,7 @@ Foram acrescentados:
 - `tests/route-loading-overlay.test.ts`;
 - `tests/home-deferred-hydrology.test.ts`.
 
-O workflow `Qualidade` executa ambos explicitamente, além dos contratos, build, rotas, TypeScript e lint já existentes.
+O workflow `Qualidade` executa ambos explicitamente, além dos contratos, build, rotas, TypeScript e lint já existentes. O contrato da hidrologia diferida também protege a separação de erro local, impedindo que uma rejeição secundária volte a derrubar a Home inteira.
 
 ## Critério de validação pós-deploy
 
@@ -76,7 +78,8 @@ Depois que o novo HEAD estiver publicado, repetir uma captura equivalente e comp
 4. ausência de flash do overlay em transições rápidas;
 5. aparecimento do overlay somente em transições foreground realmente demoradas;
 6. resolução progressiva da seção de águas sem layout quebrado;
-7. ausência de regressão de scroll, foco, acessibilidade ou navegação mobile.
+7. falha hidrológica eventual preservando a Home meteorológica;
+8. ausência de regressão de scroll, foco, acessibilidade ou navegação mobile.
 
 Não considerar a melhoria de TTFB confirmada apenas pela alteração de arquitetura. A conclusão depende da medição do runtime publicado.
 
