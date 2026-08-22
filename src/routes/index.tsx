@@ -7,7 +7,7 @@ import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
-import { ProductionHome } from "@/production/ProductionHome";
+import { ProductionHome, type HomeHydrologyData } from "@/production/ProductionHome";
 
 const PAGE_TITLE = "Tempo Pelotas — Previsão do tempo em Pelotas";
 const PAGE_DESCRIPTION =
@@ -33,27 +33,23 @@ export const Route = createFileRoute("/")({
       createFaqPageJsonLd(PAGE_PATH, HOME_EDITORIAL_CONTENT.faqs),
     ]),
   loader: async () => {
-    const [weather, laranjal, guaiba, lagoon] = await Promise.all([
-      getWeatherIntelligence(),
+    const hydrology = Promise.all([
       getLaranjalLevelData(),
       getGuaibaObservation(),
       getLagoonMonitoringNetwork(),
-    ]);
+    ]).then(
+      ([laranjal, guaiba, lagoon]) =>
+        ({ laranjal, guaiba, lagoon }) satisfies HomeHydrologyData,
+    );
 
-    return { weather, laranjal, guaiba, lagoon };
+    const weather = await getWeatherIntelligence();
+    return { weather, hydrology };
   },
   staleTime: 60 * 1_000,
   component: HomePage,
 });
 
 function HomePage() {
-  const { weather, laranjal, guaiba, lagoon } = Route.useLoaderData();
-  return (
-    <ProductionHome
-      data={weather}
-      laranjal={laranjal}
-      guaiba={guaiba}
-      lagoon={lagoon}
-    />
-  );
+  const { weather, hydrology } = Route.useLoaderData();
+  return <ProductionHome data={weather} hydrology={hydrology} />;
 }
