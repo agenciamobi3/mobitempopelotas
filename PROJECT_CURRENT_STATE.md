@@ -28,7 +28,7 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Domínio | Estado atual | Observação |
 | --- | --- | --- |
 | Portal público | Ativo | Produção em `tempopelotas.com.br` |
-| Interface pública | Ativo | Home, páginas internas/dedicadas e páginas institucionais compartilham o mesmo header/footer editorial, rail de conteúdo e contrato de superfícies da Home; a rota histórica de 2024 foi corrigida para não duplicar o chrome global |
+| Interface pública | Ativo | Home, páginas internas/dedicadas e páginas institucionais compartilham o mesmo header/footer editorial; a navegação pública usa `Agora` como acesso direto e cinco áreas editoriais — `Previsão`, `Monitoramento`, `Águas`, `Região` e `Explorar` — em megamenu no desktop e painel completo responsivo em tablet/mobile, reduzindo páginas meteorológicas órfãs sem transformar o topo em uma lista extensa |
 | Home meteorológica | Ativo | Header e hero editoriais; próximas horas e tendência semanal em capítulos separados; tendência posicionada imediatamente antes da central de radar/satélite; alertas e blocos locais autocontidos |
 | Previsão hoje/amanhã/7 dias | Ativo | Páginas dedicadas e conteúdo indexável |
 | Chuva, vento e meteograma | Ativo | Visões temáticas e hora a hora; `/chuva-em-pelotas` expõe volume previsto por hora e `/vento-em-pelotas` expõe direção prevista por hora reutilizando o meteograma estruturado Open-Meteo; `/meteograma-pelotas` também oferece comparação visual complementar com produtos WRF/GFS do SIMAGRO RS |
@@ -155,6 +155,18 @@ Pelotas usa a Home como página principal regional. As demais cidades usam `/tem
 - Dom Pedrito.
 
 Cada cidade possui slug, coordenadas, código IBGE, agrupamento regional e descriptor editorial em `src/lib/regional-cities.ts`.
+
+### Navegação editorial pública
+
+O header público mantém `Agora` como acesso direto e organiza o restante da descoberta em cinco áreas:
+
+- **Previsão** — Hoje, Amanhã, 7 dias, Meteograma, Chuva e Vento;
+- **Monitoramento** — Radar e satélite, Estação Embrapa, Câmeras, Geadas e acesso contextual a Avisos oficiais;
+- **Águas** — Situação hidrológica, nível do Laranjal e registro histórico da Enchente de 2024;
+- **Região** — hub `/tempo-na-regiao-sul-rs` e atalhos representativos para cidades da Zona Sul;
+- **Explorar** — Clima de Pelotas, Histórico climático, Blog, Status dos dados e Metodologia.
+
+No desktop essas áreas usam megamenu editorial amplo, com destaque contextual e links descritos. A partir do breakpoint de tablet o mesmo inventário de dados alimenta um painel vertical responsivo; não existe uma segunda lista manual de navegação para mobile. O menu regional mostra apenas cidades representativas e mantém `/tempo-na-regiao-sul-rs` como hub para as 23 páginas regionais, evitando transformar o megamenu em catálogo excessivo. `/alertas` continua com ação própria de alta visibilidade no header. `/privacidade-e-dados` permanece acessível pelas superfícies institucionais/conta e não é promovida como destino meteorológico principal.
 
 ## 5. Rotas operacionais e não indexáveis
 
@@ -671,6 +683,12 @@ Valida:
 
 - template de ambiente;
 - contratos rápidos;
+- navegação editorial e megamenu público;
+- overlay de navegação;
+- cache estático do service worker;
+- hidrologia diferida da Home;
+- inventário da Defesa Civil RS;
+- arquivo rico de previsões;
 - contrato Weather AI;
 - árvore de rotas;
 - build de produção;
@@ -719,6 +737,7 @@ Executa quatro vezes ao dia e manualmente, com GitHub OIDC e endpoint protegido 
 
 A suíte de contratos cobre, entre outros domínios:
 
+- navegação editorial/mega menu, inventário dos principais destinos públicos, acessibilidade, mobile e links regionais tipados;
 - níveis de água;
 - Historical Data Layer, coletores ambientais e extremos Embrapa;
 - forecast runs ricos Open-Meteo/MET Norway, separação run/pontos horários e RLS;
@@ -763,7 +782,7 @@ A regra atual de lint é incremental para impedir nova dívida sem misturar uma 
 
 O projeto é conectado ao Lovable. Commits enviados à branch conectada sincronizam para o editor.
 
-A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
+A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, o megamenu editorial no desktop, o painel responsivo derivado do mesmo inventário de navegação, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
 
 Regras:
 
@@ -1207,7 +1226,7 @@ Antes do billing, o primeiro valor real deve aparecer para usuário Free; o PRO 
 
 1. shell `/painel` com estado de conta e fontes;
 2. preferências/favoritos quando prontos;
-3. histórico Free de até 60 dias nos datasets aprovados;
+3. histórico Free de até 60 dias para datasets Free;
 4. data freshness e proveniência visíveis;
 5. gráficos determinísticos e estados de indisponibilidade.
 
