@@ -7,7 +7,7 @@ import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
-import { ProductionHome, type HomeHydrologyData } from "@/production/ProductionHome";
+import { ProductionHome, type HomeHydrologyResult } from "@/production/ProductionHome";
 
 const PAGE_TITLE = "Tempo Pelotas — Previsão do tempo em Pelotas";
 const PAGE_DESCRIPTION =
@@ -33,14 +33,18 @@ export const Route = createFileRoute("/")({
       createFaqPageJsonLd(PAGE_PATH, HOME_EDITORIAL_CONTENT.faqs),
     ]),
   loader: async () => {
-    const hydrology = Promise.all([
+    const hydrology: Promise<HomeHydrologyResult> = Promise.all([
       getLaranjalLevelData(),
       getGuaibaObservation(),
       getLagoonMonitoringNetwork(),
-    ]).then(
-      ([laranjal, guaiba, lagoon]) =>
-        ({ laranjal, guaiba, lagoon }) satisfies HomeHydrologyData,
-    );
+    ])
+      .then(([laranjal, guaiba, lagoon]) => ({
+        status: "ready" as const,
+        laranjal,
+        guaiba,
+        lagoon,
+      }))
+      .catch(() => ({ status: "unavailable" as const }));
 
     const weather = await getWeatherIntelligence();
     return { weather, hydrology };
