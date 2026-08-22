@@ -59,6 +59,11 @@ test("desktop megamenu is keyboard aware and exposes current navigation state", 
   assert.match(header, /aria-current=\{active \? "page" : undefined\}/);
 });
 
+test("desktop megamenu keeps the hover path continuous between trigger and panel", () => {
+  assert.match(styles, /\.tp-home-header__mega \{[\s\S]*top: 100%;[\s\S]*padding-top: 10px;/);
+  assert.doesNotMatch(styles, /top: calc\(100% \+ 10px\)/);
+});
+
 test("mobile navigation reuses the same megamenu inventory instead of a parallel list", () => {
   assert.match(header, /id="tp-mobile-menu"/);
   assert.match(header, /aria-expanded=\{mobileOpen\}/);
