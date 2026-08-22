@@ -44,6 +44,9 @@ jobs:
       - name: Contratos rápidos
         run: npm run test:contracts
 
+      - name: Navegação editorial e megamenu
+        run: node --test tests/editorial-megamenu-navigation.test.ts
+
       - name: Overlay de navegação
         run: node --test tests/route-loading-overlay.test.ts
 
