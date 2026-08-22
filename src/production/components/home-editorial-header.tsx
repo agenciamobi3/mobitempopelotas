@@ -1,6 +1,7 @@
 "use client";
 
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 
 import { AuthAccountAction } from "@/components/auth/AuthAccountAction";
 import type { InmetAlertSeverity } from "@/production/lib/inmet-alerts";
@@ -8,40 +9,270 @@ import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
 import "./home-editorial-header.css";
 
-const homeNavigation = [
-  { label: "Agora", to: "/", ariaLabel: "Ver o tempo agora em Pelotas" },
+const megaMenus = [
   {
-    label: "Hoje",
-    to: "/tempo-hoje-pelotas",
-    ariaLabel: "Ver a previsão do tempo para hoje em Pelotas",
+    id: "forecast",
+    label: "Previsão",
+    summary: "Planejamento do dia, da semana e leitura hora a hora.",
+    activePaths: [
+      "/tempo-hoje-pelotas",
+      "/tempo-amanha-pelotas",
+      "/previsao-7-dias-pelotas",
+      "/chuva-em-pelotas",
+      "/vento-em-pelotas",
+      "/meteograma-pelotas",
+    ],
+    featured: {
+      eyebrow: "Tempo em Pelotas",
+      label: "Previsão de hoje",
+      to: "/tempo-hoje-pelotas",
+      description: "Condição do dia, próximas horas e mudanças mais relevantes.",
+    },
+    sections: [
+      {
+        title: "Planeje o dia",
+        links: [
+          {
+            label: "Tempo amanhã",
+            to: "/tempo-amanha-pelotas",
+            description: "Temperatura, chuva e vento para o próximo dia.",
+          },
+          {
+            label: "Próximos 7 dias",
+            to: "/previsao-7-dias-pelotas",
+            description: "Tendência completa da semana em Pelotas.",
+          },
+          {
+            label: "Meteograma",
+            to: "/meteograma-pelotas",
+            description: "Temperatura, chuva, pressão, nuvens e vento hora a hora.",
+          },
+        ],
+      },
+      {
+        title: "Variáveis",
+        links: [
+          {
+            label: "Chuva em Pelotas",
+            to: "/chuva-em-pelotas",
+            description: "Probabilidade, volume e evolução prevista.",
+          },
+          {
+            label: "Vento e rajadas",
+            to: "/vento-em-pelotas",
+            description: "Direção, velocidade e rajadas previstas.",
+          },
+        ],
+      },
+    ],
   },
   {
-    label: "7 dias",
-    to: "/previsao-7-dias-pelotas",
-    ariaLabel: "Ver a previsão do tempo para os próximos sete dias em Pelotas",
+    id: "monitoring",
+    label: "Monitoramento",
+    summary: "Observação local, imagens, câmeras e eventos meteorológicos.",
+    activePaths: [
+      "/radar-e-satelite-pelotas",
+      "/estacao-embrapa-pelotas",
+      "/mapa-de-geadas-rio-grande-do-sul",
+      "/cameras-ao-vivo-pelotas",
+    ],
+    featured: {
+      eyebrow: "Radar e satélite",
+      label: "Veja a atmosfera em movimento",
+      to: "/radar-e-satelite-pelotas",
+      description: "Chuva, nuvens e trovoadas em Pelotas e na região.",
+    },
+    sections: [
+      {
+        title: "Observação local",
+        links: [
+          {
+            label: "Estação Embrapa",
+            to: "/estacao-embrapa-pelotas",
+            description: "Leituras observadas e extremos recentes da estação local.",
+          },
+          {
+            label: "Câmeras ao vivo",
+            to: "/cameras-ao-vivo-pelotas",
+            description: "Céu, visibilidade e condições locais em vídeo.",
+          },
+        ],
+      },
+      {
+        title: "Mapas e eventos",
+        links: [
+          {
+            label: "Mapa de geadas",
+            to: "/mapa-de-geadas-rio-grande-do-sul",
+            description: "Produto oficial do INMET para o Rio Grande do Sul.",
+          },
+          {
+            label: "Avisos oficiais",
+            to: "/alertas",
+            description: "Alertas meteorológicos vigentes aplicáveis a Pelotas.",
+          },
+        ],
+      },
+    ],
   },
-  { label: "Chuva", to: "/chuva-em-pelotas", ariaLabel: "Ver a previsão de chuva em Pelotas" },
-  { label: "Vento", to: "/vento-em-pelotas", ariaLabel: "Ver vento e rajadas em Pelotas" },
   {
-    label: "Lagoa",
-    to: "/nivel-da-lagoa-dos-patos-laranjal",
-    ariaLabel: "Ver o nível da Lagoa dos Patos no Laranjal",
+    id: "water",
+    label: "Águas",
+    summary: "Lagoa dos Patos, rede regional e memória das cheias.",
+    activePaths: [
+      "/situacao-hidrologica-pelotas",
+      "/nivel-da-lagoa-dos-patos-laranjal",
+      "/enchente-2024-pelotas-laranjal",
+    ],
+    featured: {
+      eyebrow: "Situação hidrológica",
+      label: "Acompanhe a rede de águas",
+      to: "/situacao-hidrologica-pelotas",
+      description: "Laranjal, Lagoa dos Patos, Guaíba e estações regionais.",
+    },
+    sections: [
+      {
+        title: "Agora",
+        links: [
+          {
+            label: "Nível no Laranjal",
+            to: "/nivel-da-lagoa-dos-patos-laranjal",
+            description: "Leitura local, tendência e contexto da Lagoa dos Patos.",
+          },
+          {
+            label: "Situação das águas",
+            to: "/situacao-hidrologica-pelotas",
+            description: "Visão integrada da rede hidrológica regional.",
+          },
+        ],
+      },
+      {
+        title: "Memória e contexto",
+        links: [
+          {
+            label: "Enchente de 2024",
+            to: "/enchente-2024-pelotas-laranjal",
+            description: "Linha do tempo da cheia histórica em Pelotas e no Laranjal.",
+          },
+        ],
+      },
+    ],
   },
   {
-    label: "Radar",
-    to: "/radar-e-satelite-pelotas",
-    ariaLabel: "Ver radar e satélite para Pelotas e região",
+    id: "region",
+    label: "Região",
+    summary: "Previsão regional e cidades da Zona Sul do Rio Grande do Sul.",
+    activePaths: ["/tempo-na-regiao-sul-rs", "/tempo-em/"],
+    featured: {
+      eyebrow: "Zona Sul do RS",
+      label: "Tempo na região",
+      to: "/tempo-na-regiao-sul-rs",
+      description: "Visão meteorológica das cidades acompanhadas pelo Tempo Pelotas.",
+    },
+    sections: [
+      {
+        title: "Pelotas e entorno",
+        links: [
+          {
+            label: "Capão do Leão",
+            to: "/tempo-em/capao-do-leao-rs",
+            description: "Previsão regional para o município vizinho a Pelotas.",
+          },
+          {
+            label: "Canguçu",
+            to: "/tempo-em/cangucu-rs",
+            description: "Tempo na Serra do Sudeste e área rural regional.",
+          },
+          {
+            label: "Morro Redondo",
+            to: "/tempo-em/morro-redondo-rs",
+            description: "Previsão para o município serrano próximo a Pelotas.",
+          },
+        ],
+      },
+      {
+        title: "Costa e fronteira",
+        links: [
+          {
+            label: "Rio Grande",
+            to: "/tempo-em/rio-grande-rs",
+            description: "Condições na cidade portuária e entorno costeiro.",
+          },
+          {
+            label: "São Lourenço do Sul",
+            to: "/tempo-em/sao-lourenco-do-sul-rs",
+            description: "Previsão para a Costa Doce junto à Lagoa dos Patos.",
+          },
+          {
+            label: "Jaguarão",
+            to: "/tempo-em/jaguarao-rs",
+            description: "Condições meteorológicas na Fronteira Sul.",
+          },
+        ],
+      },
+    ],
   },
   {
-    label: "Câmeras",
-    to: "/cameras-ao-vivo-pelotas",
-    ariaLabel: "Ver câmeras ao vivo de Pelotas",
+    id: "explore",
+    label: "Explorar",
+    summary: "Clima, histórico, conteúdo editorial e transparência dos dados.",
+    activePaths: [
+      "/clima-em-pelotas",
+      "/historico-climatico-pelotas",
+      "/blog",
+      "/status-dos-dados",
+      "/metodologia",
+    ],
+    featured: {
+      eyebrow: "Entenda Pelotas",
+      label: "Clima de Pelotas",
+      to: "/clima-em-pelotas",
+      description: "Estações do ano, Lagoa dos Patos e dinâmica do clima local.",
+    },
+    sections: [
+      {
+        title: "Contexto e memória",
+        links: [
+          {
+            label: "Histórico climático",
+            to: "/historico-climatico-pelotas",
+            description: "Compare temperatura, chuva e vento dos últimos dias.",
+          },
+          {
+            label: "Blog",
+            to: "/blog",
+            description: "Conteúdo meteorológico e explicações do portal.",
+          },
+        ],
+      },
+      {
+        title: "Transparência",
+        links: [
+          {
+            label: "Status dos dados",
+            to: "/status-dos-dados",
+            description: "Saúde operacional das fontes e leituras do portal.",
+          },
+          {
+            label: "Metodologia",
+            to: "/metodologia",
+            description: "Fontes, limites, atualização e critérios editoriais.",
+          },
+        ],
+      },
+    ],
   },
 ] as const;
+
+type MegaMenuId = (typeof megaMenus)[number]["id"];
 
 function isActivePath(pathname: string, to: string) {
   if (to === "/") return pathname === "/";
   return pathname === to || pathname.startsWith(`${to}/`);
+}
+
+function isMenuActive(pathname: string, activePaths: readonly string[]) {
+  return activePaths.some((path) => pathname === path || pathname.startsWith(path));
 }
 
 function alertLabel(level: AdvisoryLevel, officialSeverity: InmetAlertSeverity) {
@@ -53,6 +284,22 @@ function alertLabel(level: AdvisoryLevel, officialSeverity: InmetAlertSeverity) 
   return "Avisos";
 }
 
+function ChevronIcon() {
+  return (
+    <svg className="tp-home-header__chevron" viewBox="0 0 12 8" aria-hidden="true">
+      <path d="m1 1.5 5 5 5-5" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg className="tp-home-header__arrow" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M3 8h9M9 4l4 4-4 4" />
+    </svg>
+  );
+}
+
 export function HomeEditorialHeader({
   advisoryLevel = "normal",
   officialAlertSeverity = "unknown",
@@ -61,9 +308,38 @@ export function HomeEditorialHeader({
   officialAlertSeverity?: InmetAlertSeverity;
 }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const headerRef = useRef<HTMLElement>(null);
+  const [openMenu, setOpenMenu] = useState<MegaMenuId | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const alertsActive = isActivePath(pathname, "/alertas");
   const officialSeverityClass =
     officialAlertSeverity === "unknown" ? "" : ` severity-${officialAlertSeverity}`;
+
+  useEffect(() => {
+    setOpenMenu(null);
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) {
+        setOpenMenu(null);
+        setMobileOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpenMenu(null);
+      setMobileOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
 
   return (
     <>
@@ -71,9 +347,11 @@ export function HomeEditorialHeader({
         Pular para o conteúdo principal
       </a>
       <header
+        ref={headerRef}
         className="tp-home-header"
         data-advisory-level={advisoryLevel}
         data-official-alert-severity={officialAlertSeverity}
+        data-mobile-open={mobileOpen ? "true" : "false"}
       >
         <div className="tp-home-header__inner">
           <Link
@@ -94,23 +372,116 @@ export function HomeEditorialHeader({
           </Link>
 
           <nav className="tp-home-header__nav" aria-label="Navegação principal do Tempo Pelotas">
-            {homeNavigation.map((item) => {
-              const active = isActivePath(pathname, item.to);
+            <Link
+              className={`tp-home-header__direct${pathname === "/" ? " is-active" : ""}`}
+              to="/"
+              aria-current={pathname === "/" ? "page" : undefined}
+            >
+              Agora
+            </Link>
+
+            {megaMenus.map((menu) => {
+              const isOpen = openMenu === menu.id;
+              const isActive = isMenuActive(pathname, menu.activePaths);
+
               return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={active ? "is-active" : undefined}
-                  aria-label={item.ariaLabel}
-                  aria-current={active ? "page" : undefined}
+                <div
+                  className={`tp-home-header__nav-item${isOpen ? " is-open" : ""}`}
+                  key={menu.id}
+                  onMouseEnter={() => setOpenMenu(menu.id)}
+                  onMouseLeave={() =>
+                    setOpenMenu((current) => (current === menu.id ? null : current))
+                  }
+                  onFocus={() => setOpenMenu(menu.id)}
+                  onBlur={(event) => {
+                    const nextTarget = event.relatedTarget as Node | null;
+                    if (!event.currentTarget.contains(nextTarget)) {
+                      setOpenMenu((current) => (current === menu.id ? null : current));
+                    }
+                  }}
                 >
-                  {item.label}
-                </Link>
+                  <button
+                    className={`tp-home-header__trigger${isActive ? " is-active" : ""}`}
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={`tp-mega-${menu.id}`}
+                    onClick={() =>
+                      setOpenMenu((current) => (current === menu.id ? null : menu.id))
+                    }
+                  >
+                    <span>{menu.label}</span>
+                    <ChevronIcon />
+                  </button>
+
+                  <div
+                    className="tp-home-header__mega"
+                    id={`tp-mega-${menu.id}`}
+                    hidden={!isOpen}
+                  >
+                    <div className="tp-home-header__mega-surface">
+                      <Link
+                        className="tp-home-header__mega-featured"
+                        to={menu.featured.to}
+                        onClick={() => setOpenMenu(null)}
+                      >
+                        <span className="tp-home-header__mega-eyebrow">{menu.featured.eyebrow}</span>
+                        <strong>{menu.featured.label}</strong>
+                        <p>{menu.featured.description}</p>
+                        <span className="tp-home-header__mega-cta">
+                          Abrir <ArrowIcon />
+                        </span>
+                      </Link>
+
+                      <div className="tp-home-header__mega-content">
+                        <div className="tp-home-header__mega-heading">
+                          <span>{menu.label}</span>
+                          <p>{menu.summary}</p>
+                        </div>
+                        <div className="tp-home-header__mega-sections">
+                          {menu.sections.map((section) => (
+                            <section key={section.title}>
+                              <h3>{section.title}</h3>
+                              <div className="tp-home-header__mega-links">
+                                {section.links.map((item) => {
+                                  const active = isActivePath(pathname, item.to);
+                                  return (
+                                    <Link
+                                      key={item.to}
+                                      to={item.to}
+                                      className={active ? "is-active" : undefined}
+                                      aria-current={active ? "page" : undefined}
+                                      onClick={() => setOpenMenu(null)}
+                                    >
+                                      <strong>{item.label}</strong>
+                                      <span>{item.description}</span>
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </section>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               );
             })}
           </nav>
 
           <div className="tp-home-header__actions">
+            <button
+              className="tp-home-header__mobile-toggle"
+              type="button"
+              aria-expanded={mobileOpen}
+              aria-controls="tp-mobile-menu"
+              aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
+              onClick={() => setMobileOpen((current) => !current)}
+            >
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
+            </button>
             <AuthAccountAction />
             <Link
               className={`tp-home-header__alert is-${advisoryLevel}${officialSeverityClass}${alertsActive ? " is-active" : ""}`}
@@ -126,6 +497,56 @@ export function HomeEditorialHeader({
             </Link>
           </div>
         </div>
+
+        <nav
+          className="tp-home-header__mobile-menu"
+          id="tp-mobile-menu"
+          aria-label="Menu completo do Tempo Pelotas"
+          hidden={!mobileOpen}
+        >
+          <div className="tp-home-header__mobile-menu-inner">
+            <Link
+              className={`tp-home-header__mobile-home${pathname === "/" ? " is-active" : ""}`}
+              to="/"
+              aria-current={pathname === "/" ? "page" : undefined}
+            >
+              <span>Agora</span>
+              <strong>Tempo atual em Pelotas</strong>
+              <ArrowIcon />
+            </Link>
+
+            <div className="tp-home-header__mobile-groups">
+              {megaMenus.map((menu) => (
+                <section className="tp-home-header__mobile-group" key={menu.id}>
+                  <div className="tp-home-header__mobile-group-heading">
+                    <h2>{menu.label}</h2>
+                    <p>{menu.summary}</p>
+                  </div>
+                  <div className="tp-home-header__mobile-links">
+                    <Link className="is-featured" to={menu.featured.to}>
+                      <strong>{menu.featured.label}</strong>
+                      <span>{menu.featured.description}</span>
+                    </Link>
+                    {menu.sections.flatMap((section) => section.links).map((item) => {
+                      const active = isActivePath(pathname, item.to);
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          className={active ? "is-active" : undefined}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          <strong>{item.label}</strong>
+                          <span>{item.description}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </div>
+        </nav>
       </header>
     </>
   );
