@@ -24,6 +24,14 @@ test("route loading overlay uses the official portal brand and accessible status
   assert.match(overlay, /Carregando\.\.\./);
 });
 
+test("hidden route loading overlay does not mount its logo or status subtree", () => {
+  assert.match(
+    overlay,
+    /\{visible \? \([\s\S]*route-loading-overlay__content[\s\S]*tempo-pelotas-purple\.svg[\s\S]*\) : null\}/,
+  );
+  assert.match(overlay, /aria-busy="true"/);
+});
+
 test("route loading overlay is global, non-blocking while hidden and motion-safe", () => {
   assert.match(root, /<RouteLoadingOverlay \/>/);
   assert.match(styles, /pointer-events: none/);
