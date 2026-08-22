@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ViewportScrollRoot } from "@/components/layout/ViewportScrollRoot";
+import { RouteLoadingOverlay } from "@/components/navigation/RouteLoadingOverlay";
 import { PwaAppExperience } from "@/components/pwa/PwaAppExperience";
 import { PwaManager } from "@/components/pwa/PwaManager";
 import { WeatherMinuteRefresh } from "@/components/weather/WeatherMinuteRefresh";
@@ -161,6 +162,7 @@ function RootComponent() {
           <Outlet />
         </SiteLayout>
       </ViewportScrollRoot>
+      <RouteLoadingOverlay />
       <PwaAppExperience />
       <PwaManager />
     </QueryClientProvider>
