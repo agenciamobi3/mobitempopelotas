@@ -128,10 +128,11 @@
 
 .tp-home-header__mega {
   position: absolute;
-  top: calc(100% + 10px);
+  top: 100%;
   left: 50%;
   z-index: 75;
   width: min(1120px, calc(100vw - 32px));
+  padding-top: 10px;
   transform: translateX(-50%);
 }
 
@@ -141,7 +142,7 @@
 
 .tp-home-header__mega::before {
   position: absolute;
-  top: -7px;
+  top: 3px;
   left: 50%;
   width: 14px;
   height: 14px;
