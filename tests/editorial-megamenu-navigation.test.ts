@@ -42,6 +42,14 @@ test("megamenu groups the public weather inventory into editorial areas", () => 
   }
 });
 
+test("regional shortcuts preserve TanStack typed dynamic navigation", () => {
+  assert.match(header, /to: "\/tempo-em\/\$citySlug"/);
+  assert.match(header, /params: \{ citySlug: "capao-do-leao-rs" \}/);
+  assert.match(header, /params: \{ citySlug: "rio-grande-rs" \}/);
+  assert.match(header, /params=\{item\.params\}/);
+  assert.match(header, /const path = itemPath\(item\)/);
+});
+
 test("desktop megamenu is keyboard aware and exposes current navigation state", () => {
   assert.match(header, /aria-expanded=\{isOpen\}/);
   assert.match(header, /aria-controls=\{`tp-mega-\$\{menu\.id\}`\}/);
