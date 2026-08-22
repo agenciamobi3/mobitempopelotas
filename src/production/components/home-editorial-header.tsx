@@ -175,17 +175,23 @@ const megaMenus = [
         links: [
           {
             label: "Capão do Leão",
-            to: "/tempo-em/capao-do-leao-rs",
+            to: "/tempo-em/$citySlug",
+            params: { citySlug: "capao-do-leao-rs" },
+            path: "/tempo-em/capao-do-leao-rs",
             description: "Previsão regional para o município vizinho a Pelotas.",
           },
           {
             label: "Canguçu",
-            to: "/tempo-em/cangucu-rs",
+            to: "/tempo-em/$citySlug",
+            params: { citySlug: "cangucu-rs" },
+            path: "/tempo-em/cangucu-rs",
             description: "Tempo na Serra do Sudeste e área rural regional.",
           },
           {
             label: "Morro Redondo",
-            to: "/tempo-em/morro-redondo-rs",
+            to: "/tempo-em/$citySlug",
+            params: { citySlug: "morro-redondo-rs" },
+            path: "/tempo-em/morro-redondo-rs",
             description: "Previsão para o município serrano próximo a Pelotas.",
           },
         ],
@@ -195,17 +201,23 @@ const megaMenus = [
         links: [
           {
             label: "Rio Grande",
-            to: "/tempo-em/rio-grande-rs",
+            to: "/tempo-em/$citySlug",
+            params: { citySlug: "rio-grande-rs" },
+            path: "/tempo-em/rio-grande-rs",
             description: "Condições na cidade portuária e entorno costeiro.",
           },
           {
             label: "São Lourenço do Sul",
-            to: "/tempo-em/sao-lourenco-do-sul-rs",
+            to: "/tempo-em/$citySlug",
+            params: { citySlug: "sao-lourenco-do-sul-rs" },
+            path: "/tempo-em/sao-lourenco-do-sul-rs",
             description: "Previsão para a Costa Doce junto à Lagoa dos Patos.",
           },
           {
             label: "Jaguarão",
-            to: "/tempo-em/jaguarao-rs",
+            to: "/tempo-em/$citySlug",
+            params: { citySlug: "jaguarao-rs" },
+            path: "/tempo-em/jaguarao-rs",
             description: "Condições meteorológicas na Fronteira Sul.",
           },
         ],
@@ -273,6 +285,10 @@ function isActivePath(pathname: string, to: string) {
 
 function isMenuActive(pathname: string, activePaths: readonly string[]) {
   return activePaths.some((path) => pathname === path || pathname.startsWith(path));
+}
+
+function itemPath(item: { to: string } | { to: string; path: string }) {
+  return "path" in item ? item.path : item.to;
 }
 
 function alertLabel(level: AdvisoryLevel, officialSeverity: InmetAlertSeverity) {
@@ -443,10 +459,28 @@ export function HomeEditorialHeader({
                               <h3>{section.title}</h3>
                               <div className="tp-home-header__mega-links">
                                 {section.links.map((item) => {
-                                  const active = isActivePath(pathname, item.to);
+                                  const path = itemPath(item);
+                                  const active = isActivePath(pathname, path);
+
+                                  if ("params" in item) {
+                                    return (
+                                      <Link
+                                        key={path}
+                                        to={item.to}
+                                        params={item.params}
+                                        className={active ? "is-active" : undefined}
+                                        aria-current={active ? "page" : undefined}
+                                        onClick={() => setOpenMenu(null)}
+                                      >
+                                        <strong>{item.label}</strong>
+                                        <span>{item.description}</span>
+                                      </Link>
+                                    );
+                                  }
+
                                   return (
                                     <Link
-                                      key={item.to}
+                                      key={path}
                                       to={item.to}
                                       className={active ? "is-active" : undefined}
                                       aria-current={active ? "page" : undefined}
@@ -528,10 +562,27 @@ export function HomeEditorialHeader({
                       <span>{menu.featured.description}</span>
                     </Link>
                     {menu.sections.flatMap((section) => section.links).map((item) => {
-                      const active = isActivePath(pathname, item.to);
+                      const path = itemPath(item);
+                      const active = isActivePath(pathname, path);
+
+                      if ("params" in item) {
+                        return (
+                          <Link
+                            key={path}
+                            to={item.to}
+                            params={item.params}
+                            className={active ? "is-active" : undefined}
+                            aria-current={active ? "page" : undefined}
+                          >
+                            <strong>{item.label}</strong>
+                            <span>{item.description}</span>
+                          </Link>
+                        );
+                      }
+
                       return (
                         <Link
-                          key={item.to}
+                          key={path}
                           to={item.to}
                           className={active ? "is-active" : undefined}
                           aria-current={active ? "page" : undefined}
