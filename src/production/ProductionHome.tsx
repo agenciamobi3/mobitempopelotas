@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Await, Link } from "@tanstack/react-router";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { HomeExplorePortal } from "@/components/weather/HomeExplorePortal";
 import { getWeatherCameras } from "@/lib/cameras/cameras.functions";
@@ -32,6 +32,7 @@ import { useOpenMeteoIntelligenceRecovery } from "@/production/lib/open-meteo-br
 import type { WeatherData } from "@/production/lib/weather-data";
 import { getWeatherAdvisory, type AdvisoryLevel } from "@/production/lib/weather-insights";
 import "@/production/styles/home-editorial-status-refinements.css";
+import "@/production/styles/home-water-deferred.css";
 
 const advisoryRank: Record<AdvisoryLevel, number> = { normal: 0, attention: 1, warning: 2 };
 const officialSeverityRank: Record<InmetAlertSeverity, number> = {
@@ -50,6 +51,12 @@ const unavailableSource = {
   forecastName: "Fontes meteorológicas em atualização",
   forecastUrl: "/metodologia",
 } satisfies WeatherData["source"];
+
+export type HomeHydrologyData = {
+  laranjal: LaranjalLevelData;
+  guaiba: GuaibaObservationData;
+  lagoon: LagoonMonitoringNetworkData;
+};
 
 function getLiveLaranjalCamera(cameraData: WeatherCameraData) {
   const camera = cameraData.cameras.find((item) => item.id === "laranjal");
@@ -82,16 +89,34 @@ function strongestHourlyWindSpeed(weather: WeatherData) {
   }, null);
 }
 
+function HomeWaterLoading() {
+  return (
+    <section className="home-water-deferred" aria-live="polite" aria-busy="true">
+      <p className="home-water-deferred__eyebrow">Águas</p>
+      <h2>Atualizando níveis e medições...</h2>
+      <span className="home-water-deferred__progress" aria-hidden="true" />
+    </section>
+  );
+}
+
+function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyData> }) {
+  return (
+    <Suspense fallback={<HomeWaterLoading />}>
+      <Await promise={hydrology}>
+        {({ laranjal, guaiba, lagoon }) => (
+          <HomeWaterEditorial laranjal={laranjal} guaiba={guaiba} lagoon={lagoon} />
+        )}
+      </Await>
+    </Suspense>
+  );
+}
+
 export function ProductionHome({
   data,
-  laranjal,
-  guaiba,
-  lagoon,
+  hydrology,
 }: {
   data: WeatherIntelligenceData;
-  laranjal: LaranjalLevelData;
-  guaiba: GuaibaObservationData;
-  lagoon: LagoonMonitoringNetworkData;
+  hydrology: Promise<HomeHydrologyData>;
 }) {
   const recoveredData = useOpenMeteoIntelligenceRecovery(data);
   const weather = useMemo(
@@ -238,7 +263,7 @@ export function ProductionHome({
         <HomeForecastTrend weather={weather} narrative={summaries.tomorrow} />
         <HomeRadarEditorial regionalWeather={weather.regional} />
         <HomeObservationEditorial weather={weather} observation={observation} />
-        <HomeWaterEditorial laranjal={laranjal} guaiba={guaiba} lagoon={lagoon} />
+        <DeferredHomeWater hydrology={hydrology} />
         <HomeExplorePortal />
         <HomeDataGuide />
       </main>
