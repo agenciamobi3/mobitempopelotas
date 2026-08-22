@@ -74,21 +74,23 @@ export function RouteLoadingOverlay() {
       onWheel={visible ? (event) => event.preventDefault() : undefined}
       onTouchMove={visible ? (event) => event.preventDefault() : undefined}
     >
-      <div className="route-loading-overlay__content" role="status" aria-live="polite" aria-busy={visible}>
-        <img
-          className="route-loading-overlay__logo"
-          src="/brand/tempo-pelotas-purple.svg"
-          alt="Tempo Pelotas"
-          width={344}
-          height={50}
-          decoding="async"
-          draggable={false}
-        />
-        <p>Carregando...</p>
-        <span className="route-loading-overlay__progress" aria-hidden="true">
-          <i />
-        </span>
-      </div>
+      {visible ? (
+        <div className="route-loading-overlay__content" role="status" aria-live="polite" aria-busy="true">
+          <img
+            className="route-loading-overlay__logo"
+            src="/brand/tempo-pelotas-purple.svg"
+            alt="Tempo Pelotas"
+            width={344}
+            height={50}
+            decoding="async"
+            draggable={false}
+          />
+          <p>Carregando...</p>
+          <span className="route-loading-overlay__progress" aria-hidden="true">
+            <i />
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
