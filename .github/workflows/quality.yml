@@ -47,6 +47,9 @@ jobs:
       - name: Overlay de navegação
         run: node --test tests/route-loading-overlay.test.ts
 
+      - name: Cache estático do service worker
+        run: node --test tests/service-worker-static-cache.test.ts
+
       - name: Hidrologia diferida da Home
         run: node --test tests/home-deferred-hydrology.test.ts
 
