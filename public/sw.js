@@ -1,13 +1,15 @@
 /* global self, caches, fetch, Response, URL */
 
-const CACHE_VERSION = "tempo-pelotas-v7";
+const CACHE_VERSION = "tempo-pelotas-v8";
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_FALLBACK_URL = "/offline.html";
 const OPTIONAL_APP_SHELL_URLS = [
   "/manifest.webmanifest",
   "/brand/tempo-pelotas-icon.png",
+  "/brand/tempo-pelotas-purple.svg",
 ];
+const IN_FLIGHT_ASSET_REQUESTS = new Map();
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -64,9 +66,11 @@ async function onlineOnlyNavigation(event) {
   }
 }
 
-async function staleWhileRevalidate(request, event) {
-  const cache = await caches.open(RUNTIME_CACHE);
-  const cached = await cache.match(request);
+function getAssetNetworkRequest(request, cache) {
+  const key = request.url;
+  const existing = IN_FLIGHT_ASSET_REQUESTS.get(key);
+  if (existing) return existing;
+
   const networkPromise = fetch(request)
     .then(async (response) => {
       if (response.ok) {
@@ -74,14 +78,27 @@ async function staleWhileRevalidate(request, event) {
       }
       return response;
     })
-    .catch(() => null);
+    .catch(() => null)
+    .finally(() => {
+      IN_FLIGHT_ASSET_REQUESTS.delete(key);
+    });
+
+  IN_FLIGHT_ASSET_REQUESTS.set(key, networkPromise);
+  return networkPromise;
+}
+
+async function staleWhileRevalidate(request, event) {
+  const cache = await caches.open(RUNTIME_CACHE);
+  const cached = await cache.match(request);
+  const networkPromise = getAssetNetworkRequest(request, cache);
 
   if (cached) {
     event.waitUntil(networkPromise.then(() => undefined));
     return cached;
   }
 
-  return (await networkPromise) || Response.error();
+  const networkResponse = await networkPromise;
+  return networkResponse ? networkResponse.clone() : Response.error();
 }
 
 function isCacheableStaticAsset(url) {
