@@ -1,0 +1,91 @@
+.home-water-deferred {
+  display: grid;
+  min-height: 15rem;
+  align-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  margin-inline: auto;
+  padding: clamp(2rem, 5vw, 3.25rem);
+  border: 1px solid rgba(7, 30, 47, 0.08);
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.72);
+  text-align: center;
+}
+
+.home-water-deferred__eyebrow {
+  margin: 0;
+  color: var(--portal-sky-deep);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-water-deferred h2 {
+  margin: 0;
+  color: var(--portal-ink);
+  font-size: clamp(1.15rem, 3vw, 1.5rem);
+  letter-spacing: -0.025em;
+}
+
+.home-water-deferred__progress {
+  position: relative;
+  width: min(12rem, 62vw);
+  height: 0.22rem;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(7, 30, 47, 0.09);
+}
+
+.home-water-deferred__progress::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42%;
+  border-radius: inherit;
+  background: var(--portal-sky-deep);
+  content: "";
+  animation: home-water-deferred-progress 1s ease-in-out infinite;
+}
+
+@keyframes home-water-deferred-progress {
+  0% {
+    transform: translateX(-110%);
+  }
+
+  50% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-water-deferred__progress::after {
+    width: 100%;
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .home-water-deferred {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  .home-water-deferred h2,
+  .home-water-deferred__eyebrow {
+    color: CanvasText;
+  }
+
+  .home-water-deferred__progress {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  .home-water-deferred__progress::after {
+    background: Highlight;
+  }
+}
