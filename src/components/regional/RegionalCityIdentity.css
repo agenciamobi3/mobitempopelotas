@@ -1,23 +1,11 @@
 /*
- * Identidade compartilhada — as páginas /tempo-em/... usam os mesmos blocos
- * aprovados em /tempo-hoje-pelotas: hero retail, aviso INMET, capítulos e previsão.
+ * Identidade compartilhada das páginas /tempo-em/... .
+ * O frame regional usa os mesmos limites editoriais da Home e das páginas internas.
  */
-.site-shell--topic[data-topic="tempo-em"]
-  .site-container--topic
-  > .regional-city-page
-  > section.today-retail-hero {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(2.1rem, 4.8vw, 4.8rem) 0 clamp(1.7rem, 3.8vw, 3.5rem);
-}
-
-.site-shell--topic[data-topic="tempo-em"] .today-retail-hero__inner {
-  width: 100%;
-  max-width: var(--regional-frame-max);
-  padding-right: var(--regional-gutter);
-  padding-left: var(--regional-gutter);
-  box-sizing: border-box;
+.regional-city-page {
+  --regional-frame-max: var(--tp-home-container-max, 1440px);
+  --regional-frame-gap: var(--tp-home-container-gutter, 48px);
+  --regional-gutter: clamp(24px, 3vw, 34px);
 }
 
 .regional-city-page > :is(
@@ -35,10 +23,7 @@
   box-sizing: border-box;
 }
 
-.site-shell--topic[data-topic="tempo-em"]
-  .site-container--topic
-  > .regional-city-page
-  > section.regional-city-official-alert {
+.regional-city-page > section.regional-city-official-alert {
   width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
   max-width: var(--regional-frame-max);
   margin: clamp(24px, 3vw, 42px) auto 0;
@@ -80,32 +65,17 @@
   scroll-snap-align: start;
 }
 
-.site-shell--topic[data-topic="tempo-em"]
-  .site-container--topic
-  > .regional-city-page
-  > section.regional-city-context {
-  width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
-  max-width: var(--regional-frame-max);
+.regional-city-page > section.regional-city-context {
   margin: clamp(22px, 2.6vw, 38px) auto 0;
   padding: clamp(42px, 5vw, 82px) var(--regional-gutter);
 }
 
-.site-shell--topic[data-topic="tempo-em"]
-  .site-container--topic
-  > .regional-city-page
-  > section.regional-city-related {
-  width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
-  max-width: var(--regional-frame-max);
+.regional-city-page > section.regional-city-related {
   margin: clamp(22px, 2.6vw, 38px) auto 0;
   padding: clamp(36px, 4.7vw, 72px) var(--regional-gutter);
 }
 
-.site-shell--topic[data-topic="tempo-em"]
-  .site-container--topic
-  > .regional-city-page
-  > footer.regional-city-sources {
-  width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
-  max-width: var(--regional-frame-max);
+.regional-city-page > footer.regional-city-sources {
   margin: clamp(22px, 2.6vw, 38px) auto 0;
   padding: 22px var(--regional-gutter);
 }
@@ -150,15 +120,16 @@
   scroll-margin-top: 7.75rem;
 }
 
-@media (max-width: 1180px) {
-  .regional-city-page > .internal-page-chapters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 1240px) {
+  .regional-city-page {
+    --regional-frame-max: var(--tp-home-container-compact-max, 1180px);
+    --regional-frame-gap: var(--tp-home-container-compact-gutter, 32px);
   }
 }
 
-@media (max-width: 920px) {
-  .site-shell--topic[data-topic="tempo-em"] .today-retail-hero__inner {
-    max-width: 780px;
+@media (max-width: 1180px) {
+  .regional-city-page > .internal-page-chapters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -179,22 +150,12 @@
 }
 
 @media (max-width: 700px) {
-  .site-shell--topic[data-topic="tempo-em"]
-    .site-container--topic
-    > .regional-city-page
-    > section.today-retail-hero {
-    padding: 1.5rem 0 1.35rem;
+  .regional-city-page {
+    --regional-frame-gap: var(--tp-home-container-mobile-gutter, 20px);
+    --regional-gutter: 18px;
   }
 
-  .site-shell--topic[data-topic="tempo-em"] .today-retail-hero__inner {
-    padding-right: 14px;
-    padding-left: 14px;
-  }
-
-  .site-shell--topic[data-topic="tempo-em"]
-    .site-container--topic
-    > .regional-city-page
-    > section.regional-city-official-alert {
+  .regional-city-page > section.regional-city-official-alert {
     margin-top: 14px;
   }
 
@@ -204,22 +165,13 @@
     border-radius: 1rem;
   }
 
-  .site-shell--topic[data-topic="tempo-em"]
-    .site-container--topic
-    > .regional-city-page
-    > section.regional-city-context,
-  .site-shell--topic[data-topic="tempo-em"]
-    .site-container--topic
-    > .regional-city-page
-    > section.regional-city-related {
+  .regional-city-page > section.regional-city-context,
+  .regional-city-page > section.regional-city-related {
     margin-top: 16px;
     padding: 28px 16px;
   }
 
-  .site-shell--topic[data-topic="tempo-em"]
-    .site-container--topic
-    > .regional-city-page
-    > footer.regional-city-sources {
+  .regional-city-page > footer.regional-city-sources {
     margin-top: 16px;
     padding: 20px 16px;
   }
