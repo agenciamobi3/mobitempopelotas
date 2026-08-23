@@ -5,6 +5,8 @@ const TECHNICAL_HOST_SUFFIXES = [
   ["lovable", "app"].join("."),
   ["vercel", "app"].join("."),
 ];
+const TECHNICAL_HOST_ROBOTS_POLICY =
+  "noindex, nofollow, noarchive, nosnippet, noimageindex";
 
 function isTechnicalHost(hostname: string) {
   return TECHNICAL_HOST_SUFFIXES.some(
@@ -37,7 +39,8 @@ export function createCanonicalRedirectResponse(request: Request) {
     status: 308,
     headers: {
       Location: location,
-      "X-Robots-Tag": "noindex, nofollow",
+      Link: `<${location}>; rel="canonical"`,
+      "X-Robots-Tag": TECHNICAL_HOST_ROBOTS_POLICY,
       "Cache-Control": "public, max-age=86400",
     },
   });
