@@ -122,7 +122,7 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
       badgeIcon={<WeatherIcon name={currentIcon} title={`Condição estimada: ${condition}`} />}
       badgeLabel={priorityAlert ? `Aviso oficial para ${city.name}` : condition}
       updatedLabel={formatRegionalDateTime(data.source.fetchedAt)}
-      currentLabel={current ? "Temperatura agora" : "Estimativa atual"}
+      currentLabel={current ? "Temperatura estimada agora" : "Estimativa atual"}
       currentValue={metric(current?.temperature ?? null, "°")}
       currentDetail={currentDetail}
       highlightIcon={<CloudRain aria-hidden="true" />}
@@ -130,6 +130,14 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
       highlightValue={metric(highestRainChance, "%")}
       highlightDetail={peakRainDetail}
       facts={[
+        {
+          label: "Umidade estimada",
+          value: metric(current?.humidity ?? null, "%"),
+        },
+        {
+          label: "Pressão ao nível do mar",
+          value: metric(current?.pressure ?? null, " hPa"),
+        },
         {
           label: "Faixa prevista hoje",
           value: today
