@@ -181,9 +181,9 @@ test("sensitive request firewall is distributed, privacy-preserving and fail-clo
   assert.match(requestFirewall, /\/api\/push\/broadcast/);
   assert.match(requestFirewall, /prefix: "\/api\/cron\/"/);
   assert.match(requestFirewall, /maxBodyBytes/);
-  assert.match(requestFirewall, /status, 405/);
-  assert.match(requestFirewall, /status, 413/);
-  assert.match(requestFirewall, /status, 429/);
+  assert.match(requestFirewall, /jsonError\(405/);
+  assert.match(requestFirewall, /jsonError\(413/);
+  assert.match(requestFirewall, /jsonError\(429/);
   assert.match(requestFirewall, /Retry-After/);
   assert.match(requestFirewall, /createSupabaseAdminClient/);
   assert.match(requestFirewall, /consume_security_rate_limit/);
