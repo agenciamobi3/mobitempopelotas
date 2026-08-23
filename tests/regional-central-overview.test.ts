@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { REGIONAL_CITIES, REGIONAL_CITY_GROUPS } from "../src/lib/regional-cities.ts";
+import {
+  INDEXABLE_REGIONAL_CITIES,
+  PUBLIC_REGIONAL_CITIES,
+  REGIONAL_CITIES,
+  REGIONAL_CITY_GROUPS,
+} from "../src/lib/regional-cities.ts";
 
 const route = readFileSync("src/routes/tempo-na-regiao-sul-rs.tsx", "utf8");
 const directory = readFileSync("src/components/regional/RegionalCitiesDirectory.tsx", "utf8");
@@ -30,6 +35,8 @@ const overviewFunctions = readFileSync(
 
 test("a Central Regional permanece limitada às 24 cidades aprovadas nesta etapa", () => {
   assert.equal(REGIONAL_CITIES.length, 24);
+  assert.equal(PUBLIC_REGIONAL_CITIES.length, 24);
+  assert.equal(INDEXABLE_REGIONAL_CITIES.length, 24);
   assert.equal(REGIONAL_CITY_GROUPS.length, 4);
   assert.deepEqual(
     REGIONAL_CITY_GROUPS.map((group) => group.name),
@@ -46,11 +53,20 @@ test("a Central Regional carrega uma visão resumida server-side com cache", () 
   assert.match(overviewFunctions, /fetchRegionalCitiesOverview/);
 });
 
-test("o resumo das 24 cidades usa uma única consulta Open-Meteo em lote", () => {
+test("o resumo das cidades públicas usa uma única consulta Open-Meteo em lote", () => {
   assert.match(overviewServer, /api\.open-meteo\.com\/v1\/forecast/);
-  assert.match(overviewServer, /REGIONAL_CITIES\.map\(\(city\) => city\.latitude\)\.join\(","\)/);
-  assert.match(overviewServer, /REGIONAL_CITIES\.map\(\(city\) => city\.longitude\)\.join\(","\)/);
-  assert.match(overviewServer, /REGIONAL_CITIES\.map\(\(\) => TIMEZONE\)\.join\(","\)/);
+  assert.match(
+    overviewServer,
+    /PUBLIC_REGIONAL_CITIES\.map\(\(city\) => city\.latitude\)\.join\(","\)/,
+  );
+  assert.match(
+    overviewServer,
+    /PUBLIC_REGIONAL_CITIES\.map\(\(city\) => city\.longitude\)\.join\(","\)/,
+  );
+  assert.match(
+    overviewServer,
+    /PUBLIC_REGIONAL_CITIES\.map\(\(\) => TIMEZONE\)\.join\(","\)/,
+  );
   assert.match(overviewServer, /forecast_days:\s*"1"/);
   assert.match(overviewServer, /temperature_2m,weather_code,wind_speed_10m/);
   assert.match(
@@ -59,6 +75,7 @@ test("o resumo das 24 cidades usa uma única consulta Open-Meteo em lote", () =>
   );
   assert.equal((overviewServer.match(/await fetch\(/g) ?? []).length, 1);
   assert.doesNotMatch(overviewServer, /Promise\.all/);
+  assert.doesNotMatch(overviewServer, /REGIONAL_CITIES\.map/);
 });
 
 test("falha do resumo não derruba a navegação municipal", () => {
