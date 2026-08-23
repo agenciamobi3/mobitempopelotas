@@ -6,6 +6,7 @@ import {
   Scripts,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
 } from "@tanstack/react-router";
 import mapLibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
 import { useEffect, type ReactNode } from "react";
@@ -28,6 +29,30 @@ import {
 } from "@/lib/site-config";
 import productionCss from "@/production/production-styles.css?url";
 import appCss from "../styles.css?url";
+
+const GOOGLE_ANALYTICS_MEASUREMENT_ID = "G-97YX7HPD90";
+
+type AnalyticsWindow = Window & {
+  dataLayer?: unknown[][];
+  gtag?: (...args: unknown[]) => void;
+};
+
+function GoogleAnalyticsPageviews() {
+  const href = useRouterState({ select: (state) => state.location.href });
+
+  useEffect(() => {
+    const analyticsWindow = window as AnalyticsWindow;
+    if (typeof analyticsWindow.gtag !== "function") return;
+
+    analyticsWindow.gtag("event", "page_view", {
+      page_title: document.title,
+      page_location: window.location.href,
+      page_path: `${window.location.pathname}${window.location.search}`,
+    });
+  }, [href]);
+
+  return null;
+}
 
 function NotFoundComponent() {
   return (
@@ -139,10 +164,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const analyticsBootstrap = `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GOOGLE_ANALYTICS_MEASUREMENT_ID}', {
+  send_page_view: false,
+  allow_google_signals: false,
+  allow_ad_personalization_signals: false
+});`;
+
   return (
     <html lang="pt-BR">
       <head>
         <HeadContent />
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_MEASUREMENT_ID}`}
+        />
+        <script dangerouslySetInnerHTML={{ __html: analyticsBootstrap }} />
       </head>
       <body>
         {children}
@@ -157,6 +196,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <GoogleAnalyticsPageviews />
       <WeatherMinuteRefresh />
       <ViewportScrollRoot>
         <SiteLayout>
