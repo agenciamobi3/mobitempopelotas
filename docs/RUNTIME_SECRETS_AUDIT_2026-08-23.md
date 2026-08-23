@@ -68,22 +68,25 @@ Desde este checkpoint, `PushNotificationsManager` está montado no shell global.
 
 ## Google Analytics
 
-Measurement ID público da conexão existente: `G-97YX7HPD90`.
+Measurement ID público: `G-97YX7HPD90`.
 
-A conexão do workspace Lovable chamada `Analytics TEMPO Pelotas` existe, mas a tentativa de vínculo ao projeto foi recusada pela camada de permissões da própria conexão: o proprietário/membro que possui o projeto não está autorizado a usar essa conexão no estado atual.
+A tag GA4 foi inserida diretamente no shell SSR do portal para permitir detecção/verificação da propriedade antes do vínculo do conector Lovable. O carregamento usa `https://www.googletagmanager.com/gtag/js?id=G-97YX7HPD90` no `<head>` inicial.
 
-O conector Google Analytics do Lovable é a fonte canônica planejada para o tracking. Não manter uma segunda inicialização manual de `gtag.js` no código enquanto esse conector for a integração escolhida, pois isso pode duplicar inicialização e pageviews quando a conexão for vinculada.
+Como o Tempo Pelotas é SPA com TanStack Router, a configuração usa `send_page_view: false` e envia um único evento `page_view` explícito por mudança de rota, evitando duplicidade entre pageview automático e navegação client-side.
 
-Até a permissão ser corrigida e o vínculo concluído, o projeto não deve declarar a medição do GA4 como operacional somente por existir o Measurement ID.
+A configuração mantém `allow_google_signals: false` e `allow_ad_personalization_signals: false`. O tracking não recebe do Tempo Pelotas e-mail, nome ou identificador interno da conta usada no login.
+
+A conexão do workspace Lovable chamada `Analytics TEMPO Pelotas` continua sem vínculo por permissão. Depois que a propriedade estiver detectada/verificada e a permissão da conexão for corrigida, o conector pode ser vinculado para leitura/operação do Analytics. Ele não deve adicionar uma segunda inicialização de `gtag.js` ao projeto enquanto a tag direta permanecer canônica.
 
 ## Próximos passos operacionais
 
-1. corrigir a permissão da conexão `Analytics TEMPO Pelotas` no workspace e vinculá-la ao projeto;
-2. validar no navegador/Realtime do GA4 que cada navegação SPA gera somente um pageview;
-3. gerar/configurar o par VAPID definitivo e `VAPID_SUBJECT`;
-4. configurar `PUSH_ADMIN_SECRET`;
-5. definir `CRON_SECRET` e configurar um scheduler real para `/api/cron/push-daily` usando o mesmo valor;
-6. validar `/api/push/config` em produção;
-7. ativar notificações em um navegador autenticado e confirmar que a inscrição recebe `user_id`;
-8. testar separadamente weather, water, daily summary e community com consentimento ligado/desligado;
-9. manter e-mail como canal separado caso seja implementado futuramente; as quatro preferências atuais não equivalem a assinatura de e-mail.
+1. publicar a versão contendo `G-97YX7HPD90` e validar a detecção da tag/propriedade no Google Analytics;
+2. corrigir a permissão da conexão `Analytics TEMPO Pelotas` e vinculá-la ao projeto sem duplicar a tag;
+3. validar no Realtime do GA4 que cada navegação SPA gera somente um pageview;
+4. gerar/configurar o par VAPID definitivo e `VAPID_SUBJECT`;
+5. configurar `PUSH_ADMIN_SECRET`;
+6. definir `CRON_SECRET` e configurar um scheduler real para `/api/cron/push-daily` usando o mesmo valor;
+7. validar `/api/push/config` em produção;
+8. ativar notificações em um navegador autenticado e confirmar que a inscrição recebe `user_id`;
+9. testar separadamente weather, water, daily summary e community com consentimento ligado/desligado;
+10. manter e-mail como canal separado caso seja implementado futuramente; as quatro preferências atuais não equivalem a assinatura de e-mail.
