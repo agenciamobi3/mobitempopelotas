@@ -106,7 +106,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
           </div>
           <div>
             <strong>{formatUpdatedAt(data.fetchedAt)}</strong>
-            <span>atualização do modelo</span>
+            <span>consulta regional</span>
           </div>
         </div>
         <small className={styles.heroNote}>
