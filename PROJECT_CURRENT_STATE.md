@@ -52,6 +52,9 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Login Google / conta | Parcial operacional | Conta, LGPD, Free/PRO estrutural e login por Google Identity Services + ID Token implementados; `VITE_GOOGLE_CLIENT_ID` está configurado no build de produção e falta concluir E2E real |
 | Weather AI | Ativo controlado | Snapshot persistido, orçamento mensal e fallback determinístico |
 | Gate geográfico de visitantes | Ativo | Entrypoint `src/server-brazil.ts` classifica navegadores em hosts de produção por país; não-BR ou país desconhecido recebe resposta autocontida 403 antes de tocar no app normal; server-to-server e localhost não afetados; inclui observabilidade sanitizada por instância de runtime e headers básicos de hardening |
+| CSP global de produção | Ativo | Política aplicada no entrypoint normal do portal com allowlist explícita das integrações realmente usadas; sem `unsafe-eval` e sem wildcard global; `unsafe-inline` ainda necessário nesta etapa; não sobrescreve a CSP da página 403 nem as políticas específicas dos embeds |
+| Firewall de aplicação e rate limiting distribuído | Ativo | Guards de método/tamanho de corpo em rotas sensíveis e rate limiting distribuído em conta/push, apoiado por tabela e RPC privadas no Supabase externo; `/api/cron/*` recebe apenas guards, sem limite por IP |
+| Smoke de segurança em produção | Implementado, aguardando primeira execução real | Extensão do workflow `data-status-monitor.yml` com verificação diária do gate geográfico, da CSP publicada e do rate limiter distribuído |
 | PWA / Web Push | Suspenso para ativação pública | Código preservado; reativação depende de validação real de navegador e rolagem |
 | CPTEC/SIGMA | Pesquisa futura | Não integrar ao runtime público antes da revisão institucional planejada para novembro/dezembro de 2026 |
 
@@ -171,7 +174,10 @@ A rota funciona como Central Regional para o inventário existente de 24 cidades
 - o runtime MapLibre é importado uma única vez por montagem do mapa;
 - busca e filtros atualizam simultaneamente a lista e o mapa, reenquadrando as cidades visíveis;
 - marcadores levam à página municipal correspondente e mostram temperatura estimada e condição;
-- quando MapLibre falha, aparece navegação alternativa visível e acessível com links das cidades, temperatura/condição, navegável por teclado e útil a leitor de tela; os controles do mapa falho saem da ordem de foco;
+- quando MapLibre falha, aparece navegação alternativa visível e acessível com links das mesmas cidades, temperatura/condição e links nativos, navegável por teclado e útil a leitor de tela; o container do mapa falho permanece removido da navegação e da ordem de foco;
+- se a falha ocorre enquanto o foco do usuário estava dentro dos controles do mapa, o foco é restaurado programaticamente para o início semântico do fallback; o container do fallback é programaticamente focável (`tabIndex=-1`) sem virar um tab stop permanente;
+- se o foco do usuário estava fora do mapa, o fallback não rouba o foco;
+- após a restauração, a ordem natural do Tab segue para os links das cidades, com `aria-labelledby`, `aria-describedby`, status live e foco visível alinhados;
 - nenhuma cidade nova foi adicionada nesta etapa.
 
 Decisão de produto: o mapa regional das 24 cidades está implementado; o próximo passo é validá-lo em produção, mobile, acessibilidade e performance. Só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
@@ -733,6 +739,16 @@ Executa:
 
 Executa a cada 10 minutos e manualmente. Usa GitHub OIDC com audience própria para chamar `/api/cron/data-status`, persistindo o estado das fontes sem secret estático no workflow. Em pushes relevantes, aguarda a publicação da rota antes de falhar por 404/503 transitório.
 
+O mesmo workflow foi estendido — sem arquitetura paralela — com um smoke de segurança em produção:
+
+- executa diariamente às 07:30 America/São Paulo (10:30 UTC), além de execução manual e em pushes dos arquivos de segurança relevantes;
+- descobre o país público real do runner por trace da borda e faz uma requisição browser-like real contra `https://tempopelotas.com.br`, sem spoof de header de país: runner no Brasil deve receber 200; runner fora do Brasil deve receber 403 com a página bloqueada ainda autocontida e com CSP restritiva;
+- uma requisição server-to-server de controle confirma que a CSP global está publicada;
+- usa o OIDC já existente do monitor de status para chamar `/api/cron/data-status?mode=security-smoke`, onde o runtime confirma as classificações `allowed-brazil`, `blocked-foreign` e `blocked-unknown`, o contrato de log sanitizado e o funcionamento do rate limiter distribuído;
+- o endpoint devolve apenas booleans sanitizados dos checks, sem tokens, endereços ou mecanismos internos.
+
+O smoke está implementado e versionado, mas ainda não deve ser declarado verde em produção enquanto não houver evidência de execução concluída.
+
 ### `runtime-smoke.yml` — Runtime de produção
 
 Executa às 06:00 e 18:00 em horário de Brasília e também em pushes que alteram REDEMET/hidrologia relevantes.
@@ -794,8 +810,8 @@ A suíte de contratos cobre, entre outros domínios:
 - câmeras;
 - geadas;
 - hidrologia;
-- páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading, Save-Data, ausência de fetch meteorológico extra e fallback progressivo acessível;
-- gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): classificação de decisão, BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected, monitor server-to-server preservado, logs sanitizados e hardening do entrypoint;
+- páginas regionais e Central Regional (`tests/regional-central-overview.test.ts`), incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading, Save-Data, ausência de fetch meteorológico extra, fallback progressivo acessível, restauração condicional de foco, container de fallback com `tabIndex=-1`, semântica ARIA e foco visível;
+- gate geográfico de visitantes e camada de segurança do entrypoint (`tests/brazil-only-access.test.ts`): classificação de decisão, BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected, monitor server-to-server preservado, logs sanitizados, hardening do entrypoint, CSP global, firewall de aplicação, migrações/RPC de rate limit, rate limiting distribuído e smoke de produção;
 - SEO e acessibilidade, incluindo sitemap/robots (`tests/seo-domain.test.ts`) cobrindo Home, Central Regional e 23 páginas municipais no sitemap e limites de crawling no robots;
 - integrações Guaíba/SACE;
 - bootstrap/árvore de rotas.
@@ -833,6 +849,33 @@ Observabilidade e hardening:
 - respostas normais recebem headers básicos de hardening (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`, `Strict-Transport-Security` em produção);
 - APIs sensíveis de conta, push e cron recebem `Cache-Control: private, no-store, max-age=0` e `X-Robots-Tag: noindex, nofollow`;
 - a página pública `/privacidade-e-dados` explica em alto nível que o portal aplica camadas de segurança, controles de acesso, isolamento de credenciais e possíveis restrições geográficas, sem publicar mecanismos exatos.
+
+### CSP global de produção
+
+Existe uma Content Security Policy global de produção aplicada no entrypoint normal do portal:
+
+- allowlist explícita apenas das integrações realmente usadas pelo portal (Google Analytics/Identity, Supabase externo do projeto, OpenFreeMap, YouTube e Open-Meteo, conforme o tipo de recurso);
+- bloqueios explícitos com `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'self'`, `form-action 'self'`, `script-src-attr 'none'` e `upgrade-insecure-requests`;
+- sem `unsafe-eval` e sem wildcard global;
+- `unsafe-inline` ainda é necessário nesta etapa por causa do bootstrap inline do app, do Analytics e do JSON-LD; portanto esta **não** é uma CSP por nonce;
+- a CSP especial e mais restritiva da página 403 geográfica e as políticas específicas dos embeds não são sobrescritas pela política global.
+
+### Firewall de aplicação e rate limiting distribuído
+
+Antes de importar e executar o app normal, o entrypoint aplica um firewall de aplicação às rotas sensíveis em produção:
+
+- validação de métodos permitidos e limites declarados de corpo; violações respondem `405` ou `413`, e caminhos anormalmente longos respondem `414`;
+- rate limiting distribuído ativo em `/api/account/delete`, `/api/account/export`, `/api/push/subscription` e `/api/push/broadcast`;
+- `/api/cron/*` recebe guards de método e tamanho, mas **não** recebe rate limit por endereço, para não prejudicar automações server-to-server/OIDC;
+- o rate limiter usa tabela e RPC privadas no Supabase externo (`security_rate_limit_buckets` / `consume_security_rate_limit`), com RLS habilitada, acesso revogado para clientes, policy deny explícita e execução restrita ao service role;
+- o identificador de cliente usado no bucket é derivado por HMAC no servidor; o endereço bruto não é persistido nem logado;
+- ao exceder o limite a resposta é `429` com `Retry-After` e headers `RateLimit-*`; se o backend distribuído obrigatório estiver indisponível, a rota rate-limited falha fechada com `503`;
+- migrações versionadas `20260823090000_create_security_rate_limits.sql` e `20260823090500_lock_security_rate_limits.sql` já foram aplicadas ao Supabase externo de produção;
+- validação manual do RPC em produção confirmou a sequência permitida / permitida / bloqueada dentro da mesma janela;
+- o que está ativo é firewall/WAF em camada de aplicação somado a rate limiting distribuído. Um WAF gerenciado de edge/provedor **não** foi configurado e permanece dependente de acesso ao control plane do provedor.
+
+Advisors do Supabase: após a policy deny explícita, a tabela de rate limit deixou de aparecer no alerta `RLS enabled no policy`. Avisos preexistentes em outras estruturas do projeto continuam registrados como pendência separada e não são regressão desta rodada.
+
 
 A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, o megamenu editorial no desktop, o painel responsivo derivado do mesmo inventário de navegação, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
 
@@ -922,7 +965,10 @@ Estas são pendências de produto/operação, não funcionalidades inexistentes 
 9. retomar avaliação CPTEC/SIGMA em novembro/dezembro de 2026, sem assumir previamente autorização ou integração;
 10. acompanhar a integração pública da Defesa Civil RS, concluir inventário DCRS, bacias/capacidades, validar timezone e unidade/referência vertical por estação e incorporar a saúde da fonte ao status/runtime;
 11. manter a limpeza de dívida histórica de lint/formatação separada de mudanças funcionais;
-12. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados; rate limiting distribuído/WAF e CSP global mais estrita permanecem candidatos de hardening futuro.
+12. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
+13. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras;
+14. avaliar como hardening futuro um WAF gerenciado de edge/provedor, condicionado a acesso ao control plane apropriado, e uma CSP sem `unsafe-inline`/baseada em nonce — nenhum dos dois está concluído nesta rodada;
+15. tratar separadamente avisos preexistentes de advisors do Supabase em outras estruturas do projeto (por exemplo função SECURITY DEFINER executável por `authenticated` e proteção contra senhas vazadas desativada), que não são regressão desta rodada.
 
 ## 25. Regra de manutenção deste arquivo
 
@@ -1481,7 +1527,10 @@ Contratos da Central Regional:
 - o mapa MapLibre reutiliza o mesmo dataset resumido, sem segunda consulta meteorológica;
 - o bundle do mapa é carregado sob demanda por wrapper leve próximo da viewport, com antecipação menor em mobile e redução adicional sob Save-Data;
 - marcadores levam à página municipal correspondente e apresentam temperatura estimada e condição;
-- falha do mapa não prejudica a lista nem a navegação e oferece navegação alternativa acessível com links das cidades, temperatura/condição, navegável por teclado e útil a leitor de tela.
+- falha do mapa não prejudica a lista nem a navegação e oferece navegação alternativa acessível com links nativos das mesmas cidades, temperatura/condição, navegável por teclado e útil a leitor de tela;
+- o container do mapa falho permanece fora da navegação/foco; o container do fallback é programaticamente focável (`tabIndex=-1`) sem virar tab stop permanente;
+- o foco só é restaurado programaticamente para o início semântico do fallback quando o foco do usuário estava dentro dos controles do mapa no momento da falha; caso contrário o fallback não rouba foco;
+- após a restauração, `aria-labelledby`, `aria-describedby`, status live, ordem natural do Tab e foco visível permanecem alinhados.
 
 E2E real obrigatório antes do lançamento:
 
@@ -1700,7 +1749,7 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
+2. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, o bloqueio geográfico real, os logs/contadores da plataforma, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras, o fallback acessível do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
 3. concluir E2E da conta com duas contas descartáveis;
 4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
 5. definir rollups e APIs históricas server-side;
