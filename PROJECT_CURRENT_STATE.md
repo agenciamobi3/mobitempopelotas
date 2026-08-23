@@ -1432,6 +1432,14 @@ Contratos mínimos:
 - exclusão/exportação tratam as novas tabelas de forma coerente;
 - build, typecheck, lint incremental e árvore de rotas continuam verdes.
 
+Contratos da Central Regional:
+
+- o inventário regional nesta etapa contém exatamente 24 cidades (Pelotas via Home + 23 páginas municipais);
+- a consulta Open-Meteo é feita em lote, numa única requisição multi-coordinate, com timeout e fallback que preserva a navegação;
+- busca sem acento e filtros pelos quatro agrupamentos regionais existentes devem permanecer acessíveis;
+- valores exibidos na Central são rotulados como estimativa de modelo e nunca como observação da estação local;
+- avisos oficiais do INMET continuam restritos às páginas municipais individuais.
+
 E2E real obrigatório antes do lançamento:
 
 1. conta A Free;
