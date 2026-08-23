@@ -739,6 +739,16 @@ Executa:
 
 Executa a cada 10 minutos e manualmente. Usa GitHub OIDC com audience própria para chamar `/api/cron/data-status`, persistindo o estado das fontes sem secret estático no workflow. Em pushes relevantes, aguarda a publicação da rota antes de falhar por 404/503 transitório.
 
+O mesmo workflow foi estendido — sem arquitetura paralela — com um smoke de segurança em produção:
+
+- executa diariamente às 07:30 America/São Paulo (10:30 UTC), além de execução manual e em pushes dos arquivos de segurança relevantes;
+- descobre o país público real do runner por trace da borda e faz uma requisição browser-like real contra `https://tempopelotas.com.br`, sem spoof de header de país: runner no Brasil deve receber 200; runner fora do Brasil deve receber 403 com a página bloqueada ainda autocontida e com CSP restritiva;
+- uma requisição server-to-server de controle confirma que a CSP global está publicada;
+- usa o OIDC já existente do monitor de status para chamar `/api/cron/data-status?mode=security-smoke`, onde o runtime confirma as classificações `allowed-brazil`, `blocked-foreign` e `blocked-unknown`, o contrato de log sanitizado e o funcionamento do rate limiter distribuído;
+- o endpoint devolve apenas booleans sanitizados dos checks, sem tokens, endereços ou mecanismos internos.
+
+O smoke está implementado e versionado, mas ainda não deve ser declarado verde em produção enquanto não houver evidência de execução concluída.
+
 ### `runtime-smoke.yml` — Runtime de produção
 
 Executa às 06:00 e 18:00 em horário de Brasília e também em pushes que alteram REDEMET/hidrologia relevantes.
