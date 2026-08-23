@@ -789,7 +789,8 @@ A suíte de contratos cobre, entre outros domínios:
 - câmeras;
 - geadas;
 - hidrologia;
-- páginas regionais;
+- páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading e fallback progressivo;
+- gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected e monitor server-to-server preservado;
 - SEO e acessibilidade;
 - integrações Guaíba/SACE;
 - bootstrap/árvore de rotas.
