@@ -8,6 +8,7 @@ import {
 import {
   REGIONAL_CANDIDATE_VALIDATIONS,
   findRegionalCandidateValidation,
+  hasValidatedRegionalCandidateCoordinates,
   isRegionalCandidateIdentityValidated,
   isRegionalCandidateReadyForDraft,
   regionalCandidateValidationCoverage,
@@ -42,8 +43,44 @@ test("identidade municipal da primeira onda está validada", () => {
   }
 });
 
-test("nenhum candidato pode virar draft enquanto coordenadas estiverem pendentes", () => {
-  for (const candidate of REGIONAL_CANDIDATES) {
+test("coordenadas validadas sempre carregam valor, referência e datum", () => {
+  const validated = REGIONAL_CANDIDATE_VALIDATIONS.filter(
+    (validation) => validation.coordinates.status === "validated",
+  );
+
+  assert.ok(validated.length > 0);
+
+  for (const validation of validated) {
+    assert.equal(hasValidatedRegionalCandidateCoordinates(validation), true);
+    assert.ok(validation.coordinates.source);
+    assert.ok(validation.coordinates.checkedAt);
+    assert.equal(validation.coordinatesValue?.reference, "city-seat");
+    assert.equal(validation.coordinatesValue?.datum, "SIRGAS 2000");
+  }
+});
+
+test("status validated sem valor de coordenada não satisfaz o gate", () => {
+  const current = findRegionalCandidateValidation("barra-do-ribeiro-rs");
+  assert.ok(current);
+
+  const inconsistent: RegionalCandidateTechnicalValidation = {
+    ...current,
+    coordinates: { ...current.coordinates, status: "validated" },
+    coordinatesValue: undefined,
+  };
+
+  assert.equal(hasValidatedRegionalCandidateCoordinates(inconsistent), false);
+});
+
+test("candidatos com coordenadas ainda pendentes continuam bloqueados para draft", () => {
+  const pending = REGIONAL_CANDIDATES.filter((candidate) => {
+    const validation = findRegionalCandidateValidation(candidate.slug);
+    return validation?.coordinates.status === "pending";
+  });
+
+  assert.ok(pending.length > 0);
+
+  for (const candidate of pending) {
     assert.equal(isRegionalCandidateReadyForDraft(approvedCandidate(candidate)), false);
   }
 });
@@ -56,6 +93,7 @@ test("aprovação sozinha não contorna o gate técnico", () => {
   const validationWithoutCoordinates: RegionalCandidateTechnicalValidation = {
     ...current,
     coordinates: { status: "pending" },
+    coordinatesValue: undefined,
   };
 
   assert.equal(
@@ -65,20 +103,16 @@ test("aprovação sozinha não contorna o gate técnico", () => {
 });
 
 test("gate de draft exige aprovação, IBGE e coordenadas validadas", () => {
-  const candidate = approvedCandidate(REGIONAL_CANDIDATES[0]);
+  const sourceCandidate = REGIONAL_CANDIDATES.find(
+    (candidate) => candidate.slug === "barra-do-ribeiro-rs",
+  );
+  assert.ok(sourceCandidate);
+
+  const candidate = approvedCandidate(sourceCandidate);
   const current = findRegionalCandidateValidation(candidate.slug);
   assert.ok(current);
-
-  const validated: RegionalCandidateTechnicalValidation = {
-    ...current,
-    coordinates: {
-      status: "validated",
-      checkedAt: "2026-08-23",
-      source: "test-fixture",
-    },
-  };
-
-  assert.equal(isRegionalCandidateReadyForDraft(candidate, validated), true);
+  assert.equal(hasValidatedRegionalCandidateCoordinates(current), true);
+  assert.equal(isRegionalCandidateReadyForDraft(candidate, current), true);
 });
 
 test("registro de validações não possui slugs duplicados", () => {
