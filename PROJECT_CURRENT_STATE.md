@@ -1658,16 +1658,17 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. concluir E2E da conta com duas contas descartáveis;
-3. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
-4. definir rollups e APIs históricas server-side;
-5. monitorar a integração pública da Defesa Civil RS e concluir inventário/semântica/health da nova fonte;
-6. construir valor real no painel Free, começando pelos históricos/datasets liberados;
-7. concluir a matriz de governança para o que poderá entrar no PRO;
-8. somente então escolher cobrança/preço e ligar billing ao `account_access` existente;
-9. construir profundidade PRO determinística;
-10. adicionar IA PRO depois que dados, entitlement e orçamento estiverem sólidos;
-11. executar hardening e lançamento controlado.
+2. consolidar a Central Regional `/tempo-na-regiao-sul-rs` com o mapa das 24 cidades existentes e somente depois avaliar a expansão do inventário municipal;
+3. concluir E2E da conta com duas contas descartáveis;
+4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
+5. definir rollups e APIs históricas server-side;
+6. monitorar a integração pública da Defesa Civil RS e concluir inventário/semântica/health da nova fonte;
+7. construir valor real no painel Free, começando pelos históricos/datasets liberados;
+8. concluir a matriz de governança para o que poderá entrar no PRO;
+9. somente então escolher cobrança/preço e ligar billing ao `account_access` existente;
+10. construir profundidade PRO determinística;
+11. adicionar IA PRO depois que dados, entitlement e orçamento estiverem sólidos;
+12. executar hardening e lançamento controlado.
 
 Até a integração real de billing, nenhuma tela deve sugerir que o PRO está disponível para compra em produção.
 
