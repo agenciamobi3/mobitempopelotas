@@ -1,16 +1,19 @@
-import { getRegionalCityReadiness } from "./regional-city-readiness";
-import type { RegionalCity } from "./regional-cities";
+import type { RegionalCityDomain } from "./regional-city-domain";
+import {
+  getRegionalCityReadiness,
+  type RegionalCityReadinessKey,
+} from "./regional-city-readiness";
 
 export type RegionalCityExpansionReport = {
   slug: string;
   name: string;
   basicReady: boolean;
   completeReady: boolean;
-  missing: string[];
+  missing: RegionalCityReadinessKey[];
 };
 
 export function buildRegionalCityExpansionReport(
-  cities: (RegionalCity & { readiness?: Record<string, boolean> })[],
+  cities: readonly RegionalCityDomain[],
 ): RegionalCityExpansionReport[] {
   return cities.map((city) => {
     const readiness = getRegionalCityReadiness(city);
