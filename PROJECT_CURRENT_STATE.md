@@ -796,7 +796,7 @@ A suíte de contratos cobre, entre outros domínios:
 - hidrologia;
 - páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading, Save-Data, ausência de fetch meteorológico extra e fallback progressivo acessível;
 - gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): classificação de decisão, BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected, monitor server-to-server preservado, logs sanitizados e hardening do entrypoint;
-- SEO e acessibilidade;
+- SEO e acessibilidade, incluindo sitemap/robots (`tests/seo-domain.test.ts`) cobrindo Home, Central Regional e 23 páginas municipais no sitemap e limites de crawling no robots;
 - integrações Guaíba/SACE;
 - bootstrap/árvore de rotas.
 
@@ -823,6 +823,16 @@ A resposta 403:
 - responde `HEAD` com corpo vazio.
 
 Requisições sem Fetch Metadata headers (server-to-server, crawlers, monitoramento) não são classificadas como visitantes e continuam possíveis. Localhost e hosts não listados não são afetados. Não se trata de firewall absoluto de rede/WAF, mas de um gate de classificação de visitante no entrypoint da aplicação.
+
+Observabilidade e hardening:
+
+- a camada mantém contadores por instância de runtime para total de requisições no entrypoint, navegadores BR permitidos, bloqueios estrangeiros, bloqueios por país indeterminado e bypasses server-to-server/host não produtivo;
+- bloqueios geram logs estruturados com país e rota sanitizada, sem IP, query string, user-agent ou dados pessoais;
+- snapshots periódicos incluem as rotas bloqueadas mais frequentes;
+- essas métricas são por instância de runtime e podem ser agregadas pela plataforma de logs; não representam total global exato em ambiente serverless;
+- respostas normais recebem headers básicos de hardening (`X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `X-Frame-Options`, `Strict-Transport-Security` em produção);
+- APIs sensíveis de conta, push e cron recebem `Cache-Control: private, no-store, max-age=0` e `X-Robots-Tag: noindex, nofollow`;
+- a página pública `/privacidade-e-dados` explica em alto nível que o portal aplica camadas de segurança, controles de acesso, isolamento de credenciais e possíveis restrições geográficas, sem publicar mecanismos exatos.
 
 A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, o megamenu editorial no desktop, o painel responsivo derivado do mesmo inventário de navegação, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
 
@@ -912,7 +922,7 @@ Estas são pendências de produto/operação, não funcionalidades inexistentes 
 9. retomar avaliação CPTEC/SIGMA em novembro/dezembro de 2026, sem assumir previamente autorização ou integração;
 10. acompanhar a integração pública da Defesa Civil RS, concluir inventário DCRS, bacias/capacidades, validar timezone e unidade/referência vertical por estação e incorporar a saúde da fonte ao status/runtime;
 11. manter a limpeza de dívida histórica de lint/formatação separada de mudanças funcionais;
-12. validar o mapa regional das 24 cidades em produção, mobile, acessibilidade e performance antes de avaliar a expansão do inventário municipal.
+12. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados; rate limiting distribuído/WAF e CSP global mais estrita permanecem candidatos de hardening futuro.
 
 ## 25. Regra de manutenção deste arquivo
 
@@ -1469,8 +1479,9 @@ Contratos da Central Regional:
 - valores exibidos na Central são rotulados como estimativa de modelo e nunca como observação da estação local;
 - avisos oficiais do INMET continuam restritos às páginas municipais individuais;
 - o mapa MapLibre reutiliza o mesmo dataset resumido, sem segunda consulta meteorológica;
+- o bundle do mapa é carregado sob demanda por wrapper leve próximo da viewport, com antecipação menor em mobile e redução adicional sob Save-Data;
 - marcadores levam à página municipal correspondente e apresentam temperatura estimada e condição;
-- falha do mapa não prejudica a lista nem a navegação.
+- falha do mapa não prejudica a lista nem a navegação e oferece navegação alternativa acessível com links das cidades, temperatura/condição, navegável por teclado e útil a leitor de tela.
 
 E2E real obrigatório antes do lançamento:
 
@@ -1689,7 +1700,7 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. validar o mapa da Central Regional `/tempo-na-regiao-sul-rs` das 24 cidades em produção, mobile, acessibilidade e performance e somente depois avaliar a expansão do inventário municipal;
+2. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
 3. concluir E2E da conta com duas contas descartáveis;
 4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
 5. definir rollups e APIs históricas server-side;
