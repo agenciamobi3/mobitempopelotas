@@ -3,7 +3,10 @@ import path from "node:path";
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getCanonicalRedirectUrl } from "../src/lib/canonical-host.ts";
+import {
+  createCanonicalRedirectResponse,
+  getCanonicalRedirectUrl,
+} from "../src/lib/canonical-host.ts";
 import { PUBLIC_ROUTES } from "../src/lib/public-routes.ts";
 import {
   BRAND_LOGO_URL,
@@ -75,6 +78,27 @@ test("hosts técnicos redirecionam permanentemente preservando caminho e consult
       "https://tempopelotas.com.br/chuva-em-pelotas?origem=busca",
     );
   }
+});
+
+test("o host técnico Lovable do projeto instrui remoção do índice e aponta o canônico", () => {
+  const response = createCanonicalRedirectResponse(
+    new Request(`https://${technicalHosts[0]}/meteograma-pelotas?origem=google`),
+  );
+
+  assert.ok(response);
+  assert.equal(response.status, 308);
+  assert.equal(
+    response.headers.get("location"),
+    "https://tempopelotas.com.br/meteograma-pelotas?origem=google",
+  );
+  assert.equal(
+    response.headers.get("x-robots-tag"),
+    "noindex, nofollow, noarchive, nosnippet, noimageindex",
+  );
+  assert.equal(
+    response.headers.get("link"),
+    '<https://tempopelotas.com.br/meteograma-pelotas?origem=google>; rel="canonical"',
+  );
 });
 
 test("www e http convergem para o domínio oficial em HTTPS", () => {
