@@ -11,6 +11,7 @@ import type {
   RedemetImageLayerResponse,
   RedemetSatelliteType,
 } from "@/lib/redemet/redemet.types";
+import { fetchInmetSatellite } from "@/lib/weather/inmet-satellite.server";
 
 const ALLOWED_TYPES = new Set<RedemetSatelliteType>(["realcada", "ir", "vis"]);
 const DEFAULT_FRAMES = 8;
@@ -27,6 +28,7 @@ const RESPONSE_HEADERS = {
 
 function requestOptions(request: Request) {
   const searchParams = new URL(request.url).searchParams;
+  const source = searchParams.get("source") === "inmet" ? "inmet" : "redemet";
   const rawType = searchParams.get("type") ?? "realcada";
   const type = ALLOWED_TYPES.has(rawType as RedemetSatelliteType)
     ? (rawType as RedemetSatelliteType)
@@ -36,7 +38,7 @@ function requestOptions(request: Request) {
     ? Math.min(MAX_FRAMES, Math.max(1, Math.round(requested)))
     : DEFAULT_FRAMES;
 
-  return { type, frames };
+  return { source, type, frames } as const;
 }
 
 function daylightVisiblePayload(payload: RedemetImageLayerResponse, requestedFrames: number) {
@@ -75,7 +77,15 @@ export const Route = createFileRoute("/api/redemet/satellite")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { type, frames } = requestOptions(request);
+        const { source, type, frames } = requestOptions(request);
+
+        if (source === "inmet") {
+          const payload = await withRedemetLastGood(`satellite:inmet:${frames}`, () =>
+            fetchInmetSatellite(frames),
+          );
+          return new Response(JSON.stringify(payload), { headers: RESPONSE_HEADERS });
+        }
+
         const upstreamFrames = type === "vis" ? VISIBLE_LOOKBACK_FRAMES : frames;
         const payload = await withRedemetLastGood(`satellite:${type}:${upstreamFrames}`, () =>
           fetchRedemetSatellite(type, upstreamFrames),
