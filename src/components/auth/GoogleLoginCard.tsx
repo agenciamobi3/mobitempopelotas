@@ -153,8 +153,8 @@ export function GoogleLoginCard({ nextPath, errorCode }: { nextPath: string; err
         </p>
       ) : null}
       <small>
-        O Google autentica diretamente no Tempo Pelotas. Depois, a credencial é validada pelo
-        Supabase para abrir sua sessão; o domínio técnico do banco não faz parte da escolha da conta.
+        Seu login é feito pelo Google e validado com segurança pelo Tempo Pelotas. O portal não
+        recebe nem armazena sua senha do Google.
       </small>
     </section>
   );
