@@ -1749,7 +1749,7 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
+2. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, o bloqueio geográfico real, os logs/contadores da plataforma, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras, o fallback acessível do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
 3. concluir E2E da conta com duas contas descartáveis;
 4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
 5. definir rollups e APIs históricas server-side;
