@@ -24,7 +24,7 @@ export const Route = createFileRoute("/tempo-em/$citySlug")({
     const city = loaderData?.city;
     if (!city) return {};
     const title = `Tempo em ${city.name}, RS`;
-    const description = `Previsão do tempo para ${city.name}, com temperatura, chuva, vento, próximos 7 dias e avisos meteorológicos do INMET.`;
+    const description = `Previsão do tempo para ${city.name}, com temperatura, chuva, vento, próximos 7 dias e avisos do INMET. Contexto regional: ${city.descriptor}.`;
     return createPageHead(title, description, regionalCityPath(city), [], {
       geo: {
         region: "BR-RS",
