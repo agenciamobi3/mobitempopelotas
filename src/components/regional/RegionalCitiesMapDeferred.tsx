@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ComponentType } from "react";
 import type { RegionalCityOverviewItem } from "@/lib/weather/regional-cities-overview.types";
 
 import "./RegionalCitiesMapDeferred.css";
+import "./RegionalCitiesMapFallback.css";
 
 type RegionalCitiesMapDeferredProps = {
   items: RegionalCityOverviewItem[];
