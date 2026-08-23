@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import type { Map as MapLibreMap, Marker as MapLibreMarker } from "maplibre-gl";
 
 import { regionalCityPath, type RegionalCityGroup } from "@/lib/regional-cities";
@@ -90,15 +90,23 @@ function fitMapToItems(map: MapLibreMap, items: RegionalCityOverviewItem[], anim
   });
 }
 
-function FallbackCityNavigation({ items }: RegionalCitiesMapProps) {
+function FallbackCityNavigation({
+  items,
+  navigationRef,
+}: RegionalCitiesMapProps & { navigationRef: RefObject<HTMLElement | null> }) {
   return (
     <nav
+      ref={navigationRef}
       className="regional-overview-map__fallback"
-      aria-label="Navegação alternativa pelas cidades do mapa"
+      tabIndex={-1}
+      aria-labelledby="regional-map-fallback-title"
+      aria-describedby="regional-map-fallback-description"
     >
       <div>
-        <strong>Mapa indisponível no momento</strong>
-        <span>Use esta lista para abrir as mesmas cidades pelo teclado ou leitor de tela.</span>
+        <h3 id="regional-map-fallback-title">Mapa indisponível no momento</h3>
+        <p id="regional-map-fallback-description" role="status" aria-live="polite">
+          Use esta lista para abrir as mesmas cidades pelo teclado ou leitor de tela.
+        </p>
       </div>
       {items.length > 0 ? (
         <ul>
@@ -122,6 +130,8 @@ function FallbackCityNavigation({ items }: RegionalCitiesMapProps) {
 
 export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const fallbackNavigationRef = useRef<HTMLElement>(null);
+  const restoreFallbackFocusRef = useRef(false);
   const mapRef = useRef<MapLibreMap | null>(null);
   const maplibreRef = useRef<MapLibreModule | null>(null);
   const markersRef = useRef<MapLibreMarker[]>([]);
@@ -134,6 +144,17 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
 
     let cancelled = false;
     initializingRef.current = true;
+
+    const markFailure = () => {
+      const activeElement = document.activeElement;
+      if (
+        activeElement instanceof HTMLElement &&
+        mapContainerRef.current?.contains(activeElement)
+      ) {
+        restoreFallbackFocusRef.current = true;
+      }
+      setHasError(true);
+    };
 
     const initialize = async () => {
       try {
@@ -160,10 +181,10 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
           setIsLoaded(true);
         });
         map.on("error", () => {
-          if (!cancelled && !map.loaded()) setHasError(true);
+          if (!cancelled && !map.loaded()) markFailure();
         });
       } catch {
-        if (!cancelled) setHasError(true);
+        if (!cancelled) markFailure();
       } finally {
         initializingRef.current = false;
       }
@@ -180,6 +201,17 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
       maplibreRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (!hasError || !restoreFallbackFocusRef.current) return;
+
+    restoreFallbackFocusRef.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      fallbackNavigationRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [hasError]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -231,7 +263,9 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
             Carregando mapa regional…
           </div>
         ) : null}
-        {hasError ? <FallbackCityNavigation items={items} /> : null}
+        {hasError ? (
+          <FallbackCityNavigation items={items} navigationRef={fallbackNavigationRef} />
+        ) : null}
       </div>
 
       <footer className="regional-overview-map__footer">
