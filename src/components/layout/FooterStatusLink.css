@@ -1,5 +1,4 @@
-.tp-home-footer-status__link,
-.editorial-footer-status__link {
+.tp-home-footer-status__link {
   display: inline-flex;
   width: fit-content;
   min-height: 32px;
@@ -19,17 +18,14 @@
   transition: border-color 150ms ease, color 150ms ease, background-color 150ms ease;
 }
 
-.tp-home-footer-status__link svg,
-.editorial-footer-status__link svg {
+.tp-home-footer-status__link svg {
   width: 12px;
   height: 12px;
   flex: 0 0 auto;
 }
 
 .tp-home-footer-status__link:hover,
-.tp-home-footer-status__link:focus-visible,
-.editorial-footer-status__link:hover,
-.editorial-footer-status__link:focus-visible {
+.tp-home-footer-status__link:focus-visible {
   border-color: rgb(8 127 145 / 34%);
   background: rgb(8 127 145 / 5%);
   color: #087f91;
@@ -37,8 +33,7 @@
 }
 
 @media (max-width: 720px) {
-  .tp-home-footer-status__link,
-  .editorial-footer-status__link {
+  .tp-home-footer-status__link {
     min-height: 36px;
     padding-inline: 12px;
   }
