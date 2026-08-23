@@ -1,36 +1,76 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import test from "node:test";
+
 import {
   isRegionalCityReadyForBasic,
   isRegionalCityReadyForComplete,
-} from "../src/lib/regional-city-readiness";
-import { PUBLIC_REGIONAL_CITIES, INDEXABLE_REGIONAL_CITIES } from "../src/lib/regional-cities";
+} from "../src/lib/regional-city-readiness.ts";
+import {
+  INDEXABLE_REGIONAL_CITIES,
+  PUBLIC_REGIONAL_CITIES,
+  REGIONAL_CITIES,
+} from "../src/lib/regional-cities.ts";
 
-describe("regional city readiness contract", () => {
-  it("keeps the current regional inventory public and indexable", () => {
-    expect(PUBLIC_REGIONAL_CITIES).toHaveLength(24);
-    expect(INDEXABLE_REGIONAL_CITIES).toHaveLength(24);
-  });
+const baseCity = REGIONAL_CITIES[0]!;
 
-  it("does not consider incomplete cities ready", () => {
-    expect(
-      isRegionalCityReadyForBasic({
-        readiness: {},
-      }),
-    ).toBe(false);
-  });
+test("mantém o inventário regional atual público e indexável", () => {
+  assert.equal(PUBLIC_REGIONAL_CITIES.length, 24);
+  assert.equal(INDEXABLE_REGIONAL_CITIES.length, 24);
+});
 
-  it("allows complete readiness only after editorial and SEO validation", () => {
-    expect(
-      isRegionalCityReadyForComplete({
-        readiness: {
-          ibgeValidated: true,
-          coordinatesValidated: true,
-          weatherValidated: true,
-          editorialReady: true,
-          seoReady: true,
-          imageryReady: true,
-        },
-      }),
-    ).toBe(true);
-  });
+test("não considera cidade incompleta pronta para basic", () => {
+  assert.equal(
+    isRegionalCityReadyForBasic({
+      ...baseCity,
+      readiness: {},
+    }),
+    false,
+  );
+});
+
+test("basic exige IBGE, coordenadas e meteorologia validados", () => {
+  assert.equal(
+    isRegionalCityReadyForBasic({
+      ...baseCity,
+      readiness: {
+        ibgeValidated: true,
+        coordinatesValidated: true,
+        weatherValidated: true,
+      },
+    }),
+    true,
+  );
+});
+
+test("complete exige contexto hidrológico, conteúdo, SEO e imagens além do basic", () => {
+  assert.equal(
+    isRegionalCityReadyForComplete({
+      ...baseCity,
+      readiness: {
+        ibgeValidated: true,
+        coordinatesValidated: true,
+        weatherValidated: true,
+        hydrologicalContextValidated: true,
+        editorialReady: true,
+        seoReady: true,
+        imageryReady: true,
+      },
+    }),
+    true,
+  );
+
+  assert.equal(
+    isRegionalCityReadyForComplete({
+      ...baseCity,
+      readiness: {
+        ibgeValidated: true,
+        coordinatesValidated: true,
+        weatherValidated: true,
+        editorialReady: true,
+        seoReady: true,
+        imageryReady: true,
+      },
+    }),
+    false,
+  );
 });
