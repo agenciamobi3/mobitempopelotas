@@ -1,0 +1,81 @@
+.regional-overview-map__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  overflow: auto;
+  padding: clamp(20px, 3vw, 32px);
+  background: #f8fbfa;
+  color: #17384a;
+}
+
+.regional-overview-map__fallback > div {
+  display: grid;
+  gap: 4px;
+}
+
+.regional-overview-map__fallback > div > strong {
+  font-size: 1rem;
+}
+
+.regional-overview-map__fallback > div > span,
+.regional-overview-map__fallback > p {
+  margin: 0;
+  color: #617a86;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.regional-overview-map__fallback ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.regional-overview-map__fallback a {
+  display: grid;
+  min-height: 56px;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 10px;
+  background: #fff;
+  color: #17384a;
+  text-decoration: none;
+}
+
+.regional-overview-map__fallback a:hover,
+.regional-overview-map__fallback a:focus-visible {
+  border-color: rgb(24 189 205 / 42%);
+  outline: 3px solid rgb(24 189 205 / 16%);
+  outline-offset: 1px;
+}
+
+.regional-overview-map__fallback a strong {
+  font-size: 0.78rem;
+}
+
+.regional-overview-map__fallback a span {
+  color: #617a86;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 560px) {
+  .regional-overview-map__fallback ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (forced-colors: active) {
+  .regional-overview-map__fallback,
+  .regional-overview-map__fallback a {
+    background: Canvas;
+    color: CanvasText;
+  }
+}
