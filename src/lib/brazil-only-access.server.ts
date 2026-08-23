@@ -20,6 +20,21 @@ type CloudflareRequest = Request & {
   };
 };
 
+export type BrazilAccessDecisionReason =
+  | "allowed-brazil"
+  | "blocked-foreign"
+  | "blocked-unknown"
+  | "bypass-non-browser"
+  | "bypass-non-production";
+
+export type BrazilAccessDecision = {
+  productionHost: boolean;
+  browser: boolean;
+  country: string | null;
+  blocked: boolean;
+  reason: BrazilAccessDecisionReason;
+};
+
 function normalizeCountry(value: unknown) {
   if (typeof value !== "string") return null;
   const normalized = value.trim().toUpperCase();
@@ -46,7 +61,7 @@ export function isGeoRestrictedProductionHost(request: Request) {
   }
 }
 
-function isBrowserRequest(request: Request) {
+export function isBrowserAccessRequest(request: Request) {
   return Boolean(
     request.headers.get("sec-fetch-dest") ||
       request.headers.get("sec-fetch-mode") ||
@@ -54,11 +69,52 @@ function isBrowserRequest(request: Request) {
   );
 }
 
-export function shouldBlockForeignBrowserRequest(request: Request) {
-  if (!isGeoRestrictedProductionHost(request)) return false;
-  if (!isBrowserRequest(request)) return false;
+export function evaluateBrazilAccess(request: Request): BrazilAccessDecision {
+  const productionHost = isGeoRestrictedProductionHost(request);
+  const browser = isBrowserAccessRequest(request);
+  const country = resolveRequestCountry(request);
 
-  return resolveRequestCountry(request) !== BRAZIL_COUNTRY_CODE;
+  if (!productionHost) {
+    return {
+      productionHost,
+      browser,
+      country,
+      blocked: false,
+      reason: "bypass-non-production",
+    };
+  }
+
+  if (!browser) {
+    return {
+      productionHost,
+      browser,
+      country,
+      blocked: false,
+      reason: "bypass-non-browser",
+    };
+  }
+
+  if (country === BRAZIL_COUNTRY_CODE) {
+    return {
+      productionHost,
+      browser,
+      country,
+      blocked: false,
+      reason: "allowed-brazil",
+    };
+  }
+
+  return {
+    productionHost,
+    browser,
+    country,
+    blocked: true,
+    reason: country ? "blocked-foreign" : "blocked-unknown",
+  };
+}
+
+export function shouldBlockForeignBrowserRequest(request: Request) {
+  return evaluateBrazilAccess(request).blocked;
 }
 
 function blockedPageDocument() {
@@ -119,8 +175,11 @@ function blockedHeaders() {
   });
 }
 
-export function createBrazilOnlyAccessResponse(request: Request) {
-  if (!shouldBlockForeignBrowserRequest(request)) return null;
+export function createBrazilOnlyAccessResponse(
+  request: Request,
+  decision: BrazilAccessDecision = evaluateBrazilAccess(request),
+) {
+  if (!decision.blocked) return null;
 
   return new Response(request.method === "HEAD" ? null : blockedPageDocument(), {
     status: 403,
