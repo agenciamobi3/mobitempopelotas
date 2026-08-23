@@ -92,6 +92,30 @@ A entrada no cadastro técnico exige, no mínimo:
 
 Mesmo atendendo esse gate, a cidade entra como `coverage: "draft"`, sem rota pública e sem indexação. Meteorologia e hidrologia continuam sendo validadas antes de qualquer promoção para `basic` ou `complete`.
 
+## Builder seguro de promoção
+
+`src/lib/regional-candidate-promotion.ts` implementa a avaliação `candidate → RegionalCity(draft)` sem alterar automaticamente `REGIONAL_CITIES`.
+
+O builder exige:
+
+- status `approved`;
+- identidade IBGE validada;
+- coordenadas validadas com valor completo;
+- ausência de conflito de `slug` no inventário regional;
+- ausência de conflito de código IBGE no inventário regional;
+- `descriptor` editorial informado explicitamente.
+
+A `rationale` interna do candidato nunca é reutilizada como `descriptor` público. Isso evita transformar justificativas de planejamento, SEO ou prioridade em conteúdo editorial exposto ao usuário.
+
+Quando todos os requisitos são atendidos, o builder produz apenas um objeto de pré-cadastro com:
+
+- `coverage: "draft"`;
+- `indexable: false`;
+- coordenadas copiadas exclusivamente da evidência validada;
+- grupo regional e descriptor fornecidos explicitamente no momento da promoção.
+
+Esse objeto ainda não entra no inventário automaticamente. A inclusão em `REGIONAL_CITIES` permanece uma alteração deliberada, versionada e revisável.
+
 ## Promoção
 
 O fluxo obrigatório é:
@@ -101,14 +125,16 @@ O fluxo obrigatório é:
 Para promover um candidato aprovado:
 
 1. validar nome, slug, UF, código IBGE e coordenadas;
-2. criar o registro em `REGIONAL_CITIES` com `coverage: "draft"`;
-3. iniciar o `RegionalCityReadiness`;
-4. validar meteorologia e contexto hidrológico;
-5. promover para `basic` somente após os requisitos básicos;
-6. promover para `complete` somente após conteúdo, SEO, imagens e demais requisitos definidos pelo readiness.
+2. executar a avaliação do builder de promoção e resolver qualquer motivo de bloqueio;
+3. revisar o grupo regional e produzir descriptor editorial próprio;
+4. criar o registro em `REGIONAL_CITIES` com `coverage: "draft"` e `indexable: false`;
+5. iniciar o `RegionalCityReadiness`;
+6. validar meteorologia e contexto hidrológico;
+7. promover para `basic` somente após os requisitos básicos;
+8. promover para `complete` somente após conteúdo, SEO, imagens e demais requisitos definidos pelo readiness.
 
 ## Isolamento
 
 `REGIONAL_CANDIDATES` e `REGIONAL_CITIES` são inventários distintos. Um mesmo slug não pode existir nos dois ao mesmo tempo.
 
-Os testes de contrato devem garantir que candidatos permaneçam fora de `PUBLIC_REGIONAL_CITIES` e `INDEXABLE_REGIONAL_CITIES` até uma promoção explícita, e que todo candidato da onda ativa possua um registro técnico de validação correspondente.
+Os testes de contrato devem garantir que candidatos permaneçam fora de `PUBLIC_REGIONAL_CITIES` e `INDEXABLE_REGIONAL_CITIES` até uma promoção explícita, que todo candidato da onda ativa possua um registro técnico de validação correspondente e que o builder nunca produza uma cidade pública/indexável.
