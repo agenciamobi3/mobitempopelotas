@@ -4,6 +4,7 @@ import { RegionalCityWeatherPageClient } from "@/components/regional/RegionalCit
 import { createPageHead } from "@/lib/page-meta";
 import {
   REGIONAL_HOME_CITY_SLUG,
+  findPublicRegionalCity,
   isRegionalCityIndexable,
   regionalCityPath,
 } from "@/lib/regional-cities";
@@ -18,6 +19,8 @@ export const Route = createFileRoute("/tempo-em/$citySlug")({
         replace: true,
       });
     }
+
+    if (!findPublicRegionalCity(params.citySlug)) throw notFound();
   },
   loader: async ({ params }) => {
     const data = await getRegionalCityWeather({ data: { slug: params.citySlug } });
