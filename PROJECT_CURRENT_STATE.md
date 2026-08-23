@@ -174,7 +174,10 @@ A rota funciona como Central Regional para o inventário existente de 24 cidades
 - o runtime MapLibre é importado uma única vez por montagem do mapa;
 - busca e filtros atualizam simultaneamente a lista e o mapa, reenquadrando as cidades visíveis;
 - marcadores levam à página municipal correspondente e mostram temperatura estimada e condição;
-- quando MapLibre falha, aparece navegação alternativa visível e acessível com links das cidades, temperatura/condição, navegável por teclado e útil a leitor de tela; os controles do mapa falho saem da ordem de foco;
+- quando MapLibre falha, aparece navegação alternativa visível e acessível com links das mesmas cidades, temperatura/condição e links nativos, navegável por teclado e útil a leitor de tela; o container do mapa falho permanece removido da navegação e da ordem de foco;
+- se a falha ocorre enquanto o foco do usuário estava dentro dos controles do mapa, o foco é restaurado programaticamente para o início semântico do fallback; o container do fallback é programaticamente focável (`tabIndex=-1`) sem virar um tab stop permanente;
+- se o foco do usuário estava fora do mapa, o fallback não rouba o foco;
+- após a restauração, a ordem natural do Tab segue para os links das cidades, com `aria-labelledby`, `aria-describedby`, status live e foco visível alinhados;
 - nenhuma cidade nova foi adicionada nesta etapa.
 
 Decisão de produto: o mapa regional das 24 cidades está implementado; o próximo passo é validá-lo em produção, mobile, acessibilidade e performance. Só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
