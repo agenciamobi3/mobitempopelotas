@@ -179,7 +179,7 @@ O header público mantém `Agora` como acesso direto e organiza o restante da de
 - **Região** — hub `/tempo-na-regiao-sul-rs` e atalhos representativos para cidades da Zona Sul;
 - **Explorar** — Clima de Pelotas, Histórico climático, Blog, Status dos dados e Metodologia.
 
-No desktop essas áreas usam megamenu editorial amplo, com destaque contextual e links descritos. A partir do breakpoint de tablet o mesmo inventário de dados alimenta um painel vertical responsivo; não existe uma segunda lista manual de navegação para mobile. O menu regional mostra apenas cidades representativas e mantém `/tempo-na-regiao-sul-rs` como hub para as 23 páginas regionais, evitando transformar o megamenu em catálogo excessivo. `/alertas` continua com ação própria de alta visibilidade no header. `/privacidade-e-dados` permanece acessível pelas superfícies institucionais/conta e não é promovida como destino meteorológico principal.
+No desktop essas áreas usam megamenu editorial amplo, com destaque contextual e links descritos. A partir do breakpoint de tablet o mesmo inventário de dados alimenta um painel vertical responsivo; não existe uma segunda lista manual de navegação para mobile. O menu regional mostra apenas cidades representativas e mantém `/tempo-na-regiao-sul-rs` como Central Regional para as 24 cidades (Pelotas via Home + 23 páginas municipais), evitando transformar o megamenu em catálogo excessivo. `/alertas` continua com ação própria de alta visibilidade no header. `/privacidade-e-dados` permanece acessível pelas superfícies institucionais/conta e não é promovida como destino meteorológico principal.
 
 ## 5. Rotas operacionais e não indexáveis
 
