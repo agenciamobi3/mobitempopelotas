@@ -907,7 +907,7 @@ Estas são pendências de produto/operação, não funcionalidades inexistentes 
 9. retomar avaliação CPTEC/SIGMA em novembro/dezembro de 2026, sem assumir previamente autorização ou integração;
 10. acompanhar a integração pública da Defesa Civil RS, concluir inventário DCRS, bacias/capacidades, validar timezone e unidade/referência vertical por estação e incorporar a saúde da fonte ao status/runtime;
 11. manter a limpeza de dívida histórica de lint/formatação separada de mudanças funcionais;
-12. implementar e validar o mapa regional das 24 cidades existentes antes de ampliar o inventário municipal.
+12. validar o mapa regional das 24 cidades em produção, mobile, acessibilidade e performance antes de avaliar a expansão do inventário municipal.
 
 ## 25. Regra de manutenção deste arquivo
 
