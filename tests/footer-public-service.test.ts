@@ -6,11 +6,11 @@ const footerSource = readFileSync("src/components/layout/Footer.tsx", "utf8");
 const stripSource = readFileSync("src/components/layout/EmergencyFooterStrip.tsx", "utf8");
 const stripCss = readFileSync("src/components/layout/EmergencyFooterStrip.css", "utf8");
 
-test("the public-service strip is rendered before both footer variants", () => {
+test("the public-service strip is rendered exactly once before the canonical footer", () => {
   assert.match(footerSource, /import \{ EmergencyFooterStrip \}/);
-  assert.equal((footerSource.match(/<EmergencyFooterStrip \/>/g) ?? []).length, 2);
+  assert.equal((footerSource.match(/<EmergencyFooterStrip \/>/g) ?? []).length, 1);
   assert.match(footerSource, /<EmergencyFooterStrip \/>\s*<footer className="tp-home-footer-shell">/);
-  assert.match(footerSource, /<EmergencyFooterStrip \/>\s*<footer className="editorial-footer-shell">/);
+  assert.doesNotMatch(footerSource, /editorial-footer-shell|FooterVariant|getFooterLead/);
 });
 
 test("the strip publishes emergency phones and the official Civil Defense SMS signup", () => {
