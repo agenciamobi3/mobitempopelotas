@@ -1460,9 +1460,12 @@ Contratos da Central Regional:
 
 - o inventário regional nesta etapa contém exatamente 24 cidades (Pelotas via Home + 23 páginas municipais);
 - a consulta Open-Meteo é feita em lote, numa única requisição multi-coordinate, com timeout e fallback que preserva a navegação;
-- busca sem acento e filtros pelos quatro agrupamentos regionais existentes devem permanecer acessíveis;
+- busca sem acento e filtros pelos quatro agrupamentos regionais existentes devem permanecer acessíveis e sincronizados com a lista e o mapa;
 - valores exibidos na Central são rotulados como estimativa de modelo e nunca como observação da estação local;
-- avisos oficiais do INMET continuam restritos às páginas municipais individuais.
+- avisos oficiais do INMET continuam restritos às páginas municipais individuais;
+- o mapa MapLibre reutiliza o mesmo dataset resumido, sem segunda consulta meteorológica;
+- marcadores levam à página municipal correspondente e apresentam temperatura estimada e condição;
+- falha do mapa não prejudica a lista nem a navegação.
 
 E2E real obrigatório antes do lançamento:
 
