@@ -1,5 +1,9 @@
 import { PUBLIC_REGIONAL_CITIES, type RegionalCity } from "@/lib/regional-cities";
 
+import {
+  persistRegionalCitiesOverviewSnapshot,
+  readRegionalCitiesOverviewSnapshot,
+} from "./regional-cities-overview-snapshot.server";
 import type {
   RegionalCitiesOverview,
   RegionalCityOverviewItem,
@@ -95,6 +99,28 @@ function unavailableOverview(message: string, fetchedAt = new Date().toISOString
   };
 }
 
+function cachedOverview(overview: RegionalCitiesOverview, reason: string): RegionalCitiesOverview {
+  return {
+    ...overview,
+    message: `Exibindo o último resumo regional disponível porque a atualização ao vivo falhou (${reason}).`,
+  };
+}
+
+async function fallbackOverview(reason: string, fetchedAt: string) {
+  if (regionalSnapshot) return cachedOverview(regionalSnapshot, reason);
+
+  const persistedSnapshot = await readRegionalCitiesOverviewSnapshot();
+  if (persistedSnapshot) {
+    regionalSnapshot = persistedSnapshot;
+    return cachedOverview(persistedSnapshot, reason);
+  }
+
+  return unavailableOverview(
+    `A visão regional resumida está temporariamente indisponível (${reason}). As páginas municipais continuam acessíveis.`,
+    fetchedAt,
+  );
+}
+
 export function buildRegionalCitiesOverviewUrl() {
   const params = new URLSearchParams({
     latitude: PUBLIC_REGIONAL_CITIES.map((city) => city.latitude).join(","),
@@ -139,20 +165,13 @@ export async function fetchRegionalCitiesOverview(): Promise<RegionalCitiesOverv
     });
 
     if (!response.ok) {
-      if (regionalSnapshot) return regionalSnapshot;
-      return unavailableOverview(
-        `A visão regional resumida está temporariamente indisponível (HTTP ${response.status}). As páginas municipais continuam acessíveis.`,
-        fetchedAt,
-      );
+      return fallbackOverview(`HTTP ${response.status}`, fetchedAt);
     }
 
     regionalSnapshot = normalizeRegionalCitiesOverview(await response.json(), fetchedAt);
+    void persistRegionalCitiesOverviewSnapshot(regionalSnapshot);
     return regionalSnapshot;
   } catch {
-    if (regionalSnapshot) return regionalSnapshot;
-    return unavailableOverview(
-      "A visão regional resumida está temporariamente indisponível. As páginas municipais continuam acessíveis.",
-      fetchedAt,
-    );
+    return fallbackOverview("falha de conexão com o provedor", fetchedAt);
   }
 }
