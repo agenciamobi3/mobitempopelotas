@@ -149,7 +149,7 @@ test("o sitemap contém Home, Central Regional e todas as páginas municipais ca
 
 test("robots aponta o sitemap e reduz crawling de superfícies operacionais", () => {
   assert.match(robotsRoute, /User-agent: \*/);
-  assert.match(robotsRoute, /Allow: \/$/m);
+  assert.match(robotsRoute, /"Allow: \/"/);
   assert.match(robotsRoute, /Disallow: \/api\//);
   assert.match(robotsRoute, /Disallow: \/_server\//);
   assert.match(robotsRoute, /Disallow: \/auth\//);
