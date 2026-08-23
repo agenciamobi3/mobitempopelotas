@@ -1,0 +1,54 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+
+const weatherMap = readFileSync("src/production/components/weather-map.tsx", "utf8");
+const weatherMapCss = readFileSync(
+  "src/production/components/weather-map.module.css",
+  "utf8",
+);
+
+test("REDEMET image metadata is not enough to mark the raster as ready", () => {
+  assert.match(weatherMap, /type ImageRenderState = "idle" \| "loading" \| "ready" \| "error"/);
+  assert.match(weatherMap, /const \[renderedImageFrameId, setRenderedImageFrameId\]/);
+  assert.match(
+    weatherMap,
+    /imageRenderState === "ready"[\s\S]*renderedImageFrameId === selectedImageFrameId/,
+  );
+  assert.match(weatherMap, /operationalLayerReady[\s\S]*styles\.liveDot/);
+  assert.doesNotMatch(weatherMap, /className=\{available \? styles\.liveDot/);
+});
+
+test("REDEMET raster is fetched, typed and decoded before MapLibre receives it", () => {
+  assert.match(weatherMap, /async function fetchVerifiedImageObjectUrl/);
+  assert.match(weatherMap, /if \(!response\.ok\)/);
+  assert.match(weatherMap, /contentType\.startsWith\("image\/"\)/);
+  assert.match(weatherMap, /const blob = await response\.blob\(\)/);
+  assert.match(weatherMap, /const image = new Image\(\)/);
+  assert.match(weatherMap, /image\.onload/);
+  assert.match(weatherMap, /image\.onerror/);
+  assert.match(weatherMap, /URL\.createObjectURL\(blob\)/);
+  assert.match(weatherMap, /URL\.revokeObjectURL\(objectUrl\)/);
+  assert.match(weatherMap, /url: objectUrl/);
+});
+
+test("radar status distinguishes metadata, raster loading, success and failure", () => {
+  assert.match(weatherMap, /Carregando imagem de \$\{imageLayerLabel\}/);
+  assert.match(weatherMap, /"Radar carregado"/);
+  assert.match(weatherMap, /"Imagem indisponível"/);
+  assert.match(weatherMap, /Imagem do radar não carregou/);
+  assert.match(weatherMap, /metadata do quadro foi recebida, mas o raster não foi validado/i);
+  assert.match(weatherMap, /A ausência de cores no quadro não substitui/);
+  assert.match(weatherMapCss, /\.errorDot/);
+  assert.match(weatherMapCss, /\.renderStatus/);
+});
+
+test("changing raster opacity does not refetch the verified image", () => {
+  assert.match(weatherMap, /const opacityRef = useRef\(78\)/);
+  assert.match(weatherMap, /map\.setPaintProperty\(IMAGE_LAYER_ID, "raster-opacity", opacity \/ 100\)/);
+  assert.match(weatherMap, /"raster-opacity": opacityRef\.current \/ 100/);
+  assert.doesNotMatch(
+    weatherMap,
+    /\}, \[activeLayer, isLoaded, opacity, selectedFrame\]\);/,
+  );
+});
