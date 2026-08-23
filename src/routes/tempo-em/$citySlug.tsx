@@ -2,7 +2,11 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import { RegionalCityWeatherPageClient } from "@/components/regional/RegionalCityWeatherPageClient";
 import { createPageHead } from "@/lib/page-meta";
-import { REGIONAL_HOME_CITY_SLUG, regionalCityPath } from "@/lib/regional-cities";
+import {
+  REGIONAL_HOME_CITY_SLUG,
+  isRegionalCityIndexable,
+  regionalCityPath,
+} from "@/lib/regional-cities";
 import { getRegionalCityWeather } from "@/lib/weather/regional-city-weather.functions";
 
 export const Route = createFileRoute("/tempo-em/$citySlug")({
@@ -26,6 +30,7 @@ export const Route = createFileRoute("/tempo-em/$citySlug")({
     const title = `Tempo em ${city.name}, RS`;
     const description = `Previsão do tempo para ${city.name}, com temperatura, chuva, vento, próximos 7 dias e avisos do INMET. Contexto regional: ${city.descriptor}.`;
     return createPageHead(title, description, regionalCityPath(city), [], {
+      indexable: isRegionalCityIndexable(city),
       geo: {
         region: "BR-RS",
         placename: city.name,
