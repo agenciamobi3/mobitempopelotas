@@ -18,8 +18,12 @@ test("the strip publishes emergency phones and the official Civil Defense SMS si
     assert.match(stripSource, new RegExp(`number: "${phone}"`));
   }
 
+  assert.match(stripSource, /Serviço público/);
+  assert.match(stripSource, /Telefones de emergência/);
+  assert.match(stripSource, /Alertas oficiais · Defesa Civil RS/);
+  assert.match(stripSource, /Receba avisos diretamente no celular/);
   assert.match(stripSource, /sms:40199/);
-  assert.match(stripSource, /Defesa Civil RS/);
+  assert.match(stripSource, /Cadastrar CEP por SMS/);
   assert.match(stripSource, /defesacivil\.rs\.gov\.br/);
   assert.match(stripSource, /CEP/);
 });
@@ -29,5 +33,6 @@ test("the strip keeps the RS Civil Defense reference palette and responsive two-
   assert.match(stripCss, /--tp-public-service-orange:\s*#ef6213/);
   assert.match(stripCss, /grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/);
   assert.match(stripCss, /@media \(max-width: 940px\)[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(stripCss, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(stripCss, /!important/);
 });
