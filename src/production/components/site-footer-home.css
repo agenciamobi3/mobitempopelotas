@@ -206,6 +206,7 @@
 }
 
 .tp-home-footer-group a:focus-visible,
+.tp-home-footer-source-map a:focus-visible,
 .tp-home-footer-legal a:focus-visible,
 .tp-home-footer-base a:focus-visible {
   outline: 2px solid rgb(24 189 205 / 40%);
@@ -265,6 +266,32 @@
   color: #657984;
   font-size: 0.65rem;
   line-height: 1.58;
+}
+
+.tp-home-footer-source-entry {
+  display: inline;
+}
+
+.tp-home-footer-source-separator {
+  display: inline-block;
+  margin-inline: 0.32em;
+  color: #a0adb4;
+}
+
+.tp-home-footer-source-map a {
+  color: #536c79;
+  font-weight: 640;
+  text-decoration: underline;
+  text-decoration-color: rgb(83 108 121 / 26%);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: color 150ms ease, text-decoration-color 150ms ease;
+}
+
+.tp-home-footer-source-map a:hover,
+.tp-home-footer-source-map a:focus-visible {
+  color: #087c8a;
+  text-decoration-color: currentColor;
 }
 
 .tp-home-footer-service {
@@ -447,7 +474,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tp-home-footer-group a svg {
+  .tp-home-footer-group a svg,
+  .tp-home-footer-source-map a {
     transition: none;
   }
 }
@@ -462,5 +490,9 @@
   .tp-home-footer-source-map > div,
   .tp-home-footer-service {
     border-color: CanvasText;
+  }
+
+  .tp-home-footer-source-map a {
+    text-decoration-color: currentColor;
   }
 }
