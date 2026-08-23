@@ -46,13 +46,15 @@ A credencial Google é então validada pelo Supabase externo via `signInWithIdTo
 
 ## Ausentes e necessários para web push/cron
 
-- `CRON_SECRET` — protege rotinas agendadas, incluindo o resumo diário; quando usado por GitHub Actions, deve corresponder ao secret de workflow configurado para o mesmo propósito.
+- `CRON_SECRET` — protege rotinas agendadas, incluindo o resumo diário; quando usado por GitHub Actions ou outro scheduler, deve corresponder ao segredo configurado no chamador.
 - `VAPID_PUBLIC_KEY` — chave pública de Web Push.
 - `VAPID_PRIVATE_KEY` — chave privada de Web Push; exclusivamente server-side.
 - `VAPID_SUBJECT` — identidade VAPID, normalmente `mailto:` ou URL HTTPS.
 - `PUSH_ADMIN_SECRET` — protege disparos administrativos em `/api/push/broadcast`.
 
 Sem o par VAPID, o endpoint `/api/push/config` declara o recurso indisponível e o gerenciador público de notificações permanece oculto. Sem `CRON_SECRET`, a rotina diária protegida não pode ser executada normalmente. Sem `PUSH_ADMIN_SECRET`, o broadcast administrativo responde como não configurado.
+
+A auditoria do repositório também não encontrou um workflow/scheduler versionado que chame automaticamente `/api/cron/push-daily`. Portanto configurar `CRON_SECRET` é necessário, mas não suficiente: o resumo diário só passa a ser automático quando existir um agendamento real e monitorado para essa rota. `water` e `community` possuem consentimento e caminho de broadcast, mas não possuem hoje uma automação própria equivalente ao resumo diário.
 
 ## Preferências da conta x canal de entrega
 
@@ -66,19 +68,22 @@ Desde este checkpoint, `PushNotificationsManager` está montado no shell global.
 
 ## Google Analytics
 
-Measurement ID público configurado no código: `G-97YX7HPD90`.
+Measurement ID público da conexão existente: `G-97YX7HPD90`.
 
-O portal carrega GA4 no cliente e registra `page_view` nas navegações do TanStack Router, com `send_page_view: false` na inicialização para evitar duplicidade do pageview automático em uma SPA.
+A conexão do workspace Lovable chamada `Analytics TEMPO Pelotas` existe, mas a tentativa de vínculo ao projeto foi recusada pela camada de permissões da própria conexão: o proprietário/membro que possui o projeto não está autorizado a usar essa conexão no estado atual.
 
-A conexão do workspace Lovable chamada `Analytics TEMPO Pelotas` existe, mas a tentativa de vínculo ao projeto foi recusada pela camada de permissões da própria conexão. O vínculo deve ser repetido após conceder acesso ao proprietário/membro que possui o projeto Tempo Pelotas.
+O conector Google Analytics do Lovable é a fonte canônica planejada para o tracking. Não manter uma segunda inicialização manual de `gtag.js` no código enquanto esse conector for a integração escolhida, pois isso pode duplicar inicialização e pageviews quando a conexão for vinculada.
+
+Até a permissão ser corrigida e o vínculo concluído, o projeto não deve declarar a medição do GA4 como operacional somente por existir o Measurement ID.
 
 ## Próximos passos operacionais
 
 1. corrigir a permissão da conexão `Analytics TEMPO Pelotas` no workspace e vinculá-la ao projeto;
-2. gerar/configurar o par VAPID definitivo e `VAPID_SUBJECT`;
-3. configurar `PUSH_ADMIN_SECRET`;
-4. definir `CRON_SECRET` e garantir o mesmo valor no runtime e no workflow agendado que o consome;
-5. validar `/api/push/config` em produção;
-6. ativar notificações em um navegador autenticado e confirmar que a inscrição recebe `user_id`;
-7. testar separadamente weather, water, daily summary e community com consentimento ligado/desligado;
-8. manter e-mail como canal separado caso seja implementado futuramente; as quatro preferências atuais não equivalem a assinatura de e-mail.
+2. validar no navegador/Realtime do GA4 que cada navegação SPA gera somente um pageview;
+3. gerar/configurar o par VAPID definitivo e `VAPID_SUBJECT`;
+4. configurar `PUSH_ADMIN_SECRET`;
+5. definir `CRON_SECRET` e configurar um scheduler real para `/api/cron/push-daily` usando o mesmo valor;
+6. validar `/api/push/config` em produção;
+7. ativar notificações em um navegador autenticado e confirmar que a inscrição recebe `user_id`;
+8. testar separadamente weather, water, daily summary e community com consentimento ligado/desligado;
+9. manter e-mail como canal separado caso seja implementado futuramente; as quatro preferências atuais não equivalem a assinatura de e-mail.
