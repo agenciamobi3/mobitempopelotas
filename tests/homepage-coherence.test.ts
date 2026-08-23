@@ -34,6 +34,10 @@ const weatherHeroCss = readFileSync(
   "src/production/components/weather-hero-direction.css",
   "utf8",
 );
+const weatherHeroFactsCss = readFileSync(
+  "src/production/components/weather-hero-facts.css",
+  "utf8",
+);
 const homeHeader = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 const homeHeaderCss = readFileSync(
   "src/production/components/home-editorial-header.css",
@@ -134,13 +138,31 @@ test("the hero separates current wording from forecast wording", () => {
   assert.doesNotMatch(weatherHero, /\{weatherConditionLabels\[heroIcon\]\} agora em Pelotas/);
 });
 
-test("the hero keeps only the essential public facts", () => {
+test("the hero consolidates the most useful current observation and daily facts", () => {
   assert.match(weatherHero, /className="tp-home-hero__facts"/);
   assert.match(weatherHero, /label="Mín\. \/ máx\."/);
+  assert.match(weatherHero, /label="Umidade"/);
+  assert.match(weatherHero, /current\.humidity/);
   assert.match(weatherHero, /label="Chuva"/);
+  assert.match(weatherHero, /label="Pressão"/);
+  assert.match(weatherHero, /current\.pressure/);
   assert.match(weatherHero, /"Vento previsto"/);
-  assert.doesNotMatch(weatherHero, /label="Umidade"/);
-  assert.doesNotMatch(weatherHero, /label="Pressão"/);
+  assert.match(weatherHero, /current\.available \? formatMetric\(current\.humidity, "%"\) : "—"/);
+  assert.match(weatherHero, /current\.available \? formatMetric\(current\.pressure, " hPa"\) : "—"/);
+  assert.match(weatherHero, /import "\.\/weather-hero-facts\.css"/);
+  assert.match(
+    weatherHeroFactsCss,
+    /grid-template-columns:\s*1\.2fr repeat\(4, minmax\(0, 1fr\)\)/,
+  );
+  assert.match(
+    weatherHeroFactsCss,
+    /@media \(max-width: 720px\)[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/,
+  );
+  assert.match(
+    weatherHeroFactsCss,
+    /@media \(max-width: 460px\)[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/,
+  );
+  assert.doesNotMatch(weatherHeroFactsCss, /!important/);
 });
 
 test("the homepage section index is isolated, editorial and only points to rendered chapters", () => {
