@@ -24,7 +24,7 @@ export const PUBLIC_ROUTES: PublicRouteEntry[] = [
   { path: "/historico-climatico-pelotas", changeFrequency: "daily", priority: 0.7 },
   { path: "/enchente-2024-pelotas-laranjal", changeFrequency: "monthly", priority: 0.78 },
   { path: "/cameras-ao-vivo-pelotas", changeFrequency: "hourly", priority: 0.7 },
-  { path: "/tempo-na-regiao-sul-rs", changeFrequency: "daily", priority: 0.85 },
+  { path: "/tempo-na-regiao-sul-rs", changeFrequency: "hourly", priority: 0.85 },
   { path: "/blog", changeFrequency: "daily", priority: 0.76 },
   ...REGIONAL_CITIES.filter((city) => city.slug !== "pelotas-rs").map((city) => ({
     path: regionalCityPath(city),
