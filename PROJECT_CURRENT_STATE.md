@@ -159,16 +159,19 @@ Cada cidade possui slug, coordenadas, código IBGE, agrupamento regional e descr
 
 ### Central Regional `/tempo-na-regiao-sul-rs`
 
-A rota deixou de ser apenas um diretório estático e passou a funcionar como Central Regional para o inventário existente de 24 cidades:
+A rota funciona como Central Regional para o inventário existente de 24 cidades:
 
 - carrega um resumo meteorológico server-side via uma única consulta multi-coordinate ao Open-Meteo para as 24 coordenadas, com cache de 5 minutos e fallback seguro que preserva a navegação para as páginas municipais;
 - exibe temperatura estimada agora, condição do céu, temperatura mínima/máxima do dia, chance de chuva e velocidade do vento;
 - oferece busca sem acento e filtros pelos quatro agrupamentos regionais existentes (`Pelotas e entorno`, `Costa Doce`, `Fronteira Sul`, `Campanha`);
 - identifica explicitamente esses valores como estimativa de modelo numérico, não como observação de estação;
 - mantém os avisos oficiais do INMET apenas nas páginas municipais individuais (`/tempo-em/{slug}`), não na Central;
-- nenhuma cidade nova foi adicionada nesta etapa e nenhum mapa de cidades foi implementado ainda.
+- inclui mapa interativo MapLibre com os mesmos 24 pontos do dataset resumido, base cartográfica OpenFreeMap, carregamento client-side progressivo/lazy via IntersectionObserver e fallback que preserva a lista e a navegação se o mapa falhar;
+- busca e filtros atualizam simultaneamente a lista e o mapa, reenquadrando as cidades visíveis;
+- marcadores levam à página municipal correspondente e mostram temperatura estimada e condição;
+- nenhuma cidade nova foi adicionada nesta etapa.
 
-Decisão de produto: o próximo passo é implementar e validar o mapa regional das mesmas 24 cidades; só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
+Decisão de produto: o mapa regional das 24 cidades está implementado; o próximo passo é validá-lo em produção, mobile, acessibilidade e performance. Só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
 
 ### Navegação editorial pública
 
