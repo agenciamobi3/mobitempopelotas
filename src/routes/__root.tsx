@@ -10,9 +10,11 @@ import {
 import mapLibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
 import { useEffect, type ReactNode } from "react";
 
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ViewportScrollRoot } from "@/components/layout/ViewportScrollRoot";
 import { RouteLoadingOverlay } from "@/components/navigation/RouteLoadingOverlay";
+import { PushNotificationsManager } from "@/components/pwa/PushNotificationsManager";
 import { PwaAppExperience } from "@/components/pwa/PwaAppExperience";
 import { PwaManager } from "@/components/pwa/PwaManager";
 import { WeatherMinuteRefresh } from "@/components/weather/WeatherMinuteRefresh";
@@ -156,6 +158,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <GoogleAnalytics />
       <WeatherMinuteRefresh />
       <ViewportScrollRoot>
         <SiteLayout>
@@ -165,6 +168,7 @@ function RootComponent() {
       <RouteLoadingOverlay />
       <PwaAppExperience />
       <PwaManager />
+      <PushNotificationsManager />
     </QueryClientProvider>
   );
 }
