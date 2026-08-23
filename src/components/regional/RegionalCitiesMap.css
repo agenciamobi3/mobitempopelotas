@@ -1,0 +1,293 @@
+.regional-overview-map {
+  display: grid;
+  gap: 18px;
+  padding: clamp(24px, 3vw, 38px);
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: none;
+  color: #071e2f;
+}
+
+.regional-overview-map__header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+}
+
+.regional-overview-map__header > div {
+  min-width: 0;
+}
+
+.regional-overview-map__header > div > span {
+  color: #087d8a;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.regional-overview-map__header h2 {
+  margin: 7px 0 10px;
+  font-size: clamp(2rem, 3.1vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
+}
+
+.regional-overview-map__header p {
+  max-width: 76ch;
+  margin: 0;
+  color: #58717d;
+  line-height: 1.65;
+}
+
+.regional-overview-map__header > strong {
+  min-width: 112px;
+  padding: 11px 14px;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 999px;
+  background: #fbfcfc;
+  color: #405e6d;
+  font-size: 0.76rem;
+  text-align: center;
+}
+
+.regional-overview-map__frame {
+  position: relative;
+  min-height: clamp(430px, 54vw, 650px);
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 14px;
+  background: #edf3f2;
+}
+
+.regional-overview-map__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.regional-overview-map__state {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgb(247 250 249 / 88%);
+  color: #58717d;
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-align: center;
+  pointer-events: none;
+}
+
+.regional-overview-map__state.is-error {
+  color: #8a3d1f;
+}
+
+.regional-overview-map__marker {
+  --marker-accent: #18bdcd;
+  --marker-ring: rgb(24 189 205 / 22%);
+  display: grid;
+  width: 46px;
+  min-height: 46px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: var(--marker-accent);
+  box-shadow: 0 5px 16px rgb(7 30 47 / 22%), 0 0 0 5px var(--marker-ring);
+  color: #fff;
+  text-decoration: none;
+  transform: translateZ(0);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.regional-overview-map__marker strong {
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.regional-overview-map__marker span {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  max-width: 130px;
+  padding: 5px 7px;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 7px;
+  background: rgb(255 255 255 / 94%);
+  color: #17384a;
+  font-size: 0.61rem;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -3px);
+  transition: opacity 130ms ease, transform 130ms ease;
+  pointer-events: none;
+}
+
+.regional-overview-map__marker:hover,
+.regional-overview-map__marker:focus-visible {
+  z-index: 4;
+  outline: none;
+  transform: scale(1.08);
+  box-shadow: 0 7px 20px rgb(7 30 47 / 28%), 0 0 0 6px var(--marker-ring);
+}
+
+.regional-overview-map__marker:hover span,
+.regional-overview-map__marker:focus-visible span {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.regional-overview-map__marker.is-pelotas {
+  --marker-accent: #0c8996;
+  --marker-ring: rgb(24 189 205 / 22%);
+}
+
+.regional-overview-map__marker.is-costa {
+  --marker-accent: #5e2ced;
+  --marker-ring: rgb(94 44 237 / 18%);
+}
+
+.regional-overview-map__marker.is-fronteira {
+  --marker-accent: #c42178;
+  --marker-ring: rgb(231 11 133 / 16%);
+}
+
+.regional-overview-map__marker.is-campanha {
+  --marker-accent: #c45b29;
+  --marker-ring: rgb(242 112 53 / 18%);
+}
+
+.regional-overview-map .maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 11%);
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgb(7 30 47 / 10%);
+}
+
+.regional-overview-map .maplibregl-ctrl-attrib {
+  font-size: 10px;
+}
+
+.regional-overview-map__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  color: #647c89;
+}
+
+.regional-overview-map__footer small {
+  font-size: 0.65rem;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.regional-overview-map__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.regional-overview-map__legend span {
+  --legend-accent: #0c8996;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #496673;
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+.regional-overview-map__legend span::before {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--legend-accent);
+  content: "";
+}
+
+.regional-overview-map__legend .is-costa {
+  --legend-accent: #5e2ced;
+}
+
+.regional-overview-map__legend .is-fronteira {
+  --legend-accent: #c42178;
+}
+
+.regional-overview-map__legend .is-campanha {
+  --legend-accent: #c45b29;
+}
+
+@media (max-width: 760px) {
+  .regional-overview-map {
+    gap: 16px;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .regional-overview-map__header {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 14px;
+  }
+
+  .regional-overview-map__header > strong {
+    min-width: 0;
+    width: fit-content;
+  }
+
+  .regional-overview-map__frame {
+    min-height: 480px;
+    border-radius: 11px;
+  }
+
+  .regional-overview-map__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .regional-overview-map__footer small {
+    text-align: left;
+  }
+}
+
+@media (max-width: 430px) {
+  .regional-overview-map__frame {
+    min-height: 430px;
+  }
+
+  .regional-overview-map__marker {
+    width: 42px;
+    min-height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .regional-overview-map__marker,
+  .regional-overview-map__marker span {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .regional-overview-map,
+  .regional-overview-map__header > strong,
+  .regional-overview-map__marker span {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .regional-overview-map__marker {
+    border-color: CanvasText;
+    background: Highlight;
+    color: HighlightText;
+    box-shadow: none;
+  }
+}
