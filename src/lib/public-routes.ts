@@ -1,4 +1,4 @@
-import { REGIONAL_CITIES, regionalCityPath } from "./regional-cities.ts";
+import { INDEXABLE_REGIONAL_CITIES, regionalCityPath } from "./regional-cities.ts";
 
 export type PublicRouteEntry = {
   path: string;
@@ -26,7 +26,7 @@ export const PUBLIC_ROUTES: PublicRouteEntry[] = [
   { path: "/cameras-ao-vivo-pelotas", changeFrequency: "hourly", priority: 0.7 },
   { path: "/tempo-na-regiao-sul-rs", changeFrequency: "hourly", priority: 0.85 },
   { path: "/blog", changeFrequency: "daily", priority: 0.76 },
-  ...REGIONAL_CITIES.filter((city) => city.slug !== "pelotas-rs").map((city) => ({
+  ...INDEXABLE_REGIONAL_CITIES.filter((city) => city.slug !== "pelotas-rs").map((city) => ({
     path: regionalCityPath(city),
     changeFrequency: "hourly" as const,
     priority: 0.72,
