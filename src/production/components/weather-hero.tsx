@@ -13,6 +13,7 @@ import type { WeatherData, WeatherIconName } from "@/production/lib/weather-data
 import { getWeatherAdvisory, type AdvisoryLevel } from "@/production/lib/weather-insights";
 
 import "./weather-hero-direction.css";
+import "./weather-hero-facts.css";
 
 type WeatherHeroProps = {
   weather: WeatherData;
@@ -205,8 +206,12 @@ export function WeatherHero({
             </p>
           </div>
 
-          <div className="tp-home-hero__facts" aria-label="Resumo das condições e da previsão de hoje">
+          <div className="tp-home-hero__facts" aria-label="Resumo das condições atuais e da previsão de hoje">
             <HeroFact label="Mín. / máx." value={today ? `${today.min}° / ${today.max}°` : "—"} />
+            <HeroFact
+              label="Umidade"
+              value={current.available ? formatMetric(current.humidity, "%") : "—"}
+            />
             <HeroFact
               label="Chuva"
               value={
@@ -214,6 +219,10 @@ export function WeatherHero({
                   ? "—"
                   : `${today.rainChance}%`
               }
+            />
+            <HeroFact
+              label="Pressão"
+              value={current.available ? formatMetric(current.pressure, " hPa") : "—"}
             />
             <HeroFact
               label={current.available ? "Vento" : "Vento previsto"}
