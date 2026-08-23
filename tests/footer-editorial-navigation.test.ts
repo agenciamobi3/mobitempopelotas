@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import { PUBLIC_DATA_SOURCE_LINKS } from "../src/lib/public-source-links.ts";
+
 const footer = readFileSync("src/components/layout/Footer.tsx", "utf8");
 const wrapper = readFileSync("src/production/components/site-footer.tsx", "utf8");
 const styles = readFileSync("src/production/components/site-footer-home.css", "utf8");
@@ -37,6 +39,25 @@ test("public footer condenses the main editorial discovery into four groups", ()
   }
 });
 
+test("footer provenance has one HTTPS link and accessible label for every declared provider", () => {
+  const providers = Object.values(PUBLIC_DATA_SOURCE_LINKS);
+  assert.ok(providers.length >= 17, "inventário deve preservar todos os fornecedores declarados");
+
+  for (const source of providers) {
+    const url = new URL(source.url);
+    assert.equal(url.protocol, "https:", `${source.label} deve usar HTTPS`);
+    assert.ok(source.label.trim().length > 1, "fonte deve ter texto âncora legível");
+    assert.match(source.ariaLabel, /nova aba$/i, `${source.label} deve informar nova aba no aria-label`);
+  }
+
+  assert.match(footer, /FOOTER_SOURCE_GROUPS\.map/);
+  assert.match(footer, /href=\{source\.url\}/);
+  assert.match(footer, /aria-label=\{source\.ariaLabel\}/);
+  assert.match(footer, /target="_blank"/);
+  assert.match(footer, /rel="noopener noreferrer"/);
+  assert.doesNotMatch(footer, /nofollow|sponsored/);
+});
+
 test("footer provenance reflects the active weather, monitoring and water source families", () => {
   for (const source of [
     "Embrapa Clima Temperado",
@@ -46,12 +67,21 @@ test("footer provenance reflects the active weather, monitoring and water source
     "MET Norway",
     "REDEMET/DECEA",
     "SIMAGRO RS",
-    "Defesa Civil RS / Casa Militar / MKS",
+    "Defesa Civil RS",
+    "Casa Militar RS",
+    "MKS / Qualle Control",
     "LabHidroSens/UFPel",
+    "MetSul",
+    "TideSat Global",
+    "Nível Guaíba",
+    "Rede Lagoa dos Patos",
     "FURG",
     "Portos RS",
   ]) {
-    assert.ok(footer.includes(source), `footer deve identificar ${source}`);
+    assert.ok(
+      Object.values(PUBLIC_DATA_SOURCE_LINKS).some((provider) => provider.label === source),
+      `inventário deve identificar ${source}`,
+    );
   }
 
   assert.match(footer, /Fontes e proveniência/);
@@ -73,8 +103,10 @@ test("footer uses a four-column desktop directory and responsive two/one-column 
   assert.match(styles, /\.tp-home-footer-source-map \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
 
-test("footer keeps accessibility-oriented motion and contrast fallbacks", () => {
+test("footer source links remain legible, keyboard visible and accessibility-friendly", () => {
+  assert.match(styles, /\.tp-home-footer-source-map a \{[\s\S]*text-decoration: underline/);
+  assert.match(styles, /\.tp-home-footer-source-map a:focus-visible/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(styles, /@media \(forced-colors: active\)/);
+  assert.match(styles, /@media \(forced-colors: active\)[\s\S]*\.tp-home-footer-source-map a/);
   assert.doesNotMatch(styles, /!important/);
 });
