@@ -90,7 +90,7 @@ export function buildRegionalCitiesOverviewUrl() {
   const params = new URLSearchParams({
     latitude: PUBLIC_REGIONAL_CITIES.map((city) => city.latitude).join(","),
     longitude: PUBLIC_REGIONAL_CITIES.map((city) => city.longitude).join(","),
-    timezone: PUBLIC_REGIONAL_CITIES.map(() => TIMEZONE).join(","),
+    timezone: TIMEZONE,
     forecast_days: "1",
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
