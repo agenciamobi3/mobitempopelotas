@@ -117,12 +117,19 @@ test("bundle do mapa é carregado perto da viewport e respeita economia de dados
 
 test("falha do MapLibre oferece fallback navegável por teclado e leitor de tela", () => {
   assert.match(regionalMap, /function FallbackCityNavigation/);
-  assert.match(regionalMap, /<nav/);
-  assert.match(regionalMap, /Navegação alternativa pelas cidades do mapa/);
+  assert.match(regionalMap, /tabIndex=\{-1\}/);
+  assert.match(regionalMap, /aria-labelledby="regional-map-fallback-title"/);
+  assert.match(regionalMap, /aria-describedby="regional-map-fallback-description"/);
   assert.match(regionalMap, /aria-label=\{markerLabel\(item\)\}/);
   assert.match(regionalMap, /Use esta lista para abrir as mesmas cidades pelo teclado ou leitor de tela/);
   assert.match(regionalMap, /aria-hidden=\{hasError\}/);
+  assert.match(regionalMap, /document\.activeElement/);
+  assert.match(regionalMap, /mapContainerRef\.current\?\.contains\(activeElement\)/);
+  assert.match(regionalMap, /restoreFallbackFocusRef\.current = true/);
+  assert.match(regionalMap, /requestAnimationFrame/);
+  assert.match(regionalMap, /fallbackNavigationRef\.current\?\.focus\(\{ preventScroll: true \}\)/);
   assert.match(regionalMapStyles, /\.regional-overview-map__marker:focus-visible/);
+  assert.match(fallbackMapStyles, /\.regional-overview-map__fallback:focus-visible/);
   assert.match(fallbackMapStyles, /\.regional-overview-map__fallback a:focus-visible/);
   assert.match(fallbackMapStyles, /@media \(max-width: 560px\)/);
   assert.match(fallbackMapStyles, /@media \(forced-colors: active\)/);
