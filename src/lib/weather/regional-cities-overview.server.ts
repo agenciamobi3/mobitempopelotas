@@ -1,4 +1,4 @@
-import { REGIONAL_CITIES, type RegionalCity } from "@/lib/regional-cities";
+import { PUBLIC_REGIONAL_CITIES, type RegionalCity } from "@/lib/regional-cities";
 
 import type {
   RegionalCitiesOverview,
@@ -88,9 +88,9 @@ function overallStatus(items: RegionalCityOverviewItem[]): RegionalOverviewItemS
 
 export function buildRegionalCitiesOverviewUrl() {
   const params = new URLSearchParams({
-    latitude: REGIONAL_CITIES.map((city) => city.latitude).join(","),
-    longitude: REGIONAL_CITIES.map((city) => city.longitude).join(","),
-    timezone: REGIONAL_CITIES.map(() => TIMEZONE).join(","),
+    latitude: PUBLIC_REGIONAL_CITIES.map((city) => city.latitude).join(","),
+    longitude: PUBLIC_REGIONAL_CITIES.map((city) => city.longitude).join(","),
+    timezone: PUBLIC_REGIONAL_CITIES.map(() => TIMEZONE).join(","),
     forecast_days: "1",
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
@@ -108,7 +108,7 @@ export function normalizeRegionalCitiesOverview(
   fetchedAt = new Date().toISOString(),
 ): RegionalCitiesOverview {
   const responses = Array.isArray(payload) ? payload : [payload];
-  const items = REGIONAL_CITIES.map((city, index) => overviewItem(city, responses[index]));
+  const items = PUBLIC_REGIONAL_CITIES.map((city, index) => overviewItem(city, responses[index]));
 
   return {
     status: overallStatus(items),
@@ -120,7 +120,7 @@ export function normalizeRegionalCitiesOverview(
 }
 
 function unavailableOverview(message: string, fetchedAt = new Date().toISOString()): RegionalCitiesOverview {
-  const items = REGIONAL_CITIES.map((city) => overviewItem(city, null));
+  const items = PUBLIC_REGIONAL_CITIES.map((city) => overviewItem(city, null));
   return {
     status: "unavailable",
     fetchedAt,
