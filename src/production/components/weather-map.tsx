@@ -33,6 +33,7 @@ const conditionLabels: Record<WeatherIconName, string> = {
 
 type MapMode = "satellite" | "radar" | "storms";
 type ImageRenderState = "idle" | "loading" | "ready" | "error";
+type SatelliteOptionValue = RedemetSatelliteType | "inmet-ir";
 type ActiveLayer =
   | { kind: "image"; data: RedemetImageLayerResponse }
   | { kind: "storms"; data: RedemetStormLayerResponse };
@@ -41,10 +42,11 @@ type WeatherMapProps = {
   regionalWeather: RegionalWeather[];
 };
 
-const SATELLITE_OPTIONS: Array<{ value: RedemetSatelliteType; label: string }> = [
+const SATELLITE_OPTIONS: Array<{ value: SatelliteOptionValue; label: string }> = [
   { value: "realcada", label: "Realçado" },
   { value: "ir", label: "Infravermelho" },
   { value: "vis", label: "Visível" },
+  { value: "inmet-ir", label: "GOES / INMET" },
 ];
 
 function formatUpdatedAt(value: string | null | undefined) {
@@ -182,7 +184,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasMapError, setHasMapError] = useState(false);
   const [mode, setMode] = useState<MapMode>("satellite");
-  const [satelliteType, setSatelliteType] = useState<RedemetSatelliteType>("realcada");
+  const [satelliteType, setSatelliteType] = useState<SatelliteOptionValue>("realcada");
   const [activeLayer, setActiveLayer] = useState<ActiveLayer | null>(null);
   const [loadingLayer, setLoadingLayer] = useState(true);
   const [imageRenderState, setImageRenderState] = useState<ImageRenderState>("idle");
@@ -224,6 +226,9 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
 
   const layerEndpoint = useMemo(() => {
     if (mode === "satellite") {
+      if (satelliteType === "inmet-ir") {
+        return "/api/redemet/satellite?source=inmet&frames=10";
+      }
       return `/api/redemet/satellite?type=${satelliteType}&frames=10`;
     }
     if (mode === "radar") return "/api/redemet/radar?frames=10";
@@ -286,7 +291,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
           if (!cancelled) setIsLoaded(true);
         });
       } catch (error) {
-        console.error("Falha ao inicializar o mapa REDEMET:", error);
+        console.error("Falha ao inicializar o mapa meteorológico:", error);
         if (!cancelled) setHasMapError(true);
       } finally {
         initializingRef.current = false;
@@ -348,7 +353,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
         });
 
         if (!response.ok) {
-          throw new Error(`Camada REDEMET respondeu com status ${response.status}`);
+          throw new Error(`Camada meteorológica respondeu com status ${response.status}`);
         }
 
         const payload = (await response.json()) as
@@ -365,41 +370,49 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
         setActiveLayer(nextLayer);
         setSelectedFrameIndex(nextLayer.data.currentIndex);
       } catch (error) {
-        console.error("Falha ao carregar camada REDEMET:", error);
+        console.error("Falha ao carregar camada meteorológica:", error);
 
         if (!cancelled) {
-          const errorMessage = "Não foi possível consultar a REDEMET neste momento.";
-          const base = {
+          const errorMessage = "Não foi possível consultar a fonte meteorológica neste momento.";
+          const commonBase = {
             configured: true,
             available: false,
-            provider: "REDEMET / DECEA" as const,
-            sourceLabel: "REDEMET / DECEA",
             frames: [],
             currentIndex: 0,
             updatedAt: new Date().toISOString(),
             error: errorMessage,
           };
 
-          setActiveLayer(
-            mode === "storms"
-              ? {
-                  kind: "storms",
-                  data: {
-                    ...base,
-                    product: "STSC — ocorrências de trovoada",
-                  },
-                }
-              : {
-                  kind: "image",
-                  data: {
-                    ...base,
-                    product:
-                      mode === "radar"
-                        ? "Radar meteorológico de Santiago"
-                        : "Satélite meteorológico",
-                  },
-                },
-          );
+          if (mode === "storms") {
+            setActiveLayer({
+              kind: "storms",
+              data: {
+                ...commonBase,
+                provider: "REDEMET / DECEA",
+                sourceLabel: "REDEMET / DECEA",
+                product: "STSC — ocorrências de trovoada",
+              },
+            });
+          } else {
+            const provider =
+              mode === "satellite" && satelliteType === "inmet-ir"
+                ? ("INMET" as const)
+                : ("REDEMET / DECEA" as const);
+            setActiveLayer({
+              kind: "image",
+              data: {
+                ...commonBase,
+                provider,
+                sourceLabel: provider,
+                product:
+                  mode === "radar"
+                    ? "Radar meteorológico de Santiago"
+                    : satelliteType === "inmet-ir"
+                      ? "GOES — infravermelho"
+                      : "Satélite meteorológico",
+              },
+            });
+          }
           setSelectedFrameIndex(0);
         }
       } finally {
@@ -414,7 +427,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [isLoaded, layerEndpoint, mode]);
+  }, [isLoaded, layerEndpoint, mode, satelliteType]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -476,7 +489,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
             error instanceof Error
               ? error.message
               : "A imagem meteorológica não pôde ser carregada no navegador.";
-          console.error("Falha ao renderizar imagem REDEMET:", error);
+          console.error("Falha ao renderizar imagem meteorológica:", error);
           setRenderedImageFrameId(null);
           setImageRenderState("error");
           setImageRenderError(message);
@@ -602,15 +615,19 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
     setRenderedImageFrameId(null);
   };
 
-  const sourceDescription = activeLayer?.data.sourceLabel ?? "REDEMET / DECEA";
+  const defaultSourceDescription =
+    mode === "satellite" && satelliteType === "inmet-ir" ? "GOES / INMET" : "REDEMET / DECEA";
+  const sourceDescription = activeLayer?.data.sourceLabel ?? defaultSourceDescription;
   const selectedStormCount =
     activeLayer?.kind === "storms" && selectedFrame
       ? (selectedFrame as RedemetStormLayerResponse["frames"][number]).points.length
       : null;
   const imageLayerLabel = mode === "radar" ? "radar" : "satélite";
+  const consultingSource =
+    mode === "satellite" && satelliteType === "inmet-ir" ? "INMET" : "REDEMET";
   const sourceStatusLabel =
     loadingLayer || !activeLayer
-      ? "Consultando REDEMET"
+      ? `Consultando ${consultingSource}`
       : activeLayer.kind === "image" &&
           metadataAvailable &&
           !imageLayerFailed &&
@@ -638,7 +655,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
     <section className="map-panel" id="regiao" aria-labelledby="map-title">
       <div className="map-panel-heading">
         <div>
-          <span className="eyebrow">REDEMET / DECEA</span>
+          <span className="eyebrow">MONITORAMENTO OFICIAL</span>
           <h2 id="map-title">Monitoramento meteorológico regional</h2>
         </div>
         <button
@@ -659,7 +676,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
 
       <div
         className={`map-canvas map-canvas--interactive map-canvas--${mode}${hasUnavailableLayer ? " has-layer-notice" : ""} ${styles.canvas}`}
-        aria-label="Mapa meteorológico oficial da REDEMET para Pelotas e região"
+        aria-label="Mapa meteorológico oficial para Pelotas e região"
       >
         <div ref={mapContainerRef} className="regional-map-engine" />
 
@@ -694,7 +711,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
         </div>
 
         {mode === "satellite" ? (
-          <div className={styles.satelliteSwitcher} aria-label="Tipo de imagem de satélite">
+          <div className={styles.satelliteSwitcher} aria-label="Tipo e fonte da imagem de satélite">
             {SATELLITE_OPTIONS.map((option) => (
               <button
                 key={option.value}
@@ -752,7 +769,10 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
         </div>
 
         {metadataAvailable && activeLayer && selectedFrame ? (
-          <div className={`radar-player ${styles.player}`} aria-label="Controles da camada REDEMET">
+          <div
+            className={`radar-player ${styles.player}`}
+            aria-label="Controles da camada meteorológica"
+          >
             <div className="radar-player-topline">
               <button
                 className="radar-play-button"
@@ -767,7 +787,9 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
                   {mode === "radar"
                     ? "Radar de Santiago"
                     : mode === "satellite"
-                      ? "Imagem de satélite"
+                      ? activeLayer.data.provider === "INMET"
+                        ? "GOES / INMET"
+                        : "Imagem de satélite"
                       : `${selectedStormCount ?? 0} ocorrências no quadro`}
                 </span>
                 <strong>{selectedFrame.label}</strong>
