@@ -22,8 +22,11 @@ type RegionalCitiesMapProps = {
   items: RegionalCityOverviewItem[];
 };
 
+type MapLibreModule = typeof import("maplibre-gl");
+
 function markerLabel(item: RegionalCityOverviewItem) {
-  const temperature = item.temperature === null ? "temperatura indisponível" : `${item.temperature} graus`;
+  const temperature =
+    item.temperature === null ? "temperatura indisponível" : `${item.temperature} graus`;
   return `${item.city.name}: ${temperature}, ${item.condition}. Abrir previsão local.`;
 }
 
@@ -87,31 +90,59 @@ function fitMapToItems(map: MapLibreMap, items: RegionalCityOverviewItem[], anim
   });
 }
 
+function FallbackCityNavigation({ items }: RegionalCitiesMapProps) {
+  return (
+    <nav
+      className="regional-overview-map__fallback"
+      aria-label="Navegação alternativa pelas cidades do mapa"
+    >
+      <div>
+        <strong>Mapa indisponível no momento</strong>
+        <span>Use esta lista para abrir as mesmas cidades pelo teclado ou leitor de tela.</span>
+      </div>
+      {items.length > 0 ? (
+        <ul>
+          {items.map((item) => (
+            <li key={item.city.slug}>
+              <a href={regionalCityPath(item.city)} aria-label={markerLabel(item)}>
+                <strong>{item.city.name}</strong>
+                <span>
+                  {item.temperature === null ? "—" : `${item.temperature}°`} · {item.condition}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Nenhuma cidade corresponde aos filtros atuais.</p>
+      )}
+    </nav>
+  );
+}
+
 export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const maplibreRef = useRef<MapLibreModule | null>(null);
   const markersRef = useRef<MapLibreMarker[]>([]);
   const initializingRef = useRef(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    if (!mapContainerRef.current || mapRef.current || initializingRef.current) return;
 
     let cancelled = false;
-    let observer: IntersectionObserver | null = null;
+    initializingRef.current = true;
 
     const initialize = async () => {
-      if (cancelled || mapRef.current || initializingRef.current) return;
-      initializingRef.current = true;
-
       try {
         const maplibregl = await import("maplibre-gl");
-        if (cancelled || !containerRef.current) return;
+        if (cancelled || !mapContainerRef.current) return;
+        maplibreRef.current = maplibregl;
 
         const map = new maplibregl.Map({
-          container: containerRef.current,
+          container: mapContainerRef.current,
           style: MAP_STYLE,
           center: DEFAULT_CENTER,
           zoom: 4.7,
@@ -138,61 +169,42 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
       }
     };
 
-    if (typeof IntersectionObserver === "undefined") {
-      void initialize();
-    } else {
-      observer = new IntersectionObserver(
-        (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) {
-            observer?.disconnect();
-            observer = null;
-            void initialize();
-          }
-        },
-        { rootMargin: "320px 0px" },
-      );
-      observer.observe(container);
-    }
+    void initialize();
 
     return () => {
       cancelled = true;
-      observer?.disconnect();
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
       mapRef.current?.remove();
       mapRef.current = null;
+      maplibreRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !isLoaded) return;
+    const maplibregl = maplibreRef.current;
+    if (!map || !maplibregl || !isLoaded) return;
 
-    let cancelled = false;
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = items.map((item) =>
+      new maplibregl.Marker({
+        element: createMarkerElement(item),
+        anchor: "center",
+      })
+        .setLngLat([item.city.longitude, item.city.latitude])
+        .addTo(map),
+    );
 
-    void import("maplibre-gl").then((maplibregl) => {
-      if (cancelled || !mapRef.current) return;
-
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = items.map((item) =>
-        new maplibregl.Marker({
-          element: createMarkerElement(item),
-          anchor: "center",
-        })
-          .setLngLat([item.city.longitude, item.city.latitude])
-          .addTo(map),
-      );
-
-      fitMapToItems(map, items, true);
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    fitMapToItems(map, items, true);
   }, [isLoaded, items]);
 
   return (
-    <section className="regional-overview-map" id="regional-city-map" aria-labelledby="regional-map-title">
+    <section
+      className="regional-overview-map"
+      id="regional-city-map"
+      aria-labelledby="regional-map-title"
+    >
       <header className="regional-overview-map__header">
         <div>
           <span>Mapa regional</span>
@@ -207,9 +219,10 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
 
       <div className="regional-overview-map__frame">
         <div
-          ref={containerRef}
+          ref={mapContainerRef}
           className="regional-overview-map__canvas"
           role="region"
+          aria-hidden={hasError}
           aria-label={`Mapa com ${items.length} cidades visíveis da Região Sul do Rio Grande do Sul`}
         />
         {!isLoaded && !hasError ? (
@@ -217,11 +230,7 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
             Carregando mapa regional…
           </div>
         ) : null}
-        {hasError ? (
-          <div className="regional-overview-map__state is-error" role="status">
-            O mapa está temporariamente indisponível. A lista de cidades continua disponível abaixo.
-          </div>
-        ) : null}
+        {hasError ? <FallbackCityNavigation items={items} /> : null}
       </div>
 
       <footer className="regional-overview-map__footer">
