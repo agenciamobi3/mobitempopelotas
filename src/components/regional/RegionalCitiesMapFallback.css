@@ -11,16 +11,25 @@
   color: #17384a;
 }
 
+.regional-overview-map__fallback:focus {
+  outline: none;
+}
+
+.regional-overview-map__fallback:focus-visible {
+  box-shadow: inset 0 0 0 3px rgb(24 189 205 / 22%);
+}
+
 .regional-overview-map__fallback > div {
   display: grid;
   gap: 4px;
 }
 
-.regional-overview-map__fallback > div > strong {
+.regional-overview-map__fallback > div > h3 {
+  margin: 0;
   font-size: 1rem;
 }
 
-.regional-overview-map__fallback > div > span,
+.regional-overview-map__fallback > div > p,
 .regional-overview-map__fallback > p {
   margin: 0;
   color: #617a86;
@@ -77,5 +86,11 @@
   .regional-overview-map__fallback a {
     background: Canvas;
     color: CanvasText;
+  }
+
+  .regional-overview-map__fallback:focus-visible,
+  .regional-overview-map__fallback a:focus-visible {
+    outline: 2px solid Highlight;
+    box-shadow: none;
   }
 }
