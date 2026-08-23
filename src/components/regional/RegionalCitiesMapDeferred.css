@@ -1,0 +1,57 @@
+.regional-map-deferred {
+  min-width: 0;
+}
+
+.regional-map-deferred__placeholder {
+  display: grid;
+  min-height: clamp(260px, 32vw, 360px);
+  place-items: center;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0, rgb(94 44 237 / 6%), transparent 22rem),
+    linear-gradient(145deg, #fbfefe, #fff);
+  color: #071e2f;
+  text-align: center;
+}
+
+.regional-map-deferred__placeholder > div {
+  display: grid;
+  max-width: 640px;
+  gap: 8px;
+}
+
+.regional-map-deferred__placeholder span {
+  color: #087d8a;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.regional-map-deferred__placeholder strong {
+  font-size: clamp(1.35rem, 2.4vw, 2.2rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.regional-map-deferred__placeholder small {
+  color: #617a86;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 760px) {
+  .regional-map-deferred__placeholder {
+    min-height: 220px;
+    border-radius: 12px;
+  }
+}
+
+@media (forced-colors: active) {
+  .regional-map-deferred__placeholder {
+    background: Canvas;
+    color: CanvasText;
+  }
+}
