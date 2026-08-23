@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
+import { FOOTER_SOURCE_GROUPS } from "@/lib/public-source-links";
 import type { WeatherData } from "@/production/lib/weather-data";
 
 import "./FooterStatusLink.css";
@@ -119,22 +120,6 @@ const footerGroups = [
   },
 ] as const;
 
-const sourceGroups = [
-  {
-    title: "Previsão e observação",
-    sources: "Embrapa Clima Temperado · INMET · CPPMet/UFPel · Open-Meteo · MET Norway",
-  },
-  {
-    title: "Monitoramento",
-    sources: "REDEMET/DECEA · SIMAGRO RS",
-  },
-  {
-    title: "Águas",
-    sources:
-      "Defesa Civil RS / Casa Militar / MKS · LabHidroSens/UFPel · MetSul/TideSat · Nível Guaíba · FURG · Portos RS",
-  },
-] as const;
-
 const mobiUrl =
   "https://agenciamobi.com.br/?utm_source=tempopelotas&utm_medium=footer&utm_campaign=portal_tempo_pelotas";
 
@@ -150,10 +135,28 @@ function isActivePath(pathname: string, to: string) {
 function FooterSourceMap() {
   return (
     <div className="tp-home-footer-source-map">
-      {sourceGroups.map((group) => (
+      {FOOTER_SOURCE_GROUPS.map((group) => (
         <div key={group.title}>
           <strong>{group.title}</strong>
-          <p>{group.sources}</p>
+          <p>
+            {group.sources.map((source, index) => (
+              <span className="tp-home-footer-source-entry" key={source.url}>
+                {index > 0 ? (
+                  <span className="tp-home-footer-source-separator" aria-hidden="true">
+                    ·
+                  </span>
+                ) : null}
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={source.ariaLabel}
+                >
+                  {source.label}
+                </a>
+              </span>
+            ))}
+          </p>
         </div>
       ))}
     </div>
