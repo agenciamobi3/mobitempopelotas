@@ -1527,7 +1527,10 @@ Contratos da Central Regional:
 - o mapa MapLibre reutiliza o mesmo dataset resumido, sem segunda consulta meteorológica;
 - o bundle do mapa é carregado sob demanda por wrapper leve próximo da viewport, com antecipação menor em mobile e redução adicional sob Save-Data;
 - marcadores levam à página municipal correspondente e apresentam temperatura estimada e condição;
-- falha do mapa não prejudica a lista nem a navegação e oferece navegação alternativa acessível com links das cidades, temperatura/condição, navegável por teclado e útil a leitor de tela.
+- falha do mapa não prejudica a lista nem a navegação e oferece navegação alternativa acessível com links nativos das mesmas cidades, temperatura/condição, navegável por teclado e útil a leitor de tela;
+- o container do mapa falho permanece fora da navegação/foco; o container do fallback é programaticamente focável (`tabIndex=-1`) sem virar tab stop permanente;
+- o foco só é restaurado programaticamente para o início semântico do fallback quando o foco do usuário estava dentro dos controles do mapa no momento da falha; caso contrário o fallback não rouba foco;
+- após a restauração, `aria-labelledby`, `aria-describedby`, status live, ordem natural do Tab e foco visível permanecem alinhados.
 
 E2E real obrigatório antes do lançamento:
 
