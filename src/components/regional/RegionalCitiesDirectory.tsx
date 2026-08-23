@@ -11,6 +11,7 @@ import type {
   RegionalCityOverviewItem,
 } from "@/lib/weather/regional-cities-overview.types";
 
+import { RegionalCitiesMap } from "./RegionalCitiesMap";
 import styles from "./RegionalCitiesDirectory.module.css";
 
 type RegionalCitiesDirectoryProps = {
@@ -82,7 +83,16 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
     [activeGroup, normalizedQuery],
   );
 
-  const visibleCount = visibleGroups.reduce((total, group) => total + group.cities.length, 0);
+  const visibleItems = useMemo(
+    () =>
+      visibleGroups.flatMap((group) =>
+        group.cities
+          .map((city) => itemBySlug.get(city.slug))
+          .filter((item): item is RegionalCityOverviewItem => Boolean(item)),
+      ),
+    [itemBySlug, visibleGroups],
+  );
+  const visibleCount = visibleItems.length;
   const availableCount = data.items.filter((item) => item.status !== "unavailable").length;
 
   return (
@@ -136,7 +146,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Busque por Pelotas, Bagé, Costa Doce..."
             autoComplete="off"
-            aria-controls="regional-city-results"
+            aria-controls="regional-city-map regional-city-results"
           />
         </label>
 
@@ -153,6 +163,8 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
           ))}
         </div>
       </section>
+
+      <RegionalCitiesMap items={visibleItems} />
 
       <section
         className={`${styles.directory} regional-cities-groups`}
@@ -228,15 +240,16 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
           <span>Como ler esta central</span>
           <h2>Comparação rápida primeiro; detalhe municipal depois</h2>
           <p>
-            A visão regional usa as coordenadas das 24 cidades em uma consulta resumida. Ao abrir
-            um município, a página local aprofunda a previsão e consulta os avisos oficiais pelo
-            código IBGE correspondente.
+            A visão regional usa as coordenadas das 24 cidades em uma consulta resumida. O mapa e
+            a lista consomem o mesmo conjunto de dados; ao abrir um município, a página local
+            aprofunda a previsão e consulta os avisos oficiais pelo código IBGE correspondente.
           </p>
         </div>
         <ul>
           <li>Resumo regional em uma única consulta meteorológica, com cache.</li>
+          <li>Mapa das mesmas 24 cidades, sem ampliar o inventário municipal.</li>
           <li>Condição atual da central identificada explicitamente como estimativa de modelo.</li>
-          <li>Busca por cidade e filtro pelos quatro agrupamentos já atendidos.</li>
+          <li>Busca e filtros atualizam simultaneamente mapa e lista.</li>
           <li>Páginas municipais permanentes para previsão completa e avisos oficiais.</li>
         </ul>
       </section>
