@@ -4,8 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { InternalPageChapters } from "@/components/weather/InternalWeatherWidgets";
 import { HomeForecastStory } from "@/components/weather/HomeForecastStory";
 import {
-  REGIONAL_CITIES,
   isRegionalHomeCity,
+  nearestRegionalCities,
   regionalCityPath,
   type RegionalCity,
 } from "@/lib/regional-cities";
@@ -52,22 +52,26 @@ const regionalSections = [
   },
 ];
 
-function CityLink({ city }: { city: RegionalCity }) {
+function distanceLabel(distanceKm: number) {
+  return `${Math.round(distanceKm)} km em linha reta`;
+}
+
+function CityLink({ city, distanceKm }: { city: RegionalCity; distanceKm: number }) {
+  const content = (
+    <>
+      <span>{city.name}</span>
+      <small>{city.descriptor} · {distanceLabel(distanceKm)}</small>
+      <ArrowRight aria-hidden="true" />
+    </>
+  );
+
   if (isRegionalHomeCity(city)) {
-    return (
-      <Link to="/">
-        <span>{city.name}</span>
-        <small>{city.descriptor}</small>
-        <ArrowRight aria-hidden="true" />
-      </Link>
-    );
+    return <Link to="/">{content}</Link>;
   }
 
   return (
     <Link to="/tempo-em/$citySlug" params={{ citySlug: city.slug }}>
-      <span>{city.name}</span>
-      <small>{city.descriptor}</small>
-      <ArrowRight aria-hidden="true" />
+      {content}
     </Link>
   );
 }
@@ -152,16 +156,14 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
 
 export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherData }) {
   const city = data.city;
-  const related = REGIONAL_CITIES.filter(
-    (item) => item.slug !== city.slug && item.group === city.group,
-  ).slice(0, 5);
+  const related = nearestRegionalCities(city, 5);
   const title = `Tempo em ${city.name}, RS`;
   const forecastStory = toRegionalForecastStory(data);
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: title,
-    description: `Previsão do tempo, chuva, vento e avisos meteorológicos para ${city.name}, Rio Grande do Sul.`,
+    description: `Previsão do tempo, chuva, vento e avisos meteorológicos para ${city.name}, ${city.descriptor}.`,
     url: `https://tempopelotas.com.br${regionalCityPath(city)}`,
     dateModified: data.source.fetchedAt,
     about: {
@@ -200,9 +202,10 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
           <span className={styles.eyebrow}>Leitura local</span>
           <h2>Como interpretar o tempo em {city.name}</h2>
           <p>
-            A previsão representa a grade meteorológica correspondente às coordenadas centrais do
-            município. Bairros, áreas rurais, litoral, serras e baixadas podem registrar condições
-            diferentes, principalmente em chuva localizada, vento, nevoeiro e temperatura mínima.
+            A previsão representa a grade meteorológica correspondente às coordenadas centrais de
+            {` ${city.name}`}, {city.descriptor}. Bairros, áreas rurais, litoral, serras e baixadas
+            podem registrar condições diferentes, principalmente em chuva localizada, vento,
+            nevoeiro e temperatura mínima.
           </p>
         </div>
         <ul>
@@ -228,20 +231,25 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
       >
         <header>
           <div>
-            <span className={styles.eyebrow}>{city.group}</span>
+            <span className={styles.eyebrow}>Proximidade geográfica</span>
             <h2 id="related-cities-title">Consulte cidades próximas</h2>
           </div>
           <Link to="/tempo-na-regiao-sul-rs">
             Ver todas as cidades <ArrowRight aria-hidden="true" />
           </Link>
         </header>
-        <div>{related.map((item) => <CityLink city={item} key={item.slug} />)}</div>
+        <div>
+          {related.map((item) => (
+            <CityLink city={item.city} distanceKm={item.distanceKm} key={item.city.slug} />
+          ))}
+        </div>
       </section>
 
       <footer className={`${styles.sources} regional-city-sources`}>
         <span>Fontes</span>
         <p>
           Previsão por coordenadas: Open-Meteo. Avisos municipais: Instituto Nacional de Meteorologia.
+          Distâncias entre cidades calculadas em linha reta a partir das coordenadas cadastradas.
           Atualizado em {formatRegionalDateTime(data.source.fetchedAt)}. Apresentação: Tempo Pelotas.
         </p>
       </footer>
