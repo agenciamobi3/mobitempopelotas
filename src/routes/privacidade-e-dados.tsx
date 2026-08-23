@@ -91,16 +91,16 @@ function PrivacyDataPage() {
 
           <section className="privacy-card">
             <span className="eyebrow">Medição de uso</span>
-            <h2>Google Analytics é separado da conta Google</h2>
+            <h2>Analytics será separado da conta Google</h2>
             <p>
-              O portal usa Google Analytics 4 para medir visualizações de páginas e navegação entre
-              conteúdos. A propriedade utiliza o identificador público G-97YX7HPD90 e está
-              configurada sem Google Signals e sem sinais de personalização publicitária.
+              O projeto possui uma conexão preparada para Google Analytics 4 com o identificador
+              público G-97YX7HPD90. A medição só deve ser considerada ativa depois que essa conexão
+              estiver vinculada ao projeto e validada em produção.
             </p>
             <p>
-              A integração de Analytics não recebe do Tempo Pelotas o e-mail, o nome ou o
-              identificador interno da conta usada no login. O acesso com Google e a medição de uso
-              são fluxos técnicos separados.
+              Quando ativada, a medição de uso deve permanecer tecnicamente separada do login: o
+              Tempo Pelotas não deve enviar e-mail, nome ou identificador interno da conta como dado
+              de Analytics.
             </p>
           </section>
 
