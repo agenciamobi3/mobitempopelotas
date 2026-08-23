@@ -52,6 +52,34 @@ export function regionalCityPath(city: RegionalCity) {
   return isRegionalHomeCity(city) ? "/" : `/tempo-em/${city.slug}`;
 }
 
+function degreesToRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+export function regionalCityDistanceKm(origin: RegionalCity, destination: RegionalCity) {
+  const earthRadiusKm = 6_371;
+  const latitudeDelta = degreesToRadians(destination.latitude - origin.latitude);
+  const longitudeDelta = degreesToRadians(destination.longitude - origin.longitude);
+  const originLatitude = degreesToRadians(origin.latitude);
+  const destinationLatitude = degreesToRadians(destination.latitude);
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(originLatitude) *
+      Math.cos(destinationLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2;
+  return 2 * earthRadiusKm * Math.asin(Math.min(1, Math.sqrt(haversine)));
+}
+
+export function nearestRegionalCities(city: RegionalCity, limit = 5) {
+  return REGIONAL_CITIES.filter((candidate) => candidate.slug !== city.slug)
+    .map((candidate) => ({
+      city: candidate,
+      distanceKm: regionalCityDistanceKm(city, candidate),
+    }))
+    .sort((left, right) => left.distanceKm - right.distanceKm)
+    .slice(0, Math.max(0, limit));
+}
+
 export const REGIONAL_CITY_GROUPS = Array.from(
   REGIONAL_CITIES.reduce((groups, city) => {
     const items = groups.get(city.group) ?? [];
