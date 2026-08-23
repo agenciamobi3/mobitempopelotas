@@ -810,8 +810,8 @@ A suíte de contratos cobre, entre outros domínios:
 - câmeras;
 - geadas;
 - hidrologia;
-- páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading, Save-Data, ausência de fetch meteorológico extra e fallback progressivo acessível;
-- gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): classificação de decisão, BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected, monitor server-to-server preservado, logs sanitizados e hardening do entrypoint;
+- páginas regionais e Central Regional (`tests/regional-central-overview.test.ts`), incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading, Save-Data, ausência de fetch meteorológico extra, fallback progressivo acessível, restauração condicional de foco, container de fallback com `tabIndex=-1`, semântica ARIA e foco visível;
+- gate geográfico de visitantes e camada de segurança do entrypoint (`tests/brazil-only-access.test.ts`): classificação de decisão, BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected, monitor server-to-server preservado, logs sanitizados, hardening do entrypoint, CSP global, firewall de aplicação, migrações/RPC de rate limit, rate limiting distribuído e smoke de produção;
 - SEO e acessibilidade, incluindo sitemap/robots (`tests/seo-domain.test.ts`) cobrindo Home, Central Regional e 23 páginas municipais no sitemap e limites de crawling no robots;
 - integrações Guaíba/SACE;
 - bootstrap/árvore de rotas.
