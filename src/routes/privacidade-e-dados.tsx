@@ -90,6 +90,21 @@ function PrivacyDataPage() {
           </section>
 
           <section className="privacy-card">
+            <span className="eyebrow">Medição de uso</span>
+            <h2>Google Analytics é separado da conta Google</h2>
+            <p>
+              O portal usa Google Analytics 4 para medir visualizações de páginas e navegação entre
+              conteúdos. A propriedade utiliza o identificador público G-97YX7HPD90 e está
+              configurada sem Google Signals e sem sinais de personalização publicitária.
+            </p>
+            <p>
+              A integração de Analytics não recebe do Tempo Pelotas o e-mail, o nome ou o
+              identificador interno da conta usada no login. O acesso com Google e a medição de uso
+              são fluxos técnicos separados.
+            </p>
+          </section>
+
+          <section className="privacy-card">
             <span className="eyebrow">Retenção</span>
             <h2>Por quanto tempo os dados permanecem</h2>
             <ul>
