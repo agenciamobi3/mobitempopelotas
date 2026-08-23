@@ -119,7 +119,7 @@ function PrivacyDataPage() {
 
           <section className="privacy-card">
             <span className="eyebrow">Segurança</span>
-            <h2>Credenciais não entram na exportação</h2>
+            <h2>Credenciais e áreas sensíveis permanecem isoladas</h2>
             <p>
               Tokens de sessão, chaves administrativas e material criptográfico de entrega não são
               enviados para a interface nem incluídos no arquivo de exportação.
@@ -127,6 +127,23 @@ function PrivacyDataPage() {
             <p>
               As tabelas da conta usam políticas que limitam a leitura ao próprio usuário. A
               exclusão é executada somente após confirmação explícita e validação da sessão.
+            </p>
+          </section>
+
+          <section className="privacy-card">
+            <span className="eyebrow">Proteção do portal</span>
+            <h2>Camadas de segurança reduzem exposição desnecessária</h2>
+            <p>
+              O Tempo Pelotas aplica controles de acesso, validações de origem e sessão, restrições
+              de cache em operações sensíveis, isolamento de credenciais no servidor e redução da
+              superfície pública das APIs. O portal também pode limitar tráfego por critérios de
+              segurança e operação, incluindo origem geográfica, quando isso for necessário para
+              proteger infraestrutura e dados.
+            </p>
+            <p>
+              Eventos de bloqueio e funcionamento das camadas de proteção podem ser registrados de
+              forma técnica para monitoramento. Detalhes operacionais, regras exatas e mecanismos
+              internos não são publicados para não ampliar a superfície de exploração.
             </p>
           </section>
 
