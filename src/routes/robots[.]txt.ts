@@ -8,6 +8,11 @@ function createRobotsTxt() {
     "Allow: /",
     "Disallow: /api/",
     "Disallow: /_server/",
+    "Disallow: /auth/",
+    "Disallow: /conta",
+    "Disallow: /entrar",
+    "Disallow: /painel",
+    "Disallow: /embed/",
     `Sitemap: ${absoluteUrl("/sitemap.xml")}`,
     "",
   ].join("\n");
@@ -21,6 +26,7 @@ export const Route = createFileRoute("/robots.txt")({
           headers: {
             "Content-Type": "text/plain; charset=utf-8",
             "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+            "X-Content-Type-Options": "nosniff",
           },
         }),
     },
