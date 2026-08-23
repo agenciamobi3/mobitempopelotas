@@ -801,6 +801,24 @@ A regra atual de lint é incremental para impedir nova dívida sem misturar uma 
 
 O projeto é conectado ao Lovable. Commits enviados à branch conectada sincronizam para o editor.
 
+### Gate geográfico de visitantes (`src/server-brazil.ts`)
+
+O entrypoint do servidor é `src/server-brazil.ts`, anterior ao servidor normal do app (`src/server.ts`). Em hosts de produção (`tempopelotas.com.br`, `www.tempopelotas.com.br`, `mobitempopelotas.lovable.app`), requisições de navegador identificadas pelos Fetch Metadata headers (`sec-fetch-dest`, `sec-fetch-mode`, `sec-fetch-site`) são classificadas por país:
+
+- `request.cf.country` (Cloudflare) é consultado primeiro;
+- headers de país (`cf-ipcountry`, `cloudfront-viewer-country`, `x-vercel-ip-country`, `x-country-code`, `x-geo-country`) são usados como fallback;
+- navegador com país `BR` segue normalmente para o app;
+- navegador não-BR, ou navegador em produção cujo país não possa ser determinado, falha fechado antes de importar o servidor normal do app e recebe HTTP 403 com um único HTML autocontido mostrando somente a marca Tempo Pelotas centralizada.
+
+A resposta 403:
+
+- não carrega React/TanStack, Supabase, Google Analytics, meteorologia, JavaScript, CSS externo, imagens externas ou qualquer conexão;
+- usa CSP restritiva: `connect-src 'none'`, `script-src 'none'`, `img-src 'none'` (a marca é SVG inline);
+- inclui headers `Cache-Control: private, no-store, max-age=0`, `X-Robots-Tag: noindex...` e `Vary` apropriado;
+- responde `HEAD` com corpo vazio.
+
+Requisições sem Fetch Metadata headers (server-to-server, crawlers, monitoramento) não são classificadas como visitantes e continuam possíveis. Localhost e hosts não listados não são afetados. Não se trata de firewall absoluto de rede/WAF, mas de um gate de classificação de visitante no entrypoint da aplicação.
+
 A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, o megamenu editorial no desktop, o painel responsivo derivado do mesmo inventário de navegação, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
 
 Regras:
