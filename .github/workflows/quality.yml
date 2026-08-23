@@ -53,6 +53,9 @@ jobs:
       - name: Shell global do portal
         run: node --test tests/global-shell-consistency.test.ts
 
+      - name: Analytics e comunicação
+        run: node --test tests/analytics-communication-runtime.test.ts
+
       - name: Faixa de utilidade pública
         run: node --test tests/footer-public-service.test.ts
 
