@@ -38,19 +38,20 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Radar REDEMET | Ativo com dependência externa | Santiago (`sg`) é a estação operacional preferencial; Canguçu (`cn`) é fallback quando voltar a fornecer imagem; a página pública deriva janela temporal e cadência observada apenas de quadros com horário utilizável |
 | Satélite REDEMET | Ativo | Realçada, infravermelho e visível; VIS filtra quadros sem iluminação solar útil |
 | Trovoadas STSC | Ativo | Contrato atual da API REDEMET, filtro regional e contexto derivado de distância aproximada das ocorrências até Pelotas; nunca tratado como alerta oficial |
-| Mapa regional MapLibre | Ativo | Camadas de radar, satélite e trovoadas |
+| Mapa regional MapLibre | Ativo | Camadas de radar, satélite e trovoadas; mapa da Central Regional com as 24 cidades |
 | Hidrologia | Ativo | Laranjal, Lagoa dos Patos, Guaíba e rede regional; arquivo próprio ambiental em coleta contínua |
 | Rede Hidrometeorológica Defesa Civil RS | Ativo público | Adapter GraphQL server-side, mapa e seção em `/situacao-hidrologica-pelotas` ativos por padrão, com créditos explícitos à Defesa Civil RS, Casa Militar do Estado do Rio Grande do Sul e MKS; `DEFESA_CIVIL_HYDRO_ENABLED=false` permanece como kill switch operacional server-side |
 | Histórico climático | Ativo | Janela pública de 30 dias com fonte/fallback documentados |
 | Historical Data Layer | Ativo / em expansão | Arquivo canônico privado com observações Embrapa, extremos diários, níveis hidrológicos, forecast runs ricos Open-Meteo/MET Norway, eventos estruturados e série horária INMET A887; classes `observation`, `forecast`, `reanalysis` e `derived` permanecem separadas |
 | Registro histórico da enchente de 2024 | Ativo | Rota pública `/enchente-2024-pelotas-laranjal` registra a linha do tempo da cheia, a propagação Guaíba → Lagoa dos Patos → Pelotas/Laranjal → estuário e a fase de reconstrução |
 | Câmeras | Ativo com dependência externa | YouTube, live/replay e contingências |
-| Páginas regionais | Ativo | Central Regional `/tempo-na-regiao-sul-rs` com resumo em lote das 24 cidades (Pelotas + 23 páginas municipais), busca sem acento e filtros pelos quatro agrupamentos; Pelotas continua usando a Home como página principal regional |
+| Páginas regionais | Ativo | Central Regional `/tempo-na-regiao-sul-rs` com resumo em lote das 24 cidades (Pelotas + 23 páginas municipais), busca/filtros e mapa interativo MapLibre sincronizado; Pelotas continua usando a Home como página principal regional |
 | Blog | Ativo | Rota pública e indexável |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e imagem social raster |
 | Supabase externo | Ativo | Banco, migrations, RLS, conta/entitlement e coletores históricos implantados; E2E autenticado com duas contas ainda precisa de validação real |
 | Login Google / conta | Parcial operacional | Conta, LGPD, Free/PRO estrutural e login por Google Identity Services + ID Token implementados; `VITE_GOOGLE_CLIENT_ID` está configurado no build de produção e falta concluir E2E real |
 | Weather AI | Ativo controlado | Snapshot persistido, orçamento mensal e fallback determinístico |
+| Gate geográfico de visitantes | Ativo | Entrypoint `src/server-brazil.ts` classifica navegadores em hosts de produção por país; não-BR ou país desconhecido recebe resposta autocontida 403 antes de tocar no app normal; server-to-server e localhost não afetados |
 | PWA / Web Push | Suspenso para ativação pública | Código preservado; reativação depende de validação real de navegador e rolagem |
 | CPTEC/SIGMA | Pesquisa futura | Não integrar ao runtime público antes da revisão institucional planejada para novembro/dezembro de 2026 |
 
@@ -158,16 +159,19 @@ Cada cidade possui slug, coordenadas, código IBGE, agrupamento regional e descr
 
 ### Central Regional `/tempo-na-regiao-sul-rs`
 
-A rota deixou de ser apenas um diretório estático e passou a funcionar como Central Regional para o inventário existente de 24 cidades:
+A rota funciona como Central Regional para o inventário existente de 24 cidades:
 
 - carrega um resumo meteorológico server-side via uma única consulta multi-coordinate ao Open-Meteo para as 24 coordenadas, com cache de 5 minutos e fallback seguro que preserva a navegação para as páginas municipais;
 - exibe temperatura estimada agora, condição do céu, temperatura mínima/máxima do dia, chance de chuva e velocidade do vento;
 - oferece busca sem acento e filtros pelos quatro agrupamentos regionais existentes (`Pelotas e entorno`, `Costa Doce`, `Fronteira Sul`, `Campanha`);
 - identifica explicitamente esses valores como estimativa de modelo numérico, não como observação de estação;
 - mantém os avisos oficiais do INMET apenas nas páginas municipais individuais (`/tempo-em/{slug}`), não na Central;
-- nenhuma cidade nova foi adicionada nesta etapa e nenhum mapa de cidades foi implementado ainda.
+- inclui mapa interativo MapLibre com os mesmos 24 pontos do dataset resumido, base cartográfica OpenFreeMap, carregamento client-side progressivo/lazy via IntersectionObserver e fallback que preserva a lista e a navegação se o mapa falhar;
+- busca e filtros atualizam simultaneamente a lista e o mapa, reenquadrando as cidades visíveis;
+- marcadores levam à página municipal correspondente e mostram temperatura estimada e condição;
+- nenhuma cidade nova foi adicionada nesta etapa.
 
-Decisão de produto: o próximo passo é implementar e validar o mapa regional das mesmas 24 cidades; só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
+Decisão de produto: o mapa regional das 24 cidades está implementado; o próximo passo é validá-lo em produção, mobile, acessibilidade e performance. Só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
 
 ### Navegação editorial pública
 
@@ -785,7 +789,8 @@ A suíte de contratos cobre, entre outros domínios:
 - câmeras;
 - geadas;
 - hidrologia;
-- páginas regionais;
+- páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading e fallback progressivo;
+- gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected e monitor server-to-server preservado;
 - SEO e acessibilidade;
 - integrações Guaíba/SACE;
 - bootstrap/árvore de rotas.
@@ -795,6 +800,24 @@ A regra atual de lint é incremental para impedir nova dívida sem misturar uma 
 ## 21. Deploy, Lovable e disciplina de Git
 
 O projeto é conectado ao Lovable. Commits enviados à branch conectada sincronizam para o editor.
+
+### Gate geográfico de visitantes (`src/server-brazil.ts`)
+
+O entrypoint do servidor é `src/server-brazil.ts`, anterior ao servidor normal do app (`src/server.ts`). Em hosts de produção (`tempopelotas.com.br`, `www.tempopelotas.com.br`, `mobitempopelotas.lovable.app`), requisições de navegador identificadas pelos Fetch Metadata headers (`sec-fetch-dest`, `sec-fetch-mode`, `sec-fetch-site`) são classificadas por país:
+
+- `request.cf.country` (Cloudflare) é consultado primeiro;
+- headers de país (`cf-ipcountry`, `cloudfront-viewer-country`, `x-vercel-ip-country`, `x-country-code`, `x-geo-country`) são usados como fallback;
+- navegador com país `BR` segue normalmente para o app;
+- navegador não-BR, ou navegador em produção cujo país não possa ser determinado, falha fechado antes de importar o servidor normal do app e recebe HTTP 403 com um único HTML autocontido mostrando somente a marca Tempo Pelotas centralizada.
+
+A resposta 403:
+
+- não carrega React/TanStack, Supabase, Google Analytics, meteorologia, JavaScript, CSS externo, imagens externas ou qualquer conexão;
+- usa CSP restritiva: `connect-src 'none'`, `script-src 'none'`, `img-src 'none'` (a marca é SVG inline);
+- inclui headers `Cache-Control: private, no-store, max-age=0`, `X-Robots-Tag: noindex...` e `Vary` apropriado;
+- responde `HEAD` com corpo vazio.
+
+Requisições sem Fetch Metadata headers (server-to-server, crawlers, monitoramento) não são classificadas como visitantes e continuam possíveis. Localhost e hosts não listados não são afetados. Não se trata de firewall absoluto de rede/WAF, mas de um gate de classificação de visitante no entrypoint da aplicação.
 
 A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, o megamenu editorial no desktop, o painel responsivo derivado do mesmo inventário de navegação, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
 
@@ -884,7 +907,7 @@ Estas são pendências de produto/operação, não funcionalidades inexistentes 
 9. retomar avaliação CPTEC/SIGMA em novembro/dezembro de 2026, sem assumir previamente autorização ou integração;
 10. acompanhar a integração pública da Defesa Civil RS, concluir inventário DCRS, bacias/capacidades, validar timezone e unidade/referência vertical por estação e incorporar a saúde da fonte ao status/runtime;
 11. manter a limpeza de dívida histórica de lint/formatação separada de mudanças funcionais;
-12. implementar e validar o mapa regional das 24 cidades existentes antes de ampliar o inventário municipal.
+12. validar o mapa regional das 24 cidades em produção, mobile, acessibilidade e performance antes de avaliar a expansão do inventário municipal.
 
 ## 25. Regra de manutenção deste arquivo
 
@@ -1437,9 +1460,12 @@ Contratos da Central Regional:
 
 - o inventário regional nesta etapa contém exatamente 24 cidades (Pelotas via Home + 23 páginas municipais);
 - a consulta Open-Meteo é feita em lote, numa única requisição multi-coordinate, com timeout e fallback que preserva a navegação;
-- busca sem acento e filtros pelos quatro agrupamentos regionais existentes devem permanecer acessíveis;
+- busca sem acento e filtros pelos quatro agrupamentos regionais existentes devem permanecer acessíveis e sincronizados com a lista e o mapa;
 - valores exibidos na Central são rotulados como estimativa de modelo e nunca como observação da estação local;
-- avisos oficiais do INMET continuam restritos às páginas municipais individuais.
+- avisos oficiais do INMET continuam restritos às páginas municipais individuais;
+- o mapa MapLibre reutiliza o mesmo dataset resumido, sem segunda consulta meteorológica;
+- marcadores levam à página municipal correspondente e apresentam temperatura estimada e condição;
+- falha do mapa não prejudica a lista nem a navegação.
 
 E2E real obrigatório antes do lançamento:
 
@@ -1658,7 +1684,7 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. consolidar a Central Regional `/tempo-na-regiao-sul-rs` com o mapa das 24 cidades existentes e somente depois avaliar a expansão do inventário municipal;
+2. validar o mapa da Central Regional `/tempo-na-regiao-sul-rs` das 24 cidades em produção, mobile, acessibilidade e performance e somente depois avaliar a expansão do inventário municipal;
 3. concluir E2E da conta com duas contas descartáveis;
 4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
 5. definir rollups e APIs históricas server-side;
