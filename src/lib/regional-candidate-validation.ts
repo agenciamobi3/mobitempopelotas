@@ -15,22 +15,32 @@ export type RegionalCandidateValidationEvidence = {
   note?: string;
 };
 
+export type RegionalCandidateCoordinates = {
+  latitude: number;
+  longitude: number;
+  reference: "city-seat";
+  datum: "SIRGAS 2000";
+};
+
 export type RegionalCandidateTechnicalValidation = {
   slug: RegionalCandidate["slug"];
   ibge: RegionalCandidateValidationEvidence;
   coordinates: RegionalCandidateValidationEvidence;
+  coordinatesValue?: RegionalCandidateCoordinates;
   weather: RegionalCandidateValidationEvidence;
   hydrology: RegionalCandidateValidationEvidence;
 };
 
 const IBGE_CHECKED_AT = "2026-08-23";
+const COORDINATES_CHECKED_AT = "2026-08-23";
 
 /**
  * Evidências internas da primeira onda de expansão.
  *
- * Nesta etapa somente a identidade municipal (IBGE) foi validada. Coordenadas,
- * cobertura meteorológica e contexto hidrológico permanecem pendentes e não
- * devem ser inferidos a partir do nome da cidade ou da proximidade geográfica.
+ * A identidade municipal (IBGE) está validada para toda a onda. Coordenadas
+ * somente são marcadas como validated quando o valor da sede foi conferido em
+ * cartografia oficial e registrado junto da fonte/datum. Weather e hydrology
+ * continuam pendentes e não devem ser inferidos por proximidade geográfica.
  */
 export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnicalValidation[] = [
   {
@@ -40,7 +50,10 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       checkedAt: IBGE_CHECKED_AT,
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/guaiba.html",
     },
-    coordinates: { status: "pending" },
+    coordinates: {
+      status: "pending",
+      note: "Mapa Municipal IBGE localizado; valor ainda não registrado porque a fonte não pôde ser extraída com segurança nesta rodada.",
+    },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
   },
@@ -51,7 +64,19 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       checkedAt: IBGE_CHECKED_AT,
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/barra-do-ribeiro.html",
     },
-    coordinates: { status: "pending" },
+    coordinates: {
+      status: "validated",
+      checkedAt: COORDINATES_CHECKED_AT,
+      source:
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/barra_do_ribeiro/4301909_MM.pdf",
+      note: "Mapa Municipal IBGE, edição 04/2021; coordenadas da sede.",
+    },
+    coordinatesValue: {
+      latitude: -30.29,
+      longitude: -51.3,
+      reference: "city-seat",
+      datum: "SIRGAS 2000",
+    },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
   },
@@ -62,7 +87,19 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       checkedAt: IBGE_CHECKED_AT,
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/tapes.html",
     },
-    coordinates: { status: "pending" },
+    coordinates: {
+      status: "validated",
+      checkedAt: COORDINATES_CHECKED_AT,
+      source:
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/tapes/4321105_MM.pdf",
+      note: "Mapa Municipal IBGE, edição 04/2021; coordenadas da sede.",
+    },
+    coordinatesValue: {
+      latitude: -30.67,
+      longitude: -51.39,
+      reference: "city-seat",
+      datum: "SIRGAS 2000",
+    },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
   },
@@ -73,7 +110,10 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       checkedAt: IBGE_CHECKED_AT,
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/arambare.html",
     },
-    coordinates: { status: "pending" },
+    coordinates: {
+      status: "pending",
+      note: "Mapa Municipal IBGE localizado; extração da fonte oficial expirou nesta rodada, portanto o valor não foi promovido como validado.",
+    },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
   },
@@ -84,7 +124,10 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       checkedAt: IBGE_CHECKED_AT,
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/camaqua.html",
     },
-    coordinates: { status: "pending" },
+    coordinates: {
+      status: "pending",
+      note: "Mapa Municipal IBGE localizado; arquivo oficial excedeu o limite de extração nesta rodada, portanto o valor não foi promovido como validado.",
+    },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
   },
@@ -108,6 +151,25 @@ export function isRegionalCandidateIdentityValidated(
   );
 }
 
+export function hasValidatedRegionalCandidateCoordinates(
+  validation: RegionalCandidateTechnicalValidation | null,
+) {
+  const value = validation?.coordinatesValue;
+
+  return Boolean(
+    validation?.coordinates.status === "validated" &&
+      value &&
+      Number.isFinite(value.latitude) &&
+      Number.isFinite(value.longitude) &&
+      value.latitude >= -90 &&
+      value.latitude <= 90 &&
+      value.longitude >= -180 &&
+      value.longitude <= 180 &&
+      value.reference === "city-seat" &&
+      value.datum === "SIRGAS 2000",
+  );
+}
+
 /**
  * Gate mínimo para levar um candidato ao cadastro técnico como draft.
  * Draft continua sem superfície pública. Weather e hydrology são avaliados
@@ -120,7 +182,7 @@ export function isRegionalCandidateReadyForDraft(
   return Boolean(
     candidate.status === "approved" &&
       isRegionalCandidateIdentityValidated(candidate, validation) &&
-      validation?.coordinates.status === "validated",
+      hasValidatedRegionalCandidateCoordinates(validation),
   );
 }
 
