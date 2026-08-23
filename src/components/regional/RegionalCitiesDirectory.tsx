@@ -11,7 +11,7 @@ import type {
   RegionalCityOverviewItem,
 } from "@/lib/weather/regional-cities-overview.types";
 
-import { RegionalCitiesMap } from "./RegionalCitiesMap";
+import { RegionalCitiesMapDeferred } from "./RegionalCitiesMapDeferred";
 import styles from "./RegionalCitiesDirectory.module.css";
 
 type RegionalCitiesDirectoryProps = {
@@ -164,7 +164,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
         </div>
       </section>
 
-      <RegionalCitiesMap items={visibleItems} />
+      <RegionalCitiesMapDeferred items={visibleItems} />
 
       <section
         className={`${styles.directory} regional-cities-groups`}
@@ -247,7 +247,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
         </div>
         <ul>
           <li>Resumo regional em uma única consulta meteorológica, com cache.</li>
-          <li>Mapa das mesmas 24 cidades, sem ampliar o inventário municipal.</li>
+          <li>Mapa das mesmas 24 cidades, carregado sob demanda e sem nova consulta meteorológica.</li>
           <li>Condição atual da central identificada explicitamente como estimativa de modelo.</li>
           <li>Busca e filtros atualizam simultaneamente mapa e lista.</li>
           <li>Páginas municipais permanentes para previsão completa e avisos oficiais.</li>
