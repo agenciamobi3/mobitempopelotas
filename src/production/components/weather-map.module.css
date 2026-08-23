@@ -53,8 +53,8 @@
   top: 164px;
   left: 24px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  width: min(330px, calc(100% - 96px));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(470px, calc(100% - 96px));
   gap: 4px;
   padding: 5px;
   border: 1px solid rgba(255, 255, 255, 0.82);
@@ -216,6 +216,7 @@
   .satelliteSwitcher {
     top: 152px;
     left: 16px;
+    width: min(440px, calc(100% - 88px));
   }
 
   .locationMarker span {
@@ -225,7 +226,7 @@
 
 @media (max-width: 640px) {
   .canvas {
-    min-height: 560px;
+    min-height: 590px;
   }
 
   .sourceBadge {
@@ -242,6 +243,7 @@
     top: 143px;
     right: 12px;
     left: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: auto;
     max-width: none;
     overflow: visible;
@@ -272,7 +274,7 @@
 
 @media (max-width: 420px) {
   .canvas {
-    min-height: 540px;
+    min-height: 580px;
   }
 
   .sourceBadge {
