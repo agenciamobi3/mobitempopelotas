@@ -2,11 +2,23 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
 
+import { findPublicRegionalCity } from "@/lib/regional-cities";
+
 import { fetchResilientRegionalCityWeather } from "./regional-city-weather-resilient.server";
 
 export const getRegionalCityWeather = createServerFn({ method: "GET" })
   .validator(z.object({ slug: z.string().min(1).max(80) }))
   .handler(async ({ data }) => {
+    if (!findPublicRegionalCity(data.slug)) {
+      setResponseHeaders(
+        new Headers({
+          "Cache-Control": "private, no-store, max-age=0",
+          "X-Robots-Tag": "noindex, nofollow",
+        }),
+      );
+      return null;
+    }
+
     setResponseHeaders(
       new Headers({
         "Cache-Control": "public, max-age=300, stale-while-revalidate=900",
