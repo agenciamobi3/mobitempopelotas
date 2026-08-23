@@ -6,6 +6,8 @@ import { createPageHead } from "../src/lib/page-meta.ts";
 import {
   REGIONAL_CITIES,
   REGIONAL_HOME_CITY_SLUG,
+  nearestRegionalCities,
+  regionalCityDistanceKm,
   regionalCityPath,
 } from "../src/lib/regional-cities.ts";
 import { PUBLIC_ROUTES } from "../src/lib/public-routes.ts";
@@ -32,7 +34,29 @@ test("regional registry has unique slugs, IBGE codes and valid coordinates", () 
     assert.match(city.ibgeCode, /^43\d{5}$/);
     assert.ok(city.latitude < -29 && city.latitude > -35);
     assert.ok(city.longitude < -50 && city.longitude > -56);
+    assert.ok(city.descriptor.trim().length >= 20);
   }
+});
+
+test("nearby regional cities are selected by geographic distance", () => {
+  const pelotas = REGIONAL_CITIES.find((city) => city.slug === REGIONAL_HOME_CITY_SLUG);
+  assert.ok(pelotas);
+
+  const nearest = nearestRegionalCities(pelotas, 5);
+  assert.equal(nearest.length, 5);
+  assert.ok(nearest.every((item) => item.city.slug !== pelotas.slug));
+  assert.ok(nearest.every((item) => Number.isFinite(item.distanceKm) && item.distanceKm > 0));
+
+  for (let index = 1; index < nearest.length; index += 1) {
+    assert.ok(nearest[index - 1]!.distanceKm <= nearest[index]!.distanceKm);
+  }
+
+  const capao = REGIONAL_CITIES.find((city) => city.slug === "capao-do-leao-rs");
+  assert.ok(capao);
+  assert.ok(regionalCityDistanceKm(pelotas, capao) < 20);
+  assert.match(page, /nearestRegionalCities\(city, 5\)/);
+  assert.match(page, /km em linha reta/);
+  assert.doesNotMatch(page, /item\.group === city\.group/);
 });
 
 test("Pelotas consolidates authority on the homepage while other cities remain indexable", () => {
@@ -56,7 +80,7 @@ test("Pelotas consolidates authority on the homepage while other cities remain i
   assert.match(directoryRoute, /createFileRoute\("\/tempo-na-regiao-sul-rs"\)/);
 });
 
-test("regional page metadata uses the requested city's coordinates", () => {
+test("regional page metadata uses the requested city's coordinates and local context", () => {
   const bage = REGIONAL_CITIES.find((city) => city.slug === "bage-rs");
   assert.ok(bage);
 
@@ -90,6 +114,8 @@ test("regional page metadata uses the requested city's coordinates", () => {
   assert.match(route, /placename:\s*city\.name/);
   assert.match(route, /latitude:\s*city\.latitude/);
   assert.match(route, /longitude:\s*city\.longitude/);
+  assert.match(route, /Contexto regional: \$\{city\.descriptor\}/);
+  assert.match(page, /city\.descriptor/);
 });
 
 test("city pages query real coordinate forecasts and municipal INMET alerts", () => {
