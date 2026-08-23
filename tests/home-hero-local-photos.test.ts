@@ -9,6 +9,7 @@ const expectedAssets = [
   "/weather/hero/pelotas-laranjal-chuva.webp",
   "/weather/hero/pelotas-nevoeiro-centro.webp",
   "/weather/hero/pelotas-laranjal-ceu-aberto.webp",
+  "/weather/hero/pelotas-laranjal-ceu-aberto-noite.webp",
   "/weather/hero/pelotas-parcialmente-nublado.avif",
 ];
 
@@ -26,6 +27,9 @@ test("o hero estático usa somente o acervo local de Pelotas", async () => {
     assert.ok(resolver.includes(asset), `o resolvedor precisa registrar ${asset}`);
   }
 
+  assert.match(resolver, /if \(isClearNight \|\| icon === "moon"\) \{\s*return heroPhotos\["clear-night"\];/);
+  assert.match(resolver, /ceu \(aberto\|limpo\).*noite\|noite.*ceu \(aberto\|limpo\)/);
+  assert.doesNotMatch(resolver, /icon === "partly-cloudy-night"[\s\S]*clear-night/);
   assert.match(resolver, /if \(icon === "sun"\) \{\s*return heroPhotos\.clear;/);
-  assert.match(resolver, /Acervo Tempo Pelotas · Praia do Laranjal/);
+  assert.match(resolver, /Acervo Tempo Pelotas · Praia do Laranjal · noite/);
 });
