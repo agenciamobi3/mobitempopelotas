@@ -22,6 +22,7 @@ function record(value: unknown): JsonRecord | null {
 
 function numberValue(value: unknown) {
   if (value === null || value === undefined || typeof value === "boolean") return null;
+  if (typeof value === "string" && !value.trim()) return null;
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -42,6 +43,7 @@ function weatherLabel(code: number | null) {
   if (code === 0) return "Céu limpo";
   if (code === 1 || code === 2) return "Parcialmente nublado";
   if (code === 3) return "Céu nublado";
+  if (code === 45 || code === 48) return "Neblina";
   if (code !== null && code >= 51 && code <= 86) return "Chuva";
   if (code !== null && code >= 95) return "Temporal";
   return "Condição em atualização";
@@ -76,10 +78,17 @@ function overviewItem(city: RegionalCity, payload: unknown): RegionalCityOvervie
   };
 }
 
-function unavailableOverview(message: string): RegionalCitiesOverview {
+function overallStatus(items: RegionalCityOverviewItem[]): RegionalOverviewItemStatus {
+  const available = items.filter((item) => item.status !== "unavailable").length;
+  if (available === 0) return "unavailable";
+  if (items.every((item) => item.status === "live")) return "live";
+  return "partial";
+}
+
+function unavailableOverview(message: string, fetchedAt = new Date().toISOString()): RegionalCitiesOverview {
   return {
     status: "unavailable",
-    fetchedAt: new Date().toISOString(),
+    fetchedAt,
     items: PUBLIC_REGIONAL_CITIES.map((city) => overviewItem(city, null)),
     source: { name: "Open-Meteo" },
     message,
@@ -90,11 +99,13 @@ export function buildRegionalCitiesOverviewUrl() {
   const params = new URLSearchParams({
     latitude: PUBLIC_REGIONAL_CITIES.map((city) => city.latitude).join(","),
     longitude: PUBLIC_REGIONAL_CITIES.map((city) => city.longitude).join(","),
-    timezone: TIMEZONE,
+    timezone: PUBLIC_REGIONAL_CITIES.map(() => TIMEZONE).join(","),
     forecast_days: "1",
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
     precipitation_unit: "mm",
+    timeformat: "iso8601",
+    cell_selection: "land",
     current: "temperature_2m,weather_code,wind_speed_10m",
     daily: "temperature_2m_min,temperature_2m_max,precipitation_probability_max",
   });
@@ -102,20 +113,25 @@ export function buildRegionalCitiesOverviewUrl() {
   return `${FORECAST_ENDPOINT}?${params.toString()}`;
 }
 
-export function normalizeRegionalCitiesOverview(payload: unknown, fetchedAt = new Date().toISOString()) {
+export function normalizeRegionalCitiesOverview(
+  payload: unknown,
+  fetchedAt = new Date().toISOString(),
+): RegionalCitiesOverview {
   const responses = Array.isArray(payload) ? payload : [payload];
   const items = PUBLIC_REGIONAL_CITIES.map((city, index) => overviewItem(city, responses[index]));
 
   return {
-    status: items.some((item) => item.status !== "unavailable") ? "live" : "unavailable",
+    status: overallStatus(items),
     fetchedAt,
     items,
     source: { name: "Open-Meteo" },
     message: null,
-  } as RegionalCitiesOverview;
+  };
 }
 
 export async function fetchRegionalCitiesOverview(): Promise<RegionalCitiesOverview> {
+  const fetchedAt = new Date().toISOString();
+
   try {
     const response = await fetch(buildRegionalCitiesOverviewUrl(), {
       headers: { Accept: "application/json" },
@@ -124,13 +140,19 @@ export async function fetchRegionalCitiesOverview(): Promise<RegionalCitiesOverv
 
     if (!response.ok) {
       if (regionalSnapshot) return regionalSnapshot;
-      return unavailableOverview(`A visão regional resumida está temporariamente indisponível (HTTP ${response.status}).`);
+      return unavailableOverview(
+        `A visão regional resumida está temporariamente indisponível (HTTP ${response.status}). As páginas municipais continuam acessíveis.`,
+        fetchedAt,
+      );
     }
 
-    regionalSnapshot = normalizeRegionalCitiesOverview(await response.json());
+    regionalSnapshot = normalizeRegionalCitiesOverview(await response.json(), fetchedAt);
     return regionalSnapshot;
   } catch {
     if (regionalSnapshot) return regionalSnapshot;
-    return unavailableOverview("A visão regional resumida está temporariamente indisponível.");
+    return unavailableOverview(
+      "A visão regional resumida está temporariamente indisponível. As páginas municipais continuam acessíveis.",
+      fetchedAt,
+    );
   }
 }
