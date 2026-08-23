@@ -92,7 +92,7 @@ export function WeatherSplitHero({
         </div>
 
         <dl>
-          {facts.slice(0, 2).map((fact) => (
+          {facts.slice(0, 4).map((fact) => (
             <div key={fact.label}>
               <dt>{fact.label}</dt>
               <dd>{fact.value}</dd>
