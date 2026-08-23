@@ -10,7 +10,6 @@ import {
 import mapLibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
 import { useEffect, type ReactNode } from "react";
 
-import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ViewportScrollRoot } from "@/components/layout/ViewportScrollRoot";
 import { RouteLoadingOverlay } from "@/components/navigation/RouteLoadingOverlay";
@@ -158,7 +157,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <GoogleAnalytics />
       <WeatherMinuteRefresh />
       <ViewportScrollRoot>
         <SiteLayout>
