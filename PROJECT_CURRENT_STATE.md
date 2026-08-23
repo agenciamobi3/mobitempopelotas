@@ -850,6 +850,33 @@ Observabilidade e hardening:
 - APIs sensíveis de conta, push e cron recebem `Cache-Control: private, no-store, max-age=0` e `X-Robots-Tag: noindex, nofollow`;
 - a página pública `/privacidade-e-dados` explica em alto nível que o portal aplica camadas de segurança, controles de acesso, isolamento de credenciais e possíveis restrições geográficas, sem publicar mecanismos exatos.
 
+### CSP global de produção
+
+Existe uma Content Security Policy global de produção aplicada no entrypoint normal do portal:
+
+- allowlist explícita apenas das integrações realmente usadas pelo portal (Google Analytics/Identity, Supabase externo do projeto, OpenFreeMap, YouTube e Open-Meteo, conforme o tipo de recurso);
+- bloqueios explícitos com `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'self'`, `form-action 'self'`, `script-src-attr 'none'` e `upgrade-insecure-requests`;
+- sem `unsafe-eval` e sem wildcard global;
+- `unsafe-inline` ainda é necessário nesta etapa por causa do bootstrap inline do app, do Analytics e do JSON-LD; portanto esta **não** é uma CSP por nonce;
+- a CSP especial e mais restritiva da página 403 geográfica e as políticas específicas dos embeds não são sobrescritas pela política global.
+
+### Firewall de aplicação e rate limiting distribuído
+
+Antes de importar e executar o app normal, o entrypoint aplica um firewall de aplicação às rotas sensíveis em produção:
+
+- validação de métodos permitidos e limites declarados de corpo; violações respondem `405` ou `413`, e caminhos anormalmente longos respondem `414`;
+- rate limiting distribuído ativo em `/api/account/delete`, `/api/account/export`, `/api/push/subscription` e `/api/push/broadcast`;
+- `/api/cron/*` recebe guards de método e tamanho, mas **não** recebe rate limit por endereço, para não prejudicar automações server-to-server/OIDC;
+- o rate limiter usa tabela e RPC privadas no Supabase externo (`security_rate_limit_buckets` / `consume_security_rate_limit`), com RLS habilitada, acesso revogado para clientes, policy deny explícita e execução restrita ao service role;
+- o identificador de cliente usado no bucket é derivado por HMAC no servidor; o endereço bruto não é persistido nem logado;
+- ao exceder o limite a resposta é `429` com `Retry-After` e headers `RateLimit-*`; se o backend distribuído obrigatório estiver indisponível, a rota rate-limited falha fechada com `503`;
+- migrações versionadas `20260823090000_create_security_rate_limits.sql` e `20260823090500_lock_security_rate_limits.sql` já foram aplicadas ao Supabase externo de produção;
+- validação manual do RPC em produção confirmou a sequência permitida / permitida / bloqueada dentro da mesma janela;
+- o que está ativo é firewall/WAF em camada de aplicação somado a rate limiting distribuído. Um WAF gerenciado de edge/provedor **não** foi configurado e permanece dependente de acesso ao control plane do provedor.
+
+Advisors do Supabase: após a policy deny explícita, a tabela de rate limit deixou de aparecer no alerta `RLS enabled no policy`. Avisos preexistentes em outras estruturas do projeto continuam registrados como pendência separada e não são regressão desta rodada.
+
+
 A interface pública usa a Home como fonte de verdade visual: `HomeEditorialHeader`, o megamenu editorial no desktop, o painel responsivo derivado do mesmo inventário de navegação, footer editorial com faixa de utilidade pública, rail de 1440 px no desktop e superfícies brancas de borda discreta/radius suave são compartilhados pelas páginas públicas, preservando componentes e conteúdo específicos de cada rota.
 
 Regras:
