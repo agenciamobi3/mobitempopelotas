@@ -38,19 +38,20 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Radar REDEMET | Ativo com dependência externa | Santiago (`sg`) é a estação operacional preferencial; Canguçu (`cn`) é fallback quando voltar a fornecer imagem; a página pública deriva janela temporal e cadência observada apenas de quadros com horário utilizável |
 | Satélite REDEMET | Ativo | Realçada, infravermelho e visível; VIS filtra quadros sem iluminação solar útil |
 | Trovoadas STSC | Ativo | Contrato atual da API REDEMET, filtro regional e contexto derivado de distância aproximada das ocorrências até Pelotas; nunca tratado como alerta oficial |
-| Mapa regional MapLibre | Ativo | Camadas de radar, satélite e trovoadas |
+| Mapa regional MapLibre | Ativo | Camadas de radar, satélite e trovoadas; mapa da Central Regional com as 24 cidades |
 | Hidrologia | Ativo | Laranjal, Lagoa dos Patos, Guaíba e rede regional; arquivo próprio ambiental em coleta contínua |
 | Rede Hidrometeorológica Defesa Civil RS | Ativo público | Adapter GraphQL server-side, mapa e seção em `/situacao-hidrologica-pelotas` ativos por padrão, com créditos explícitos à Defesa Civil RS, Casa Militar do Estado do Rio Grande do Sul e MKS; `DEFESA_CIVIL_HYDRO_ENABLED=false` permanece como kill switch operacional server-side |
 | Histórico climático | Ativo | Janela pública de 30 dias com fonte/fallback documentados |
 | Historical Data Layer | Ativo / em expansão | Arquivo canônico privado com observações Embrapa, extremos diários, níveis hidrológicos, forecast runs ricos Open-Meteo/MET Norway, eventos estruturados e série horária INMET A887; classes `observation`, `forecast`, `reanalysis` e `derived` permanecem separadas |
 | Registro histórico da enchente de 2024 | Ativo | Rota pública `/enchente-2024-pelotas-laranjal` registra a linha do tempo da cheia, a propagação Guaíba → Lagoa dos Patos → Pelotas/Laranjal → estuário e a fase de reconstrução |
 | Câmeras | Ativo com dependência externa | YouTube, live/replay e contingências |
-| Páginas regionais | Ativo | Central Regional `/tempo-na-regiao-sul-rs` com resumo em lote das 24 cidades (Pelotas + 23 páginas municipais), busca sem acento e filtros pelos quatro agrupamentos; Pelotas continua usando a Home como página principal regional |
+| Páginas regionais | Ativo | Central Regional `/tempo-na-regiao-sul-rs` com resumo em lote das 24 cidades (Pelotas + 23 páginas municipais), busca/filtros e mapa interativo MapLibre sincronizado; Pelotas continua usando a Home como página principal regional |
 | Blog | Ativo | Rota pública e indexável |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e imagem social raster |
 | Supabase externo | Ativo | Banco, migrations, RLS, conta/entitlement e coletores históricos implantados; E2E autenticado com duas contas ainda precisa de validação real |
 | Login Google / conta | Parcial operacional | Conta, LGPD, Free/PRO estrutural e login por Google Identity Services + ID Token implementados; `VITE_GOOGLE_CLIENT_ID` está configurado no build de produção e falta concluir E2E real |
 | Weather AI | Ativo controlado | Snapshot persistido, orçamento mensal e fallback determinístico |
+| Gate geográfico de visitantes | Ativo | Entrypoint `src/server-brazil.ts` classifica navegadores em hosts de produção por país; não-BR ou país desconhecido recebe resposta autocontida 403 antes de tocar no app normal; server-to-server e localhost não afetados |
 | PWA / Web Push | Suspenso para ativação pública | Código preservado; reativação depende de validação real de navegador e rolagem |
 | CPTEC/SIGMA | Pesquisa futura | Não integrar ao runtime público antes da revisão institucional planejada para novembro/dezembro de 2026 |
 
