@@ -52,3 +52,13 @@ test("changing raster opacity does not refetch the verified image", () => {
     /\}, \[activeLayer, isLoaded, opacity, selectedFrame\]\);/,
   );
 });
+
+test("regional monitor opens on satellite and keeps radar as the second option", () => {
+  assert.match(weatherMap, /useState<MapMode>\("satellite"\)/);
+  assert.match(
+    weatherMap,
+    /onClick=\{\(\) => selectMode\("satellite"\)\}[\s\S]*>\s*Satélite\s*<\/button>[\s\S]*onClick=\{\(\) => selectMode\("radar"\)\}[\s\S]*>\s*Radar\s*<\/button>[\s\S]*Trovoadas/,
+  );
+  assert.match(weatherMap, /const hidden = mode !== "radar"/);
+  assert.match(weatherMap, /element\.hidden = hidden/);
+});
