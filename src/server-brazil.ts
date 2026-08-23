@@ -4,6 +4,8 @@ import {
   evaluateBrazilAccess,
   isGeoRestrictedProductionHost,
 } from "./lib/brazil-only-access.server";
+import { applyGlobalContentSecurityPolicy } from "./lib/security/content-security-policy.server";
+import { enforceSensitiveRequestFirewall } from "./lib/security/request-firewall.server";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -39,6 +41,8 @@ function applyBaselineSecurityHeaders(request: Request, response: Response) {
     headers.set("Strict-Transport-Security", "max-age=31536000");
   }
 
+  applyGlobalContentSecurityPolicy(request, headers);
+
   if (isSensitiveApi) {
     headers.set("Cache-Control", "private, no-store, max-age=0");
     headers.set("CDN-Cache-Control", "no-store");
@@ -60,6 +64,11 @@ export default {
 
     const restricted = createBrazilOnlyAccessResponse(request, decision);
     if (restricted) return applyBaselineSecurityHeaders(request, restricted);
+
+    if (isGeoRestrictedProductionHost(request)) {
+      const firewallResponse = await enforceSensitiveRequestFirewall(request);
+      if (firewallResponse) return applyBaselineSecurityHeaders(request, firewallResponse);
+    }
 
     const appServer = await getAppServer();
     const response = await appServer.fetch(request, env, ctx);
