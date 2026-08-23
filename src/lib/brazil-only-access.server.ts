@@ -1,5 +1,4 @@
 const BRAZIL_COUNTRY_CODE = "BR";
-const BLOCKED_LOGO_PATH = "/brand/tempo-pelotas-purple.svg";
 
 const GEO_RESTRICTED_HOSTS = new Set([
   "tempopelotas.com.br",
@@ -55,18 +54,9 @@ function isBrowserRequest(request: Request) {
   );
 }
 
-function isAllowedForeignAsset(request: Request) {
-  try {
-    return new URL(request.url).pathname === BLOCKED_LOGO_PATH;
-  } catch {
-    return false;
-  }
-}
-
 export function shouldBlockForeignBrowserRequest(request: Request) {
   if (!isGeoRestrictedProductionHost(request)) return false;
   if (!isBrowserRequest(request)) return false;
-  if (isAllowedForeignAsset(request)) return false;
 
   return resolveRequestCountry(request) !== BRAZIL_COUNTRY_CODE;
 }
@@ -86,13 +76,25 @@ function blockedPageDocument() {
     html,body{width:100%;min-height:100%;margin:0;background:#fff}
     body{display:grid;min-height:100dvh;place-items:center;padding:28px}
     main{display:grid;width:100%;place-items:center}
-    img{display:block;width:min(72vw,560px);height:auto}
-    @media(max-width:560px){img{width:min(82vw,440px)}}
+    svg{display:block;width:min(44vw,240px);height:auto}
+    @media(max-width:560px){svg{width:min(58vw,220px)}}
   </style>
 </head>
 <body>
   <main aria-label="Tempo Pelotas">
-    <img src="${BLOCKED_LOGO_PATH}" alt="Tempo Pelotas" width="10643" height="1552">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="blocked-logo-title blocked-logo-description">
+      <title id="blocked-logo-title">TEMPO Pelotas</title>
+      <desc id="blocked-logo-description">Sol sobre ondas, símbolo do portal de tempo e águas de Pelotas.</desc>
+      <rect width="512" height="512" rx="112" fill="#071e2f"/>
+      <circle cx="256" cy="202" r="88" fill="#f27035"/>
+      <g fill="none" stroke="#18bdcd" stroke-width="24" stroke-linecap="round">
+        <path d="M86 316c38 0 38-28 76-28s38 28 76 28 38-28 76-28 38 28 76 28 38-28 76-28"/>
+        <path d="M86 374c38 0 38-28 76-28s38 28 76 28 38-28 76-28 38 28 76 28 38-28 76-28"/>
+      </g>
+      <g fill="none" stroke="#5e2ced" stroke-width="18" stroke-linecap="round">
+        <path d="M256 76v34M256 294v34M130 202h34M348 202h34M167 113l24 24M321 267l24 24M345 113l-24 24M191 267l-24 24"/>
+      </g>
+    </svg>
   </main>
 </body>
 </html>`;
@@ -105,7 +107,7 @@ function blockedHeaders() {
     "Cache-Control": "private, no-store, max-age=0",
     "CDN-Cache-Control": "no-store",
     "Content-Security-Policy":
-      "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; worker-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+      "default-src 'none'; img-src 'none'; style-src 'unsafe-inline'; script-src 'none'; connect-src 'none'; font-src 'none'; media-src 'none'; object-src 'none'; worker-src 'none'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
     "Cross-Origin-Resource-Policy": "same-origin",
     "Permissions-Policy":
       "camera=(), microphone=(), geolocation=(), payment=(), usb=(), bluetooth=(), accelerometer=(), gyroscope=(), magnetometer=()",
