@@ -62,7 +62,7 @@ test("footer has one canonical implementation shared by every public page", () =
   assert.match(wrapper, /<Footer source=\{source\} \/>/);
   assert.doesNotMatch(wrapper, /variant=/);
   assert.equal((footer.match(/<footer className="tp-home-footer-shell">/g) ?? []).length, 1);
-  assert.doesNotMatch(footer, /FooterVariant|getFooterLead|editorial-footer-shell|footerGroups\s*=\s*\[/);
+  assert.doesNotMatch(footer, /FooterVariant|getFooterLead|editorial-footer-shell|homeFooterGroups/);
   assert.doesNotMatch(footer, /import "\.\/Footer\.css"/);
 });
 
