@@ -29,10 +29,6 @@ const homeRadarCss = readFileSync(
   "src/production/components/home-radar-editorial.css",
   "utf8",
 );
-const homeObservationCss = readFileSync(
-  "src/production/components/home-observation-editorial.css",
-  "utf8",
-);
 const homeWaterCss = readFileSync(
   "src/production/components/home-water-editorial.css",
   "utf8",
@@ -110,12 +106,12 @@ test("internal footer preserves compact operational links", () => {
   assert.match(internalFixCss, /grid-template-columns:\s*repeat\(2/);
 });
 
-test("homepage narrative is composed from isolated public chapters", () => {
+test("homepage narrative is composed from isolated public chapters without duplicate observation", () => {
   assert.doesNotMatch(productionHome, /HomeEditorialDashboard/);
   assert.match(productionHome, /<HomeForecastEditorial/);
   assert.match(productionHome, /<HomeForecastTrend/);
   assert.match(productionHome, /<HomeRadarEditorial/);
-  assert.match(productionHome, /<HomeObservationEditorial/);
+  assert.doesNotMatch(productionHome, /HomeObservationEditorial/);
   assert.match(productionHome, /<HomeWaterEditorial/);
   assert.match(productionHome, /<HomeExplorePortal/);
   assert.match(productionHome, /<HomeDataGuide/);
@@ -126,7 +122,6 @@ test("homepage chapters use local namespaces without important overrides", () =>
     [homeForecastCss, /\.tp-home-forecast/],
     [homeTrendCss, /\.tp-home-trend/],
     [homeRadarCss, /\.tp-home-radar/],
-    [homeObservationCss, /\.tp-home-observation/],
     [homeWaterCss, /\.tp-home-water/],
     [homeExploreCss, /\.tp-home-explore/],
     [homeGuideCss, /\.tp-home-guide/],
@@ -187,12 +182,12 @@ test("homepage radar is a scientific monitor instead of a floating dashboard", (
   assert.doesNotMatch(homeRadarCss, /!important/);
 });
 
-test("homepage footer is a dedicated editorial close without promotional CTA chrome", () => {
-  assert.match(footer, /if \(variant === "home"\)/);
-  assert.match(footer, /const homeFooterGroups/);
+test("homepage footer is a single editorial close without promotional CTA chrome", () => {
+  assert.doesNotMatch(footer, /FooterVariant|variant === "home"|homeFooterGroups/);
+  assert.match(footer, /const footerGroups/);
   assert.match(footer, /className="tp-home-footer-top"/);
-  assert.match(footer, /Tempo e água de Pelotas, com fonte visível/);
-  assert.match(homeFooterCss, /Footer da Home — fonte autônoma de verdade/);
+  assert.match(footer, /Tempo, água e dados de Pelotas, com fonte visível/);
+  assert.match(homeFooterCss, /Footer público compartilhado — fonte autônoma de verdade/);
   assert.match(homeFooterCss, /\.tp-home-footer-shell\s*\{[\s\S]*background:\s*#f5f7f6/);
   assert.match(homeFooterCss, /\.tp-home-footer-transparency/);
   assert.doesNotMatch(homeFooterCss, /tp-home-footer-actions/);
@@ -217,7 +212,6 @@ test("stable homepage composition covers tablet, mobile, focus and reduced motio
   assert.match(homeForecastCss, /@media \(max-width: 700px\)/);
   assert.match(homeTrendCss, /@media \(max-width: 700px\)/);
   assert.match(homeRadarCss, /@media \(max-width: 760px\)/);
-  assert.match(homeObservationCss, /@media \(max-width: 700px\)/);
   assert.match(homeWaterCss, /@media \(max-width: 720px\)/);
   assert.match(homeExploreCss, /@media \(max-width: 640px\)/);
   assert.match(homeGuideCss, /@media \(max-width: 640px\)/);
