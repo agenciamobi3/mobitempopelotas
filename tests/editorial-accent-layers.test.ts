@@ -66,13 +66,17 @@ test("regional directory keeps its base neutral and loads geographic accents sep
   assert.match(regionalRoute, /RegionalCitiesAccentContract\.css/);
   assert.doesNotMatch(regionalBase, /radial-gradient|linear-gradient/);
   assert.match(regionalAccent, /Central regional — acento geográfico/);
-  assert.match(regionalAccent, /> section:first-child[\s\S]*radial-gradient/);
+  assert.match(regionalAccent, /\.regional-cities-hero[\s\S]*radial-gradient/);
+  assert.match(regionalAccent, /\.regional-cities-controls/);
+  assert.match(regionalAccent, /\.regional-cities-groups > article/);
   assert.match(regionalAccent, /article:nth-child\(1\)[\s\S]*#18bdcd/);
   assert.match(regionalAccent, /article:nth-child\(2\)[\s\S]*#5e2ced/);
   assert.match(regionalAccent, /article:nth-child\(3\)[\s\S]*#e70b85/);
   assert.match(regionalAccent, /article:nth-child\(4\)[\s\S]*#f27035/);
+  assert.match(regionalAccent, /\.regional-cities-method/);
   assert.match(regionalAccent, /min-height:\s*44px/);
   assert.doesNotMatch(regionalAccent, /!important/);
+  assert.doesNotMatch(regionalAccent, /> section:nth-child/);
 });
 
 test("CPPMet keeps the feed layout neutral and adds color only as an editorial accent", () => {
