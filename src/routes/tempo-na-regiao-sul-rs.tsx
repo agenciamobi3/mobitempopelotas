@@ -8,7 +8,7 @@ import { getRegionalCitiesOverview } from "@/lib/weather/regional-cities-overvie
 
 const PAGE_TITLE = "Tempo na Região Sul do RS: previsão por cidade";
 const PAGE_DESCRIPTION =
-  "Central meteorológica da Zona Sul do RS com condição estimada agora, faixa de temperatura, chuva, vento e acesso às páginas locais de 24 cidades.";
+  "Central meteorológica da Zona Sul do RS com mapa regional, condição estimada agora, faixa de temperatura, chuva, vento e acesso às páginas locais de 24 cidades.";
 const PAGE_PATH = "/tempo-na-regiao-sul-rs";
 const SOUTHERN_RS_LOCATION = {
   "@type": "Place",
