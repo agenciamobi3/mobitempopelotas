@@ -10,7 +10,6 @@ import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import {
   toProductionAlerts,
-  toProductionObservation,
   toProductionSummaries,
   toProductionWeatherData,
 } from "@/production/adapters/home";
@@ -18,7 +17,6 @@ import { HomeDataGuide } from "@/production/components/home-data-guide";
 import { HomeForecastEditorial } from "@/production/components/home-forecast-editorial";
 import { HomeForecastTrend } from "@/production/components/home-forecast-trend";
 import { HomeLiveCameraBackground } from "@/production/components/home-live-camera-background";
-import { HomeObservationEditorial } from "@/production/components/home-observation-editorial";
 import { HomeRadarEditorial } from "@/production/components/home-radar-editorial";
 import { HomeSectionNavigation } from "@/production/components/home-section-navigation";
 import { HomeWaterEditorial } from "@/production/components/home-water-editorial";
@@ -205,7 +203,6 @@ export function ProductionHome({
   }
 
   const summaries = toProductionSummaries(recoveredData);
-  const observation = toProductionObservation(recoveredData.weather);
   const inmetAlerts = toProductionAlerts(recoveredData.weather);
   const advisory = getWeatherAdvisory(weather);
   const pelotasOfficialAlerts = inmetAlerts.alerts.filter((alert) => alert.relevance === "pelotas");
@@ -290,7 +287,6 @@ export function ProductionHome({
         />
         <HomeForecastTrend weather={weather} narrative={summaries.tomorrow} />
         <HomeRadarEditorial regionalWeather={weather.regional} />
-        <HomeObservationEditorial weather={weather} observation={observation} />
         <DeferredHomeWater hydrology={hydrology} />
         <HomeExplorePortal />
         <HomeDataGuide />
