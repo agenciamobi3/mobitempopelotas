@@ -7,6 +7,8 @@ const weatherMapCss = readFileSync(
   "src/production/components/weather-map.module.css",
   "utf8",
 );
+const satelliteRoute = readFileSync("src/routes/api/redemet/satellite.ts", "utf8");
+const productionTypes = readFileSync("src/production/lib/redemet-types.ts", "utf8");
 
 test("REDEMET image metadata is not enough to mark the raster as ready", () => {
   assert.match(weatherMap, /type ImageRenderState = "idle" \| "loading" \| "ready" \| "error"/);
@@ -61,4 +63,15 @@ test("regional monitor opens on satellite and keeps radar as the second option",
   );
   assert.match(weatherMap, /const hidden = mode !== "radar"/);
   assert.match(weatherMap, /element\.hidden = hidden/);
+});
+
+test("satellite selector exposes the validated GOES INMET infrared source without disguising its provider", () => {
+  assert.match(weatherMap, /type SatelliteOptionValue = RedemetSatelliteType \| "inmet-ir"/);
+  assert.match(weatherMap, /\{ value: "inmet-ir", label: "GOES \/ INMET" \}/);
+  assert.match(weatherMap, /source=inmet&frames=10/);
+  assert.match(weatherMap, /activeLayer\.data\.provider === "INMET"/);
+  assert.match(satelliteRoute, /fetchInmetSatellite/);
+  assert.match(satelliteRoute, /searchParams\.get\("source"\) === "inmet"/);
+  assert.match(satelliteRoute, /satellite:inmet:\$\{frames\}/);
+  assert.match(productionTypes, /provider: "REDEMET \/ DECEA" \| "INMET"/);
 });
