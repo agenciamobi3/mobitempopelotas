@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const footer = readFileSync("src/components/layout/Footer.tsx", "utf8");
+const wrapper = readFileSync("src/production/components/site-footer.tsx", "utf8");
 const styles = readFileSync("src/production/components/site-footer-home.css", "utf8");
 
 const footerRoutes = [
@@ -55,6 +56,14 @@ test("footer provenance reflects the active weather, monitoring and water source
 
   assert.match(footer, /Fontes e proveniência/);
   assert.match(footer, /Em situações de risco, siga os comunicados da Defesa Civil, do INMET/);
+});
+
+test("footer has one canonical implementation shared by every public page", () => {
+  assert.match(wrapper, /<Footer source=\{source\} \/>/);
+  assert.doesNotMatch(wrapper, /variant=/);
+  assert.equal((footer.match(/<footer className="tp-home-footer-shell">/g) ?? []).length, 1);
+  assert.doesNotMatch(footer, /FooterVariant|getFooterLead|editorial-footer-shell|footerGroups\s*=\s*\[/);
+  assert.doesNotMatch(footer, /import "\.\/Footer\.css"/);
 });
 
 test("footer uses a four-column desktop directory and responsive two/one-column collapse", () => {
