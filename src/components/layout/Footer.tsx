@@ -117,9 +117,19 @@ const homeFooterGroups = [
         to: "/previsao-7-dias-pelotas",
       },
       {
+        label: "Meteograma",
+        ariaLabel: "Ver o meteograma horário de Pelotas",
+        to: "/meteograma-pelotas",
+      },
+      {
         label: "Chuva em Pelotas",
         ariaLabel: "Ver probabilidade e volume de chuva em Pelotas",
         to: "/chuva-em-pelotas",
+      },
+      {
+        label: "Vento em Pelotas",
+        ariaLabel: "Ver velocidade, direção e rajadas de vento em Pelotas",
+        to: "/vento-em-pelotas",
       },
     ],
   },
@@ -142,36 +152,77 @@ const homeFooterGroups = [
         to: "/cameras-ao-vivo-pelotas",
       },
       {
-        label: "Histórico climático",
-        ariaLabel: "Consultar o histórico climático recente de Pelotas",
-        to: "/historico-climatico-pelotas",
+        label: "Mapa de geadas",
+        ariaLabel: "Consultar ocorrências de geada registradas pelo INMET no Rio Grande do Sul",
+        to: "/mapa-de-geadas-rio-grande-do-sul",
+      },
+      {
+        label: "Avisos oficiais",
+        ariaLabel: "Consultar avisos meteorológicos oficiais para Pelotas",
+        to: "/alertas",
       },
     ],
   },
   {
-    title: "Águas e serviço",
+    title: "Águas",
     links: [
-      {
-        label: "Nível no Laranjal",
-        ariaLabel: "Ver o nível da Lagoa dos Patos na Praia do Laranjal",
-        to: "/nivel-da-lagoa-dos-patos-laranjal",
-      },
       {
         label: "Situação das águas",
         ariaLabel: "Ver a situação hidrológica de Pelotas e da Lagoa dos Patos",
         to: "/situacao-hidrologica-pelotas",
       },
       {
-        label: "Avisos meteorológicos",
-        ariaLabel: "Consultar avisos meteorológicos oficiais para Pelotas",
-        to: "/alertas",
+        label: "Nível no Laranjal",
+        ariaLabel: "Ver o nível da Lagoa dos Patos na Praia do Laranjal",
+        to: "/nivel-da-lagoa-dos-patos-laranjal",
       },
       {
-        label: "Metodologia e fontes",
-        ariaLabel: "Conhecer a metodologia e as fontes do Tempo Pelotas",
-        to: "/metodologia",
+        label: "Enchente de 2024",
+        ariaLabel: "Consultar o registro histórico da enchente de 2024 em Pelotas e no Laranjal",
+        to: "/enchente-2024-pelotas-laranjal",
       },
     ],
+  },
+  {
+    title: "Região e contexto",
+    links: [
+      {
+        label: "Tempo na Zona Sul",
+        ariaLabel: "Ver a previsão meteorológica para cidades da Zona Sul do Rio Grande do Sul",
+        to: "/tempo-na-regiao-sul-rs",
+      },
+      {
+        label: "Clima de Pelotas",
+        ariaLabel: "Entender o clima de Pelotas e seus padrões sazonais",
+        to: "/clima-em-pelotas",
+      },
+      {
+        label: "Histórico climático",
+        ariaLabel: "Consultar o histórico climático recente de Pelotas",
+        to: "/historico-climatico-pelotas",
+      },
+      {
+        label: "Blog",
+        ariaLabel: "Ler conteúdos meteorológicos e editoriais do Tempo Pelotas",
+        to: "/blog",
+      },
+    ],
+  },
+] as const;
+
+const sourceGroups = [
+  {
+    title: "Previsão e observação",
+    sources: "Embrapa Clima Temperado · INMET · CPPMet/UFPel · Open-Meteo · MET Norway",
+  },
+  {
+    title: "Monitoramento",
+    sources: "REDEMET/DECEA · SIMAGRO RS",
+  },
+  {
+    title: "Águas",
+    sources:
+      "Defesa Civil RS / Casa Militar / MKS · LabHidroSens/UFPel · MetSul/TideSat · Nível Guaíba · FURG · Portos RS",
   },
 ] as const;
 
@@ -188,6 +239,19 @@ type FooterProps = {
 function isActivePath(pathname: string, to: string) {
   if (to === "/") return pathname === "/";
   return pathname === to || pathname.startsWith(`${to}/`);
+}
+
+function FooterSourceMap({ className }: { className: string }) {
+  return (
+    <div className={className}>
+      {sourceGroups.map((group) => (
+        <div key={group.title}>
+          <strong>{group.title}</strong>
+          <p>{group.sources}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export function Footer({ source, variant = "default" }: FooterProps) {
@@ -216,10 +280,10 @@ export function Footer({ source, variant = "default" }: FooterProps) {
                     draggable={false}
                   />
                 </Link>
-                <h2 id="tp-home-footer-title">Tempo e água de Pelotas, com fonte visível.</h2>
+                <h2 id="tp-home-footer-title">Tempo, água e dados de Pelotas, com fonte visível.</h2>
                 <p>
-                  Previsão, observação local, radar e hidrologia organizados para leitura rápida e
-                  aprofundamento quando necessário.
+                  Previsão, observação, radar, alertas e hidrologia com origem, horário e contexto
+                  para leitura rápida e aprofundamento quando necessário.
                 </p>
               </div>
 
@@ -229,7 +293,7 @@ export function Footer({ source, variant = "default" }: FooterProps) {
               >
                 <span aria-hidden="true" />
                 <div>
-                  <small>Disponibilidade dos dados</small>
+                  <small>Saúde das fontes</small>
                   <strong>{sourceStatus}</strong>
                   <Link
                     className="tp-home-footer-status__link"
@@ -269,50 +333,49 @@ export function Footer({ source, variant = "default" }: FooterProps) {
 
             <section
               className="tp-home-footer-transparency"
-              aria-label="Fontes e orientação de segurança"
+              aria-label="Fontes, orientação de segurança e transparência"
             >
               <div className="tp-home-footer-sources">
-                <span>Fontes meteorológicas e locais</span>
-                <p>
-                  Embrapa Clima Temperado · INMET · CPPMet/UFPel · Open-Meteo · REDEMET/DECEA ·
-                  LabHidroSens/UFPel · MetSul/TideSat · Nível Guaíba · FURG & Portos RS
-                </p>
+                <span>Fontes e proveniência</span>
+                <FooterSourceMap className="tp-home-footer-source-map" />
               </div>
 
-              <div className="tp-home-footer-guidance">
-                <span aria-hidden="true">i</span>
-                <p>
-                  Em situações de risco, siga os comunicados da Defesa Civil, do INMET e das
-                  autoridades locais.
-                </p>
-              </div>
+              <div className="tp-home-footer-service">
+                <div className="tp-home-footer-guidance">
+                  <span aria-hidden="true">i</span>
+                  <p>
+                    Em situações de risco, siga os comunicados da Defesa Civil, do INMET e das
+                    autoridades locais.
+                  </p>
+                </div>
 
-              <nav className="tp-home-footer-legal" aria-label="Transparência e dados">
-                <Link
-                  to="/metodologia"
-                  aria-label="Conhecer a metodologia e as fontes do Tempo Pelotas"
-                  aria-current={isActivePath(pathname, "/metodologia") ? "page" : undefined}
-                >
-                  Metodologia
-                </Link>
-                <Link
-                  to="/status-dos-dados"
-                  aria-label="Consultar o status das fontes e integrações do Tempo Pelotas"
-                  aria-current={isActivePath(pathname, "/status-dos-dados") ? "page" : undefined}
-                >
-                  Status dos dados
-                </Link>
-                <Link
-                  to="/privacidade-e-dados"
-                  aria-label="Consultar a política de privacidade e dados do Tempo Pelotas"
-                  aria-current={isActivePath(pathname, "/privacidade-e-dados") ? "page" : undefined}
-                >
-                  Privacidade e dados
-                </Link>
-                <a href="/feed" type="application/feed+json" aria-label="Abrir o feed JSON de dados do Tempo Pelotas">
-                  Feed de dados
-                </a>
-              </nav>
+                <nav className="tp-home-footer-legal" aria-label="Transparência e dados">
+                  <Link
+                    to="/metodologia"
+                    aria-label="Conhecer a metodologia e as fontes do Tempo Pelotas"
+                    aria-current={isActivePath(pathname, "/metodologia") ? "page" : undefined}
+                  >
+                    Metodologia
+                  </Link>
+                  <Link
+                    to="/status-dos-dados"
+                    aria-label="Consultar o status das fontes e integrações do Tempo Pelotas"
+                    aria-current={isActivePath(pathname, "/status-dos-dados") ? "page" : undefined}
+                  >
+                    Status dos dados
+                  </Link>
+                  <Link
+                    to="/privacidade-e-dados"
+                    aria-label="Consultar a política de privacidade e dados do Tempo Pelotas"
+                    aria-current={isActivePath(pathname, "/privacidade-e-dados") ? "page" : undefined}
+                  >
+                    Privacidade e dados
+                  </Link>
+                  <a href="/feed" type="application/feed+json" aria-label="Abrir o feed JSON de dados do Tempo Pelotas">
+                    Feed de dados
+                  </a>
+                </nav>
+              </div>
             </section>
 
             <div className="tp-home-footer-base">
@@ -439,11 +502,8 @@ export function Footer({ source, variant = "default" }: FooterProps) {
             aria-label="Fontes e orientação de segurança"
           >
             <div className="editorial-footer-sources">
-              <span>Fontes meteorológicas e locais</span>
-              <p>
-                Embrapa Clima Temperado · INMET · CPPMet/UFPel · Open-Meteo · REDEMET/DECEA ·
-                LabHidroSens/UFPel · MetSul/TideSat · Nível Guaíba · FURG & Portos RS
-              </p>
+              <span>Fontes e proveniência</span>
+              <FooterSourceMap className="editorial-footer-source-map" />
             </div>
 
             <div className="editorial-footer-guidance">
