@@ -8,7 +8,7 @@ import {
   getCanonicalRedirectUrl,
 } from "../src/lib/canonical-host.ts";
 import { PUBLIC_ROUTES } from "../src/lib/public-routes.ts";
-import { REGIONAL_CITIES, regionalCityPath } from "../src/lib/regional-cities.ts";
+import { INDEXABLE_REGIONAL_CITIES, regionalCityPath } from "../src/lib/regional-cities.ts";
 import {
   BRAND_LOGO_URL,
   CANONICAL_SITE_URL,
@@ -120,11 +120,11 @@ test("o domínio oficial e hosts locais não sofrem redirecionamento", () => {
   assert.equal(getCanonicalRedirectUrl("http://localhost:5173/"), null);
 });
 
-test("o sitemap contém Home, Central Regional e todas as páginas municipais canônicas", () => {
+test("o sitemap contém Home, Central Regional e todas as páginas municipais indexáveis", () => {
   const sitemap = createSitemapXml();
-  const regionalPaths = REGIONAL_CITIES.filter((city) => city.slug !== "pelotas-rs").map(
-    regionalCityPath,
-  );
+  const regionalPaths = INDEXABLE_REGIONAL_CITIES.filter(
+    (city) => city.slug !== "pelotas-rs",
+  ).map(regionalCityPath);
 
   assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   assert.equal((sitemap.match(/<url>/g) ?? []).length, PUBLIC_ROUTES.length);
