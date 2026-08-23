@@ -33,6 +33,8 @@ function ensureGoogleAnalytics() {
     analyticsWindow.gtag("js", new Date());
     analyticsWindow.gtag("config", GOOGLE_ANALYTICS_MEASUREMENT_ID, {
       send_page_view: false,
+      allow_google_signals: false,
+      allow_ad_personalization_signals: false,
     });
     document.documentElement.dataset.ga4Initialized = "true";
   }
