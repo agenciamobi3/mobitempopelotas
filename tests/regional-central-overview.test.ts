@@ -10,6 +10,15 @@ const styles = readFileSync("src/components/regional/RegionalCitiesDirectory.mod
 const accents = readFileSync("src/components/regional/RegionalCitiesAccentContract.css", "utf8");
 const regionalMap = readFileSync("src/components/regional/RegionalCitiesMap.tsx", "utf8");
 const regionalMapStyles = readFileSync("src/components/regional/RegionalCitiesMap.css", "utf8");
+const deferredMap = readFileSync("src/components/regional/RegionalCitiesMapDeferred.tsx", "utf8");
+const deferredMapStyles = readFileSync(
+  "src/components/regional/RegionalCitiesMapDeferred.css",
+  "utf8",
+);
+const fallbackMapStyles = readFileSync(
+  "src/components/regional/RegionalCitiesMapFallback.css",
+  "utf8",
+);
 const overviewServer = readFileSync(
   "src/lib/weather/regional-cities-overview.server.ts",
   "utf8",
@@ -74,7 +83,7 @@ test("busca e filtros regionais atualizam mapa e lista com acessibilidade", () =
   assert.match(directory, /aria-pressed=\{activeGroup === group\}/);
   assert.match(directory, /normalize\("NFD"\)/);
   assert.match(directory, /const visibleItems = useMemo/);
-  assert.match(directory, /<RegionalCitiesMap items=\{visibleItems\} \/>/);
+  assert.match(directory, /<RegionalCitiesMapDeferred items=\{visibleItems\} \/>/);
   assert.match(directory, /Nenhuma cidade encontrada/);
   assert.match(styles, /\.searchField input:focus-visible/);
   assert.match(styles, /\.filters button\[aria-pressed="true"\]/);
@@ -86,9 +95,7 @@ test("mapa regional usa o mesmo dataset resumido sem nova consulta meteorológic
   assert.match(regionalMap, /type RegionalCityOverviewItem/);
   assert.match(regionalMap, /items: RegionalCityOverviewItem\[\]/);
   assert.match(regionalMap, /tiles\.openfreemap\.org\/styles\/liberty/);
-  assert.match(regionalMap, /await import\("maplibre-gl"\)/);
-  assert.match(regionalMap, /IntersectionObserver/);
-  assert.match(regionalMap, /rootMargin: "320px 0px"/);
+  assert.equal((regionalMap.match(/await import\("maplibre-gl"\)/g) ?? []).length, 1);
   assert.match(regionalMap, /regionalCityPath\(item\.city\)/);
   assert.match(regionalMap, /fitMapToItems\(map, items, true\)/);
   assert.match(regionalMap, /Temperaturas: estimativa Open-Meteo · mapa-base: OpenFreeMap/);
@@ -96,9 +103,32 @@ test("mapa regional usa o mesmo dataset resumido sem nova consulta meteorológic
   assert.doesNotMatch(regionalMap, /getRegionalCitiesOverview/);
 });
 
-test("mapa regional é progressivo, responsivo e preserva a lista em falha", () => {
-  assert.match(regionalMap, /O mapa está temporariamente indisponível/);
-  assert.match(regionalMap, /A lista de cidades continua disponível abaixo/);
+test("bundle do mapa é carregado perto da viewport e respeita economia de dados", () => {
+  assert.match(deferredMap, /IntersectionObserver/);
+  assert.match(deferredMap, /import\("\.\/RegionalCitiesMap"\)/);
+  assert.match(deferredMap, /connection\?\.saveData === true/);
+  assert.match(deferredMap, /"80px 0px"/);
+  assert.match(deferredMap, /"180px 0px"/);
+  assert.match(deferredMap, /if \(saveData\) return "0px"/);
+  assert.match(deferredMap, /A lista e os dados das cidades têm prioridade/);
+  assert.doesNotMatch(directory, /from "\.\/RegionalCitiesMap"/);
+  assert.match(deferredMapStyles, /regional-map-deferred__placeholder/);
+});
+
+test("falha do MapLibre oferece fallback navegável por teclado e leitor de tela", () => {
+  assert.match(regionalMap, /function FallbackCityNavigation/);
+  assert.match(regionalMap, /<nav/);
+  assert.match(regionalMap, /Navegação alternativa pelas cidades do mapa/);
+  assert.match(regionalMap, /aria-label=\{markerLabel\(item\)\}/);
+  assert.match(regionalMap, /Use esta lista para abrir as mesmas cidades pelo teclado ou leitor de tela/);
+  assert.match(regionalMap, /aria-hidden=\{hasError\}/);
+  assert.match(regionalMapStyles, /\.regional-overview-map__marker:focus-visible/);
+  assert.match(fallbackMapStyles, /\.regional-overview-map__fallback a:focus-visible/);
+  assert.match(fallbackMapStyles, /@media \(max-width: 560px\)/);
+  assert.match(fallbackMapStyles, /@media \(forced-colors: active\)/);
+});
+
+test("mapa regional continua responsivo e respeita preferências de movimento", () => {
   assert.match(regionalMapStyles, /\.regional-overview-map__frame/);
   assert.match(regionalMapStyles, /\.regional-overview-map__marker/);
   assert.match(regionalMapStyles, /@media \(max-width: 760px\)/);
