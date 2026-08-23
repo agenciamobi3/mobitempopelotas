@@ -1,6 +1,6 @@
 # Tempo Pelotas — direção definitiva da homepage
 
-Última atualização: 19/08/2026  
+Última atualização: 22/08/2026  
 Branch operacional: `main`
 
 ## 1. Definição
@@ -66,7 +66,7 @@ Prioridades:
 - vento;
 - poucas próximas horas como apoio.
 
-Umidade, pressão e demais detalhes não precisam competir na primeira dobra; permanecem em páginas e seções apropriadas.
+O Hero é a superfície canônica da Home para a observação meteorológica atual. A Home não repete abaixo dele um segundo capítulo com a mesma temperatura, sensação, umidade, vento ou chuva observada. Métricas adicionais e histórico ficam na página dedicada da estação Embrapa.
 
 ### 3.3. Alerta oficial
 
@@ -80,9 +80,9 @@ Alertas oficiais nunca dependem de IA.
 
 Navegação editorial simples por âncoras:
 
-`Previsão · Radar e satélite · Medições locais · Situação das águas · Mais informações`
+`Previsão · Radar e satélite · Situação das águas · Mais informações`
 
-Sem numeração visual, sem card, sem descrição longa.
+Sem numeração visual, sem card, sem descrição longa. O índice só aponta para capítulos realmente renderizados na Home.
 
 ### 3.5. Próximas horas
 
@@ -161,21 +161,13 @@ Composição aprovada para a Home:
 
 A central não deve sugerir que a sequência observada é projeção futura. Camadas avançadas e análise mais densa permanecem para páginas dedicadas e, futuramente, PRO.
 
-### 3.9. Medição local — Embrapa
+### 3.9. Observação local — sem capítulo duplicado
 
-Direção: **Civic Tech editorial**.
+A observação meteorológica atual da Embrapa é resumida no Hero, junto da fonte e do horário quando disponíveis.
 
-Responder principalmente: **o que está sendo realmente medido em Pelotas agora?**
+A Home não mantém mais uma seção separada de “Medição local · Embrapa” abaixo do radar porque esse conteúdo repetia a leitura já apresentada no topo e alongava a narrativa sem acrescentar profundidade proporcional.
 
-Prioridade:
-
-- temperatura observada;
-- umidade;
-- vento;
-- chuva do dia;
-- horário e fonte.
-
-Outras métricas permanecem na página dedicada da estação.
+O aprofundamento permanece em `/estacao-embrapa-pelotas`, onde podem existir umidade, pressão, extremos, acumulados, histórico e demais detalhes observacionais sem sobrecarregar a página inicial.
 
 ### 3.10. Lagoa dos Patos
 
@@ -241,7 +233,7 @@ Editorial e funcional. Não repetir toda a Home.
 - sombras excepcionais;
 - gradientes concentrados no Hero quando necessários para legibilidade da fotografia.
 
-A política de canvas aberto é parte da arquitetura, não apenas um refinamento cosmético: Hero, avisos oficiais, mapa e controles interativos podem justificar contenção; previsão, tendência, medição local, águas, diretório e metodologia devem preferir página aberta, grid, espaço e hairlines.
+A política de canvas aberto é parte da arquitetura, não apenas um refinamento cosmético: Hero, avisos oficiais, mapa e controles interativos podem justificar contenção; previsão, tendência, águas, diretório e metodologia devem preferir página aberta, grid, espaço e hairlines.
 
 ### 4.2. Cor
 
@@ -321,7 +313,7 @@ Ordem de refinamento por domínio:
 4. INMET;
 5. tendência semanal;
 6. radar/satélite;
-7. Embrapa;
+7. observação Embrapa no Hero e página dedicada;
 8. águas;
 9. Explore e ponto futuro do PRO;
 10. fechamento/footer;
@@ -350,24 +342,24 @@ A identidade desejada é:
 
 ## 9. Status de implementação
 
-Estado desta direção na `main` em 19/08/2026:
+Estado desta direção na `main` em 22/08/2026:
 
-- **Composição principal:** aplicada. A narrativa meteorológica pública está organizada em alerta, índice, próximas horas, INMET, tendência semanal, radar/satélite, observação local, águas e aprofundamentos.
+- **Composição principal:** aplicada. A narrativa meteorológica pública está organizada em alerta, índice, próximas horas, INMET, tendência semanal, radar/satélite, águas e aprofundamentos. A observação meteorológica atual permanece no Hero e não é repetida como capítulo separado.
 - **Header editorial:** aplicado em namespace próprio, com navegação plana, estado ativo por linha e ações discretas.
-- **Hero Magazine / Broadcast:** aplicado em namespace próprio. Fotografia/câmera mantém protagonismo e os fatos prioritários ficam limitados a mínima/máxima, chuva e vento.
-- **Índice da página:** aplicado como sumário editorial por âncoras, sem numeração, cards ou tab bar de produto.
+- **Hero Magazine / Broadcast:** aplicado em namespace próprio. Fotografia/câmera mantém protagonismo; a observação atual, sua fonte e os fatos prioritários ficam concentrados na primeira dobra.
+- **Índice da página:** aplicado como sumário editorial por âncoras, sem numeração, cards ou tab bar de produto; não contém âncora para seção de observação duplicada.
 - **Próximas horas:** isoladas em `home-forecast-editorial.tsx/css`, com timeline, astronomia e dois sinais principais em canvas aberto.
 - **INMET:** aplicado em linguagem Data Journalism Premium no componente `tp-home-inmet`, com síntese principal, próximos períodos, hairlines e fonte explícita.
 - **Tendência semanal:** separada da previsão horária em `home-forecast-trend.tsx/css` e posicionada imediatamente antes do radar, com grade editorial de quatro dias e destaque tipográfico de chuva.
 - **Radar e satélite:** convertido em central Civic Tech / Scientific. O mapa segue como interação contida, mas a Home agora apresenta abertura editorial, metadados, controle segmentado plano, timeline técnica clara separada da imagem, fonte/estado legíveis e guia de interpretação.
-- **Embrapa:** aplicada com leitura pública resumida para temperatura, umidade, vento e chuva do dia; a seção externa usa canvas aberto.
+- **Embrapa:** a seção repetida da Home foi retirada; a leitura atual é resumida no Hero e `/estacao-embrapa-pelotas` permanece como aprofundamento observacional.
 - **Lagoa dos Patos:** aplicada com Laranjal como referência principal, rede regional resumida e composição externa aberta.
 - **Explore:** convertido para diretório editorial de conteúdo e retirado da lógica de card promocional.
 - **Entenda os dados:** convertido para fechamento editorial aberto, sem superfície institucional pesada.
-- **Footer:** isolado em namespace próprio e aplicado como fechamento editorial compacto, preservando navegação, transparência, fontes e acesso aos avisos.
+- **Footer:** aplicado como fechamento editorial público canônico, preservando navegação, transparência, fontes e acesso aos avisos.
 - **Cascata da Home:** componentes públicos principais possuem fontes locais `tp-home-*`; `home-editorial-shell.css` permanece como shell mínimo transversal. As antigas camadas de override da Home foram retiradas da entrada global conforme seus domínios foram isolados.
 - **PRO:** posição conceitual reservada, ainda sem bloco público ativo.
-- **Contratos da Home:** ampliados para proteger a ordem `próximas horas → INMET → tendência → radar`, os namespaces locais, o radar científico, a ausência de overrides `!important` nos capítulos novos e a composição responsiva.
+- **Contratos da Home:** ampliados para proteger a ordem `próximas horas → INMET → tendência → radar → águas`, os namespaces locais, a ausência da seção observacional duplicada, o radar científico e a composição responsiva.
 
 Pendências antes de encerrar a reformulação:
 
