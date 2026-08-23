@@ -12,11 +12,6 @@ const homeSections = [
     description: "Chuva e nuvens na região",
   },
   {
-    href: "#observacao-embrapa",
-    label: "Medições locais",
-    description: "Dados da Embrapa",
-  },
-  {
     href: "#situacao-das-aguas",
     label: "Situação das águas",
     description: "Laranjal e Lagoa dos Patos",
