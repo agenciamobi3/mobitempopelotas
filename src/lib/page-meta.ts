@@ -16,6 +16,7 @@ export type PageHeadGeo = {
 
 export type PageHeadOptions = {
   geo?: PageHeadGeo | null;
+  indexable?: boolean;
 };
 
 const PELOTAS_GEO: PageHeadGeo = {
@@ -35,7 +36,9 @@ export function createPageHead(
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
   const canonicalUrl = absoluteUrl(canonicalPath);
   const robots =
-    "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
+    options.indexable === false
+      ? "noindex, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+      : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1";
   const geo = options.geo === null ? null : (options.geo ?? PELOTAS_GEO);
 
   return {
