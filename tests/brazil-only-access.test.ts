@@ -14,6 +14,14 @@ import {
 } from "../src/lib/access-observability.server.ts";
 
 const serverBrazil = readFileSync("src/server-brazil.ts", "utf8");
+const globalCsp = readFileSync("src/lib/security/content-security-policy.server.ts", "utf8");
+const requestFirewall = readFileSync("src/lib/security/request-firewall.server.ts", "utf8");
+const dataStatusRoute = readFileSync("src/routes/api/cron/data-status.ts", "utf8");
+const securityWorkflow = readFileSync(".github/workflows/data-status-monitor.yml", "utf8");
+const rateLimitMigration = readFileSync(
+  "supabase/migrations/20260823090000_create_security_rate_limits.sql",
+  "utf8",
+);
 
 function requestWithCountry(
   url: string,
@@ -134,15 +142,90 @@ test("blocked access logs are structured without IP, query string or user agent"
   assert.equal(infos.length, 0);
 });
 
-test("entrypoint adds baseline hardening and no-store for sensitive APIs", () => {
+test("entrypoint adds baseline hardening, CSP and no-store for sensitive APIs", () => {
   assert.match(serverBrazil, /recordBrazilAccessDecision/);
   assert.match(serverBrazil, /Strict-Transport-Security/);
   assert.match(serverBrazil, /X-Content-Type-Options/);
   assert.match(serverBrazil, /Referrer-Policy/);
   assert.match(serverBrazil, /Permissions-Policy/);
   assert.match(serverBrazil, /X-Frame-Options/);
+  assert.match(serverBrazil, /applyGlobalContentSecurityPolicy/);
+  assert.match(serverBrazil, /enforceSensitiveRequestFirewall/);
   assert.match(serverBrazil, /\/api\/account\//);
   assert.match(serverBrazil, /\/api\/push\//);
   assert.match(serverBrazil, /\/api\/cron\//);
   assert.match(serverBrazil, /private, no-store, max-age=0/);
+});
+
+test("global CSP is enforced with explicit production allowlists", () => {
+  assert.match(globalCsp, /default-src 'self'/);
+  assert.match(globalCsp, /object-src 'none'/);
+  assert.match(globalCsp, /base-uri 'self'/);
+  assert.match(globalCsp, /frame-ancestors 'self'/);
+  assert.match(globalCsp, /script-src-attr 'none'/);
+  assert.match(globalCsp, /upgrade-insecure-requests/);
+  assert.match(globalCsp, /https:\/\/www\.googletagmanager\.com/);
+  assert.match(globalCsp, /https:\/\/accounts\.google\.com/);
+  assert.match(globalCsp, /https:\/\/ovcpgjyomwjteapbvfwk\.supabase\.co/);
+  assert.match(globalCsp, /wss:\/\/ovcpgjyomwjteapbvfwk\.supabase\.co/);
+  assert.match(globalCsp, /https:\/\/tiles\.openfreemap\.org/);
+  assert.match(globalCsp, /https:\/\/www\.youtube\.com/);
+  assert.doesNotMatch(globalCsp, /unsafe-eval/);
+  assert.doesNotMatch(globalCsp, /(?:^|\s)\*(?:\s|$)/);
+});
+
+test("sensitive request firewall is distributed, privacy-preserving and fail-closed", () => {
+  assert.match(requestFirewall, /\/api\/account\/delete/);
+  assert.match(requestFirewall, /\/api\/account\/export/);
+  assert.match(requestFirewall, /\/api\/push\/subscription/);
+  assert.match(requestFirewall, /\/api\/push\/broadcast/);
+  assert.match(requestFirewall, /prefix: "\/api\/cron\/"/);
+  assert.match(requestFirewall, /maxBodyBytes/);
+  assert.match(requestFirewall, /status, 405/);
+  assert.match(requestFirewall, /status, 413/);
+  assert.match(requestFirewall, /status, 429/);
+  assert.match(requestFirewall, /Retry-After/);
+  assert.match(requestFirewall, /createSupabaseAdminClient/);
+  assert.match(requestFirewall, /consume_security_rate_limit/);
+  assert.match(requestFirewall, /HMAC/);
+  assert.match(requestFirewall, /cf-connecting-ip/);
+  assert.match(requestFirewall, /x-forwarded-for/);
+  assert.match(requestFirewall, /Controle de segurança temporariamente indisponível/);
+  assert.doesNotMatch(requestFirewall, /console\.(?:log|warn|error)[^\n]*(?:cf-connecting-ip|x-forwarded-for)/i);
+});
+
+test("rate-limit migration is private to service role and atomic", () => {
+  assert.match(rateLimitMigration, /create table if not exists public\.security_rate_limit_buckets/);
+  assert.match(rateLimitMigration, /enable row level security/);
+  assert.match(rateLimitMigration, /revoke all on table public\.security_rate_limit_buckets from public, anon, authenticated/);
+  assert.match(rateLimitMigration, /security definer/);
+  assert.match(rateLimitMigration, /consume_security_rate_limit/);
+  assert.match(rateLimitMigration, /on conflict \(scope, key_hash, window_started_at\)/);
+  assert.match(rateLimitMigration, /grant execute[\s\S]*to service_role/);
+});
+
+test("production smoke validates real-country blocking and protected runtime checks", () => {
+  assert.match(securityWorkflow, /30 10 \* \* \*/);
+  assert.match(securityWorkflow, /www\.cloudflare\.com\/cdn-cgi\/trace/);
+  assert.match(securityWorkflow, /Sec-Fetch-Dest: document/);
+  assert.match(securityWorkflow, /Sec-Fetch-Mode: navigate/);
+  assert.match(securityWorkflow, /Sec-Fetch-Site: none/);
+  assert.match(securityWorkflow, /runner_country/);
+  assert.match(securityWorkflow, /browser_status/);
+  assert.match(securityWorkflow, /connect-src 'none'/);
+  assert.match(securityWorkflow, /script-src-attr 'none'/);
+  assert.match(securityWorkflow, /mode=security-smoke/);
+  assert.match(securityWorkflow, /Authorization: Bearer \$oidc_token/);
+  assert.match(securityWorkflow, /classification/);
+  assert.match(securityWorkflow, /sanitizedLogs/);
+  assert.match(securityWorkflow, /distributedRateLimit/);
+
+  assert.match(dataStatusRoute, /mode === "security-smoke"/);
+  assert.match(dataStatusRoute, /allowed-brazil/);
+  assert.match(dataStatusRoute, /blocked-foreign/);
+  assert.match(dataStatusRoute, /blocked-unknown/);
+  assert.match(dataStatusRoute, /smoke-token=must-not-leak/);
+  assert.match(dataStatusRoute, /recordBrazilAccessDecision/);
+  assert.match(dataStatusRoute, /probeDistributedSecurityRateLimiter/);
+  assert.match(dataStatusRoute, /verifyDataStatusGithubActionsRequest/);
 });
