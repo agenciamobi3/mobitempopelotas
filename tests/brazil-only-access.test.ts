@@ -36,7 +36,7 @@ test("Brazilian browser traffic reaches the regular app", () => {
   assert.equal(createBrazilOnlyAccessResponse(request), null);
 });
 
-test("foreign browsers stop before the app and receive only the centered brand page", async () => {
+test("foreign browsers stop before the app and receive a single self-contained brand page", async () => {
   const request = requestWithCountry("https://tempopelotas.com.br/tempo-hoje-pelotas", "ES");
   const response = createBrazilOnlyAccessResponse(request);
 
@@ -44,12 +44,16 @@ test("foreign browsers stop before the app and receive only the centered brand p
   assert.equal(response.status, 403);
   assert.equal(response.headers.get("cache-control"), "private, no-store, max-age=0");
   assert.match(response.headers.get("content-security-policy") ?? "", /connect-src 'none'/);
+  assert.match(response.headers.get("content-security-policy") ?? "", /img-src 'none'/);
   assert.match(response.headers.get("x-robots-tag") ?? "", /noindex/);
 
   const html = await response.text();
-  assert.match(html, /\/brand\/tempo-pelotas-purple\.svg/);
   assert.match(html, /<main aria-label="Tempo Pelotas">/);
+  assert.match(html, /<svg[^>]+viewBox="0 0 512 512"/);
+  assert.doesNotMatch(html, /<img\b/i);
   assert.doesNotMatch(html, /<script\b/i);
+  assert.doesNotMatch(html, /<link\b/i);
+  assert.doesNotMatch(html, /https?:\/\//i);
   assert.doesNotMatch(html, /supabase/i);
   assert.doesNotMatch(html, /google-analytics|googletagmanager|gtag\(|dataLayer/i);
   assert.doesNotMatch(html, /fetch\s*\(/i);
@@ -64,13 +68,13 @@ test("foreign browser API/subresource requests are also stopped", () => {
   assert.equal(createBrazilOnlyAccessResponse(request)?.status, 403);
 });
 
-test("the single logo asset remains reachable to render the restricted page", () => {
+test("foreign browser asset requests cannot reach the app either", () => {
   const request = requestWithCountry(
     "https://tempopelotas.com.br/brand/tempo-pelotas-purple.svg",
     "FR",
   );
   request.headers.set("sec-fetch-dest", "image");
-  assert.equal(shouldBlockForeignBrowserRequest(request), false);
+  assert.equal(shouldBlockForeignBrowserRequest(request), true);
 });
 
 test("unknown production browser country fails closed, while local development is unaffected", () => {
