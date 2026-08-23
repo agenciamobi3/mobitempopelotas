@@ -52,6 +52,9 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Login Google / conta | Parcial operacional | Conta, LGPD, Free/PRO estrutural e login por Google Identity Services + ID Token implementados; `VITE_GOOGLE_CLIENT_ID` está configurado no build de produção e falta concluir E2E real |
 | Weather AI | Ativo controlado | Snapshot persistido, orçamento mensal e fallback determinístico |
 | Gate geográfico de visitantes | Ativo | Entrypoint `src/server-brazil.ts` classifica navegadores em hosts de produção por país; não-BR ou país desconhecido recebe resposta autocontida 403 antes de tocar no app normal; server-to-server e localhost não afetados; inclui observabilidade sanitizada por instância de runtime e headers básicos de hardening |
+| CSP global de produção | Ativo | Política aplicada no entrypoint normal do portal com allowlist explícita das integrações realmente usadas; sem `unsafe-eval` e sem wildcard global; `unsafe-inline` ainda necessário nesta etapa; não sobrescreve a CSP da página 403 nem as políticas específicas dos embeds |
+| Firewall de aplicação e rate limiting distribuído | Ativo | Guards de método/tamanho de corpo em rotas sensíveis e rate limiting distribuído em conta/push, apoiado por tabela e RPC privadas no Supabase externo; `/api/cron/*` recebe apenas guards, sem limite por IP |
+| Smoke de segurança em produção | Implementado, aguardando primeira execução real | Extensão do workflow `data-status-monitor.yml` com verificação diária do gate geográfico, da CSP publicada e do rate limiter distribuído |
 | PWA / Web Push | Suspenso para ativação pública | Código preservado; reativação depende de validação real de navegador e rolagem |
 | CPTEC/SIGMA | Pesquisa futura | Não integrar ao runtime público antes da revisão institucional planejada para novembro/dezembro de 2026 |
 
