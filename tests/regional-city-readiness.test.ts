@@ -1,16 +1,17 @@
-import { describe, expect, it } from "vitest";
+import assert from "node:assert/strict";
+import test from "node:test";
 
 import {
+  getRegionalCityReadiness,
   isRegionalCityReadyForBasic,
   isRegionalCityReadyForComplete,
-  getRegionalCityReadiness,
-} from "../src/lib/regional-city-readiness";
-
-import type { RegionalCity } from "../src/lib/regional-cities";
+  type RegionalCityReadiness,
+} from "../src/lib/regional-city-readiness.ts";
+import type { RegionalCityDomain } from "../src/lib/regional-city-domain.ts";
 
 function cityWithReadiness(
-  readiness: NonNullable<RegionalCity["readiness"]>,
-): RegionalCity {
+  readiness: RegionalCityReadiness,
+): RegionalCityDomain {
   return {
     slug: "cidade-teste-rs",
     name: "Cidade Teste",
@@ -20,49 +21,53 @@ function cityWithReadiness(
     longitude: -52,
     group: "Pelotas e entorno",
     descriptor: "cidade de teste",
-    coverage: "complete",
+    coverage: "draft",
     readiness,
   };
 }
 
-describe("regional city readiness", () => {
-  it("does not allow basic without technical validation", () => {
-    const result = cityWithReadiness({
-      ibgeValidated: true,
-    });
-
-    expect(isRegionalCityReadyForBasic(result)).toBe(false);
+test("não permite basic sem validação técnica mínima", () => {
+  const result = cityWithReadiness({
+    ibgeValidated: true,
   });
 
-  it("allows basic after minimum data validation", () => {
-    const result = cityWithReadiness({
-      ibgeValidated: true,
-      coordinatesValidated: true,
-      weatherValidated: true,
-    });
+  assert.equal(isRegionalCityReadyForBasic(result), false);
+});
 
-    expect(isRegionalCityReadyForBasic(result)).toBe(true);
+test("permite basic após IBGE, coordenadas e meteorologia validados", () => {
+  const result = cityWithReadiness({
+    ibgeValidated: true,
+    coordinatesValidated: true,
+    weatherValidated: true,
   });
 
-  it("requires editorial and SEO maturity for complete", () => {
-    const result = cityWithReadiness({
-      ibgeValidated: true,
-      coordinatesValidated: true,
-      weatherValidated: true,
-      editorialReady: true,
-      seoReady: true,
-      imageryReady: true,
-    });
+  assert.equal(isRegionalCityReadyForBasic(result), true);
+});
 
-    expect(isRegionalCityReadyForComplete(result)).toBe(true);
+test("complete exige maturidade técnica, hidrológica, editorial, SEO e visual", () => {
+  const result = cityWithReadiness({
+    ibgeValidated: true,
+    coordinatesValidated: true,
+    weatherValidated: true,
+    hydrologicalContextValidated: true,
+    editorialReady: true,
+    seoReady: true,
+    imageryReady: true,
   });
 
-  it("reports missing readiness requirements", () => {
-    const report = getRegionalCityReadiness(cityWithReadiness({
-      ibgeValidated: true,
-    }));
+  assert.equal(isRegionalCityReadyForComplete(result), true);
+});
 
-    expect(report.readyForBasic).toBe(false);
-    expect(report.missingForBasic.length).toBeGreaterThan(0);
-  });
+test("relatório informa requisitos faltantes para complete", () => {
+  const report = getRegionalCityReadiness(
+    cityWithReadiness({
+      ibgeValidated: true,
+    }),
+  );
+
+  assert.equal(report.basicReady, false);
+  assert.equal(report.completeReady, false);
+  assert.ok(report.missing.includes("coordinatesValidated"));
+  assert.ok(report.missing.includes("weatherValidated"));
+  assert.ok(report.missing.includes("hydrologicalContextValidated"));
 });
