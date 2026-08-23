@@ -45,7 +45,7 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Historical Data Layer | Ativo / em expansão | Arquivo canônico privado com observações Embrapa, extremos diários, níveis hidrológicos, forecast runs ricos Open-Meteo/MET Norway, eventos estruturados e série horária INMET A887; classes `observation`, `forecast`, `reanalysis` e `derived` permanecem separadas |
 | Registro histórico da enchente de 2024 | Ativo | Rota pública `/enchente-2024-pelotas-laranjal` registra a linha do tempo da cheia, a propagação Guaíba → Lagoa dos Patos → Pelotas/Laranjal → estuário e a fase de reconstrução |
 | Câmeras | Ativo com dependência externa | YouTube, live/replay e contingências |
-| Páginas regionais | Ativo | 23 cidades além de Pelotas |
+| Páginas regionais | Ativo | Central Regional `/tempo-na-regiao-sul-rs` com resumo em lote das 24 cidades (Pelotas + 23 páginas municipais), busca sem acento e filtros pelos quatro agrupamentos; Pelotas continua usando a Home como página principal regional |
 | Blog | Ativo | Rota pública e indexável |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e imagem social raster |
 | Supabase externo | Ativo | Banco, migrations, RLS, conta/entitlement e coletores históricos implantados; E2E autenticado com duas contas ainda precisa de validação real |
