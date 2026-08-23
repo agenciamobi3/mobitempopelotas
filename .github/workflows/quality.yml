@@ -50,6 +50,12 @@ jobs:
       - name: Footer editorial e proveniência
         run: node --test tests/footer-editorial-navigation.test.ts
 
+      - name: Shell global do portal
+        run: node --test tests/global-shell-consistency.test.ts
+
+      - name: Faixa de utilidade pública
+        run: node --test tests/footer-public-service.test.ts
+
       - name: Fotografias locais do hero
         run: node --test tests/home-hero-local-photos.test.ts
 
