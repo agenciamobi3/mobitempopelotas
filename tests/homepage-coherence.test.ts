@@ -23,14 +23,6 @@ const radarCss = readFileSync(
   "src/production/components/home-radar-editorial.css",
   "utf8",
 );
-const observation = readFileSync(
-  "src/production/components/home-observation-editorial.tsx",
-  "utf8",
-);
-const observationCss = readFileSync(
-  "src/production/components/home-observation-editorial.css",
-  "utf8",
-);
 const water = readFileSync("src/production/components/home-water-editorial.tsx", "utf8");
 const waterCss = readFileSync(
   "src/production/components/home-water-editorial.css",
@@ -71,19 +63,15 @@ test("the homepage radar is isolated as a civic-tech monitoring console", () => 
   assert.doesNotMatch(radarCss, /!important/);
 });
 
-test("the Embrapa reading is isolated as civic-tech observed data", () => {
-  assert.match(productionHome, /<HomeObservationEditorial weather=\{weather\} observation=\{observation\} \/>/);
-  assert.match(observation, /className="tp-home-observation"/);
-  assert.match(observation, /id="observacao-embrapa"/);
-  assert.match(observation, /Chuva registrada hoje/);
-  assert.doesNotMatch(observation, /Vento mais forte hoje/);
-  assert.match(observationCss, /\.tp-home-observation__reading\s*\{[\s\S]*border-top:/);
-  assert.doesNotMatch(observationCss, /!important/);
-  assert.doesNotMatch(observationCss, /box-shadow/);
+test("the homepage does not duplicate the current Embrapa reading below the hero", () => {
+  assert.doesNotMatch(productionHome, /HomeObservationEditorial/);
+  assert.doesNotMatch(productionHome, /toProductionObservation/);
+  assert.doesNotMatch(sectionNavigation, /#observacao-embrapa|Medições locais/);
+  assert.match(sectionNavigation, /#situacao-das-aguas/);
 });
 
 test("the Lagoa section is isolated as local civic-tech data", () => {
-  assert.match(productionHome, /<HomeWaterEditorial laranjal=\{laranjal\} guaiba=\{guaiba\} lagoon=\{lagoon\} \/>/);
+  assert.match(productionHome, /<HomeWaterEditorial/);
   assert.match(water, /className="tp-home-water"/);
   assert.match(water, /id="situacao-das-aguas"/);
   assert.match(water, /Praia do Laranjal/);
@@ -116,11 +104,12 @@ test("the weekly trend is a separate chapter immediately before radar", () => {
   );
 });
 
-test("the main meteorological narrative follows the definitive homepage order", () => {
+test("the main meteorological narrative follows the concise homepage order", () => {
   assert.match(
     productionHome,
-    /<HomeForecastEditorial[\s\S]*<InmetOfficialForecastPanel[\s\S]*<HomeForecastTrend[\s\S]*<HomeRadarEditorial[\s\S]*<HomeObservationEditorial[\s\S]*<HomeWaterEditorial[\s\S]*<HomeExplorePortal/,
+    /<HomeForecastEditorial[\s\S]*<InmetOfficialForecastPanel[\s\S]*<HomeForecastTrend[\s\S]*<HomeRadarEditorial[\s\S]*<DeferredHomeWater[\s\S]*<HomeExplorePortal/,
   );
+  assert.doesNotMatch(productionHome, /HomeObservationEditorial/);
 });
 
 test("forecast and weekly trend own responsive styles without important overrides", () => {
@@ -154,11 +143,12 @@ test("the hero keeps only the essential public facts", () => {
   assert.doesNotMatch(weatherHero, /label="Pressão"/);
 });
 
-test("the homepage section index is isolated and editorial instead of numbered", () => {
+test("the homepage section index is isolated, editorial and only points to rendered chapters", () => {
   assert.match(sectionNavigation, /className="tp-home-index"/);
   assert.match(sectionNavigation, /tp-home-index__links/);
   assert.doesNotMatch(sectionNavigation, /String\(index \+ 1\)/);
   assert.doesNotMatch(sectionNavigation, /home-section-navigation--editorial-index/);
+  assert.doesNotMatch(sectionNavigation, /#observacao-embrapa/);
   assert.match(sectionNavigationCss, /\.tp-home-index\s*\{[\s\S]*border-bottom/);
   assert.match(sectionNavigationCss, /@media \(max-width: 980px\)/);
   assert.doesNotMatch(sectionNavigationCss, /\.home-section-navigation/);
@@ -217,6 +207,6 @@ test("any official Pelotas alert raises the homepage to at least attention", () 
   assert.match(productionHome, /const hasPelotasOfficialAlerts = pelotasOfficialAlerts\.length > 0/);
   assert.match(
     productionHome,
-    /verifiedPelotasAlerts\.some\([\s\S]*hasPelotasOfficialAlerts[\s\S]*\? "attention"/,
+    /primaryOfficialSeverity === "great-danger"[\s\S]*hasPelotasOfficialAlerts[\s\S]*\? "attention"/,
   );
 });
