@@ -8,6 +8,7 @@ import {
   getCanonicalRedirectUrl,
 } from "../src/lib/canonical-host.ts";
 import { PUBLIC_ROUTES } from "../src/lib/public-routes.ts";
+import { REGIONAL_CITIES, regionalCityPath } from "../src/lib/regional-cities.ts";
 import {
   BRAND_LOGO_URL,
   CANONICAL_SITE_URL,
@@ -35,12 +36,14 @@ const ignoredDirectories = new Set([
   "dist",
   "node_modules",
 ]);
+const publicSurfaceRoots = ["src/routes", "src/components", "src/production", "public"];
 const sitemapRoute = readFileSync("src/routes/sitemap[.]xml.ts", "utf8");
+const robotsRoute = readFileSync("src/routes/robots[.]txt.ts", "utf8");
 const feedRoute = readFileSync("src/routes/feed.ts", "utf8");
 const brandAliasRoute = readFileSync("src/routes/brand/tempo-pelotas-header.ts", "utf8");
 const accountRoute = readFileSync("src/routes/conta.tsx", "utf8");
 
-function listProjectFiles(directory = "."): string[] {
+function listProjectFiles(directory: string): string[] {
   const files: string[] = [];
 
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -117,11 +120,20 @@ test("o domínio oficial e hosts locais não sofrem redirecionamento", () => {
   assert.equal(getCanonicalRedirectUrl("http://localhost:5173/"), null);
 });
 
-test("o sitemap contém somente URLs canônicas e todas as rotas públicas", () => {
+test("o sitemap contém Home, Central Regional e todas as páginas municipais canônicas", () => {
   const sitemap = createSitemapXml();
+  const regionalPaths = REGIONAL_CITIES.filter((city) => city.slug !== "pelotas-rs").map(
+    regionalCityPath,
+  );
 
   assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   assert.equal((sitemap.match(/<url>/g) ?? []).length, PUBLIC_ROUTES.length);
+  assert.match(sitemap, /<loc>https:\/\/tempopelotas\.com\.br\/<\/loc>/);
+  assert.match(
+    sitemap,
+    /<loc>https:\/\/tempopelotas\.com\.br\/tempo-na-regiao-sul-rs<\/loc>/,
+  );
+  assert.equal(regionalPaths.length, 23);
 
   for (const forbiddenHost of forbiddenHostFragments) {
     assert.equal(sitemap.includes(forbiddenHost), false);
@@ -130,6 +142,22 @@ test("o sitemap contém somente URLs canônicas e todas as rotas públicas", () 
   for (const route of PUBLIC_ROUTES) {
     assert.equal(sitemap.includes(`<loc>${absoluteUrl(route.path)}</loc>`), true);
   }
+  for (const regionalPath of regionalPaths) {
+    assert.equal(sitemap.includes(`<loc>${absoluteUrl(regionalPath)}</loc>`), true);
+  }
+});
+
+test("robots aponta o sitemap e reduz crawling de superfícies operacionais", () => {
+  assert.match(robotsRoute, /User-agent: \*/);
+  assert.match(robotsRoute, /Allow: \/$/m);
+  assert.match(robotsRoute, /Disallow: \/api\//);
+  assert.match(robotsRoute, /Disallow: \/_server\//);
+  assert.match(robotsRoute, /Disallow: \/auth\//);
+  assert.match(robotsRoute, /Disallow: \/conta/);
+  assert.match(robotsRoute, /Disallow: \/entrar/);
+  assert.match(robotsRoute, /Disallow: \/painel/);
+  assert.match(robotsRoute, /Disallow: \/embed\//);
+  assert.match(robotsRoute, /Sitemap:/);
 });
 
 test("recursos técnicos permanecem acessíveis sem virar páginas de busca", () => {
@@ -139,12 +167,14 @@ test("recursos técnicos permanecem acessíveis sem virar páginas de busca", ()
   assert.match(accountRoute, /src="\/brand\/tempo-pelotas-header\.svg"/);
   assert.doesNotMatch(accountRoute, /src="\/brand\/tempo-pelotas-header"(?!\.svg)/);
   assert.doesNotMatch(sitemapRoute, /"X-Robots-Tag": "index, follow"/);
+  assert.match(sitemapRoute, /"X-Content-Type-Options": "nosniff"/);
 });
 
-test("nenhum arquivo do projeto publica domínios obsoletos", () => {
+test("superfícies públicas não publicam domínios técnicos/obsoletos", () => {
   const offenders: string[] = [];
+  const files = publicSurfaceRoots.flatMap((root) => listProjectFiles(root));
 
-  for (const file of listProjectFiles()) {
+  for (const file of files) {
     try {
       const content = readFileSync(file, "utf8");
       if (forbiddenHostFragments.some((host) => content.includes(host))) offenders.push(file);
