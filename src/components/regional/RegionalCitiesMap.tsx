@@ -120,11 +120,11 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
           cooperativeGestures: true,
           attributionControl: true,
         });
+        mapRef.current = map;
 
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
         map.on("load", () => {
           if (cancelled) return;
-          mapRef.current = map;
           setHasError(false);
           setIsLoaded(true);
         });
