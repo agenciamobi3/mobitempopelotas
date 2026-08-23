@@ -6,6 +6,7 @@ const analytics = readFileSync("src/components/analytics/GoogleAnalytics.tsx", "
 const root = readFileSync("src/routes/__root.tsx", "utf8");
 const login = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 const push = readFileSync("src/components/pwa/PushNotificationsManager.tsx", "utf8");
+const privacy = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
 
 test("GA4 tracks the public measurement ID across SPA navigations without duplicate automatic pageviews", () => {
   assert.match(analytics, /G-97YX7HPD90/);
@@ -16,6 +17,14 @@ test("GA4 tracks the public measurement ID across SPA navigations without duplic
   assert.match(analytics, /"event",\s*"page_view"/);
   assert.match(analytics, /page_location:\s*window\.location\.href/);
   assert.match(root, /<GoogleAnalytics\s*\/>/);
+});
+
+test("GA4 is configured without advertising signals and is disclosed separately from Google login", () => {
+  assert.match(analytics, /allow_google_signals:\s*false/);
+  assert.match(analytics, /allow_ad_personalization_signals:\s*false/);
+  assert.match(privacy, /Google Analytics 4/);
+  assert.match(privacy, /G-97YX7HPD90/);
+  assert.match(privacy, /fluxos técnicos separados/);
 });
 
 test("push manager is mounted globally but remains runtime-gated by push configuration", () => {
