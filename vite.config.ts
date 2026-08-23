@@ -18,8 +18,9 @@ execFileSync(process.execPath, ["scripts/generate-route-tree.mjs"], {
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
+    // Country gate runs before importing the regular SSR server entry. Foreign browser
+    // requests stop before TanStack, Supabase, Analytics and weather integrations load.
+    // src/server-brazil.ts delegates allowed traffic to src/server.ts.
+    server: { entry: "server-brazil" },
   },
 });
