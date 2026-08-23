@@ -223,6 +223,7 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
           className="regional-overview-map__canvas"
           role="region"
           aria-hidden={hasError}
+          style={hasError ? { display: "none" } : undefined}
           aria-label={`Mapa com ${items.length} cidades visíveis da Região Sul do Rio Grande do Sul`}
         />
         {!isLoaded && !hasError ? (
