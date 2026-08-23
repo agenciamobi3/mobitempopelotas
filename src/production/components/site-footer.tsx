@@ -9,9 +9,9 @@ type SiteFooterProps = {
 
 /**
  * Footer público único do Tempo Pelotas.
- * Conteúdo, navegação, utilidade pública e geometria usam a variante editorial
- * da Home também nas páginas internas e institucionais.
+ * Conteúdo, navegação, utilidade pública e geometria são compartilhados pela
+ * Home, páginas internas e páginas institucionais.
  */
 export function SiteFooter({ source }: SiteFooterProps) {
-  return <Footer source={source} variant="home" />;
+  return <Footer source={source} />;
 }
