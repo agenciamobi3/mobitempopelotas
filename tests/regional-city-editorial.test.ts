@@ -62,8 +62,10 @@ test("páginas regionais reutilizam os componentes aprovados das páginas intern
 
 test("primeira dobra regional segue a composição dividida da página de vento", () => {
   assert.match(heroSource, /title={`Como o tempo deve mudar em \$\{city\.name\}\.\`}/);
-  assert.match(heroSource, /currentLabel=\{current \? "Temperatura agora" : "Estimativa atual"\}/);
+  assert.match(heroSource, /currentLabel=\{current \? "Temperatura estimada agora" : "Estimativa atual"\}/);
   assert.match(heroSource, /highlightLabel="Maior chance de chuva nas próximas 24h"/);
+  assert.match(heroSource, /label: "Umidade estimada"/);
+  assert.match(heroSource, /label: "Pressão ao nível do mar"/);
   assert.match(heroSource, /label: "Faixa prevista hoje"/);
   assert.match(heroSource, /label: "Rajada mais forte"/);
   assert.match(heroSource, /href="#previsao-hoje"/);
@@ -72,6 +74,7 @@ test("primeira dobra regional segue a composição dividida da página de vento"
   assert.match(splitHeroSource, /weather-split-hero__copy/);
   assert.match(splitHeroSource, /weather-split-hero__card/);
   assert.match(splitHeroSource, /weather-split-hero__highlight/);
+  assert.match(splitHeroSource, /facts\.slice\(0, 4\)/);
   assert.match(splitHeroCss, /grid-template-columns: minmax\(0, 1\.08fr\) minmax\(390px, 0\.92fr\)/);
   assert.match(splitHeroCss, /linear-gradient\(145deg, #102437, #18334f 58%, #25375c\)/);
   assert.match(splitHeroCss, /@media \(max-width: 980px\)/);
@@ -166,6 +169,10 @@ test("tema regional preserva o frame e contém apenas os estilos ativos", () => 
   assert.doesNotMatch(pageCss, /\.forecastGrid/);
   assert.doesNotMatch(pageCss, /\.nowCard/);
   assert.match(heroCss, /width: min\(calc\(100% - var\(--regional-frame-gap\)\), var\(--regional-frame-max\)\)/);
+  assert.match(identityCss, /--regional-frame-max:\s*var\(--tp-home-container-max, 1440px\)/);
+  assert.match(identityCss, /--regional-frame-gap:\s*var\(--tp-home-container-gutter, 48px\)/);
+  assert.match(identityCss, /--regional-gutter:/);
+  assert.doesNotMatch(identityCss, /today-retail-hero/);
   assert.match(identityCss, /\.regional-city-page > \.internal-page-chapters/);
   assert.match(identityCss, /\.regional-city-page > \.regional-city-shared-forecast/);
   assert.match(identityCss, /section\.regional-city-official-alert/);
