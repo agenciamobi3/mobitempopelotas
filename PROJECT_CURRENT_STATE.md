@@ -938,7 +938,10 @@ Estas são pendências de produto/operação, não funcionalidades inexistentes 
 9. retomar avaliação CPTEC/SIGMA em novembro/dezembro de 2026, sem assumir previamente autorização ou integração;
 10. acompanhar a integração pública da Defesa Civil RS, concluir inventário DCRS, bacias/capacidades, validar timezone e unidade/referência vertical por estação e incorporar a saúde da fonte ao status/runtime;
 11. manter a limpeza de dívida histórica de lint/formatação separada de mudanças funcionais;
-12. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados; rate limiting distribuído/WAF e CSP global mais estrita permanecem candidatos de hardening futuro.
+12. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
+13. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras;
+14. avaliar como hardening futuro um WAF gerenciado de edge/provedor, condicionado a acesso ao control plane apropriado, e uma CSP sem `unsafe-inline`/baseada em nonce — nenhum dos dois está concluído nesta rodada;
+15. tratar separadamente avisos preexistentes de advisors do Supabase em outras estruturas do projeto (por exemplo função SECURITY DEFINER executável por `authenticated` e proteção contra senhas vazadas desativada), que não são regressão desta rodada.
 
 ## 25. Regra de manutenção deste arquivo
 
