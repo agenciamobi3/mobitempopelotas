@@ -1,5 +1,7 @@
 export type RegionalCityGroup = "Pelotas e entorno" | "Costa Doce" | "Fronteira Sul" | "Campanha";
 
+export type RegionalCityCoverage = "draft" | "basic" | "complete";
+
 export type RegionalCity = {
   slug: string;
   name: string;
@@ -9,6 +11,14 @@ export type RegionalCity = {
   longitude: number;
   group: RegionalCityGroup;
   descriptor: string;
+  /**
+   * Estágio editorial/técnico da cidade. O default "complete" preserva o inventário já publicado.
+   * - draft: cadastro interno, fora da Central e sem rota pública;
+   * - basic: rota pública permitida, mas fora da indexação;
+   * - complete: elegível à indexação, salvo indexable=false.
+   */
+  coverage?: RegionalCityCoverage;
+  indexable?: boolean;
 };
 
 export const REGIONAL_HOME_CITY_SLUG = "pelotas-rs";
@@ -40,8 +50,31 @@ export const REGIONAL_CITIES: RegionalCity[] = [
   { slug: "dom-pedrito-rs", name: "Dom Pedrito", state: "RS", ibgeCode: "4306601", latitude: -30.9828, longitude: -54.6734, group: "Campanha", descriptor: "município da Campanha com forte atividade agropecuária" },
 ];
 
+export function regionalCityCoverage(city: RegionalCity): RegionalCityCoverage {
+  return city.coverage ?? "complete";
+}
+
+export function isRegionalCityPublic(city: RegionalCity) {
+  return regionalCityCoverage(city) !== "draft";
+}
+
+export function isRegionalCityIndexable(city: RegionalCity) {
+  return (
+    isRegionalCityPublic(city) &&
+    regionalCityCoverage(city) === "complete" &&
+    city.indexable !== false
+  );
+}
+
+export const PUBLIC_REGIONAL_CITIES = REGIONAL_CITIES.filter(isRegionalCityPublic);
+export const INDEXABLE_REGIONAL_CITIES = REGIONAL_CITIES.filter(isRegionalCityIndexable);
+
 export function findRegionalCity(slug: string) {
   return REGIONAL_CITIES.find((city) => city.slug === slug) ?? null;
+}
+
+export function findPublicRegionalCity(slug: string) {
+  return PUBLIC_REGIONAL_CITIES.find((city) => city.slug === slug) ?? null;
 }
 
 export function isRegionalHomeCity(city: RegionalCity) {
@@ -71,7 +104,7 @@ export function regionalCityDistanceKm(origin: RegionalCity, destination: Region
 }
 
 export function nearestRegionalCities(city: RegionalCity, limit = 5) {
-  return REGIONAL_CITIES.filter((candidate) => candidate.slug !== city.slug)
+  return PUBLIC_REGIONAL_CITIES.filter((candidate) => candidate.slug !== city.slug)
     .map((candidate) => ({
       city: candidate,
       distanceKm: regionalCityDistanceKm(city, candidate),
@@ -81,7 +114,7 @@ export function nearestRegionalCities(city: RegionalCity, limit = 5) {
 }
 
 export const REGIONAL_CITY_GROUPS = Array.from(
-  REGIONAL_CITIES.reduce((groups, city) => {
+  PUBLIC_REGIONAL_CITIES.reduce((groups, city) => {
     const items = groups.get(city.group) ?? [];
     items.push(city);
     groups.set(city.group, items);
