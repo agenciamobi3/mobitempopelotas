@@ -3,16 +3,23 @@ name: Data source status monitor
 on:
   schedule:
     - cron: "*/10 * * * *"
+    # 07:30 em America/Sao_Paulo: smoke diário de segurança em produção.
+    - cron: "30 10 * * *"
   workflow_dispatch:
   push:
     branches:
       - main
     paths:
       - .github/workflows/data-status-monitor.yml
+      - src/server-brazil.ts
+      - src/lib/access-observability.server.ts
+      - src/lib/brazil-only-access.server.ts
       - src/lib/github-actions-oidc.server.ts
+      - src/lib/security/**
       - src/lib/status/**
       - src/routes/api/cron/data-status.ts
       - supabase/migrations/*data_source_status_history.sql
+      - supabase/migrations/*security_rate_limits.sql
 
 permissions:
   contents: read
@@ -94,3 +101,150 @@ jobs:
 
           echo "O deploy não publicou o coletor dentro da janela de espera." >&2
           exit 1
+
+  security-smoke:
+    name: Validate geo gate, CSP and distributed limiter
+    if: >-
+      github.event_name != 'schedule' ||
+      github.event.schedule == '30 10 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Confirm real-country browser gate and global CSP
+        env:
+          BASE_URL: https://tempopelotas.com.br
+        run: |
+          set -euo pipefail
+
+          runner_country="$(curl --fail --silent --show-error --max-time 20 https://www.cloudflare.com/cdn-cgi/trace \
+            | awk -F= '$1 == "loc" { print toupper($2); exit }')"
+          if [[ ! "$runner_country" =~ ^[A-Z0-9]{2}$ ]]; then
+            echo "Não foi possível determinar o país público do runner." >&2
+            exit 1
+          fi
+          echo "País público observado para o runner: $runner_country"
+
+          published=0
+          for attempt in $(seq 1 24); do
+            headers_file="$(mktemp)"
+            body_file="$(mktemp)"
+            control_status="$(curl \
+              --silent \
+              --show-error \
+              --max-time 30 \
+              --dump-header "$headers_file" \
+              --output "$body_file" \
+              --write-out "%{http_code}" \
+              --header "Accept: text/html" \
+              --header "User-Agent: TempoPelotas-Security-Smoke/1.0" \
+              "$BASE_URL/?security-smoke=$GITHUB_RUN_ID" || true)"
+
+            csp="$(tr -d '\r' < "$headers_file" | awk 'BEGIN{IGNORECASE=1} /^content-security-policy:/ {sub(/^[^:]+:[[:space:]]*/, ""); print; exit}')"
+            if [[ "$control_status" == "200" && "$csp" == *"script-src-attr 'none'"* && "$csp" == *"object-src 'none'"* ]]; then
+              published=1
+              rm -f "$headers_file" "$body_file"
+              break
+            fi
+
+            rm -f "$headers_file" "$body_file"
+            if [[ "$attempt" -lt 24 ]]; then
+              echo "Aguardando publicação do hardening; tentativa $attempt/24."
+              sleep 10
+            fi
+          done
+
+          if [[ "$published" != "1" ]]; then
+            echo "Produção não publicou a CSP esperada dentro da janela de espera." >&2
+            exit 1
+          fi
+
+          browser_headers="$(mktemp)"
+          browser_body="$(mktemp)"
+          browser_status="$(curl \
+            --silent \
+            --show-error \
+            --max-time 30 \
+            --dump-header "$browser_headers" \
+            --output "$browser_body" \
+            --write-out "%{http_code}" \
+            --header "Accept: text/html" \
+            --header "Sec-Fetch-Dest: document" \
+            --header "Sec-Fetch-Mode: navigate" \
+            --header "Sec-Fetch-Site: none" \
+            --header "User-Agent: TempoPelotas-Security-Smoke/1.0" \
+            "$BASE_URL/tempo-na-regiao-sul-rs?security-smoke=$GITHUB_RUN_ID")"
+
+          if [[ "$runner_country" == "BR" ]]; then
+            test "$browser_status" == "200"
+          else
+            test "$browser_status" == "403"
+            blocked_csp="$(tr -d '\r' < "$browser_headers" | awk 'BEGIN{IGNORECASE=1} /^content-security-policy:/ {sub(/^[^:]+:[[:space:]]*/, ""); print; exit}')"
+            [[ "$blocked_csp" == *"connect-src 'none'"* ]]
+            [[ "$blocked_csp" == *"script-src 'none'"* ]]
+            ! grep -Eqi '<script|https?://|supabase|googletagmanager|google-analytics' "$browser_body"
+          fi
+
+          rm -f "$browser_headers" "$browser_body"
+          echo "Gate geográfico validado para país $runner_country com HTTP $browser_status."
+
+      - name: Confirm runtime decision, sanitized log contract and distributed limiter
+        env:
+          OIDC_AUDIENCE: tempo-pelotas-data-status
+          SECURITY_SMOKE_URL: https://tempopelotas.com.br/api/cron/data-status?mode=security-smoke
+        run: |
+          set -euo pipefail
+
+          oidc_response="$(curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --max-time 30 \
+            --header "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$OIDC_AUDIENCE")"
+
+          oidc_token="$(OIDC_RESPONSE="$oidc_response" python - <<'PY'
+          import json
+          import os
+          payload = json.loads(os.environ["OIDC_RESPONSE"])
+          token = payload.get("value", "").strip()
+          if not token:
+              raise SystemExit("GitHub OIDC não devolveu um token.")
+          print(token)
+          PY
+          )"
+          echo "::add-mask::$oidc_token"
+
+          response_file="$(mktemp)"
+          status="$(curl \
+            --silent \
+            --show-error \
+            --max-time 45 \
+            --output "$response_file" \
+            --write-out "%{http_code}" \
+            --header "Authorization: Bearer $oidc_token" \
+            --header "Accept: application/json" \
+            "$SECURITY_SMOKE_URL")"
+
+          if [[ "$status" != "200" ]]; then
+            echo "Security smoke respondeu HTTP $status." >&2
+            cat "$response_file" >&2 || true
+            rm -f "$response_file"
+            exit 1
+          fi
+
+          SECURITY_RESPONSE="$(cat "$response_file")" python - <<'PY'
+          import json
+          import os
+
+          payload = json.loads(os.environ["SECURITY_RESPONSE"])
+          if payload.get("success") is not True:
+              raise SystemExit("Security smoke não confirmou sucesso.")
+          checks = payload.get("checks") or {}
+          expected = ("classification", "sanitizedLogs", "distributedRateLimit")
+          missing = [name for name in expected if checks.get(name) is not True]
+          if missing:
+              raise SystemExit(f"Checks de segurança falharam: {', '.join(missing)}")
+          print("Classificação, sanitização de logs e rate limiting distribuído confirmados.")
+          PY
+
+          rm -f "$response_file"
