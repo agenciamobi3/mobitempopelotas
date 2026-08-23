@@ -65,6 +65,9 @@ jobs:
       - name: Cache estático do service worker
         run: node --test tests/service-worker-static-cache.test.ts
 
+      - name: Integridade do raster REDEMET
+        run: node --test tests/redemet-raster-render-state.test.ts
+
       - name: Hidrologia diferida da Home
         run: node --test tests/home-deferred-hydrology.test.ts
 
