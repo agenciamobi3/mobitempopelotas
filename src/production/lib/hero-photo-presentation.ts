@@ -1,6 +1,6 @@
 import type { WeatherData, WeatherIconName } from "@/production/lib/weather-data";
 
-export type HeroPhotoKind = "rain" | "fog" | "clear" | "cloudy";
+export type HeroPhotoKind = "rain" | "fog" | "clear" | "clear-night" | "cloudy";
 
 export type HeroPhotoPresentation = {
   kind: HeroPhotoKind;
@@ -27,6 +27,12 @@ const heroPhotos = {
     src: "/weather/hero/pelotas-laranjal-ceu-aberto.webp",
     position: "center 58%",
     credit: "Acervo Tempo Pelotas · Praia do Laranjal",
+  },
+  "clear-night": {
+    kind: "clear-night",
+    src: "/weather/hero/pelotas-laranjal-ceu-aberto-noite.webp",
+    position: "center 54%",
+    credit: "Acervo Tempo Pelotas · Praia do Laranjal · noite",
   },
   cloudy: {
     kind: "cloudy",
@@ -62,6 +68,13 @@ export function resolveHeroPhoto({
 
   if (/tempest|trovo|chuva|garoa|pancada/.test(conditionText) || icon === "rain" || icon === "storm") {
     return heroPhotos.rain;
+  }
+
+  const isClearNight =
+    /ceu (aberto|limpo).*noite|noite.*ceu (aberto|limpo)/.test(conditionText);
+
+  if (isClearNight || icon === "moon") {
+    return heroPhotos["clear-night"];
   }
 
   if (icon === "sun") {
