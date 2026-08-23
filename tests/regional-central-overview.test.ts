@@ -28,8 +28,16 @@ const overviewServer = readFileSync(
   "src/lib/weather/regional-cities-overview.server.ts",
   "utf8",
 );
+const overviewSnapshotServer = readFileSync(
+  "src/lib/weather/regional-cities-overview-snapshot.server.ts",
+  "utf8",
+);
 const overviewFunctions = readFileSync(
   "src/lib/weather/regional-cities-overview.functions.ts",
+  "utf8",
+);
+const overviewSnapshotMigration = readFileSync(
+  "supabase/migrations/20260823193000_create_regional_weather_snapshots.sql",
   "utf8",
 );
 
@@ -51,6 +59,22 @@ test("a Central Regional carrega uma visão resumida server-side com cache", () 
   assert.match(overviewFunctions, /Cache-Control/);
   assert.match(overviewFunctions, /CDN-Cache-Control/);
   assert.match(overviewFunctions, /fetchRegionalCitiesOverview/);
+});
+
+test("o resumo regional possui fallback persistente para sobreviver a 429 e reinícios", () => {
+  assert.match(overviewServer, /readRegionalCitiesOverviewSnapshot/);
+  assert.match(overviewServer, /persistRegionalCitiesOverviewSnapshot/);
+  assert.match(overviewServer, /if \(regionalSnapshot\)/);
+  assert.match(overviewServer, /HTTP \$\{response\.status\}/);
+  assert.match(overviewSnapshotServer, /SNAPSHOT_MAX_AGE_MS = 6 \* 60 \* 60 \* 1_000/);
+  assert.match(overviewSnapshotServer, /parseRegionalCitiesOverviewSnapshot/);
+  assert.match(overviewSnapshotServer, /city\?\.slug !== expectedCity\.slug/);
+  assert.match(overviewSnapshotServer, /config\.isPublicConfigured/);
+  assert.match(overviewSnapshotServer, /config\.isAdminConfigured/);
+  assert.match(overviewSnapshotServer, /overview\.status === "unavailable"/);
+  assert.match(overviewSnapshotMigration, /enable row level security/);
+  assert.match(overviewSnapshotMigration, /for select/);
+  assert.doesNotMatch(overviewSnapshotMigration, /for insert/);
 });
 
 test("o resumo das cidades públicas usa uma única consulta Open-Meteo em lote", () => {
