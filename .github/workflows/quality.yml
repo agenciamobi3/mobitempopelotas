@@ -68,6 +68,9 @@ jobs:
       - name: Integridade do raster REDEMET
         run: node --test tests/redemet-raster-render-state.test.ts
 
+      - name: Fontes de satélite
+        run: node --test tests/satellite-source-selector.test.ts
+
       - name: Hidrologia diferida da Home
         run: node --test tests/home-deferred-hydrology.test.ts
 
