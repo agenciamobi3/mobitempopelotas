@@ -51,7 +51,7 @@ O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Su
 | Supabase externo | Ativo | Banco, migrations, RLS, conta/entitlement e coletores históricos implantados; E2E autenticado com duas contas ainda precisa de validação real |
 | Login Google / conta | Parcial operacional | Conta, LGPD, Free/PRO estrutural e login por Google Identity Services + ID Token implementados; `VITE_GOOGLE_CLIENT_ID` está configurado no build de produção e falta concluir E2E real |
 | Weather AI | Ativo controlado | Snapshot persistido, orçamento mensal e fallback determinístico |
-| Gate geográfico de visitantes | Ativo | Entrypoint `src/server-brazil.ts` classifica navegadores em hosts de produção por país; não-BR ou país desconhecido recebe resposta autocontida 403 antes de tocar no app normal; server-to-server e localhost não afetados |
+| Gate geográfico de visitantes | Ativo | Entrypoint `src/server-brazil.ts` classifica navegadores em hosts de produção por país; não-BR ou país desconhecido recebe resposta autocontida 403 antes de tocar no app normal; server-to-server e localhost não afetados; inclui observabilidade sanitizada por instância de runtime e headers básicos de hardening |
 | PWA / Web Push | Suspenso para ativação pública | Código preservado; reativação depende de validação real de navegador e rolagem |
 | CPTEC/SIGMA | Pesquisa futura | Não integrar ao runtime público antes da revisão institucional planejada para novembro/dezembro de 2026 |
 
@@ -166,9 +166,12 @@ A rota funciona como Central Regional para o inventário existente de 24 cidades
 - oferece busca sem acento e filtros pelos quatro agrupamentos regionais existentes (`Pelotas e entorno`, `Costa Doce`, `Fronteira Sul`, `Campanha`);
 - identifica explicitamente esses valores como estimativa de modelo numérico, não como observação de estação;
 - mantém os avisos oficiais do INMET apenas nas páginas municipais individuais (`/tempo-em/{slug}`), não na Central;
-- inclui mapa interativo MapLibre com os mesmos 24 pontos do dataset resumido, base cartográfica OpenFreeMap, carregamento client-side progressivo/lazy via IntersectionObserver e fallback que preserva a lista e a navegação se o mapa falhar;
+- inclui mapa interativo MapLibre com os mesmos 24 pontos do dataset resumido, base cartográfica OpenFreeMap, sem segunda consulta meteorológica;
+- o bundle do mapa é carregado sob demanda por wrapper leve próximo da viewport; em mobile a antecipação de rootMargin é menor e, com Save-Data ativo, a antecipação é reduzida ainda mais; a lista/dataset textual têm prioridade de carregamento;
+- o runtime MapLibre é importado uma única vez por montagem do mapa;
 - busca e filtros atualizam simultaneamente a lista e o mapa, reenquadrando as cidades visíveis;
 - marcadores levam à página municipal correspondente e mostram temperatura estimada e condição;
+- quando MapLibre falha, aparece navegação alternativa visível e acessível com links das cidades, temperatura/condição, navegável por teclado e útil a leitor de tela; os controles do mapa falho saem da ordem de foco;
 - nenhuma cidade nova foi adicionada nesta etapa.
 
 Decisão de produto: o mapa regional das 24 cidades está implementado; o próximo passo é validá-lo em produção, mobile, acessibilidade e performance. Só depois dessa consolidação será avaliada a expansão do inventário municipal além de 24.
@@ -638,7 +641,9 @@ Estado atual:
 - `pelotas.json` como contrato público de dados/transparência;
 - páginas regionais com metadados geográficos próprios;
 - conteúdo editorial, FAQs e links internos por intenção;
-- alias técnicos e feeds fora da indexação quando apropriado.
+- alias técnicos e feeds fora da indexação quando apropriado;
+- sitemap e robots foram reforçados, não duplicados: o sitemap continua incluindo Home, `/tempo-na-regiao-sul-rs` e as 23 páginas `/tempo-em/{slug}`, com a Central Regional sinalizando frequência `hourly`;
+- robots reduz crawling de superfícies operacionais/autenticadas como APIs, server functions, auth, conta, entrar, painel e embeds, mantendo referência ao sitemap.
 
 Baseline de Search Console: `docs/SEO_GSC_BASELINE_2026-08-16.md`.
 
@@ -789,8 +794,8 @@ A suíte de contratos cobre, entre outros domínios:
 - câmeras;
 - geadas;
 - hidrologia;
-- páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading e fallback progressivo;
-- gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected e monitor server-to-server preservado;
+- páginas regionais e Central Regional, incluindo mapa das 24 cidades, sincronização com busca/filtros, lazy loading, Save-Data, ausência de fetch meteorológico extra e fallback progressivo acessível;
+- gate geográfico de visitantes (`tests/brazil-only-access.test.ts`): classificação de decisão, BR permitido, exterior bloqueado, resposta autocontida sem scripts/conexões, APIs/subrecursos de navegador estrangeiro bloqueados, país desconhecido em produção falha fechado, localhost unaffected, monitor server-to-server preservado, logs sanitizados e hardening do entrypoint;
 - SEO e acessibilidade;
 - integrações Guaíba/SACE;
 - bootstrap/árvore de rotas.
