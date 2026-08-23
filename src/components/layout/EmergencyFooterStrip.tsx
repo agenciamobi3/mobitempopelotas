@@ -19,7 +19,11 @@ export function EmergencyFooterStrip() {
     >
       <div className="tp-public-service-strip__inner">
         <section className="tp-public-service-phones" aria-labelledby="tp-public-service-phones-title">
-          <h2 id="tp-public-service-phones-title">Telefones úteis</h2>
+          <div className="tp-public-service-phones__heading">
+            <span>Serviço público</span>
+            <h2 id="tp-public-service-phones-title">Telefones de emergência</h2>
+            <p>Atalhos para atendimento imediato quando a situação exigir.</p>
+          </div>
           <div className="tp-public-service-phones__grid">
             {emergencyPhones.map((phone) => (
               <a
@@ -51,10 +55,8 @@ export function EmergencyFooterStrip() {
               decoding="async"
             />
             <div>
-              <span>Defesa Civil RS</span>
-              <h2 id="tp-public-service-civil-defense-title">
-                Receba mensagens da Defesa Civil
-              </h2>
+              <span>Alertas oficiais · Defesa Civil RS</span>
+              <h2 id="tp-public-service-civil-defense-title">Receba avisos diretamente no celular</h2>
             </div>
             <a
               href={DEFESA_CIVIL_URL}
@@ -69,12 +71,12 @@ export function EmergencyFooterStrip() {
 
           <div className="tp-public-service-civil-defense__signup">
             <p>
-              Para receber alertas no celular, envie gratuitamente um SMS para o número
+              Cadastre gratuitamente uma área de interesse: envie um SMS para
               <strong> 40199 </strong>
-              com o <strong>CEP</strong> da área de interesse.
+              com o <strong>CEP</strong> que deseja acompanhar.
             </p>
             <a href="sms:40199" aria-label="Enviar SMS para 40199 e cadastrar um CEP">
-              Enviar SMS para 40199
+              Cadastrar CEP por SMS
             </a>
           </div>
         </section>
