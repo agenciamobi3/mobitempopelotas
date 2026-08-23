@@ -1684,7 +1684,7 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. consolidar a Central Regional `/tempo-na-regiao-sul-rs` com o mapa das 24 cidades existentes e somente depois avaliar a expansão do inventário municipal;
+2. validar o mapa da Central Regional `/tempo-na-regiao-sul-rs` das 24 cidades em produção, mobile, acessibilidade e performance e somente depois avaliar a expansão do inventário municipal;
 3. concluir E2E da conta com duas contas descartáveis;
 4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
 5. definir rollups e APIs históricas server-side;
