@@ -32,6 +32,7 @@ const conditionLabels: Record<WeatherIconName, string> = {
 };
 
 type MapMode = "radar" | "satellite" | "storms";
+type ImageRenderState = "idle" | "loading" | "ready" | "error";
 type ActiveLayer =
   | { kind: "image"; data: RedemetImageLayerResponse }
   | { kind: "storms"; data: RedemetStormLayerResponse };
@@ -118,6 +119,59 @@ function firstLabelLayer(map: MapLibreMap) {
   return (map.getStyle().layers ?? []).find((layer) => layer.type === "symbol")?.id;
 }
 
+async function fetchVerifiedImageObjectUrl(imageUrl: string, signal: AbortSignal) {
+  const response = await fetch(imageUrl, {
+    headers: { Accept: "image/png,image/webp,image/jpeg,image/gif;q=0.8" },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Imagem meteorológica respondeu com status ${response.status}`);
+  }
+
+  const contentType = response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (!contentType.startsWith("image/")) {
+    throw new Error("A resposta da camada meteorológica não é uma imagem válida.");
+  }
+
+  const blob = await response.blob();
+  if (blob.size === 0) throw new Error("A camada meteorológica retornou uma imagem vazia.");
+
+  const objectUrl = URL.createObjectURL(blob);
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const image = new Image();
+
+      const cleanup = () => {
+        signal.removeEventListener("abort", handleAbort);
+        image.onload = null;
+        image.onerror = null;
+      };
+      const handleAbort = () => {
+        cleanup();
+        reject(new DOMException("Operação cancelada", "AbortError"));
+      };
+
+      image.onload = () => {
+        cleanup();
+        resolve();
+      };
+      image.onerror = () => {
+        cleanup();
+        reject(new Error("O navegador não conseguiu decodificar a imagem meteorológica."));
+      };
+      signal.addEventListener("abort", handleAbort, { once: true });
+      image.src = objectUrl;
+    });
+
+    return objectUrl;
+  } catch (error) {
+    URL.revokeObjectURL(objectUrl);
+    throw error;
+  }
+}
+
 export function WeatherMap({ regionalWeather }: WeatherMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -129,14 +183,26 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
   const [satelliteType, setSatelliteType] = useState<RedemetSatelliteType>("realcada");
   const [activeLayer, setActiveLayer] = useState<ActiveLayer | null>(null);
   const [loadingLayer, setLoadingLayer] = useState(true);
+  const [imageRenderState, setImageRenderState] = useState<ImageRenderState>("idle");
+  const [imageRenderError, setImageRenderError] = useState<string | null>(null);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [opacity, setOpacity] = useState(78);
 
   const frames = activeLayer?.data.frames ?? [];
   const selectedFrame = frames[selectedFrameIndex] ?? null;
-  const available = Boolean(activeLayer?.data.available && selectedFrame);
-  const hasUnavailableLayer = Boolean(!loadingLayer && activeLayer && !activeLayer.data.available);
+  const metadataAvailable = Boolean(activeLayer?.data.available && selectedFrame);
+  const imageLayerFailed = Boolean(
+    metadataAvailable && activeLayer?.kind === "image" && imageRenderState === "error",
+  );
+  const operationalLayerReady = Boolean(
+    metadataAvailable &&
+      (activeLayer?.kind === "storms" ||
+        (activeLayer?.kind === "image" && imageRenderState === "ready")),
+  );
+  const hasUnavailableLayer = Boolean(
+    !loadingLayer && activeLayer && (!activeLayer.data.available || imageLayerFailed),
+  );
   const visibleDaylightPause = Boolean(
     mode === "satellite" &&
       satelliteType === "vis" &&
@@ -254,6 +320,8 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
       if (!background) {
         setLoadingLayer(true);
         setPlaying(false);
+        setImageRenderState("idle");
+        setImageRenderError(null);
       }
 
       try {
@@ -266,7 +334,8 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
         }
 
         const payload = (await response.json()) as
-          RedemetImageLayerResponse | RedemetStormLayerResponse;
+          | RedemetImageLayerResponse
+          | RedemetStormLayerResponse;
 
         if (cancelled) return;
 
@@ -333,41 +402,77 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
     const map = mapRef.current;
     if (!map || !isLoaded || !map.isStyleLoaded()) return;
 
-    removeOperationalLayers(map);
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    const controller = new AbortController();
 
-    if (!activeLayer?.data.available || !selectedFrame) return;
+    removeOperationalLayers(map);
+    setImageRenderError(null);
+
+    if (!activeLayer?.data.available || !selectedFrame) {
+      setImageRenderState("idle");
+      return () => controller.abort();
+    }
 
     const beforeLayerId = firstLabelLayer(map);
 
     if (activeLayer.kind === "image") {
       const frame = selectedFrame as RedemetImageLayerResponse["frames"][number];
       const { west, south, east, north } = frame.bounds;
+      setImageRenderState("loading");
 
-      map.addSource(IMAGE_SOURCE_ID, {
-        type: "image",
-        url: frame.imageUrl,
-        coordinates: [
-          [west, north],
-          [east, north],
-          [east, south],
-          [west, south],
-        ],
-      });
-      map.addLayer(
-        {
-          id: IMAGE_LAYER_ID,
-          type: "raster",
-          source: IMAGE_SOURCE_ID,
-          paint: {
-            "raster-opacity": opacity / 100,
-            "raster-fade-duration": 120,
-          },
-        },
-        beforeLayerId,
-      );
-      return;
+      const loadVerifiedImageLayer = async () => {
+        try {
+          objectUrl = await fetchVerifiedImageObjectUrl(frame.imageUrl, controller.signal);
+          if (cancelled || !mapRef.current || mapRef.current !== map) return;
+
+          map.addSource(IMAGE_SOURCE_ID, {
+            type: "image",
+            url: objectUrl,
+            coordinates: [
+              [west, north],
+              [east, north],
+              [east, south],
+              [west, south],
+            ],
+          });
+          map.addLayer(
+            {
+              id: IMAGE_LAYER_ID,
+              type: "raster",
+              source: IMAGE_SOURCE_ID,
+              paint: {
+                "raster-opacity": opacity / 100,
+                "raster-fade-duration": 120,
+              },
+            },
+            beforeLayerId,
+          );
+          setImageRenderState("ready");
+        } catch (error) {
+          if (cancelled || controller.signal.aborted) return;
+
+          const message =
+            error instanceof Error
+              ? error.message
+              : "A imagem meteorológica não pôde ser carregada no navegador.";
+          console.error("Falha ao renderizar imagem REDEMET:", error);
+          setImageRenderState("error");
+          setImageRenderError(message);
+        }
+      };
+
+      void loadVerifiedImageLayer();
+
+      return () => {
+        cancelled = true;
+        controller.abort();
+        removeOperationalLayers(map);
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+      };
     }
 
+    setImageRenderState("idle");
     const frame = selectedFrame as RedemetStormLayerResponse["frames"][number];
     const featureCollection = {
       type: "FeatureCollection" as const,
@@ -415,17 +520,29 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
       },
       beforeLayerId,
     );
-  }, [activeLayer, isLoaded, opacity, selectedFrame]);
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+      removeOperationalLayers(map);
+    };
+  }, [activeLayer, isLoaded, selectedFrame]);
 
   useEffect(() => {
-    if (!playing || frames.length < 2 || !available) return;
+    const map = mapRef.current;
+    if (!map?.getLayer(IMAGE_LAYER_ID)) return;
+    map.setPaintProperty(IMAGE_LAYER_ID, "raster-opacity", opacity / 100);
+  }, [opacity]);
+
+  useEffect(() => {
+    if (!playing || frames.length < 2 || !operationalLayerReady) return;
 
     const interval = window.setInterval(() => {
       setSelectedFrameIndex((current) => (current >= frames.length - 1 ? 0 : current + 1));
     }, 900);
 
     return () => window.clearInterval(interval);
-  }, [available, frames.length, playing]);
+  }, [frames.length, operationalLayerReady, playing]);
 
   useEffect(() => {
     if (mode !== "storms" || activeLayer?.kind !== "storms") return;
@@ -458,6 +575,8 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
     setPlaying(false);
     setActiveLayer(null);
     setSelectedFrameIndex(0);
+    setImageRenderState("idle");
+    setImageRenderError(null);
   };
 
   const sourceDescription = activeLayer?.data.sourceLabel ?? "REDEMET / DECEA";
@@ -465,6 +584,26 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
     activeLayer?.kind === "storms" && selectedFrame
       ? (selectedFrame as RedemetStormLayerResponse["frames"][number]).points.length
       : null;
+  const imageLayerLabel = mode === "radar" ? "radar" : "satélite";
+  const sourceStatusLabel = loadingLayer
+    ? "Consultando REDEMET"
+    : activeLayer?.kind === "image" && metadataAvailable && imageRenderState === "loading"
+      ? `Carregando imagem de ${imageLayerLabel}`
+      : operationalLayerReady
+        ? activeLayer?.kind === "image"
+          ? mode === "radar"
+            ? "Radar carregado"
+            : "Imagem carregada"
+          : "Dados atualizados"
+        : visibleDaylightPause
+          ? "Aguardando luz solar"
+          : imageLayerFailed
+            ? "Imagem indisponível"
+            : "Camada indisponível";
+  const unavailableMessage = imageLayerFailed
+    ? imageRenderError ??
+      "O frame foi encontrado, mas a imagem meteorológica não pôde ser carregada no navegador."
+    : activeLayer?.data.error;
 
   return (
     <section className="map-panel" id="regiao" aria-labelledby="map-title">
@@ -537,6 +676,8 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
                   setSatelliteType(option.value);
                   setPlaying(false);
                   setActiveLayer(null);
+                  setImageRenderState("idle");
+                  setImageRenderError(null);
                 }}
               >
                 {option.label}
@@ -546,17 +687,18 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
         ) : null}
 
         <div className={styles.sourceBadge} aria-live="polite">
-          <span className={available ? styles.liveDot : styles.neutralDot} aria-hidden="true" />
+          <span
+            className={
+              operationalLayerReady
+                ? styles.liveDot
+                : imageLayerFailed
+                  ? styles.errorDot
+                  : styles.neutralDot
+            }
+            aria-hidden="true"
+          />
           <div>
-            <strong>
-              {loadingLayer
-                ? "Consultando REDEMET"
-                : available
-                  ? "Dados atualizados"
-                  : visibleDaylightPause
-                    ? "Aguardando luz solar"
-                    : "Camada indisponível"}
-            </strong>
+            <strong>{sourceStatusLabel}</strong>
             <small>{sourceDescription}</small>
           </div>
         </div>
@@ -579,7 +721,7 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
           </small>
         </div>
 
-        {available && activeLayer && selectedFrame ? (
+        {metadataAvailable && activeLayer && selectedFrame ? (
           <div className={`radar-player ${styles.player}`} aria-label="Controles da camada REDEMET">
             <div className="radar-player-topline">
               <button
@@ -653,6 +795,13 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
               </p>
             ) : null}
 
+            {activeLayer.kind === "image" && imageRenderState === "ready" ? (
+              <small className={styles.renderStatus}>
+                Imagem carregada no navegador. A ausência de cores no quadro não substitui a
+                observação meteorológica nem os avisos oficiais.
+              </small>
+            ) : null}
+
             <small className="radar-provider-note">
               {activeLayer.data.product} · {activeLayer.data.provider} · atualização{" "}
               {formatUpdatedAt(activeLayer.data.updatedAt)}
@@ -668,9 +817,17 @@ export function WeatherMap({ regionalWeather }: WeatherMapProps) {
             <strong>
               {visibleDaylightPause
                 ? "Canal visível depende de luz solar"
-                : "Camada temporariamente indisponível"}
+                : imageLayerFailed
+                  ? "Imagem do radar não carregou"
+                  : "Camada temporariamente indisponível"}
             </strong>
-            <span>{activeLayer.data.error}</span>
+            <span>{unavailableMessage}</span>
+            {imageLayerFailed ? (
+              <small>
+                A metadata do quadro foi recebida, mas o raster não foi validado no navegador. O
+                mapa-base continua disponível.
+              </small>
+            ) : null}
             {visibleDaylightPause && nextVisibleTime ? (
               <small>Próxima imagem útil esperada: por volta de {nextVisibleTime}.</small>
             ) : null}
