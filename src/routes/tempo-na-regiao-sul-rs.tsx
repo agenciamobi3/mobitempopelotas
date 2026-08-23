@@ -4,10 +4,11 @@ import { RegionalCitiesDirectory } from "@/components/regional/RegionalCitiesDir
 import "@/components/regional/RegionalCitiesAccentContract.css";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
+import { getRegionalCitiesOverview } from "@/lib/weather/regional-cities-overview.functions";
 
-const PAGE_TITLE = "Previsão do tempo por cidade na Zona Sul do RS";
+const PAGE_TITLE = "Tempo na Região Sul do RS: previsão por cidade";
 const PAGE_DESCRIPTION =
-  "Central de consulta meteorológica para Pelotas, Costa Doce, Fronteira Sul e Campanha, com páginas locais de previsão e avisos do INMET.";
+  "Central meteorológica da Zona Sul do RS com condição estimada agora, faixa de temperatura, chuva, vento e acesso às páginas locais de 24 cidades.";
 const PAGE_PATH = "/tempo-na-regiao-sul-rs";
 const SOUTHERN_RS_LOCATION = {
   "@type": "Place",
@@ -19,6 +20,7 @@ const SOUTHERN_RS_LOCATION = {
 };
 
 export const Route = createFileRoute("/tempo-na-regiao-sul-rs")({
+  loader: async () => getRegionalCitiesOverview(),
   head: () =>
     createPageHead(
       PAGE_TITLE,
@@ -39,5 +41,10 @@ export const Route = createFileRoute("/tempo-na-regiao-sul-rs")({
       ],
       { geo: null },
     ),
-  component: RegionalCitiesDirectory,
+  staleTime: 5 * 60 * 1_000,
+  component: RegionalCitiesRoute,
 });
+
+function RegionalCitiesRoute() {
+  return <RegionalCitiesDirectory data={Route.useLoaderData()} />;
+}
