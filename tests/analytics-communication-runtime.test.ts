@@ -1,30 +1,26 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
-const analytics = readFileSync("src/components/analytics/GoogleAnalytics.tsx", "utf8");
 const root = readFileSync("src/routes/__root.tsx", "utf8");
 const login = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 const push = readFileSync("src/components/pwa/PushNotificationsManager.tsx", "utf8");
 const privacy = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
+const audit = readFileSync("docs/RUNTIME_SECRETS_AUDIT_2026-08-23.md", "utf8");
 
-test("GA4 tracks the public measurement ID across SPA navigations without duplicate automatic pageviews", () => {
-  assert.match(analytics, /G-97YX7HPD90/);
-  assert.match(analytics, /useRouterState/);
-  assert.match(analytics, /state\.location\.href/);
-  assert.match(analytics, /googletagmanager\.com\/gtag\/js/);
-  assert.match(analytics, /send_page_view:\s*false/);
-  assert.match(analytics, /"event",\s*"page_view"/);
-  assert.match(analytics, /page_location:\s*window\.location\.href/);
-  assert.match(root, /<GoogleAnalytics\s*\/>/);
+test("Lovable Analytics connector remains the single planned GA4 source", () => {
+  assert.equal(existsSync("src/components/analytics/GoogleAnalytics.tsx"), false);
+  assert.doesNotMatch(root, /GoogleAnalytics|googletagmanager|G-97YX7HPD90/);
+  assert.match(audit, /Analytics TEMPO Pelotas/);
+  assert.match(audit, /G-97YX7HPD90/);
+  assert.match(audit, /não manter uma segunda inicialização manual/i);
 });
 
-test("GA4 is configured without advertising signals and is disclosed separately from Google login", () => {
-  assert.match(analytics, /allow_google_signals:\s*false/);
-  assert.match(analytics, /allow_ad_personalization_signals:\s*false/);
-  assert.match(privacy, /Google Analytics 4/);
+test("privacy copy does not claim Analytics is active before connector linking", () => {
+  assert.match(privacy, /conexão preparada para Google Analytics 4/);
   assert.match(privacy, /G-97YX7HPD90/);
-  assert.match(privacy, /fluxos técnicos separados/);
+  assert.match(privacy, /só deve ser considerada ativa depois/i);
+  assert.match(privacy, /tecnicamente separada do login/i);
 });
 
 test("push manager is mounted globally but remains runtime-gated by push configuration", () => {
