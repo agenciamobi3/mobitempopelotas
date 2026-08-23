@@ -208,6 +208,7 @@ O núcleo meteorológico combina múltiplas fontes e regras de reconciliação, 
 - o coletor de precisão também preserva, desde 22/08/2026, um forecast run horário rico do Open-Meteo por ciclo de 6 horas, separado da tabela diária de acurácia;
 - MET Norway: fonte complementar no domínio de previsão e contingência, preservando campos horários compatíveis; o arquivo rico próprio também preserva snapshots separados por provedor/ciclo e somente `next_1_hours.precipitation_amount` é tratado como volume horário, evitando rotular acumulados de 6h/12h como chuva de uma hora;
 - a recuperação Open-Meteo no navegador preserva até 24 horas dos campos horários ricos quando o SSR precisou usar contingência;
+- a Central Regional `/tempo-na-regiao-sul-rs` consome o Open-Meteo em lote para as 24 cidades do inventário, expondo apenas resumo de modelo (temperatura estimada agora, condição, mínima/máxima, chance de chuva e vento), mantendo a estimativa separada da observação de estação;
 - lógica centralizada para condição atual, hora a hora e dias seguintes;
 - páginas dedicadas para hoje, amanhã, sete dias, chuva, vento e meteograma;
 - `/chuva-em-pelotas` e `/vento-em-pelotas` reutilizam o meteograma estruturado de 48 horas para suas camadas públicas de volume por hora e direção prevista, mantendo previsão separada de observação;
