@@ -47,6 +47,12 @@ jobs:
       - name: Navegação editorial e megamenu
         run: node --test tests/editorial-megamenu-navigation.test.ts
 
+      - name: Footer editorial e proveniência
+        run: node --test tests/footer-editorial-navigation.test.ts
+
+      - name: Fotografias locais do hero
+        run: node --test tests/home-hero-local-photos.test.ts
+
       - name: Overlay de navegação
         run: node --test tests/route-loading-overlay.test.ts
 
