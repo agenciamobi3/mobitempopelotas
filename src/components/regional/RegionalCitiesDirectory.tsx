@@ -87,7 +87,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
 
   return (
     <div className={`${styles.page} regional-cities-directory`}>
-      <section className={styles.hero}>
+      <section className={`${styles.hero} regional-cities-hero`}>
         <span>Tempo Pelotas · Central regional</span>
         <h1>Tempo na Região Sul do RS</h1>
         <p>
@@ -115,7 +115,10 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
         </small>
       </section>
 
-      <section className={styles.controls} aria-labelledby="regional-search-title">
+      <section
+        className={`${styles.controls} regional-cities-controls`}
+        aria-labelledby="regional-search-title"
+      >
         <div className={styles.controlsHeading}>
           <div>
             <span>Encontre sua cidade</span>
@@ -152,7 +155,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
       </section>
 
       <section
-        className={styles.directory}
+        className={`${styles.directory} regional-cities-groups`}
         id="regional-city-results"
         aria-label="Cidades com previsão local"
       >
@@ -220,7 +223,7 @@ export function RegionalCitiesDirectory({ data }: RegionalCitiesDirectoryProps) 
         </aside>
       ) : null}
 
-      <section className={styles.method}>
+      <section className={`${styles.method} regional-cities-method`}>
         <div>
           <span>Como ler esta central</span>
           <h2>Comparação rápida primeiro; detalhe municipal depois</h2>
