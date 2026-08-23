@@ -27,14 +27,15 @@ export type RegionalCandidate = {
  * sitemap ou indexação até promoção explícita para RegionalCity.
  *
  * Primeira onda: continuidade de estudo do eixo Guaíba/Lagoa dos Patos em
- * direção à Zona Sul. Nenhum código IBGE é preenchido antes de validação
- * explícita em fonte oficial.
+ * direção à Zona Sul. Os códigos IBGE abaixo foram conferidos no portal
+ * Cidades e Estados do IBGE em 2026-08-23; isso não promove nenhuma cidade.
  */
 export const REGIONAL_CANDIDATES: readonly RegionalCandidate[] = [
   {
     slug: "guaiba-rs",
     name: "Guaíba",
     state: "RS",
+    ibgeCode: "4309308",
     priority: "high",
     reasons: ["hydrology", "regional_relevance", "population", "seo"],
     status: "candidate",
@@ -45,6 +46,7 @@ export const REGIONAL_CANDIDATES: readonly RegionalCandidate[] = [
     slug: "barra-do-ribeiro-rs",
     name: "Barra do Ribeiro",
     state: "RS",
+    ibgeCode: "4301909",
     priority: "high",
     reasons: ["hydrology", "regional_relevance", "seo"],
     status: "candidate",
@@ -55,6 +57,7 @@ export const REGIONAL_CANDIDATES: readonly RegionalCandidate[] = [
     slug: "tapes-rs",
     name: "Tapes",
     state: "RS",
+    ibgeCode: "4321105",
     priority: "medium",
     reasons: ["hydrology", "regional_relevance", "seo"],
     status: "candidate",
@@ -65,6 +68,7 @@ export const REGIONAL_CANDIDATES: readonly RegionalCandidate[] = [
     slug: "arambare-rs",
     name: "Arambaré",
     state: "RS",
+    ibgeCode: "4300851",
     priority: "medium",
     reasons: ["hydrology", "regional_relevance", "seo"],
     status: "candidate",
@@ -75,6 +79,7 @@ export const REGIONAL_CANDIDATES: readonly RegionalCandidate[] = [
     slug: "camaqua-rs",
     name: "Camaquã",
     state: "RS",
+    ibgeCode: "4303509",
     priority: "high",
     reasons: ["hydrology", "regional_relevance", "population", "seo"],
     status: "candidate",
