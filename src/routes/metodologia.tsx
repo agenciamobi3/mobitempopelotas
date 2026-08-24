@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
 import { ForecastAccuracyPanel } from "@/components/methodology/ForecastAccuracyPanel";
 import { MethodologyPage } from "@/components/methodology/MethodologyPage";
+import { DataExperiencePageShell } from "@/components/layout/DataExperiencePageShell";
 import "@/components/methodology/MethodologyHomeContract.css";
 import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
@@ -19,40 +20,18 @@ const PAGE_DESCRIPTION =
 const PAGE_PATH = "/metodologia";
 
 export const Route = createFileRoute("/metodologia")({
-  head: () =>
-    createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
-      createEditorialPageJsonLd({
-        name: PAGE_TITLE,
-        description: PAGE_DESCRIPTION,
-        path: PAGE_PATH,
-        breadcrumbs: [
-          { name: "Início", path: "/" },
-          { name: "Como os dados funcionam", path: PAGE_PATH },
-        ],
-        about: [
-          "Metodologia meteorológica",
-          "Fontes de dados meteorológicos em Pelotas",
-          "Integração e disseminação de informações oficiais",
-          "Embrapa Clima Temperado",
-          "INMET",
-          "CPPMet/UFPel",
-          "Open-Meteo e MET Norway",
-          "Precisão das previsões meteorológicas",
-          "Erro de temperatura e chuva prevista",
-          "REDEMET/DECEA",
-          "API REDEMET",
-          "Agência Nacional de Águas e Saneamento Básico",
-          "Sistema Nacional de Informações sobre Recursos Hídricos",
-          "Rede Hidrometeorológica Nacional",
-          "Portal HidroWeb e Hidrotelemetria",
-          "LabHidroSens/UFPel",
-          "Régua do Cais Mauá",
-          "MetSul e TideSat Global",
-          "FURG e Portos RS",
-          "Medições de nível na Lagoa dos Patos",
-        ],
-      }),
-    ]),
+  head: () => createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
+    createEditorialPageJsonLd({
+      name: PAGE_TITLE,
+      description: PAGE_DESCRIPTION,
+      path: PAGE_PATH,
+      breadcrumbs: [
+        { name: "Início", path: "/" },
+        { name: "Como os dados funcionam", path: PAGE_PATH },
+      ],
+      about: ["Metodologia meteorológica", "Fontes de dados meteorológicos em Pelotas"],
+    }),
+  ]),
   loader: async () => {
     const [weather, level, redemet, guaiba, lagoon, accuracy] = await Promise.all([
       getWeatherIntelligence(),
@@ -73,7 +52,7 @@ function MetodologiaPage() {
   const data = Route.useLoaderData();
 
   return (
-    <>
+    <DataExperiencePageShell pageClassName="methodology-data-shell">
       <MethodologyPage
         weather={data.weather}
         level={data.level}
@@ -83,6 +62,6 @@ function MetodologiaPage() {
       />
       <OfficialDataAccessNotice scope="all" />
       <ForecastAccuracyPanel summary={data.accuracy} />
-    </>
+    </DataExperiencePageShell>
   );
 }
