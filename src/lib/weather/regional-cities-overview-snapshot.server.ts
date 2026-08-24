@@ -8,8 +8,10 @@ import type {
 } from "./regional-cities-overview.types";
 
 const SNAPSHOT_TABLE = "regional_weather_snapshots";
+const REGIONAL_EDGE_FUNCTION = "regional-weather-overview";
 const SNAPSHOT_MAX_AGE_MS = 6 * 60 * 60 * 1_000;
 const REQUEST_TIMEOUT_MS = 4_000;
+const EDGE_REQUEST_TIMEOUT_MS = 10_000;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -107,6 +109,26 @@ function snapshotHeaders(key: string) {
     apikey: key,
     Authorization: `Bearer ${key}`,
   };
+}
+
+export async function fetchRegionalCitiesOverviewEdgeSnapshot(): Promise<RegionalCitiesOverview | null> {
+  const config = getSupabaseServerConfig();
+  if (!config.isPublicConfigured || !config.url || !config.publishableKey) return null;
+
+  try {
+    const response = await fetch(`${config.url}/functions/v1/${REGIONAL_EDGE_FUNCTION}`, {
+      headers: {
+        Accept: "application/json",
+        apikey: config.publishableKey,
+      },
+      signal: AbortSignal.timeout(EDGE_REQUEST_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+
+    return parseRegionalCitiesOverviewSnapshot(await response.json());
+  } catch {
+    return null;
+  }
 }
 
 export async function readRegionalCitiesOverviewSnapshot(): Promise<RegionalCitiesOverview | null> {
