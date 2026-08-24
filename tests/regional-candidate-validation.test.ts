@@ -68,9 +68,21 @@ test("fonte meteorológica principal foi validada para toda a primeira onda", ()
   }
 });
 
-test("hidrologia permanece pendente até validação específica por município", () => {
-  for (const validation of REGIONAL_CANDIDATE_VALIDATIONS) {
+test("hidrologia só avança quando existe fonte diretamente aplicável", () => {
+  const arambare = findRegionalCandidateValidation("arambare-rs");
+  assert.ok(arambare);
+  assert.equal(arambare.hydrology.status, "validated");
+  assert.equal(arambare.hydrology.source, "https://monitoramentolagoadospatos.com.br/");
+  assert.ok(arambare.hydrology.checkedAt);
+  assert.match(arambare.hydrology.note ?? "", /lagoon-arambare/);
+
+  const pending = REGIONAL_CANDIDATE_VALIDATIONS.filter(
+    (validation) => validation.slug !== "arambare-rs",
+  );
+  assert.equal(pending.length, REGIONAL_CANDIDATES.length - 1);
+  for (const validation of pending) {
     assert.equal(validation.hydrology.status, "pending");
+    assert.ok(validation.hydrology.note);
   }
 });
 
