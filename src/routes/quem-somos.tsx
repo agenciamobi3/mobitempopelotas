@@ -7,7 +7,7 @@ import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.funct
 
 const PAGE_TITLE = "Quem Somos | Tempo Pelotas";
 const PAGE_DESCRIPTION =
-  "Conheça o Tempo Pelotas, uma plataforma de disseminação de informações meteorológicas, ambientais e hidrológicas baseada em dados de fontes oficiais e tecnologia desenvolvida pela MOBI.";
+  "Conheça o Tempo Pelotas, uma plataforma de disseminação de informações meteorológicas, ambientais e hidrológicas baseada em fontes oficiais e tecnologia desenvolvida pela MOBI.";
 const PAGE_PATH = "/quem-somos";
 
 export const Route = createFileRoute("/quem-somos")({
@@ -24,10 +24,10 @@ export const Route = createFileRoute("/quem-somos")({
         about: [
           "Tempo Pelotas",
           "Meteorologia em Pelotas",
-          "Dados meteorológicos",
           "Monitoramento hidrológico",
-          "MOBI Marketing Inteligente",
           "Informação climática regional",
+          "MOBI Marketing Inteligente",
+          "Fontes meteorológicas oficiais",
         ],
       }),
     ]),
@@ -45,46 +45,74 @@ function QuemSomosPage() {
         <section>
           <h1 className="text-3xl font-bold">Tempo Pelotas</h1>
           <p className="mt-4 text-lg">
-            O Tempo Pelotas é uma plataforma criada para facilitar o acesso da
-            população a informações meteorológicas, ambientais e hidrológicas
-            organizadas em um único ambiente digital.
+            O Tempo Pelotas é uma plataforma digital criada para aproximar a
+            comunidade de informações meteorológicas, ambientais e hidrológicas
+            organizadas em um único ambiente.
           </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold">Informação a serviço da comunidade</h2>
           <p className="mt-3">
-            O portal reúne previsão do tempo, condições atuais, alertas,
-            monitoramento regional, dados históricos e conteúdos educativos,
-            aproximando informações técnicas da população.
+            O projeto tem como objetivo facilitar o acompanhamento do tempo,
+            eventos climáticos e informações relevantes para Pelotas e região.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold">Tecnologia e integração de dados</h2>
+          <h2 className="text-2xl font-semibold">Informação baseada em dados</h2>
           <p className="mt-3">
-            O projeto é desenvolvido pela MOBI - Marketing Inteligente, utilizando
-            tecnologia própria, integrações com APIs públicas e organização de
-            dados meteorológicos para criar uma experiência simples e acessível.
+            O portal reúne previsão meteorológica, condições atuais, alertas,
+            monitoramento regional, informações hidrológicas, dados históricos
+            e conteúdos educativos.
           </p>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-semibold">Fontes e responsabilidade</h2>
           <p className="mt-3">
-            As informações apresentadas têm caráter informativo e educativo.
-            Alertas oficiais e orientações de emergência devem sempre ser
-            acompanhados pelos órgãos públicos responsáveis.
+            A proposta é transformar dados técnicos em informações mais claras e
+            acessíveis para moradores, visitantes e empresas da região.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold">Um projeto fortalecido pelos eventos climáticos</h2>
+          <h2 className="text-2xl font-semibold">Tecnologia desenvolvida pela MOBI</h2>
+          <p className="mt-3">
+            O Tempo Pelotas é um projeto desenvolvido pela MOBI - Marketing
+            Inteligente, utilizando tecnologia própria, integração com APIs,
+            processamento de dados e interfaces digitais para organizar
+            informações de diferentes fontes.
+          </p>
+          <p className="mt-3">
+            A tecnologia permite criar painéis, páginas regionais, visualizações
+            e experiências digitais voltadas à disseminação de informações.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold">Fontes oficiais e responsabilidade</h2>
+          <p className="mt-3">
+            O portal busca integrar informações disponibilizadas por instituições
+            e sistemas públicos de monitoramento meteorológico e ambiental.
+          </p>
+          <p className="mt-3">
+            As informações possuem caráter informativo e educativo. Alertas
+            oficiais, situações de emergência e orientações de segurança devem
+            sempre ser acompanhados pelos órgãos responsáveis.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold">Um projeto marcado pela realidade climática da região</h2>
           <p className="mt-3">
             Os eventos extremos recentes, especialmente a enchente histórica de
-            2024, reforçaram a importância de tornar informações meteorológicas e
-            hidrológicas mais acessíveis para Pelotas e região.
+            2024 em Pelotas e no Laranjal, reforçaram a importância de facilitar
+            o acesso a informações meteorológicas e hidrológicas organizadas.
           </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold">O que você encontra no Tempo Pelotas</h2>
+          <ul className="mt-3 list-disc space-y-2 pl-6">
+            <li>Painel meteorológico e condições atuais.</li>
+            <li>Previsões e acompanhamento regional.</li>
+            <li>Informações hidrológicas e ambientais.</li>
+            <li>Páginas municipais e conteúdos educativos.</li>
+            <li>Integração de dados para facilitar a compreensão do clima local.</li>
+          </ul>
         </section>
       </main>
     </InternalWeatherPageShell>
