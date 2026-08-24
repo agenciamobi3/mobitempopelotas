@@ -32,12 +32,20 @@ const overviewSnapshotServer = readFileSync(
   "src/lib/weather/regional-cities-overview-snapshot.server.ts",
   "utf8",
 );
+const regionalEdge = readFileSync(
+  "supabase/functions/regional-weather-overview/index.ts",
+  "utf8",
+);
 const overviewFunctions = readFileSync(
   "src/lib/weather/regional-cities-overview.functions.ts",
   "utf8",
 );
 const overviewSnapshotMigration = readFileSync(
   "supabase/migrations/20260823193000_create_regional_weather_snapshots.sql",
+  "utf8",
+);
+const overviewSnapshotReconciliation = readFileSync(
+  "supabase/migrations/20260824011500_reconcile_regional_weather_snapshots_schema.sql",
   "utf8",
 );
 
@@ -62,10 +70,13 @@ test("a Central Regional carrega uma visão resumida server-side com cache", () 
 });
 
 test("o resumo regional possui fallback persistente para sobreviver a 429 e reinícios", () => {
+  assert.match(overviewServer, /fetchRegionalCitiesOverviewEdgeSnapshot/);
   assert.match(overviewServer, /readRegionalCitiesOverviewSnapshot/);
   assert.match(overviewServer, /persistRegionalCitiesOverviewSnapshot/);
   assert.match(overviewServer, /if \(regionalSnapshot\)/);
   assert.match(overviewServer, /HTTP \$\{response\.status\}/);
+  assert.match(overviewServer, /rota de contingência do Supabase/);
+  assert.match(overviewSnapshotServer, /REGIONAL_EDGE_FUNCTION = "regional-weather-overview"/);
   assert.match(overviewSnapshotServer, /SNAPSHOT_MAX_AGE_MS = 6 \* 60 \* 60 \* 1_000/);
   assert.match(overviewSnapshotServer, /parseRegionalCitiesOverviewSnapshot/);
   assert.match(overviewSnapshotServer, /city\?\.slug !== expectedCity\.slug/);
@@ -75,6 +86,34 @@ test("o resumo regional possui fallback persistente para sobreviver a 429 e rein
   assert.match(overviewSnapshotMigration, /enable row level security/);
   assert.match(overviewSnapshotMigration, /for select/);
   assert.doesNotMatch(overviewSnapshotMigration, /for insert/);
+  assert.match(overviewSnapshotReconciliation, /rename column collected_at to fetched_at/);
+});
+
+test("rota Edge regional é fixa, cacheada e não funciona como proxy arbitrário", () => {
+  assert.match(regionalEdge, /const FRESH_SNAPSHOT_MS = 5 \* 60 \* 1_000/);
+  assert.match(regionalEdge, /const STALE_SNAPSHOT_MS = 6 \* 60 \* 60 \* 1_000/);
+  assert.match(regionalEdge, /const RETENTION_MS = 24 \* 60 \* 60 \* 1_000/);
+  assert.match(regionalEdge, /api\.open-meteo\.com\/v1\/forecast/);
+  assert.match(regionalEdge, /cell_selection:\s*"land"/);
+  assert.match(regionalEdge, /from\(SNAPSHOT_TABLE\)\.insert/);
+  assert.match(regionalEdge, /request\.method !== "GET"/);
+  assert.doesNotMatch(regionalEdge, /request\.json\(/);
+  assert.doesNotMatch(regionalEdge, /searchParams\.get/);
+
+  for (const city of PUBLIC_REGIONAL_CITIES) {
+    assert.ok(
+      regionalEdge.includes(`slug: "${city.slug}"`),
+      `Edge regional deve conter ${city.slug}`,
+    );
+    assert.ok(
+      regionalEdge.includes(`latitude: ${city.latitude}`),
+      `Edge regional deve conter latitude de ${city.slug}`,
+    );
+    assert.ok(
+      regionalEdge.includes(`longitude: ${city.longitude}`),
+      `Edge regional deve conter longitude de ${city.slug}`,
+    );
+  }
 });
 
 test("o resumo das cidades públicas usa uma única consulta Open-Meteo em lote", () => {
