@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { TempoPelotasAboutPage } from "@/components/about/TempoPelotasAboutPage";
-import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
+import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Quem Somos | Tempo Pelotas";
 const PAGE_DESCRIPTION =
@@ -32,17 +31,13 @@ export const Route = createFileRoute("/quem-somos")({
         ],
       }),
     ]),
-  loader: async () => ({ weather: await getWeatherIntelligence() }),
-  staleTime: 60 * 60 * 1_000,
   component: QuemSomosPage,
 });
 
 function QuemSomosPage() {
-  const { weather } = Route.useLoaderData();
-
   return (
-    <InternalWeatherPageShell data={weather} pageClassName="internal-weather-shell--about">
+    <ContentPageShell pageClassName="content-page-shell--about">
       <TempoPelotasAboutPage />
-    </InternalWeatherPageShell>
+    </ContentPageShell>
   );
 }
