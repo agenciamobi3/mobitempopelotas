@@ -18,6 +18,7 @@ import { Route as SituacaoHidrologicaPelotasRouteImport } from './routes/situaca
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as RadarESatelitePelotasRouteImport } from './routes/radar-e-satelite-pelotas'
+import { Route as QuemSomosRouteImport } from './routes/quem-somos'
 import { Route as PrivacidadeEDadosRouteImport } from './routes/privacidade-e-dados'
 import { Route as Previsao7DiasPelotasRouteImport } from './routes/previsao-7-dias-pelotas'
 import { Route as PelotasDotjsonRouteImport } from './routes/pelotas[.]json'
@@ -113,6 +114,11 @@ const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
 const RadarESatelitePelotasRoute = RadarESatelitePelotasRouteImport.update({
   id: '/radar-e-satelite-pelotas',
   path: '/radar-e-satelite-pelotas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuemSomosRoute = QuemSomosRouteImport.update({
+  id: '/quem-somos',
+  path: '/quem-somos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacidadeEDadosRoute = PrivacidadeEDadosRouteImport.update({
@@ -396,6 +402,7 @@ export interface FileRoutesByFullPath {
   '/pelotas.json': typeof PelotasDotjsonRoute
   '/previsao-7-dias-pelotas': typeof Previsao7DiasPelotasRoute
   '/privacidade-e-dados': typeof PrivacidadeEDadosRoute
+  '/quem-somos': typeof QuemSomosRoute
   '/radar-e-satelite-pelotas': typeof RadarESatelitePelotasRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -457,6 +464,7 @@ export interface FileRoutesByTo {
   '/pelotas.json': typeof PelotasDotjsonRoute
   '/previsao-7-dias-pelotas': typeof Previsao7DiasPelotasRoute
   '/privacidade-e-dados': typeof PrivacidadeEDadosRoute
+  '/quem-somos': typeof QuemSomosRoute
   '/radar-e-satelite-pelotas': typeof RadarESatelitePelotasRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -519,6 +527,7 @@ export interface FileRoutesById {
   '/pelotas.json': typeof PelotasDotjsonRoute
   '/previsao-7-dias-pelotas': typeof Previsao7DiasPelotasRoute
   '/privacidade-e-dados': typeof PrivacidadeEDadosRoute
+  '/quem-somos': typeof QuemSomosRoute
   '/radar-e-satelite-pelotas': typeof RadarESatelitePelotasRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -582,6 +591,7 @@ export interface FileRouteTypes {
     | '/pelotas.json'
     | '/previsao-7-dias-pelotas'
     | '/privacidade-e-dados'
+    | '/quem-somos'
     | '/radar-e-satelite-pelotas'
     | '/robots.txt'
     | '/sitemap.xml'
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/pelotas.json'
     | '/previsao-7-dias-pelotas'
     | '/privacidade-e-dados'
+    | '/quem-somos'
     | '/radar-e-satelite-pelotas'
     | '/robots.txt'
     | '/sitemap.xml'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/pelotas.json'
     | '/previsao-7-dias-pelotas'
     | '/privacidade-e-dados'
+    | '/quem-somos'
     | '/radar-e-satelite-pelotas'
     | '/robots.txt'
     | '/sitemap.xml'
@@ -766,6 +778,7 @@ export interface RootRouteChildren {
   PelotasDotjsonRoute: typeof PelotasDotjsonRoute
   Previsao7DiasPelotasRoute: typeof Previsao7DiasPelotasRoute
   PrivacidadeEDadosRoute: typeof PrivacidadeEDadosRoute
+  QuemSomosRoute: typeof QuemSomosRoute
   RadarESatelitePelotasRoute: typeof RadarESatelitePelotasRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -869,6 +882,13 @@ declare module '@tanstack/react-router' {
       path: '/radar-e-satelite-pelotas'
       fullPath: '/radar-e-satelite-pelotas'
       preLoaderRoute: typeof RadarESatelitePelotasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quem-somos': {
+      id: '/quem-somos'
+      path: '/quem-somos'
+      fullPath: '/quem-somos'
+      preLoaderRoute: typeof QuemSomosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacidade-e-dados': {
@@ -1246,6 +1266,7 @@ const rootRouteChildren: RootRouteChildren = {
   PelotasDotjsonRoute: PelotasDotjsonRoute,
   Previsao7DiasPelotasRoute: Previsao7DiasPelotasRoute,
   PrivacidadeEDadosRoute: PrivacidadeEDadosRoute,
+  QuemSomosRoute: QuemSomosRoute,
   RadarESatelitePelotasRoute: RadarESatelitePelotasRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
