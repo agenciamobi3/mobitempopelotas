@@ -1,6 +1,7 @@
 import { PUBLIC_REGIONAL_CITIES, type RegionalCity } from "@/lib/regional-cities";
 
 import {
+  fetchRegionalCitiesOverviewEdgeSnapshot,
   persistRegionalCitiesOverviewSnapshot,
   readRegionalCitiesOverviewSnapshot,
 } from "./regional-cities-overview-snapshot.server";
@@ -106,7 +107,20 @@ function cachedOverview(overview: RegionalCitiesOverview, reason: string): Regio
   };
 }
 
+function edgeOverview(overview: RegionalCitiesOverview, reason: string): RegionalCitiesOverview {
+  return {
+    ...overview,
+    message: `Atualização regional obtida pela rota de contingência do Supabase após falha no acesso direto ao provedor (${reason}).`,
+  };
+}
+
 async function fallbackOverview(reason: string, fetchedAt: string) {
+  const edgeSnapshot = await fetchRegionalCitiesOverviewEdgeSnapshot();
+  if (edgeSnapshot) {
+    regionalSnapshot = edgeSnapshot;
+    return edgeOverview(edgeSnapshot, reason);
+  }
+
   if (regionalSnapshot) return cachedOverview(regionalSnapshot, reason);
 
   const persistedSnapshot = await readRegionalCitiesOverviewSnapshot();
