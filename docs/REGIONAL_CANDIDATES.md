@@ -43,7 +43,7 @@ Esses motivos são sinais internos de priorização, não afirmações editoriai
 
 O campo `ibgeCode` é opcional no estágio inicial de candidato. Ele somente deve ser preenchido após validação explícita em fonte oficial. A ausência do código não impede o estudo, mas impede promoção técnica segura.
 
-Na primeira onda, os códigos IBGE de Guaíba, Barra do Ribeiro, Tapes, Arambaré e Camaquã foram conferidos no portal Cidades e Estados do IBGE em 2026-08-23. Essa validação confirma somente a identidade municipal; ela não valida cobertura meteorológica ou contexto hidrológico.
+Na primeira onda, os códigos IBGE de Guaíba, Barra do Ribeiro, Tapes, Arambaré e Camaquã foram conferidos no portal Cidades e Estados do IBGE em 2026-08-23. Essa validação confirma a identidade municipal e é registrada separadamente das demais frentes técnicas.
 
 ## Registro técnico de validação
 
@@ -64,22 +64,40 @@ Quando `coordinates` estiver como `validated`, o registro também deve carregar 
 
 | Município | IBGE | Coordenadas | Meteorologia | Hidrologia |
 | --- | --- | --- | --- | --- |
-| Guaíba | validated | pending | pending | pending |
-| Barra do Ribeiro | validated | validated | pending | pending |
-| Tapes | validated | validated | pending | pending |
-| Arambaré | validated | pending | pending | pending |
-| Camaquã | validated | pending | pending | pending |
+| Guaíba | validated | validated | validated | pending |
+| Barra do Ribeiro | validated | validated | validated | pending |
+| Tapes | validated | validated | validated | pending |
+| Arambaré | validated | validated | validated | pending |
+| Camaquã | validated | validated | validated | pending |
 
 Nenhuma dessas cidades foi aprovada ou promovida para `RegionalCity` nesta etapa.
 
-### Evidência cartográfica já consolidada
+### Evidência cartográfica consolidada
 
-Barra do Ribeiro e Tapes tiveram as coordenadas da sede confirmadas nos Mapas Municipais do IBGE, edição 04/2021, em sistema geodésico SIRGAS 2000:
+As coordenadas das sedes dos cinco municípios foram confirmadas nos Mapas Municipais do IBGE, edição 04/2021, em sistema geodésico SIRGAS 2000:
 
+- Guaíba: latitude `-30.11`, longitude `-51.31`;
 - Barra do Ribeiro: latitude `-30.29`, longitude `-51.3`;
-- Tapes: latitude `-30.67`, longitude `-51.39`.
+- Tapes: latitude `-30.67`, longitude `-51.39`;
+- Arambaré: latitude `-30.91`, longitude `-51.5`;
+- Camaquã: latitude `-30.85`, longitude `-51.81`.
 
-Os arquivos oficiais usados como evidência estão registrados diretamente em `regional-candidate-validation.ts`. Guaíba, Arambaré e Camaquã permanecem `pending`: os mapas oficiais foram localizados, mas o valor não foi promovido sem extração segura da própria fonte.
+Os arquivos oficiais usados como evidência estão registrados diretamente em `regional-candidate-validation.ts`.
+
+### Validação meteorológica da primeira onda
+
+A compatibilidade da primeira onda com a fonte meteorológica principal foi validada em 2026-08-23 usando o mesmo contrato operacional empregado pela visão regional do Tempo Pelotas:
+
+- endpoint `https://api.open-meteo.com/v1/forecast`;
+- consulta única em lote para os cinco pontos;
+- `cell_selection=land`;
+- timezone `America/Sao_Paulo` por localidade;
+- temperatura atual, código meteorológico e vento;
+- mínima, máxima e probabilidade máxima de precipitação do dia.
+
+A chamada retornou `HTTP 200`, sem timeout, com cinco respostas e campos meteorológicos utilizáveis para todos os pontos. Essa validação comprova compatibilidade técnica do provedor para as coordenadas avaliadas; não transforma previsão modelada em observação local e não substitui a validação hidrológica específica.
+
+A frente `hydrology` permanece `pending` para os cinco municípios. Ela só deve avançar quando houver mapeamento de bacias, rios/lagoas relevantes e fontes hidrológicas realmente aplicáveis a cada município.
 
 ## Gate para draft
 
