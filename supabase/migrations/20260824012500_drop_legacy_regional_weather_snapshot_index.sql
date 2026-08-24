@@ -1,0 +1,1 @@
+drop index if exists public.regional_weather_snapshots_collected_at_idx;
