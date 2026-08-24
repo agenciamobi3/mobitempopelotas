@@ -67,7 +67,7 @@ Quando `coordinates` estiver como `validated`, o registro também deve carregar 
 | Guaíba | validated | validated | validated | pending |
 | Barra do Ribeiro | validated | validated | validated | pending |
 | Tapes | validated | validated | validated | pending |
-| Arambaré | validated | validated | validated | pending |
+| Arambaré | validated | validated | validated | validated |
 | Camaquã | validated | validated | validated | pending |
 
 Nenhuma dessas cidades foi aprovada ou promovida para `RegionalCity` nesta etapa.
@@ -97,7 +97,18 @@ A compatibilidade da primeira onda com a fonte meteorológica principal foi vali
 
 A chamada retornou `HTTP 200`, sem timeout, com cinco respostas e campos meteorológicos utilizáveis para todos os pontos. Essa validação comprova compatibilidade técnica do provedor para as coordenadas avaliadas; não transforma previsão modelada em observação local e não substitui a validação hidrológica específica.
 
-A frente `hydrology` permanece `pending` para os cinco municípios. Ela só deve avançar quando houver mapeamento de bacias, rios/lagoas relevantes e fontes hidrológicas realmente aplicáveis a cada município.
+### Validação hidrológica
+
+A frente hidrológica não é liberada apenas porque um município está próximo da Lagoa dos Patos, do Guaíba ou de uma estação existente. É preciso provar que a fonte é aplicável ao contexto que será apresentado e registrar limitações para evitar tratar uma estação vizinha como nível municipal.
+
+Arambaré foi a primeira cidade da onda a cumprir esse critério. O Historical Data Layer já possui a estação direta `lagoon-arambare`, vinculada ao Monitoramento da Lagoa dos Patos, classificada como `water-level`, ativa e com observações `water_level` em centímetros chegando com qualidade `live`. Isso valida a existência de uma fonte hidrológica diretamente aplicável ao município; não autoriza, por si só, publicar limiares de inundação ou classificação de risco sem validação específica dessas referências.
+
+As demais permanecem pendentes por motivos explícitos:
+
+- **Guaíba:** o portal já integra referências de nível do Lago Guaíba no Gasômetro/Cais Mauá, em Porto Alegre. São contexto regional, não proxy automático do nível na cidade de Guaíba;
+- **Barra do Ribeiro:** está no eixo Guaíba/Lagoa dos Patos, mas ainda não existe estação municipal direta validada no inventário do portal;
+- **Tapes:** estações da Lagoa dos Patos em Arambaré e São Lourenço do Sul são úteis para contexto, mas não devem representar Tapes automaticamente;
+- **Camaquã:** a bacia do Camaquã possui monitoramento oficial e a estação Passo do Mendonça é uma referência conhecida do Rio Camaquã, porém o vínculo operacional correto para a página municipal ainda precisa ser validado.
 
 ## Gate para draft
 
