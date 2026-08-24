@@ -5,10 +5,9 @@ import {
   Flood2024HistoricalPage,
 } from "@/components/history/Flood2024HistoricalPage";
 import "@/components/history/Flood2024HomeContract.css";
-import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
+import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Enchente de 2024 em Pelotas e no Laranjal: linha do tempo histórica";
 const PAGE_DESCRIPTION =
@@ -34,30 +33,17 @@ export const Route = createFileRoute("/enchente-2024-pelotas-laranjal")({
           "Guaíba",
           "Cheia histórica de maio de 2024",
           "Linha do tempo da enchente de Pelotas",
-          "Arambaré",
-          "São Lourenço do Sul",
-          "São José do Norte",
-          "Rio Grande",
-          "Hidrologia da Lagoa dos Patos",
         ],
       }),
     ]),
-  loader: async () => ({ weather: await getWeatherIntelligence() }),
-  staleTime: 60 * 60 * 1_000,
   component: Enchente2024PelotasPage,
 });
 
 function Enchente2024PelotasPage() {
-  const { weather } = Route.useLoaderData();
-
   return (
-    <InternalWeatherPageShell
-      data={weather}
-      pageClassName="internal-weather-shell--flood-history"
-      showOfficialAlerts={false}
-      hero={() => <Flood2024Hero />}
-    >
+    <ContentPageShell pageClassName="internal-weather-shell--flood-history">
+      <Flood2024Hero />
       <Flood2024HistoricalPage />
-    </InternalWeatherPageShell>
+    </ContentPageShell>
   );
 }
