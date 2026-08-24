@@ -33,13 +33,23 @@ export type RegionalCandidateTechnicalValidation = {
 
 const IBGE_CHECKED_AT = "2026-08-23";
 const COORDINATES_CHECKED_AT = "2026-08-23";
+const WEATHER_CHECKED_AT = "2026-08-23";
+
+const OPEN_METEO_WEATHER_VALIDATION: RegionalCandidateValidationEvidence = {
+  status: "validated",
+  checkedAt: WEATHER_CHECKED_AT,
+  source: "https://api.open-meteo.com/v1/forecast",
+  note:
+    "Consulta em lote validada com o mesmo contrato da visão regional (cell_selection=land, current + daily): HTTP 200 e payload meteorológico completo para os cinco pontos da primeira onda.",
+};
 
 /**
  * Evidências internas da primeira onda de expansão.
  *
- * A identidade municipal (IBGE) e as coordenadas das sedes estão validadas
- * para toda a primeira onda. Weather e hydrology continuam pendentes e não
- * devem ser inferidos apenas por proximidade geográfica.
+ * Identidade municipal (IBGE), coordenadas das sedes e compatibilidade com a
+ * fonte meteorológica principal estão validadas para toda a primeira onda.
+ * Hydrology continua pendente e deve ser confirmada por fontes realmente
+ * aplicáveis a cada município, sem inferência apenas por proximidade.
  */
 export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnicalValidation[] = [
   {
@@ -62,7 +72,7 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       reference: "city-seat",
       datum: "SIRGAS 2000",
     },
-    weather: { status: "pending" },
+    weather: OPEN_METEO_WEATHER_VALIDATION,
     hydrology: { status: "pending" },
   },
   {
@@ -85,7 +95,7 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       reference: "city-seat",
       datum: "SIRGAS 2000",
     },
-    weather: { status: "pending" },
+    weather: OPEN_METEO_WEATHER_VALIDATION,
     hydrology: { status: "pending" },
   },
   {
@@ -108,7 +118,7 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       reference: "city-seat",
       datum: "SIRGAS 2000",
     },
-    weather: { status: "pending" },
+    weather: OPEN_METEO_WEATHER_VALIDATION,
     hydrology: { status: "pending" },
   },
   {
@@ -131,7 +141,7 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       reference: "city-seat",
       datum: "SIRGAS 2000",
     },
-    weather: { status: "pending" },
+    weather: OPEN_METEO_WEATHER_VALIDATION,
     hydrology: { status: "pending" },
   },
   {
@@ -154,7 +164,7 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       reference: "city-seat",
       datum: "SIRGAS 2000",
     },
-    weather: { status: "pending" },
+    weather: OPEN_METEO_WEATHER_VALIDATION,
     hydrology: { status: "pending" },
   },
 ];
