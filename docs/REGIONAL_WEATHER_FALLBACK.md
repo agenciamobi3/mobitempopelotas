@@ -16,11 +16,27 @@ Somente quando os três níveis falham a resposta é marcada como `unavailable`.
 
 ## Persistência
 
-A migration `20260823193000_create_regional_weather_snapshots.sql` cria `public.regional_weather_snapshots`.
+A migration `20260823193000_create_regional_weather_snapshots.sql` define o contrato esperado de `public.regional_weather_snapshots` no repositório.
 
 A tabela mantém o payload normalizado, status, fonte e horário de coleta. RLS permanece habilitado. Leitura pública é permitida porque o conteúdo já é público; gravação não recebe policy pública e depende da credencial administrativa disponível somente no runtime do servidor.
 
 O código de persistência é best-effort: falha de banco nunca pode derrubar a consulta regional.
+
+## Estado de produção
+
+O Supabase externo do Tempo Pelotas possui a tabela `public.regional_weather_snapshots` com RLS habilitado e policy pública apenas para `SELECT`.
+
+Durante a aplicação em produção foi detectado drift entre a primeira versão aplicada no banco e o contrato consumido pela aplicação: a tabela usava `collected_at`, default de fonte `open-meteo` e status `success`, enquanto o runtime consulta `fetched_at` e persiste `Open-Meteo` com status `live | partial`.
+
+A migration `20260824011500_reconcile_regional_weather_snapshots_schema.sql` reconcilia esse drift de forma idempotente:
+
+- renomeia `collected_at` para `fetched_at` quando necessário;
+- alinha o default de `source` para `Open-Meteo`;
+- alinha o default de `status` para `live`;
+- garante índice por `fetched_at desc`;
+- preserva RLS.
+
+Essa reconciliação foi aplicada no Supabase externo em 23/08/2026 antes do deploy seguinte do projeto.
 
 ## Segurança e integridade
 
@@ -44,16 +60,18 @@ Quando o provedor falhar e existir snapshot válido, a interface recebe os últi
 
 ## Pré-requisito de produção
 
-O projeto utiliza configuração de Supabase externo no runtime. A migration precisa estar aplicada nesse banco para que o fallback sobreviva a reinícios/serverless cold starts.
+O projeto utiliza configuração de Supabase externo no runtime. A tabela e a migration de reconciliação precisam estar aplicadas nesse banco para que o fallback sobreviva a reinícios/serverless cold starts e use exatamente o contrato esperado pelo código.
 
 Sem a tabela aplicada, o sistema continua funcionando com consulta ao vivo e cache em memória; apenas a camada persistente fica indisponível.
 
 ## Operação
 
-Após aplicar a migration no Supabase externo, validar:
+Após aplicar as migrations no Supabase externo, validar:
 
 1. primeira consulta regional bem-sucedida;
 2. criação de um registro em `regional_weather_snapshots`;
 3. resposta da página após simulação de `429`;
 4. mensagem indicando uso do último resumo disponível;
 5. rejeição automática de snapshots com mais de 6 horas.
+
+No momento da reconciliação o banco ainda estava com `0` snapshots, portanto a próxima consulta regional bem-sucedida é o gatilho esperado para validar a persistência ponta a ponta.
