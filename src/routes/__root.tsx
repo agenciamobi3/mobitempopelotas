@@ -208,6 +208,7 @@ function RootComponent() {
       <PwaAppExperience />
       <PwaManager />
       <PushNotificationsManager />
+      <MobiTicketWidgetLoader />
     </QueryClientProvider>
   );
 }
