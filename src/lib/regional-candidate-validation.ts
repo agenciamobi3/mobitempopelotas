@@ -34,6 +34,7 @@ export type RegionalCandidateTechnicalValidation = {
 const IBGE_CHECKED_AT = "2026-08-23";
 const COORDINATES_CHECKED_AT = "2026-08-23";
 const WEATHER_CHECKED_AT = "2026-08-23";
+const HYDROLOGY_CHECKED_AT = "2026-08-23";
 
 const OPEN_METEO_WEATHER_VALIDATION: RegionalCandidateValidationEvidence = {
   status: "validated",
@@ -48,8 +49,9 @@ const OPEN_METEO_WEATHER_VALIDATION: RegionalCandidateValidationEvidence = {
  *
  * Identidade municipal (IBGE), coordenadas das sedes e compatibilidade com a
  * fonte meteorológica principal estão validadas para toda a primeira onda.
- * Hydrology continua pendente e deve ser confirmada por fontes realmente
- * aplicáveis a cada município, sem inferência apenas por proximidade.
+ * Hydrology só é validada quando existe fonte realmente aplicável ao contexto
+ * do município; estações próximas nunca são tratadas automaticamente como
+ * proxy de nível municipal.
  */
 export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnicalValidation[] = [
   {
@@ -73,7 +75,11 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       datum: "SIRGAS 2000",
     },
     weather: OPEN_METEO_WEATHER_VALIDATION,
-    hydrology: { status: "pending" },
+    hydrology: {
+      status: "pending",
+      note:
+        "O portal já integra referências do Lago Guaíba em Porto Alegre (Gasômetro/Cais Mauá), mas elas não devem ser promovidas como nível municipal de Guaíba sem validação espacial e de referência.",
+    },
   },
   {
     slug: "barra-do-ribeiro-rs",
@@ -96,7 +102,11 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       datum: "SIRGAS 2000",
     },
     weather: OPEN_METEO_WEATHER_VALIDATION,
-    hydrology: { status: "pending" },
+    hydrology: {
+      status: "pending",
+      note:
+        "Município está no eixo Guaíba/Lagoa dos Patos, porém ainda não há no inventário interno uma estação direta validada para Barra do Ribeiro; estações vizinhas não serão usadas como proxy automático.",
+    },
   },
   {
     slug: "tapes-rs",
@@ -119,7 +129,11 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       datum: "SIRGAS 2000",
     },
     weather: OPEN_METEO_WEATHER_VALIDATION,
-    hydrology: { status: "pending" },
+    hydrology: {
+      status: "pending",
+      note:
+        "Há estações ativas da Lagoa dos Patos em Arambaré e São Lourenço do Sul, mas nenhuma delas deve representar automaticamente a cota de Tapes sem validação hidrodinâmica/local.",
+    },
   },
   {
     slug: "arambare-rs",
@@ -142,7 +156,13 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       datum: "SIRGAS 2000",
     },
     weather: OPEN_METEO_WEATHER_VALIDATION,
-    hydrology: { status: "pending" },
+    hydrology: {
+      status: "validated",
+      checkedAt: HYDROLOGY_CHECKED_AT,
+      source: "https://monitoramentolagoadospatos.com.br/",
+      note:
+        "Fonte direta aplicável: estação Arambaré (station_key interno lagoon-arambare), water_level em cm, ativa e com observações live no Historical Data Layer. Esta validação confirma fonte/contexto; não autoriza inferir limiares de alerta sem contrato específico.",
+    },
   },
   {
     slug: "camaqua-rs",
@@ -165,7 +185,12 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       datum: "SIRGAS 2000",
     },
     weather: OPEN_METEO_WEATHER_VALIDATION,
-    hydrology: { status: "pending" },
+    hydrology: {
+      status: "pending",
+      source: "https://www.defesacivil.rs.gov.br/estacoes-de-monitoramento-hidrologico",
+      note:
+        "A bacia do Camaquã possui monitoramento oficial e a estação Passo do Mendonça é referência conhecida no Rio Camaquã, mas o vínculo operacional adequado para a página municipal ainda precisa ser validado antes de promoção.",
+    },
   },
 ];
 
