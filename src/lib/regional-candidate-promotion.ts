@@ -9,22 +9,20 @@ import {
   isRegionalCandidateIdentityValidated,
   type RegionalCandidateTechnicalValidation,
 } from "./regional-candidate-validation";
+import { hasDirectHydrologyEvidence } from "./regional-candidate-hydrology";
 import type { RegionalCandidate } from "./regional-candidates";
 
 export type RegionalCandidateDraftPromotionReason =
   | "not-approved"
   | "identity-not-validated"
   | "coordinates-not-validated"
+  | "hydrology-not-validated"
   | "slug-conflict"
   | "ibge-conflict"
   | "descriptor-empty";
 
 export type RegionalCandidateDraftInput = {
   group: RegionalCityGroup;
-  /**
-   * Texto editorial público da futura cidade. A rationale do candidato é
-   * deliberadamente ignorada para não vazar justificativa interna.
-   */
   descriptor: string;
 };
 
@@ -51,13 +49,6 @@ function hasIbgeConflict(candidate: RegionalCandidate) {
   );
 }
 
-/**
- * Avalia a passagem candidate -> draft sem alterar REGIONAL_CITIES.
- *
- * A promoção é intencionalmente um processo de duas etapas: primeiro este
- * builder produz um RegionalCity com coverage="draft" e indexable=false;
- * somente depois uma alteração explícita do inventário pode cadastrá-lo.
- */
 export function evaluateRegionalCandidateDraftPromotion(
   candidate: RegionalCandidate,
   input: RegionalCandidateDraftInput,
@@ -76,6 +67,10 @@ export function evaluateRegionalCandidateDraftPromotion(
 
   if (!hasValidatedRegionalCandidateCoordinates(validation)) {
     reasons.push("coordinates-not-validated");
+  }
+
+  if (!hasDirectHydrologyEvidence(candidate.slug)) {
+    reasons.push("hydrology-not-validated");
   }
 
   if (hasSlugConflict(candidate)) {
