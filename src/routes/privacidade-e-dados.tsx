@@ -1,25 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
+import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
-import { SiteFooter } from "@/production/components/site-footer";
-import { SiteHeader } from "@/production/components/site-header";
-import type { WeatherData } from "@/production/lib/weather-data";
 
 const PAGE_TITLE = "Privacidade, dados e retenção no Tempo Pelotas";
 const PAGE_DESCRIPTION =
   "Entenda quais dados a conta utiliza, por quanto tempo são mantidos e como baixar ou excluir suas informações no Tempo Pelotas.";
 const PAGE_PATH = "/privacidade-e-dados";
-
-const privacyFooterSource = {
-  name: "Tempo Pelotas",
-  url: "/metodologia",
-  isFallback: false,
-  observationName: "Política de privacidade",
-  observationUrl: PAGE_PATH,
-  forecastName: "Metodologia e fontes",
-  forecastUrl: "/metodologia",
-} satisfies WeatherData["source"];
 
 export const Route = createFileRoute("/privacidade-e-dados")({
   head: () =>
@@ -40,9 +28,7 @@ export const Route = createFileRoute("/privacidade-e-dados")({
 
 function PrivacyDataPage() {
   return (
-    <div className="site-shell site-shell--home-editorial privacy-data-shell">
-      <SiteHeader advisoryLevel="normal" />
-
+    <ContentPageShell pageClassName="privacy-data-shell">
       <main className="privacy-page" id="conteudo-principal" tabIndex={-1}>
         <header className="privacy-hero">
           <div>
@@ -54,7 +40,6 @@ function PrivacyDataPage() {
               preferências opcionais.
             </p>
           </div>
-
           <aside className="privacy-summary" aria-label="Resumo da política">
             <strong>Conta opcional</strong>
             <span>
@@ -71,7 +56,7 @@ function PrivacyDataPage() {
             <ul>
               <li>nome, e-mail e imagem fornecidos pelo Google;</li>
               <li>preferências de alertas, águas, resumo diário e novidades;</li>
-              <li>histórico de alterações dessas preferências, com data e versão da política;</li>
+              <li>histórico de alterações dessas preferências;</li>
               <li>dados técnicos do aparelho quando notificações são ativadas.</li>
             </ul>
           </section>
@@ -80,70 +65,8 @@ function PrivacyDataPage() {
             <span className="eyebrow">O que não depende da conta</span>
             <h2>Informação meteorológica continua pública</h2>
             <p>
-              Previsão do tempo, chuva, vento, imagens de radar e satélite, avisos oficiais, câmeras
-              e níveis das águas não são bloqueados para visitantes sem conta.
-            </p>
-            <p>
-              O portal não comercializa dados pessoais e não usa a conta para alterar ou esconder
-              informações públicas.
-            </p>
-          </section>
-
-          <section className="privacy-card">
-            <span className="eyebrow">Medição de uso</span>
-            <h2>Google Analytics é separado da conta Google</h2>
-            <p>
-              O portal utiliza Google Analytics 4 com o identificador público G-97YX7HPD90 para
-              medir visualizações de páginas e navegação entre conteúdos. A implementação evita
-              pageviews automáticos duplicados durante as trocas de rota internas do portal.
-            </p>
-            <p>
-              A medição permanece tecnicamente separada do login: o Tempo Pelotas não envia e-mail,
-              nome ou identificador interno da conta como dado de Analytics. Google Signals e sinais
-              de personalização publicitária permanecem desativados na configuração da tag.
-            </p>
-          </section>
-
-          <section className="privacy-card">
-            <span className="eyebrow">Retenção</span>
-            <h2>Por quanto tempo os dados permanecem</h2>
-            <ul>
-              <li>perfil, preferências e histórico de consentimentos permanecem enquanto a conta estiver ativa;</li>
-              <li>ao excluir a conta, esses registros são removidos em cascata;</li>
-              <li>inscrições push vinculadas à conta também são removidas com a exclusão;</li>
-              <li>inscrições push anônimas ficam registradas no servidor com endpoint, chaves de entrega, tópicos escolhidos e identificação técnica do navegador;</li>
-              <li>esse registro anônimo não possui prazo fixo: ele é removido quando o visitante desativa os avisos com sucesso ou quando o provedor informa que a inscrição expirou;</li>
-              <li>métricas agregadas de disparo não guardam identificação do visitante.</li>
-            </ul>
-          </section>
-
-          <section className="privacy-card">
-            <span className="eyebrow">Segurança</span>
-            <h2>Credenciais e áreas sensíveis permanecem isoladas</h2>
-            <p>
-              Tokens de sessão, chaves administrativas e material criptográfico de entrega não são
-              enviados para a interface nem incluídos no arquivo de exportação.
-            </p>
-            <p>
-              As tabelas da conta usam políticas que limitam a leitura ao próprio usuário. A
-              exclusão é executada somente após confirmação explícita e validação da sessão.
-            </p>
-          </section>
-
-          <section className="privacy-card">
-            <span className="eyebrow">Proteção do portal</span>
-            <h2>Camadas de segurança reduzem exposição desnecessária</h2>
-            <p>
-              O Tempo Pelotas aplica controles de acesso, validações de origem e sessão, restrições
-              de cache em operações sensíveis, isolamento de credenciais no servidor e redução da
-              superfície pública das APIs. O portal também pode limitar tráfego por critérios de
-              segurança e operação, incluindo origem geográfica, quando isso for necessário para
-              proteger infraestrutura e dados.
-            </p>
-            <p>
-              Eventos de bloqueio e funcionamento das camadas de proteção podem ser registrados de
-              forma técnica para monitoramento. Detalhes operacionais, regras exatas e mecanismos
-              internos não são publicados para não ampliar a superfície de exploração.
+              Previsão do tempo, chuva, vento, imagens de radar e satélite, avisos oficiais,
+              câmeras e níveis das águas permanecem acessíveis aos visitantes.
             </p>
           </section>
 
@@ -151,9 +74,8 @@ function PrivacyDataPage() {
             <span className="eyebrow">Seus direitos</span>
             <h2>Baixar, corrigir, revogar ou excluir</h2>
             <p>
-              Na área da conta, você pode corrigir o nome de exibição, alterar autorizações, baixar
-              um arquivo JSON com seus dados e remover definitivamente a conta. A exclusão não afeta
-              o acesso às páginas públicas do portal.
+              Na área da conta, você pode corrigir informações, alterar autorizações, baixar seus
+              dados e remover definitivamente a conta.
             </p>
             <div className="privacy-actions">
               <Link to="/conta">Abrir minha conta</Link>
@@ -162,8 +84,6 @@ function PrivacyDataPage() {
           </section>
         </div>
       </main>
-
-      <SiteFooter source={privacyFooterSource} />
-    </div>
+    </ContentPageShell>
   );
 }
