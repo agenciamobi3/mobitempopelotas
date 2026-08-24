@@ -8,18 +8,18 @@ export function TempoPelotasAboutPage() {
           ambientais e hidrológicas para Pelotas e região.
         </p>
         <p className="mt-3">
-          O projeto busca aproximar dados técnicos da comunidade, organizando
-          informações importantes sobre o tempo, clima, água e eventos extremos
-          em uma experiência digital simples e acessível.
+          O projeto organiza informações técnicas de diferentes fontes para
+          aproximar dados importantes da comunidade em uma experiência digital
+          simples, acessível e transparente.
         </p>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold">Informação para a comunidade</h2>
+        <h2 className="text-2xl font-semibold">Nossa missão</h2>
         <p className="mt-3">
-          O portal organiza dados meteorológicos, previsões, alertas,
-          monitoramento regional, conteúdos educativos e informações históricas
-          em um ambiente digital acessível.
+          Facilitar o acesso a informações sobre tempo, clima, água e eventos
+          extremos, ajudando moradores, estudantes, pesquisadores e interessados
+          a compreender melhor as condições ambientais da região.
         </p>
       </section>
 
@@ -28,51 +28,42 @@ export function TempoPelotasAboutPage() {
         <p className="mt-3">
           O Tempo Pelotas é um projeto tecnológico desenvolvido pela MOBI -
           Marketing Inteligente, utilizando integração de APIs, processamento de
-          dados e interfaces digitais para aproximar informações técnicas da
-          população.
+          dados e interfaces digitais para transformar informações técnicas em
+          uma experiência mais clara para o usuário.
         </p>
         <p className="mt-3">
-          A plataforma permite criar painéis, páginas municipais, visualizações
-          regionais e novas camadas de informação conforme a evolução do projeto.
+          A arquitetura permite evoluir o portal com painéis, páginas municipais,
+          mapas, dados regionais e novas camadas de informação.
         </p>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold">Como os dados chegam até você</h2>
+        <h2 className="text-2xl font-semibold">Como funciona</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-4">
           <div>
-            <h3 className="font-semibold">Fontes oficiais</h3>
-            <p className="mt-2">
-              Dados provenientes de sistemas públicos e redes de monitoramento.
-            </p>
+            <h3 className="font-semibold">Fontes</h3>
+            <p className="mt-2">Dados meteorológicos, ambientais e hidrológicos.</p>
           </div>
           <div>
-            <h3 className="font-semibold">Integração tecnológica</h3>
-            <p className="mt-2">
-              APIs e processos automatizados organizam diferentes informações.
-            </p>
+            <h3 className="font-semibold">Integração</h3>
+            <p className="mt-2">Conexão com serviços e APIs disponíveis.</p>
           </div>
           <div>
-            <h3 className="font-semibold">Processamento</h3>
-            <p className="mt-2">
-              Dados são estruturados para facilitar interpretação e consulta.
-            </p>
+            <h3 className="font-semibold">Organização</h3>
+            <p className="mt-2">Tratamento dos dados para facilitar consultas.</p>
           </div>
           <div>
-            <h3 className="font-semibold">Informação acessível</h3>
-            <p className="mt-2">
-              Usuários encontram dados meteorológicos e ambientais em um único local.
-            </p>
+            <h3 className="font-semibold">Informação</h3>
+            <p className="mt-2">Apresentação em painéis e páginas digitais.</p>
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold">Fontes de dados</h2>
+        <h2 className="text-2xl font-semibold">Fontes de informação</h2>
         <p className="mt-3">
-          A plataforma utiliza informações disponibilizadas por sistemas e
-          instituições de monitoramento meteorológico, ambiental e hidrológico.
-          Entre as referências estão:
+          O portal utiliza informações disponibilizadas por instituições e
+          sistemas de monitoramento reconhecidos, incluindo:
         </p>
         <ul className="mt-3 list-disc space-y-2 pl-6">
           <li>Instituto Nacional de Meteorologia (INMET).</li>
@@ -87,22 +78,22 @@ export function TempoPelotasAboutPage() {
         <ul className="mt-3 list-disc space-y-2 pl-6">
           <li>Painel meteorológico e previsão do tempo.</li>
           <li>Informações regionais e páginas municipais.</li>
-          <li>Monitoramento hidrológico e conteúdos educativos.</li>
+          <li>Monitoramento hidrológico.</li>
           <li>Históricos de eventos climáticos importantes.</li>
+          <li>Conteúdos educativos sobre clima e ambiente.</li>
         </ul>
       </section>
 
       <section>
         <h2 className="text-2xl font-semibold">Transparência</h2>
         <p className="mt-3">
-          O Tempo Pelotas atua como plataforma de organização e disseminação de
-          informações. A tecnologia desenvolvida pela MOBI facilita o acesso aos
-          dados, mas os registros meteorológicos e alertas permanecem vinculados
-          às fontes responsáveis.
+          O Tempo Pelotas organiza e dissemina informações. A tecnologia da MOBI
+          facilita o acesso aos dados, mas registros meteorológicos e alertas
+          permanecem vinculados às fontes responsáveis.
         </p>
         <p className="mt-3">
           Alertas oficiais e orientações de emergência devem sempre ser
-          acompanhados junto aos órgãos públicos responsáveis.
+          acompanhados junto aos órgãos públicos competentes.
         </p>
       </section>
     </main>
