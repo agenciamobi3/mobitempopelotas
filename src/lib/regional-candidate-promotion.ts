@@ -9,7 +9,7 @@ import {
   isRegionalCandidateIdentityValidated,
   type RegionalCandidateTechnicalValidation,
 } from "./regional-candidate-validation";
-import { hasDirectHydrologyEvidence } from "./regional-candidate-hydrology";
+import { getRegionalCandidateReadiness } from "./regional-candidate-readiness";
 import type { RegionalCandidate } from "./regional-candidates";
 
 export type RegionalCandidateDraftPromotionReason =
@@ -56,6 +56,7 @@ export function evaluateRegionalCandidateDraftPromotion(
     findRegionalCandidateValidation(candidate.slug),
 ): RegionalCandidateDraftPromotionResult {
   const reasons: RegionalCandidateDraftPromotionReason[] = [];
+  const readiness = getRegionalCandidateReadiness(candidate);
 
   if (candidate.status !== "approved") {
     reasons.push("not-approved");
@@ -69,7 +70,7 @@ export function evaluateRegionalCandidateDraftPromotion(
     reasons.push("coordinates-not-validated");
   }
 
-  if (!hasDirectHydrologyEvidence(candidate.slug)) {
+  if (readiness.hydrologyEvidenceValidated !== true) {
     reasons.push("hydrology-not-validated");
   }
 
