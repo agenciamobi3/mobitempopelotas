@@ -6,12 +6,11 @@ import {
   WeatherHistoryPage,
 } from "@/components/history/WeatherHistoryPage";
 import "@/components/history/WeatherHistoryHomeContract.css";
-import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
+import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getPelotasWeatherHistory } from "@/lib/weather/history.functions";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Histórico de 30 dias em Pelotas";
 const PAGE_DESCRIPTION =
@@ -106,32 +105,22 @@ export const Route = createFileRoute("/historico-climatico-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, HISTORY_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [weather, history] = await Promise.all([
-      getWeatherIntelligence(),
-      getPelotasWeatherHistory(),
-    ]);
-    return { weather, history };
-  },
+  loader: async () => ({ history: await getPelotasWeatherHistory() }),
   staleTime: 6 * 60 * 60 * 1_000,
   component: HistoricoClimaticoPage,
 });
 
 function HistoricoClimaticoPage() {
-  const { weather, history } = Route.useLoaderData();
+  const { history } = Route.useLoaderData();
 
   return (
-    <InternalWeatherPageShell
-      data={weather}
-      pageClassName="internal-weather-shell--history"
-      showOfficialAlerts={false}
-      hero={() => <WeatherHistoryHero history={history} />}
-    >
+    <ContentPageShell pageClassName="content-shell--history">
+      <WeatherHistoryHero history={history} />
       <WeatherHistoryPage history={history} />
       <EditorialContentSection
         id="como-interpretar-historico-recente"
         content={HISTORY_PAGE_CONTENT}
       />
-    </InternalWeatherPageShell>
+    </ContentPageShell>
   );
 }
