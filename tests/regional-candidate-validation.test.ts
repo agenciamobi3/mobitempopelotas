@@ -59,6 +59,21 @@ test("coordenadas validadas sempre carregam valor, referência e datum", () => {
   }
 });
 
+test("fonte meteorológica principal foi validada para toda a primeira onda", () => {
+  for (const validation of REGIONAL_CANDIDATE_VALIDATIONS) {
+    assert.equal(validation.weather.status, "validated");
+    assert.equal(validation.weather.source, "https://api.open-meteo.com/v1/forecast");
+    assert.ok(validation.weather.checkedAt);
+    assert.ok(validation.weather.note);
+  }
+});
+
+test("hidrologia permanece pendente até validação específica por município", () => {
+  for (const validation of REGIONAL_CANDIDATE_VALIDATIONS) {
+    assert.equal(validation.hydrology.status, "pending");
+  }
+});
+
 test("status validated sem valor de coordenada não satisfaz o gate", () => {
   const current = findRegionalCandidateValidation("barra-do-ribeiro-rs");
   assert.ok(current);
