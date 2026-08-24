@@ -48,7 +48,7 @@ test("coordenadas validadas sempre carregam valor, referência e datum", () => {
     (validation) => validation.coordinates.status === "validated",
   );
 
-  assert.ok(validated.length > 0);
+  assert.equal(validated.length, REGIONAL_CANDIDATES.length);
 
   for (const validation of validated) {
     assert.equal(hasValidatedRegionalCandidateCoordinates(validation), true);
@@ -70,19 +70,6 @@ test("status validated sem valor de coordenada não satisfaz o gate", () => {
   };
 
   assert.equal(hasValidatedRegionalCandidateCoordinates(inconsistent), false);
-});
-
-test("candidatos com coordenadas ainda pendentes continuam bloqueados para draft", () => {
-  const pending = REGIONAL_CANDIDATES.filter((candidate) => {
-    const validation = findRegionalCandidateValidation(candidate.slug);
-    return validation?.coordinates.status === "pending";
-  });
-
-  assert.ok(pending.length > 0);
-
-  for (const candidate of pending) {
-    assert.equal(isRegionalCandidateReadyForDraft(approvedCandidate(candidate)), false);
-  }
 });
 
 test("aprovação sozinha não contorna o gate técnico", () => {
