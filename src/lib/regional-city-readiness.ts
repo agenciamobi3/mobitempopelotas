@@ -6,6 +6,7 @@ export type RegionalCityReadinessKey =
   | "weatherValidated"
   | "alertsValidated"
   | "hydrologicalContextValidated"
+  | "hydrologyEvidenceValidated"
   | "editorialReady"
   | "seoReady"
   | "imageryReady"
@@ -28,6 +29,7 @@ const BASIC_REQUIREMENTS: RegionalCityReadinessKey[] = [
 const COMPLETE_REQUIREMENTS: RegionalCityReadinessKey[] = [
   ...BASIC_REQUIREMENTS,
   "hydrologicalContextValidated",
+  "hydrologyEvidenceValidated",
   "editorialReady",
   "seoReady",
   "imageryReady",
