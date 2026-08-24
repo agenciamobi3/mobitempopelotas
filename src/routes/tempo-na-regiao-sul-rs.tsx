@@ -19,8 +19,23 @@ const SOUTHERN_RS_LOCATION = {
   },
 };
 
+const REGIONAL_FALLBACK = {
+  status: "unavailable",
+  fetchedAt: new Date(0).toISOString(),
+  items: [],
+  source: { name: "Tempo Pelotas" },
+  message:
+    "A visão regional resumida está temporariamente indisponível. As páginas municipais continuam acessíveis.",
+};
+
 export const Route = createFileRoute("/tempo-na-regiao-sul-rs")({
-  loader: async () => getRegionalCitiesOverview(),
+  loader: async () => {
+    try {
+      return await getRegionalCitiesOverview();
+    } catch {
+      return REGIONAL_FALLBACK;
+    }
+  },
   head: () =>
     createPageHead(
       PAGE_TITLE,
