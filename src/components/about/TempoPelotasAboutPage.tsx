@@ -1,3 +1,5 @@
+import { DataSourceCard } from "./DataSourceCard";
+
 export function TempoPelotasAboutPage() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10">
@@ -31,46 +33,26 @@ export function TempoPelotasAboutPage() {
           dados e interfaces digitais para transformar informações técnicas em
           uma experiência mais clara para o usuário.
         </p>
-        <p className="mt-3">
-          A arquitetura permite evoluir o portal com painéis, páginas municipais,
-          mapas, dados regionais e novas camadas de informação.
-        </p>
       </section>
 
       <section>
         <h2 className="text-2xl font-semibold">Como funciona</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-4">
-          <div>
-            <h3 className="font-semibold">Fontes</h3>
-            <p className="mt-2">Dados meteorológicos, ambientais e hidrológicos.</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Integração</h3>
-            <p className="mt-2">Conexão com serviços e APIs disponíveis.</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Organização</h3>
-            <p className="mt-2">Tratamento dos dados para facilitar consultas.</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Informação</h3>
-            <p className="mt-2">Apresentação em painéis e páginas digitais.</p>
-          </div>
+          <div><h3 className="font-semibold">Fontes</h3><p className="mt-2">Dados meteorológicos, ambientais e hidrológicos.</p></div>
+          <div><h3 className="font-semibold">Integração</h3><p className="mt-2">Conexão com serviços e APIs disponíveis.</p></div>
+          <div><h3 className="font-semibold">Organização</h3><p className="mt-2">Tratamento dos dados para facilitar consultas.</p></div>
+          <div><h3 className="font-semibold">Informação</h3><p className="mt-2">Apresentação em painéis e páginas digitais.</p></div>
         </div>
       </section>
 
       <section>
         <h2 className="text-2xl font-semibold">Fontes de informação</h2>
-        <p className="mt-3">
-          O portal utiliza informações disponibilizadas por instituições e
-          sistemas de monitoramento reconhecidos, incluindo:
-        </p>
-        <ul className="mt-3 list-disc space-y-2 pl-6">
-          <li>Instituto Nacional de Meteorologia (INMET).</li>
-          <li>Embrapa Clima Temperado.</li>
-          <li>UFPEL e centros de pesquisa meteorológica.</li>
-          <li>Sistemas públicos de monitoramento e alertas.</li>
-        </ul>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <DataSourceCard name="INMET" description="Dados e avisos meteorológicos oficiais." />
+          <DataSourceCard name="Embrapa Clima Temperado" description="Informações meteorológicas locais e pesquisa aplicada." />
+          <DataSourceCard name="UFPEL / CPMET" description="Conhecimento científico e estudos meteorológicos regionais." />
+          <DataSourceCard name="Sistemas públicos" description="Monitoramento, alertas e informações ambientais." />
+        </div>
       </section>
 
       <section>
@@ -90,10 +72,6 @@ export function TempoPelotasAboutPage() {
           O Tempo Pelotas organiza e dissemina informações. A tecnologia da MOBI
           facilita o acesso aos dados, mas registros meteorológicos e alertas
           permanecem vinculados às fontes responsáveis.
-        </p>
-        <p className="mt-3">
-          Alertas oficiais e orientações de emergência devem sempre ser
-          acompanhados junto aos órgãos públicos competentes.
         </p>
       </section>
     </main>
