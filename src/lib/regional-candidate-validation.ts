@@ -37,10 +37,9 @@ const COORDINATES_CHECKED_AT = "2026-08-23";
 /**
  * Evidências internas da primeira onda de expansão.
  *
- * A identidade municipal (IBGE) está validada para toda a onda. Coordenadas
- * somente são marcadas como validated quando o valor da sede foi conferido em
- * cartografia oficial e registrado junto da fonte/datum. Weather e hydrology
- * continuam pendentes e não devem ser inferidos por proximidade geográfica.
+ * A identidade municipal (IBGE) e as coordenadas das sedes estão validadas
+ * para toda a primeira onda. Weather e hydrology continuam pendentes e não
+ * devem ser inferidos apenas por proximidade geográfica.
  */
 export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnicalValidation[] = [
   {
@@ -51,8 +50,17 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/guaiba.html",
     },
     coordinates: {
-      status: "pending",
-      note: "Mapa Municipal IBGE localizado; valor ainda não registrado porque a fonte não pôde ser extraída com segurança nesta rodada.",
+      status: "validated",
+      checkedAt: COORDINATES_CHECKED_AT,
+      source:
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/guaiba/4309308_MM.pdf",
+      note: "Mapa Municipal IBGE, edição 04/2021; coordenadas da sede.",
+    },
+    coordinatesValue: {
+      latitude: -30.11,
+      longitude: -51.31,
+      reference: "city-seat",
+      datum: "SIRGAS 2000",
     },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
@@ -111,8 +119,17 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/arambare.html",
     },
     coordinates: {
-      status: "pending",
-      note: "Mapa Municipal IBGE localizado; extração da fonte oficial expirou nesta rodada, portanto o valor não foi promovido como validado.",
+      status: "validated",
+      checkedAt: COORDINATES_CHECKED_AT,
+      source:
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/arambare/4300851_MM.pdf",
+      note: "Mapa Municipal IBGE, edição 04/2021; coordenadas da sede.",
+    },
+    coordinatesValue: {
+      latitude: -30.91,
+      longitude: -51.5,
+      reference: "city-seat",
+      datum: "SIRGAS 2000",
     },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
@@ -125,8 +142,17 @@ export const REGIONAL_CANDIDATE_VALIDATIONS: readonly RegionalCandidateTechnical
       source: "https://www.ibge.gov.br/cidades-e-estados/rs/camaqua.html",
     },
     coordinates: {
-      status: "pending",
-      note: "Mapa Municipal IBGE localizado; arquivo oficial excedeu o limite de extração nesta rodada, portanto o valor não foi promovido como validado.",
+      status: "validated",
+      checkedAt: COORDINATES_CHECKED_AT,
+      source:
+        "https://geoftp.ibge.gov.br/cartas_e_mapas/mapas_municipais/colecao_de_mapas_municipais/2020/RS/camaqua/4303509_MM.pdf",
+      note: "Mapa Municipal IBGE, edição 04/2021; coordenadas da sede.",
+    },
+    coordinatesValue: {
+      latitude: -30.85,
+      longitude: -51.81,
+      reference: "city-seat",
+      datum: "SIRGAS 2000",
     },
     weather: { status: "pending" },
     hydrology: { status: "pending" },
