@@ -9,7 +9,14 @@ const weatherFunctions = readFileSync(
   "utf8",
 );
 const sourcePolicy = readFileSync("src/lib/weather/source-policy.ts", "utf8");
+const openMeteoResilient = readFileSync(
+  "src/lib/weather/open-meteo-resilient.server.ts",
+  "utf8",
+);
 const openMeteoEdge = readFileSync("src/lib/weather/open-meteo-edge.server.ts", "utf8");
+const metNorway = readFileSync("src/lib/weather/met-norway.server.ts", "utf8");
+const embrapaCentral = readFileSync("src/lib/weather/embrapa-central.server.ts", "utf8");
+const inmetStable = readFileSync("src/lib/weather/inmet-stable.server.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 
@@ -42,15 +49,60 @@ test("server fn meteorologica possui ultima barreira e prazo maximo", () => {
   assert.match(weatherFunctions, /catch \(error\)/);
 });
 
-test("fontes externas nao podem bloquear uma rota publica por dezenas de segundos", () => {
-  assert.match(sourcePolicy, /embrapa: 4_000/);
-  assert.match(sourcePolicy, /inmet: 4_000/);
-  assert.match(sourcePolicy, /cppmet: 3_500/);
-  assert.match(sourcePolicy, /embrapa: 4_500/);
-  assert.match(sourcePolicy, /inmet: 4_500/);
-  assert.match(sourcePolicy, /cppmet: 4_000/);
-  assert.match(openMeteoEdge, /REQUEST_TIMEOUT_MS = 4_000/);
+test("fontes oficiais ficam abaixo do budget global da rota", () => {
+  assert.match(sourcePolicy, /embrapa: 1_600/);
+  assert.match(sourcePolicy, /inmet: 1_600/);
+  assert.match(sourcePolicy, /cppmet: 1_500/);
+  assert.match(sourcePolicy, /embrapa: 1_900/);
+  assert.match(sourcePolicy, /inmet: 1_900/);
+  assert.match(sourcePolicy, /cppmet: 1_800/);
+});
+
+test("open meteo publico prioriza origem direta curta e usa edge somente como contingencia", () => {
+  assert.match(openMeteoResilient, /DIRECT_REQUEST_TIMEOUT_MS = 1_800/);
+  assert.match(openMeteoResilient, /AbortSignal\.timeout\(DIRECT_REQUEST_TIMEOUT_MS\)/);
+
+  const publicFlow = openMeteoResilient.slice(
+    openMeteoResilient.indexOf("export async function fetchPelotasWeather"),
+  );
+  const directIndex = publicFlow.indexOf("fetchOpenMeteoDirectFast()");
+  const edgeIndex = publicFlow.indexOf("fetchOpenMeteoPayloadViaEdge()");
+  assert.ok(directIndex >= 0 && edgeIndex > directIndex);
+  assert.match(publicFlow, /if \(direct\.status !== "unavailable"\) return direct/);
+  assert.match(publicFlow, /return direct;/);
+});
+
+test("contingencia edge possui um unico budget incluindo consulta ao supabase", () => {
+  assert.match(openMeteoEdge, /REQUEST_TIMEOUT_MS = 900/);
+  assert.match(openMeteoEdge, /const signal = AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
+  assert.match(openMeteoEdge, /\.abortSignal\(signal\)/);
+  assert.match(openMeteoEdge, /signal,/);
   assert.doesNotMatch(openMeteoEdge, /REQUEST_TIMEOUT_MS = 35_000/);
+});
+
+test("met norway possui timeout curto para nao reter o baseline", () => {
+  assert.match(metNorway, /REQUEST_TIMEOUT_MS = 1_800/);
+  assert.match(metNorway, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
+});
+
+test("embrapa no pageview apenas le cache central e nunca dispara refresh persistente", () => {
+  assert.match(embrapaCentral, /PUBLIC_READ_TIMEOUT_MS = 800/);
+  assert.match(embrapaCentral, /\.abortSignal\(querySignal\)/);
+  assert.match(embrapaCentral, /export async function refreshCentralEmbrapaObservation/);
+
+  const publicGetter = embrapaCentral
+    .split("export async function getCentralEmbrapaObservation")[1]
+    ?.split("function safeTokenEqual")[0] ?? "";
+  assert.match(publicGetter, /readCurrentRow\(AbortSignal\.timeout\(PUBLIC_READ_TIMEOUT_MS\)\)/);
+  assert.doesNotMatch(publicGetter, /refreshCentralEmbrapaObservation/);
+});
+
+test("inmet limita e prioriza enriquecimento rss em vez de abrir dezenas de requests", () => {
+  assert.match(inmetStable, /MAX_RSS_DETAIL_REQUESTS = 8/);
+  assert.match(inmetStable, /const preferred = new Set\(preferredIds\)/);
+  assert.match(inmetStable, /ids\.filter\(\(id\) => preferred\.has\(id\)\)/);
+  assert.match(inmetStable, /fetchRssAlerts\(baseAlerts\)/);
+  assert.doesNotMatch(inmetStable, /MAX_RSS_DETAIL_REQUESTS = 48/);
 });
 
 test("cliente recupera uma unica vez bundles antigos depois de deploy", () => {
