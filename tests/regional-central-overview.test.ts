@@ -60,9 +60,15 @@ test("a Central Regional permanece limitada às 24 cidades aprovadas nesta etapa
   );
 });
 
-test("a Central Regional carrega uma visão resumida server-side com cache", () => {
+test("a Central Regional carrega uma visão resumida server-side com cache e fallback de rota", () => {
   assert.match(route, /getRegionalCitiesOverview/);
-  assert.match(route, /loader:\s*async \(\) => getRegionalCitiesOverview\(\)/);
+  assert.match(route, /try\s*\{/);
+  assert.match(route, /return await getRegionalCitiesOverview\(\)/);
+  assert.match(route, /catch\s*\{/);
+  assert.match(route, /return createRegionalFallback\(\)/);
+  assert.match(route, /PUBLIC_REGIONAL_CITIES\.map/);
+  assert.match(route, /source:\s*\{ name: "Open-Meteo" \}/);
+  assert.match(route, /status:\s*"unavailable"/);
   assert.match(route, /staleTime:\s*5 \* 60 \* 1_000/);
   assert.match(overviewFunctions, /Cache-Control/);
   assert.match(overviewFunctions, /CDN-Cache-Control/);
@@ -144,6 +150,8 @@ test("o resumo das cidades públicas usa uma única consulta Open-Meteo em lote"
 test("falha do resumo não derruba a navegação municipal", () => {
   assert.match(overviewServer, /status:\s*"unavailable"/);
   assert.match(overviewServer, /As páginas municipais continuam acessíveis/);
+  assert.match(route, /PUBLIC_REGIONAL_CITIES\.map/);
+  assert.match(route, /Condição em atualização/);
   assert.match(directory, /data\.message/);
   assert.match(directory, /regionalCityPath\(city\)/);
 });
