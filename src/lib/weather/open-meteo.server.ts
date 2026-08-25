@@ -5,7 +5,7 @@ import type { DailyForecast, ForecastSourceKey, HourlyForecast, WeatherHomeData,
 const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 const OPEN_METEO_URL = "https://open-meteo.com/";
 const TIMEZONE = "America/Sao_Paulo";
-const REQUEST_TIMEOUT_MS = 15_000;
+const REQUEST_TIMEOUT_MS = 1_800;
 const HOURLY_FORECAST_LIMIT = 24;
 
 const PELOTAS = {
