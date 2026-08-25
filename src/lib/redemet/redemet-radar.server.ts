@@ -9,7 +9,7 @@ const PROVIDER = "REDEMET / DECEA" as const;
 const OFFICIAL_RADAR_URL = "https://redemet.decea.mil.br/radar/";
 const IMAGE_PROXY_PATH = "/api/redemet/image";
 const TIMEZONE = "America/Sao_Paulo";
-const REQUEST_TIMEOUT_MS = 12_000;
+const REQUEST_TIMEOUT_MS = 2_400;
 const PELOTAS_COORDINATES = { latitude: -31.7654, longitude: -52.3376 } as const;
 const DEFAULT_RADAR_AREA = "sg";
 const DEFAULT_RADAR_PRODUCT = "maxcappi";
@@ -286,7 +286,11 @@ function emptyRadarLayer(
   };
 }
 
-async function fetchRadarProduct(product: string, frameCount: number): Promise<unknown> {
+async function fetchRadarProduct(
+  product: string,
+  frameCount: number,
+  signal: AbortSignal,
+): Promise<unknown> {
   const key = apiKey();
   if (!key) throw new Error("REDEMET_API_KEY não configurada");
 
@@ -301,7 +305,7 @@ async function fetchRadarProduct(product: string, frameCount: number): Promise<u
       Accept: "application/json",
       "User-Agent": "TempoPelotas/2.0 (+https://tempopelotas.com.br)",
     },
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    signal,
   });
 
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -327,21 +331,24 @@ export async function fetchRedemetRadarResilient(
     );
   }
 
+  const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
   const products = [
     configuredProduct,
     ...FALLBACK_RADAR_PRODUCTS.filter((product) => product !== configuredProduct),
   ];
 
   for (const product of products) {
+    if (signal.aborted) break;
     let payload: unknown;
 
     try {
-      payload = await fetchRadarProduct(product, requestedFrames);
+      payload = await fetchRadarProduct(product, requestedFrames, signal);
     } catch (error) {
       console.warn("[redemet/radar] Produto indisponível", {
         product,
         reason: error instanceof Error ? error.message : "falha-desconhecida",
       });
+      if (signal.aborted) break;
       continue;
     }
 
@@ -382,6 +389,8 @@ export async function fetchRedemetRadarResilient(
 
   return emptyRadarLayer(
     configuredProduct,
-    "A REDEMET não retornou imagens recentes de radar com cobertura sobre Pelotas nas estações consultadas.",
+    signal.aborted
+      ? "A consulta do radar REDEMET excedeu o orçamento da página e será tentada novamente na próxima atualização."
+      : "A REDEMET não retornou imagens recentes de radar com cobertura sobre Pelotas nas estações consultadas.",
   );
 }
