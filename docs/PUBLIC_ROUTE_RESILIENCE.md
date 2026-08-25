@@ -39,13 +39,13 @@ A auditoria identificou uma causa sistêmica importante: a rota compartilhada de
 
 O contrato atual prioriza disponibilidade da página sobre espera excessiva por uma fonte externa:
 
-- `getWeatherIntelligence()` possui prazo máximo de 5,5 segundos para a consolidação completa;
-- a Edge Function usada para obter Open-Meteo possui timeout de 4 segundos no runtime do portal;
+- `getWeatherIntelligence()` possui prazo máximo de 3 segundos para a consolidação completa, deixando margem antes do timeout da navegação/runtime;
+- a Edge Function usada para obter Open-Meteo possui timeout de 4 segundos no runtime do portal, mas a navegação pública não espera por ela além do prazo global;
 - Embrapa e INMET possuem request timeout de 4 segundos e deadline de 4,5 segundos dentro da agregação oficial;
 - CPPMet possui request timeout de 3,5 segundos e deadline de 4 segundos;
 - ao atingir o prazo global, a página recebe o contrato `unavailable` seguro em vez de aguardar indefinidamente ou cair no error boundary.
 
-Esses limites não convertem uma fonte lenta em dado válido. Eles apenas encerram a espera da navegação e permitem que a interface assuma seu estado de indisponibilidade.
+Esses limites não convertem uma fonte lenta em dado válido. Eles apenas encerram a espera da navegação e permitem que a interface assuma seu estado de indisponibilidade. As tarefas de fonte que já estavam em andamento podem terminar no servidor, mas deixam de bloquear a resposta pública.
 
 O MET Norway continua como contingência numérica independente e possui timeout próprio curto. A lógica de cache/snapshot de cada subsistema continua válida e pode fornecer dados antes do fallback vazio.
 
@@ -83,6 +83,8 @@ Na verificação externa realizada durante a auditoria, páginas que não depend
 
 Esse padrão, combinado com o timeout de 35 segundos encontrado na contingência Open-Meteo, indicou que não se tratava apenas de um defeito isolado da Central Regional. O compartilhamento do loader explicava a ocorrência em várias páginas.
 
+Uma primeira barreira de 5,5 segundos ainda ficou muito próxima/acima do orçamento observado durante a validação externa. Por isso o prazo público foi reduzido para 3 segundos: a rota deve responder com estado degradado antes que a hospedagem ou o cliente desistam da navegação.
+
 A recuperação de chunks antigos continua necessária como segunda causa possível, especialmente em abas mantidas abertas durante deploys frequentes.
 
 ## 6. O que não fazer
@@ -100,7 +102,7 @@ A recuperação de chunks antigos continua necessária como segunda causa possí
 
 - contrato do fallback meteorológico sem valores inventados;
 - existência da barreira final em `getWeatherIntelligence()`;
-- prazo máximo da consolidação meteorológica;
+- prazo máximo de 3 segundos da consolidação meteorológica pública;
 - limites das fontes oficiais e da contingência Open-Meteo;
 - recuperação de chunks antigos;
 - proteção contra loop por `sessionStorage`;
