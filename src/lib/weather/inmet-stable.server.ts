@@ -10,7 +10,7 @@ import { WEATHER_SOURCE_REQUEST_TIMEOUT_MS } from "./source-policy.ts";
 const PELOTAS_IBGE_CODE = "4314407";
 const INMET_RSS_URL = "https://apiprevmet3.inmet.gov.br/avisos/rss";
 const INMET_PORTAL_URL = "https://avisos.inmet.gov.br/";
-const MAX_RSS_DETAIL_REQUESTS = 48;
+const MAX_RSS_DETAIL_REQUESTS = 8;
 
 type RssAlert = InmetAlert & {
   numericIds: string[];
@@ -142,7 +142,7 @@ async function fetchText(url: string) {
   return text;
 }
 
-function extractDetailUrls(feedXml: string) {
+function extractDetailUrls(feedXml: string, preferredIds: string[] = []) {
   const ids = unique([
     ...Array.from(
       feedXml.matchAll(/apiprevmet3\.inmet\.gov\.br\/avisos\/rss\/(\d{5,8})/gi),
@@ -152,9 +152,14 @@ function extractDetailUrls(feedXml: string) {
       feedXml.matchAll(/avisos\.inmet\.gov\.br\/(\d{5,8})(?:\b|[/?#])/gi),
       (match) => match[1],
     ),
-  ]).slice(0, MAX_RSS_DETAIL_REQUESTS);
+  ]);
+  const preferred = new Set(preferredIds);
+  const prioritized = [
+    ...ids.filter((id) => preferred.has(id)),
+    ...ids.filter((id) => !preferred.has(id)),
+  ].slice(0, MAX_RSS_DETAIL_REQUESTS);
 
-  return ids.map((id) => `${INMET_RSS_URL}/${id}`);
+  return prioritized.map((id) => `${INMET_RSS_URL}/${id}`);
 }
 
 function parseCapAlert(xml: string, detailUrl: string): RssAlert | null {
@@ -220,9 +225,14 @@ function parseCapAlert(xml: string, detailUrl: string): RssAlert | null {
   };
 }
 
-async function fetchRssAlerts() {
+function idsForAlert(alert: InmetAlert) {
+  return numericIds(alert.id, alert.officialUrl);
+}
+
+async function fetchRssAlerts(baseAlerts: InmetAlert[]) {
   const feedXml = await fetchText(INMET_RSS_URL);
-  const detailUrls = extractDetailUrls(feedXml);
+  const preferredIds = unique(baseAlerts.flatMap((alert) => idsForAlert(alert)));
+  const detailUrls = extractDetailUrls(feedXml, preferredIds);
   if (!detailUrls.length) return [];
 
   const settled = await Promise.allSettled(
@@ -232,10 +242,6 @@ async function fetchRssAlerts() {
   return settled.flatMap((result) =>
     result.status === "fulfilled" && result.value ? [result.value] : [],
   );
-}
-
-function idsForAlert(alert: InmetAlert) {
-  return numericIds(alert.id, alert.officialUrl);
 }
 
 function textClassification(alert: InmetAlert) {
@@ -332,7 +338,7 @@ export async function fetchStableInmetAlerts(): Promise<InmetAlerts> {
   const baseAlerts = base.alerts.map((alert) => enrichAlert(alert, []));
 
   try {
-    const rssAlerts = await fetchRssAlerts();
+    const rssAlerts = await fetchRssAlerts(baseAlerts);
     if (!rssAlerts.length) return summarize(base, baseAlerts, false);
 
     const enriched = baseAlerts.map((alert) => enrichAlert(alert, rssAlerts));
