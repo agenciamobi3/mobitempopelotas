@@ -9,6 +9,7 @@ const weatherFunctions = readFileSync(
   "utf8",
 );
 const sourcePolicy = readFileSync("src/lib/weather/source-policy.ts", "utf8");
+const openMeteoDirect = readFileSync("src/lib/weather/open-meteo.server.ts", "utf8");
 const openMeteoResilient = readFileSync(
   "src/lib/weather/open-meteo-resilient.server.ts",
   "utf8",
@@ -58,14 +59,15 @@ test("fontes oficiais ficam abaixo do budget global da rota", () => {
   assert.match(sourcePolicy, /cppmet: 1_800/);
 });
 
-test("open meteo publico prioriza origem direta curta e usa edge somente como contingencia", () => {
-  assert.match(openMeteoResilient, /DIRECT_REQUEST_TIMEOUT_MS = 1_800/);
-  assert.match(openMeteoResilient, /AbortSignal\.timeout\(DIRECT_REQUEST_TIMEOUT_MS\)/);
+test("open meteo publico prioriza origem direta validada e curta antes da edge", () => {
+  assert.match(openMeteoDirect, /REQUEST_TIMEOUT_MS = 1_800/);
+  assert.match(openMeteoDirect, /openMeteoResponseSchema\.safeParse\(payload\)/);
+  assert.match(openMeteoDirect, /controller\.abort\(\)/);
 
   const publicFlow = openMeteoResilient.slice(
     openMeteoResilient.indexOf("export async function fetchPelotasWeather"),
   );
-  const directIndex = publicFlow.indexOf("fetchOpenMeteoDirectFast()");
+  const directIndex = publicFlow.indexOf("fetchOpenMeteoDirect()");
   const edgeIndex = publicFlow.indexOf("fetchOpenMeteoPayloadViaEdge()");
   assert.ok(directIndex >= 0 && edgeIndex > directIndex);
   assert.match(publicFlow, /if \(direct\.status !== "unavailable"\) return direct/);
