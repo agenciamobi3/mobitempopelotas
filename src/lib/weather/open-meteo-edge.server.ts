@@ -8,7 +8,7 @@ import {
 
 const LOCATION_SLUG = "pelotas-rs";
 const EDGE_FUNCTION_NAME = "open-meteo-forecast";
-const REQUEST_TIMEOUT_MS = 4_000;
+const REQUEST_TIMEOUT_MS = 900;
 
 type OpenMeteoSettingsDatabase = {
   public: {
@@ -70,11 +70,13 @@ export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePaylo
     throw new Error("Supabase administrativo não configurado para a previsão Open-Meteo.");
   }
 
+  const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
   const admin = createSupabaseAdminClient() as unknown as SupabaseClient<OpenMeteoSettingsDatabase>;
   const { data: settings, error: settingsError } = await admin
     .from("weather_forecast_accuracy_settings")
     .select("collector_token,enabled")
     .eq("location_slug", LOCATION_SLUG)
+    .abortSignal(signal)
     .maybeSingle();
 
   if (settingsError || !settings?.enabled) {
@@ -89,7 +91,7 @@ export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePaylo
       "X-Collector-Token": settings.collector_token,
     },
     body: "{}",
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    signal,
   });
 
   const body: unknown = await response.json().catch(() => null);
