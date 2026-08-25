@@ -18,7 +18,7 @@ Grande parte das páginas meteorológicas públicas consome `getWeatherIntellige
 
 A camada interna já possui timeouts e estados `unavailable` para várias fontes, mas uma exceção inesperada acima desses adapters ainda podia rejeitar a server function e derrubar a rota inteira.
 
-`src/lib/weather/weather-intelligence.functions.ts` agora contém uma última barreira de exceção. Quando `fetchWeatherIntelligence()` falha de forma inesperada, a server function devolve `createUnavailableWeatherIntelligence()` em vez de propagar a exceção para o router.
+`src/lib/weather/weather-intelligence.functions.ts` contém a última barreira de exceção. Quando `fetchWeatherIntelligence()` falha de forma inesperada, a server function devolve `createUnavailableWeatherIntelligence()` em vez de propagar a exceção para o router.
 
 O fallback está em `src/lib/weather/weather-intelligence-fallback.ts` e segue estas regras:
 
@@ -35,19 +35,53 @@ A interface pública já possui estados vazios/indisponíveis e deve continuar n
 
 ## 2. Orçamento de latência
 
-A auditoria identificou uma causa sistêmica importante: a rota compartilhada de previsão podia aguardar uma contingência Open-Meteo por até 35 segundos antes de iniciar outra tentativa. Em paralelo, fontes oficiais podiam ocupar até 13 segundos. Como várias páginas públicas dependem de `getWeatherIntelligence()`, uma lentidão desse tipo podia afetar diversas rotas ao mesmo tempo.
+A auditoria identificou uma causa sistêmica importante: o caminho compartilhado de previsão continha dependências capazes de permanecer ativas por dezenas de segundos. Como várias páginas públicas dependem de `getWeatherIntelligence()`, uma fonte lenta podia afetar diversas rotas ao mesmo tempo.
 
 O contrato atual prioriza disponibilidade da página sobre espera excessiva por uma fonte externa:
 
-- `getWeatherIntelligence()` possui prazo máximo de 3 segundos para a consolidação completa, deixando margem antes do timeout da navegação/runtime;
-- a Edge Function usada para obter Open-Meteo possui timeout de 4 segundos no runtime do portal, mas a navegação pública não espera por ela além do prazo global;
-- Embrapa e INMET possuem request timeout de 4 segundos e deadline de 4,5 segundos dentro da agregação oficial;
-- CPPMet possui request timeout de 3,5 segundos e deadline de 4 segundos;
+- `getWeatherIntelligence()` possui prazo máximo de **3 segundos** para a consolidação completa;
+- Open-Meteo direto usa timeout de **1,8 segundo** e mantém a validação estrutural canônica antes da normalização;
+- MET Norway usa timeout de **1,8 segundo**;
+- a contingência Open-Meteo via Supabase/Edge só é consultada quando a origem direta estiver indisponível e possui orçamento total de **900 ms**, compartilhado entre leitura de configuração e chamada da Edge Function;
+- Embrapa e INMET usam request timeout de **1,6 segundo** e deadline de **1,9 segundo**;
+- CPPMet usa request timeout de **1,5 segundo** e deadline de **1,8 segundo**;
 - ao atingir o prazo global, a página recebe o contrato `unavailable` seguro em vez de aguardar indefinidamente ou cair no error boundary.
 
-Esses limites não convertem uma fonte lenta em dado válido. Eles apenas encerram a espera da navegação e permitem que a interface assuma seu estado de indisponibilidade. As tarefas de fonte que já estavam em andamento podem terminar no servidor, mas deixam de bloquear a resposta pública.
+Esses limites não convertem uma fonte lenta em dado válido. Eles encerram trabalho de rede sempre que possível e permitem que a interface assuma seu estado de indisponibilidade.
 
-O MET Norway continua como contingência numérica independente e possui timeout próprio curto. A lógica de cache/snapshot de cada subsistema continua válida e pode fornecer dados antes do fallback vazio.
+### 2.1. Open-Meteo direto antes de Edge/Supabase
+
+A navegação pública não consulta mais Supabase/Edge antes da origem meteorológica principal.
+
+O fluxo é:
+
+1. consultar Open-Meteo diretamente com timeout curto e validação de schema;
+2. se a resposta for utilizável, retornar imediatamente;
+3. somente se a origem direta estiver `unavailable`, tentar a contingência `open-meteo-forecast`;
+4. se a contingência também falhar, preservar o estado `unavailable` da origem direta.
+
+Isso retira banco e Edge Function do caminho comum de uma pageview saudável sem eliminar a contingência já existente.
+
+### 2.2. Embrapa cache-first no pageview
+
+`getCentralEmbrapaObservation()` é agora leitura cache-first/read-only no caminho público:
+
+- a leitura da linha central do Supabase possui timeout de **800 ms**;
+- se existir observação armazenada, ela é devolvida mesmo quando antiga;
+- a camada de agregação continua responsável por calcular a idade e não usa uma leitura stale como condição atual;
+- o pageview não chama `refreshCentralEmbrapaObservation()` e não reivindica lease nem escreve histórico;
+- atualização, lease e persistência continuam pertencendo ao coletor/cron existente;
+- se não houver linha central ou a leitura do banco falhar, a fonte direta da Embrapa continua disponível como contingência dentro do timeout oficial reduzido.
+
+Assim, visitar uma página não dispara trabalho de coleta persistente.
+
+### 2.3. INMET sem fan-out excessivo
+
+O enriquecimento RSS/CAP do INMET deixou de abrir dezenas de requisições de detalhe durante uma pageview.
+
+O limite passou de **48 para 8** detalhes por tentativa. Os identificadores já encontrados no feed/base municipal são priorizados; somente vagas restantes são preenchidas pelos primeiros detalhes válidos do RSS, sem duplicação.
+
+Falha ou lentidão no enriquecimento não invalida os avisos obtidos pelo feed base.
 
 ## 3. Cliente desatualizado após deploy
 
@@ -81,9 +115,9 @@ Esse fallback cria itens `unavailable` para todo `PUBLIC_REGIONAL_CITIES`, com m
 
 Na verificação externa realizada durante a auditoria, páginas que não dependem do pipeline meteorológico compartilhado — como Histórico climático, Central Regional e Blog — conseguiram responder, enquanto várias rotas que usam `getWeatherIntelligence()` atingiram timeout no mesmo período.
 
-Esse padrão, combinado com o timeout de 35 segundos encontrado na contingência Open-Meteo, indicou que não se tratava apenas de um defeito isolado da Central Regional. O compartilhamento do loader explicava a ocorrência em várias páginas.
+Esse padrão, combinado com o antigo timeout de 35 segundos na contingência Open-Meteo, os budgets longos de outras fontes, refresh da Embrapa no pageview e fan-out do RSS do INMET, mostrou que não se tratava apenas de um defeito isolado de uma rota. O compartilhamento do loader explicava a ocorrência em várias páginas.
 
-Uma primeira barreira de 5,5 segundos ainda ficou muito próxima/acima do orçamento observado durante a validação externa. Por isso o prazo público foi reduzido para 3 segundos: a rota deve responder com estado degradado antes que a hospedagem ou o cliente desistam da navegação.
+Uma primeira barreira de 5,5 segundos ainda ficou próxima/acima do orçamento observado durante a validação externa. Por isso o prazo público foi reduzido para 3 segundos e, em seguida, as dependências internas também passaram a abortar antes desse teto. A intenção é evitar que o `Promise.race` apenas libere a resposta enquanto trabalho antigo continua ocupando o runtime.
 
 A recuperação de chunks antigos continua necessária como segunda causa possível, especialmente em abas mantidas abertas durante deploys frequentes.
 
@@ -94,6 +128,7 @@ A recuperação de chunks antigos continua necessária como segunda causa possí
 - Não aplicar recarga automática a toda exceção do React; a recuperação de cliente só deve reagir a padrões conhecidos de asset/chunk.
 - Não criar uma chamada externa por página quando a camada compartilhada já possui fallback.
 - Não aumentar timeouts de fontes externas para tentar esconder indisponibilidade: página pública deve degradar antes de exceder seu orçamento de navegação.
+- Não disparar coleta, lease ou persistência apenas porque um visitante abriu uma página pública.
 - Não remover o `errorComponent` global: ele continua necessário como contenção final e telemetria.
 
 ## 7. Testes
@@ -103,7 +138,11 @@ A recuperação de chunks antigos continua necessária como segunda causa possí
 - contrato do fallback meteorológico sem valores inventados;
 - existência da barreira final em `getWeatherIntelligence()`;
 - prazo máximo de 3 segundos da consolidação meteorológica pública;
-- limites das fontes oficiais e da contingência Open-Meteo;
+- budgets das fontes oficiais, Open-Meteo direto, MET Norway e contingência Edge;
+- validação estrutural canônica do Open-Meteo antes da normalização;
+- prioridade da origem direta antes de Supabase/Edge;
+- leitura Embrapa cache-first sem refresh persistente em pageview;
+- limite de enriquecimento RSS do INMET;
 - recuperação de chunks antigos;
 - proteção contra loop por `sessionStorage`;
 - instalação da recuperação no root e uso no error boundary.
