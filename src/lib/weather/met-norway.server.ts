@@ -5,7 +5,7 @@ import type { DailyForecast, HourlyForecast, WeatherHomeData, WeatherIconName } 
 const FORECAST_ENDPOINT = "https://api.met.no/weatherapi/locationforecast/2.0/compact";
 const SOURCE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/documentation";
 const TIMEZONE = "America/Sao_Paulo";
-const REQUEST_TIMEOUT_MS = 3_500;
+const REQUEST_TIMEOUT_MS = 1_800;
 const HOURLY_FORECAST_LIMIT = 24;
 const USER_AGENT = "MOBI-Tempo-Pelotas/2.0 (+https://tempopelotas.com.br)";
 
