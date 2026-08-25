@@ -99,11 +99,14 @@ test("embrapa no pageview apenas le cache central e nunca dispara refresh persis
   assert.doesNotMatch(publicGetter, /refreshCentralEmbrapaObservation/);
 });
 
-test("inmet limita e prioriza enriquecimento rss em vez de abrir dezenas de requests", () => {
+test("inmet limita, prioriza e aborta enriquecimento rss dentro do deadline", () => {
   assert.match(inmetStable, /MAX_RSS_DETAIL_REQUESTS = 8/);
+  assert.match(inmetStable, /RSS_ENRICHMENT_DEADLINE_MS = 1_800/);
   assert.match(inmetStable, /const preferred = new Set\(preferredIds\)/);
   assert.match(inmetStable, /ids\.filter\(\(id\) => preferred\.has\(id\)\)/);
-  assert.match(inmetStable, /fetchRssAlerts\(baseAlerts\)/);
+  assert.match(inmetStable, /const rssSignal = AbortSignal\.timeout\(RSS_ENRICHMENT_DEADLINE_MS\)/);
+  assert.match(inmetStable, /fetchRssAlerts\(baseAlerts, rssSignal\)/);
+  assert.match(inmetStable, /fetchText\(detailUrl, signal\)/);
   assert.doesNotMatch(inmetStable, /MAX_RSS_DETAIL_REQUESTS = 48/);
 });
 
