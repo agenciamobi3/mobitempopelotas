@@ -5,7 +5,7 @@ import { createUnavailableWeatherIntelligence } from "./weather-intelligence-fal
 import { fetchWeatherIntelligence } from "./weather-intelligence.server";
 import type { WeatherIntelligenceData } from "./weather-intelligence.types";
 
-const WEATHER_INTELLIGENCE_DEADLINE_MS = 5_500;
+const WEATHER_INTELLIGENCE_DEADLINE_MS = 3_000;
 
 async function fetchWeatherIntelligenceWithinDeadline(): Promise<WeatherIntelligenceData> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
