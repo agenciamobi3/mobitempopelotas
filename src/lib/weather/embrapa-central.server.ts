@@ -11,7 +11,7 @@ import type { EmbrapaObservation } from "./official-sources.types";
 
 export const EMBRAPA_STATION_ID = "embrapa-cpact-sede-pelotas";
 
-const CENTRAL_READING_MAX_AGE_MS = 75_000;
+const PUBLIC_READ_TIMEOUT_MS = 800;
 const REFRESH_LEASE_SECONDS = 90;
 const CONCURRENT_REFRESH_WAIT_MS = 450;
 
@@ -51,13 +51,6 @@ function observationFromRow(row: CurrentRow | null): EmbrapaObservation | null {
   return row && isEmbrapaObservation(row.payload) ? row.payload : null;
 }
 
-function isFresh(row: CurrentRow | null) {
-  const timestamp = row?.last_success_at ?? row?.fetched_at;
-  if (!timestamp) return false;
-  const time = new Date(timestamp).getTime();
-  return Number.isFinite(time) && Date.now() - time <= CENTRAL_READING_MAX_AGE_MS;
-}
-
 function sourceHash(observation: EmbrapaObservation) {
   const normalized = {
     status: observation.status,
@@ -93,13 +86,15 @@ function persistenceFields(observation: EmbrapaObservation, hash: string) {
   } as const;
 }
 
-async function readCurrentRow(): Promise<CurrentRow | null> {
+async function readCurrentRow(signal?: AbortSignal): Promise<CurrentRow | null> {
   if (!storageConfigured()) return null;
   const client = createSupabaseAdminClient();
+  const querySignal = signal ?? new AbortController().signal;
   const { data, error } = await client
     .from("weather_station_current")
     .select("*")
     .eq("station_id", EMBRAPA_STATION_ID)
+    .abortSignal(querySignal)
     .maybeSingle();
 
   if (error) throw new Error(`Falha ao consultar a leitura central da Embrapa: ${error.message}`);
@@ -279,12 +274,12 @@ export async function getCentralEmbrapaObservation(): Promise<EmbrapaObservation
   if (!storageConfigured()) return fetchEmbrapaObservation();
 
   try {
-    const row = await readCurrentRow();
+    const row = await readCurrentRow(AbortSignal.timeout(PUBLIC_READ_TIMEOUT_MS));
     const observation = observationFromRow(row);
-    if (observation && isFresh(row)) return observation;
-    return (await refreshCentralEmbrapaObservation()).observation;
+    if (observation) return observation;
+    return fetchEmbrapaObservation();
   } catch (error) {
-    console.error("[embrapa/central] Falha ao ler centralizador; usando fonte direta", {
+    console.warn("[embrapa/central] Leitura central indisponível no pageview; usando fonte direta", {
       message: error instanceof Error ? error.message : String(error),
     });
     return fetchEmbrapaObservation();
