@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
 
+import { createUnavailableWeatherIntelligence } from "./weather-intelligence-fallback";
 import { fetchWeatherIntelligence } from "./weather-intelligence.server";
 
 export const getWeatherIntelligence = createServerFn({ method: "GET" }).handler(async () => {
@@ -11,5 +12,12 @@ export const getWeatherIntelligence = createServerFn({ method: "GET" }).handler(
     }),
   );
 
-  return fetchWeatherIntelligence();
+  try {
+    return await fetchWeatherIntelligence();
+  } catch (error) {
+    console.error("[weather/intelligence] Falha final da consolidação meteorológica", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return createUnavailableWeatherIntelligence();
+  }
 });
