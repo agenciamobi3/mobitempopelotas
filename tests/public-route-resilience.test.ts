@@ -8,6 +8,8 @@ const weatherFunctions = readFileSync(
   "src/lib/weather/weather-intelligence.functions.ts",
   "utf8",
 );
+const sourcePolicy = readFileSync("src/lib/weather/source-policy.ts", "utf8");
+const openMeteoEdge = readFileSync("src/lib/weather/open-meteo-edge.server.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 
@@ -32,11 +34,23 @@ test("fallback meteorologico final preserva o contrato sem inventar valores", ()
   }
 });
 
-test("server fn meteorologica possui ultima barreira contra excecoes inesperadas", () => {
-  assert.match(weatherFunctions, /try\s*\{/);
-  assert.match(weatherFunctions, /await fetchWeatherIntelligence\(\)/);
+test("server fn meteorologica possui ultima barreira e prazo maximo", () => {
+  assert.match(weatherFunctions, /WEATHER_INTELLIGENCE_DEADLINE_MS = 5_500/);
+  assert.match(weatherFunctions, /Promise\.race/);
+  assert.match(weatherFunctions, /fetchWeatherIntelligence\(\)/);
+  assert.match(weatherFunctions, /createUnavailableWeatherIntelligence\(\)/);
   assert.match(weatherFunctions, /catch \(error\)/);
-  assert.match(weatherFunctions, /return createUnavailableWeatherIntelligence\(\)/);
+});
+
+test("fontes externas nao podem bloquear uma rota publica por dezenas de segundos", () => {
+  assert.match(sourcePolicy, /embrapa: 4_000/);
+  assert.match(sourcePolicy, /inmet: 4_000/);
+  assert.match(sourcePolicy, /cppmet: 3_500/);
+  assert.match(sourcePolicy, /embrapa: 4_500/);
+  assert.match(sourcePolicy, /inmet: 4_500/);
+  assert.match(sourcePolicy, /cppmet: 4_000/);
+  assert.match(openMeteoEdge, /REQUEST_TIMEOUT_MS = 4_000/);
+  assert.doesNotMatch(openMeteoEdge, /REQUEST_TIMEOUT_MS = 35_000/);
 });
 
 test("cliente recupera uma unica vez bundles antigos depois de deploy", () => {
