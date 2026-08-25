@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 23/08/2026  
+Última atualização: 25/08/2026  
 Branch operacional: `main`  
 Domínio canônico: `https://tempopelotas.com.br`
 
@@ -23,11 +23,28 @@ Regras:
 
 O Tempo Pelotas é um portal meteorológico regional focado em Pelotas e Zona Sul do Rio Grande do Sul. O produto combina previsão, observação local, radar/satélite, alertas oficiais, hidrologia, histórico, câmeras e páginas regionais, com forte camada editorial, SEO técnico, APIs server-side e monitoramento operacional.
 
+### Atualização operacional de 25/08/2026 — resiliência das rotas públicas
+
+Uma auditoria após falhas simultâneas em várias páginas públicas confirmou que parte relevante das rotas meteorológicas compartilha `getWeatherIntelligence()` no caminho crítico. A contingência Open-Meteo podia aguardar até 35 segundos antes da tentativa direta e as fontes oficiais também possuíam deadlines longos, permitindo que uma dependência externa lenta bloqueasse diversas páginas ao mesmo tempo.
+
+O contrato atual foi endurecido de forma centralizada:
+
+- `getWeatherIntelligence()` possui prazo máximo de 5,5 segundos para a consolidação e, ao excedê-lo, devolve um contrato seguro `unavailable` em vez de propagar erro ao router;
+- o fallback final não inventa temperatura, chuva, vento, alerta, nível ou timestamp: mantém valores nulos, séries vazias, fontes indisponíveis e brief determinístico;
+- a contingência Open-Meteo via Supabase possui timeout de 4 segundos no runtime do portal;
+- Embrapa e INMET usam request timeout de 4 segundos e deadline de 4,5 segundos dentro da agregação oficial; CPPMet usa 3,5/4 segundos;
+- o root trata assinaturas conhecidas de cliente desatualizado após deploy (`vite:preloadError`, falha de dynamic import/ChunkLoadError) com uma única recarga automática por URL dentro de 60 segundos, protegida por `sessionStorage`;
+- o `errorComponent` global permanece como contenção final para erros reais de programação ou infraestrutura que não possam ser degradados com segurança;
+- a Central Regional mantém ainda fallback próprio que preserva as 24 cidades navegáveis mesmo em falha integral das fontes resumidas.
+
+A documentação detalhada desta camada está em `docs/PUBLIC_ROUTE_RESILIENCE.md`.
+
 ### Estado por domínio
 
 | Domínio | Estado atual | Observação |
 | --- | --- | --- |
 | Portal público | Ativo | Produção em `tempopelotas.com.br` |
+| Resiliência das rotas públicas | Ativo / em validação de produção | Pipeline meteorológico compartilhado possui fallback final e orçamento de latência; cliente recupera chunks antigos após deploy; Central Regional preserva 24 cidades em falha integral. A validação pós-deploy das rotas afetadas permanece operacionalmente necessária. |
 | Interface pública | Ativo | Home, páginas internas/dedicadas e páginas institucionais compartilham o mesmo header/footer editorial; a navegação pública usa `Agora` como acesso direto e cinco áreas editoriais — `Previsão`, `Monitoramento`, `Águas`, `Região` e `Explorar` — em megamenu no desktop e painel completo responsivo em tablet/mobile, reduzindo páginas meteorológicas órfãs sem transformar o topo em uma lista extensa |
 | Home meteorológica | Ativo | Header e hero editoriais; próximas horas e tendência semanal em capítulos separados; tendência posicionada imediatamente antes da central de radar/satélite; alertas e blocos locais autocontidos |
 | Previsão hoje/amanhã/7 dias | Ativo | Páginas dedicadas e conteúdo indexável |
@@ -222,12 +239,14 @@ O núcleo meteorológico combina múltiplas fontes e regras de reconciliação, 
 - MET Norway: fonte complementar no domínio de previsão e contingência, preservando campos horários compatíveis; o arquivo rico próprio também preserva snapshots separados por provedor/ciclo e somente `next_1_hours.precipitation_amount` é tratado como volume horário, evitando rotular acumulados de 6h/12h como chuva de uma hora;
 - a recuperação Open-Meteo no navegador preserva até 24 horas dos campos horários ricos quando o SSR precisou usar contingência;
 - a Central Regional `/tempo-na-regiao-sul-rs` consome o Open-Meteo em lote para as 24 cidades do inventário, expondo apenas resumo de modelo (temperatura estimada agora, condição, mínima/máxima, chance de chuva e vento), mantendo a estimativa separada da observação de estação;
+- `getWeatherIntelligence()` possui fallback final tipado e prazo máximo de 5,5 segundos no caminho público; excesso de latência ou exceção inesperada degrada para `unavailable` sem inventar valores e sem derrubar a rota;
+- a contingência Open-Meteo usada pelo runtime possui timeout de 4 segundos, e as fontes oficiais principais têm deadlines de aproximadamente 4 a 4,5 segundos para impedir bloqueio prolongado da navegação;
 - lógica centralizada para condição atual, hora a hora e dias seguintes;
 - páginas dedicadas para hoje, amanhã, sete dias, chuva, vento e meteograma;
 - `/chuva-em-pelotas` e `/vento-em-pelotas` reutilizam o meteograma estruturado de 48 horas para suas camadas públicas de volume por hora e direção prevista, mantendo previsão separada de observação;
 - `/meteograma-pelotas` mantém a série horária estruturada e acrescenta produtos WRF/GFS do SIMAGRO RS apenas como comparação visual identificada;
 - normalização de timezone para `America/Sao_Paulo` quando aplicável;
-- contratos para integridade de temperatura, precipitação, vento, rastreabilidade e disponibilidade.
+- contratos para integridade de temperatura, precipitação, vento, rastreabilidade, disponibilidade e orçamento de latência.
 
 ### Observação local
 
@@ -671,6 +690,8 @@ O código de PWA/Web Push foi desenvolvido e preservado, incluindo:
 
 Motivo operacional: reativação deve ocorrer somente em implantação controlada e teste real em Chrome normal, anônimo, mobile e perfis com extensões, sem regressão de rolagem ou mutações globais de `body`.
 
+A recuperação de cliente desatualizado após deploy é independente da ativação pública do PWA/Web Push: o root escuta `vite:preloadError` e também reconhece assinaturas conhecidas de falha de chunk/dynamic import no error boundary, realizando no máximo uma recarga automática por URL dentro da janela de proteção.
+
 ## 18. Segurança e secrets
 
 Fonte de configuração: `.env.example`.
@@ -712,6 +733,7 @@ Valida:
 
 - template de ambiente;
 - contratos rápidos;
+- resiliência das rotas públicas, fallback final, recuperação de bundles antigos e orçamento de latência meteorológica;
 - navegação editorial e megamenu público;
 - overlay de navegação;
 - cache estático do service worker;
@@ -724,6 +746,8 @@ Valida:
 - rotas públicas;
 - TypeScript;
 - ESLint incremental.
+
+Observação operacional de 25/08/2026: os runs recentes de GitHub Actions estavam encerrando com falha antes de iniciar os steps do job (`steps` ausentes e sem log de comando disponível). Portanto essa condição não deve ser tratada como evidência de falha dos testes do código; a execução da infraestrutura de CI precisa ser restaurada e então a suíte desta rodada deve ser confirmada.
 
 ### `cutover-smoke.yml` — Smoke test de cutover
 
@@ -787,6 +811,7 @@ A suíte de contratos cobre, entre outros domínios:
 - centralização Embrapa;
 - precisão de previsão;
 - resiliência Open-Meteo;
+- resiliência das rotas públicas, incluindo fallback final da inteligência meteorológica, prazo máximo do loader compartilhado, limites das fontes externas e recuperação de cliente/chunks antigos após deploy (`tests/public-route-resilience.test.ts`);
 - profundidade horária Open-Meteo/MET Norway, recuperação rica no navegador e camadas públicas de volume de chuva por hora/direção prevista do vento;
 - runtime/Lovable;
 - rolagem/PWA;
@@ -944,6 +969,7 @@ A integração pública com CPTEC/SIGMA foi deliberadamente adiada para revisão
 | `docs/auth-account.md` | Conta, autenticação, entitlement e direitos do titular |
 | `docs/auth-production-validation-2026-07-29.md` | Evidências e validações de auth |
 | `docs/open-meteo-production-resilience-2026-07-29.md` | Resiliência Open-Meteo |
+| `docs/PUBLIC_ROUTE_RESILIENCE.md` | Resiliência sistêmica das rotas públicas: fallback final, orçamento de latência, recuperação de cliente/chunks antigos e diagnóstico operacional |
 | `WEATHER_PAGE_IDENTITY.md` | Identidade e consistência das páginas meteorológicas |
 | `docs/EXACT_PRODUCTION_CSS_STACK.md` | Stack CSS de produção |
 | `docs/ACCOUNT_AND_PRO_ARCHITECTURE.md` | Arquitetura da conta, autenticação, Free/PRO e entitlements |
@@ -968,7 +994,9 @@ Estas são pendências de produto/operação, não funcionalidades inexistentes 
 12. validar em produção o bloqueio geográfico real, os logs/contadores da plataforma, o fallback do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
 13. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras;
 14. avaliar como hardening futuro um WAF gerenciado de edge/provedor, condicionado a acesso ao control plane apropriado, e uma CSP sem `unsafe-inline`/baseada em nonce — nenhum dos dois está concluído nesta rodada;
-15. tratar separadamente avisos preexistentes de advisors do Supabase em outras estruturas do projeto (por exemplo função SECURITY DEFINER executável por `authenticated` e proteção contra senhas vazadas desativada), que não são regressão desta rodada.
+15. tratar separadamente avisos preexistentes de advisors do Supabase em outras estruturas do projeto (por exemplo função SECURITY DEFINER executável por `authenticated` e proteção contra senhas vazadas desativada), que não são regressão desta rodada;
+16. restaurar a execução efetiva dos workflows GitHub Actions que em 25/08/2026 estavam falhando antes de iniciar os steps e, depois disso, confirmar `test:contracts`, teste de resiliência, build, rotas, typecheck e lint incremental desta camada;
+17. validar no domínio publicado que Home e as páginas que consomem `getWeatherIntelligence()` degradam para estado `unavailable` dentro do orçamento de navegação, sem cair no `errorComponent`, inclusive durante indisponibilidade/429 de fontes externas.
 
 ## 25. Regra de manutenção deste arquivo
 
@@ -1749,17 +1777,19 @@ O PRO só pode ser considerado comercialmente em produção quando todos os iten
 A ordem operacional atual é:
 
 1. manter a Home pública estável e evitar complexidade sem necessidade;
-2. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, o bloqueio geográfico real, os logs/contadores da plataforma, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras, o fallback acessível do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
-3. concluir E2E da conta com duas contas descartáveis;
-4. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
-5. definir rollups e APIs históricas server-side;
-6. monitorar a integração pública da Defesa Civil RS e concluir inventário/semântica/health da nova fonte;
-7. construir valor real no painel Free, começando pelos históricos/datasets liberados;
-8. concluir a matriz de governança para o que poderá entrar no PRO;
-9. somente então escolher cobrança/preço e ligar billing ao `account_access` existente;
-10. construir profundidade PRO determinística;
-11. adicionar IA PRO depois que dados, entitlement e orçamento estiverem sólidos;
-12. executar hardening e lançamento controlado.
+2. validar a camada de resiliência de 25/08/2026 no domínio publicado: Home e rotas que compartilham `getWeatherIntelligence()` devem responder ou degradar em até poucos segundos, sem cair no `errorComponent`, e a recuperação de bundle antigo deve ser testada após deploy;
+3. restaurar a execução efetiva dos workflows GitHub Actions e confirmar a suíte de qualidade desta camada;
+4. observar a primeira execução real do smoke de segurança em produção e validar, após o deploy, o bloqueio geográfico real, os logs/contadores da plataforma, a compatibilidade da CSP global com login Google, Analytics, mapas e câmeras, o fallback acessível do mapa da Central Regional, navegação por teclado, mobile/performance e os endpoints sitemap/robots publicados;
+5. concluir E2E da conta com duas contas descartáveis;
+6. auditar e consolidar o patrimônio histórico já coletado, incluindo cobertura/gaps;
+7. definir rollups e APIs históricas server-side;
+8. monitorar a integração pública da Defesa Civil RS e concluir inventário/semântica/health da nova fonte;
+9. construir valor real no painel Free, começando pelos históricos/datasets liberados;
+10. concluir a matriz de governança para o que poderá entrar no PRO;
+11. somente então escolher cobrança/preço e ligar billing ao `account_access` existente;
+12. construir profundidade PRO determinística;
+13. adicionar IA PRO depois que dados, entitlement e orçamento estiverem sólidos;
+14. executar hardening e lançamento controlado.
 
 Até a integração real de billing, nenhuma tela deve sugerir que o PRO está disponível para compra em produção.
 
