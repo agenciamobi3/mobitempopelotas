@@ -5,7 +5,6 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
-  useRouter,
   useRouterState,
 } from "@tanstack/react-router";
 import mapLibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
@@ -70,9 +69,8 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error }: { error: Error; reset: () => void }) {
   console.error(error);
-  const router = useRouter();
 
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
@@ -88,10 +86,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           <button
             type="button"
             className="primary-button"
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
+            onClick={() => window.location.reload()}
           >
             Tentar novamente
           </button>
