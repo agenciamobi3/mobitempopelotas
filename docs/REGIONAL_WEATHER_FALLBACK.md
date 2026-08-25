@@ -17,6 +17,8 @@ A Edge Function também usa uma única chamada em lote. Ela lê o último snapsh
 
 Somente quando toda a cadeia falha a resposta é marcada como `unavailable`. As páginas municipais permanecem navegáveis independentemente do resumo regional.
 
+Como última barreira de disponibilidade, o loader de `/tempo-na-regiao-sul-rs` também captura falhas não previstas da cadeia server-side. Nesse estado, a Central continua renderizando o inventário fixo das 24 cidades com métricas indisponíveis e links municipais ativos, em vez de cair no `errorComponent` global ou devolver um diretório vazio.
+
 ## Persistência
 
 A migration `20260823193000_create_regional_weather_snapshots.sql` define o contrato esperado de `public.regional_weather_snapshots` no repositório.
@@ -92,6 +94,7 @@ Validações concluídas nesta camada:
 4. Edge Function implantada e respondendo `HTTP 200`;
 5. primeiro snapshot real criado no Supabase externo;
 6. rota pública `/tempo-na-regiao-sul-rs` confirmada com resposta HTTP 200;
-7. comportamento `429` do acesso direto reproduzido em produção.
+7. comportamento `429` do acesso direto reproduzido em produção;
+8. fallback final do loader preserva as 24 cidades mesmo se toda a cadeia de dados lançar uma exceção inesperada.
 
-Após novos deploys, o smoke recomendado é confirmar que a página deixa de exibir estado `unavailable` durante `429` e passa a informar a rota de contingência ou usar snapshot válido.
+Após novos deploys, o smoke recomendado é confirmar que a página deixa de exibir estado `unavailable` durante `429` e passa a informar a rota de contingência ou usar snapshot válido. Em falha total deliberada, a página deve continuar respondendo e manter os links das 24 cidades disponíveis.
