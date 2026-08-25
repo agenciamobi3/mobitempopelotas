@@ -44,6 +44,9 @@ jobs:
       - name: Contratos rápidos
         run: npm run test:contracts
 
+      - name: Resiliência das rotas públicas
+        run: node --test tests/public-route-resilience.test.ts
+
       - name: Navegação editorial e megamenu
         run: node --test tests/editorial-megamenu-navigation.test.ts
 
