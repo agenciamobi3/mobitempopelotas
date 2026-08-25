@@ -11,6 +11,7 @@ const PELOTAS_IBGE_CODE = "4314407";
 const INMET_RSS_URL = "https://apiprevmet3.inmet.gov.br/avisos/rss";
 const INMET_PORTAL_URL = "https://avisos.inmet.gov.br/";
 const MAX_RSS_DETAIL_REQUESTS = 8;
+const RSS_ENRICHMENT_DEADLINE_MS = 1_800;
 
 type RssAlert = InmetAlert & {
   numericIds: string[];
@@ -127,13 +128,13 @@ function relevanceFromCap(info: string, municipalityCodes: string[]): InmetAlert
     : "state";
 }
 
-async function fetchText(url: string) {
+async function fetchText(url: string, signal?: AbortSignal) {
   const response = await fetch(url, {
     headers: {
       Accept: "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.1",
       "User-Agent": "TEMPO-Pelotas/2.0 (+https://tempopelotas.com.br)",
     },
-    signal: AbortSignal.timeout(WEATHER_SOURCE_REQUEST_TIMEOUT_MS.inmet),
+    signal: signal ?? AbortSignal.timeout(WEATHER_SOURCE_REQUEST_TIMEOUT_MS.inmet),
   });
 
   if (!response.ok) throw new Error(`INMET RSS respondeu com HTTP ${response.status}.`);
@@ -229,14 +230,14 @@ function idsForAlert(alert: InmetAlert) {
   return numericIds(alert.id, alert.officialUrl);
 }
 
-async function fetchRssAlerts(baseAlerts: InmetAlert[]) {
-  const feedXml = await fetchText(INMET_RSS_URL);
+async function fetchRssAlerts(baseAlerts: InmetAlert[], signal: AbortSignal) {
+  const feedXml = await fetchText(INMET_RSS_URL, signal);
   const preferredIds = unique(baseAlerts.flatMap((alert) => idsForAlert(alert)));
   const detailUrls = extractDetailUrls(feedXml, preferredIds);
   if (!detailUrls.length) return [];
 
   const settled = await Promise.allSettled(
-    detailUrls.map(async (detailUrl) => parseCapAlert(await fetchText(detailUrl), detailUrl)),
+    detailUrls.map(async (detailUrl) => parseCapAlert(await fetchText(detailUrl, signal), detailUrl)),
   );
 
   return settled.flatMap((result) =>
@@ -334,11 +335,14 @@ function summarize(base: InmetAlerts, alerts: InmetAlert[], rssUsed: boolean): I
  * identificadores permitem o cruzamento.
  */
 export async function fetchStableInmetAlerts(): Promise<InmetAlerts> {
+  const rssSignal = AbortSignal.timeout(RSS_ENRICHMENT_DEADLINE_MS);
   const base = await fetchBaseInmetAlerts();
   const baseAlerts = base.alerts.map((alert) => enrichAlert(alert, []));
 
+  if (rssSignal.aborted) return summarize(base, baseAlerts, false);
+
   try {
-    const rssAlerts = await fetchRssAlerts(baseAlerts);
+    const rssAlerts = await fetchRssAlerts(baseAlerts, rssSignal);
     if (!rssAlerts.length) return summarize(base, baseAlerts, false);
 
     const enriched = baseAlerts.map((alert) => enrichAlert(alert, rssAlerts));
