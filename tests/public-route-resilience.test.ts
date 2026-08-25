@@ -35,7 +35,7 @@ test("fallback meteorologico final preserva o contrato sem inventar valores", ()
 });
 
 test("server fn meteorologica possui ultima barreira e prazo maximo", () => {
-  assert.match(weatherFunctions, /WEATHER_INTELLIGENCE_DEADLINE_MS = 5_500/);
+  assert.match(weatherFunctions, /WEATHER_INTELLIGENCE_DEADLINE_MS = 3_000/);
   assert.match(weatherFunctions, /Promise\.race/);
   assert.match(weatherFunctions, /fetchWeatherIntelligence\(\)/);
   assert.match(weatherFunctions, /createUnavailableWeatherIntelligence\(\)/);
