@@ -1,0 +1,288 @@
+.rain-accumulation {
+  position: relative;
+  display: grid;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  width: 100%;
+  padding: clamp(1.35rem, 3vw, 2.5rem);
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 1.3rem;
+  background:
+    radial-gradient(circle at 3% 5%, rgb(24 189 205 / 8%), transparent 24rem),
+    radial-gradient(circle at 97% 5%, rgb(94 44 237 / 5%), transparent 22rem),
+    rgb(255 255 255 / 96%);
+  box-shadow: 0 14px 36px rgb(7 30 47 / 4.5%);
+}
+
+.rain-accumulation::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, #18bdcd 0 28%, #5e2ced 28% 60%, #e70b85 60% 82%, #f27035 82%);
+  content: "";
+}
+
+.rain-accumulation__heading,
+.rain-accumulation__regional > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.rain-accumulation__heading > div,
+.rain-accumulation__regional > header > div {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.rain-accumulation__heading h2,
+.rain-accumulation__regional h3 {
+  margin: 0;
+  color: var(--portal-ink);
+  font-weight: 720;
+  letter-spacing: -0.055em;
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.rain-accumulation__heading h2 {
+  max-width: 18ch;
+  font-size: clamp(2rem, 3.5vw, 3.6rem);
+}
+
+.rain-accumulation__regional h3 {
+  font-size: clamp(1.45rem, 2.4vw, 2.35rem);
+}
+
+.rain-accumulation__heading > p {
+  max-width: 52ch;
+  margin: 0;
+  color: #526d79;
+  font-size: clamp(0.84rem, 0.8rem + 0.1vw, 0.95rem);
+  line-height: 1.65;
+}
+
+.rain-accumulation__summary,
+.rain-accumulation__regional-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.rain-accumulation__summary article,
+.rain-accumulation__regional-grid article {
+  display: grid;
+  min-width: 0;
+  gap: 0.65rem;
+  padding: 1.05rem;
+  border: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0.95rem;
+  background: rgb(255 255 255 / 90%);
+}
+
+.rain-accumulation__summary article.is-observed {
+  border-color: rgb(24 189 205 / 24%);
+  background: rgb(241 252 252 / 92%);
+}
+
+.rain-accumulation__summary article.is-forecast {
+  border-color: rgb(94 44 237 / 18%);
+  background: rgb(249 247 255 / 92%);
+}
+
+.rain-accumulation__summary article > svg,
+.rain-accumulation__station-heading > svg,
+.rain-accumulation__regional-state > svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+  color: #078997;
+}
+
+.rain-accumulation__summary article.is-forecast > svg {
+  color: #5e2ced;
+}
+
+.rain-accumulation__summary span,
+.rain-accumulation__regional > header span {
+  color: #637b87;
+  font-size: 0.73rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.rain-accumulation__summary strong {
+  color: var(--portal-ink);
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  letter-spacing: -0.04em;
+}
+
+.rain-accumulation__summary small,
+.rain-accumulation__regional-grid small,
+.rain-accumulation__regional-note,
+.rain-accumulation__regional-state {
+  color: #637b87;
+  font-size: clamp(0.75rem, 0.72rem + 0.08vw, 0.83rem);
+  line-height: 1.5;
+}
+
+.rain-accumulation__rule {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.95rem 1.05rem;
+  border: 1px solid rgb(242 112 53 / 18%);
+  border-radius: 0.9rem;
+  background: rgb(255 249 245 / 88%);
+}
+
+.rain-accumulation__rule strong {
+  color: #983d18;
+  font-size: 0.83rem;
+}
+
+.rain-accumulation__rule p {
+  margin: 0;
+  color: #5e6f76;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.rain-accumulation__rule a,
+.rain-accumulation__regional > header a {
+  color: #5e2ced;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.rain-accumulation__regional {
+  display: grid;
+  gap: 0.85rem;
+  padding-top: 0.25rem;
+}
+
+.rain-accumulation__regional-grid article {
+  min-height: 13rem;
+  align-content: start;
+}
+
+.rain-accumulation__station-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.rain-accumulation__station-heading > div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.rain-accumulation__station-heading strong {
+  color: var(--portal-ink);
+  font-size: 0.9rem;
+}
+
+.rain-accumulation__regional-grid dl {
+  display: grid;
+  margin: 0;
+  gap: 0.45rem;
+}
+
+.rain-accumulation__regional-grid dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgb(7 30 47 / 7%);
+}
+
+.rain-accumulation__regional-grid dt {
+  color: #637b87;
+  font-size: 0.72rem;
+}
+
+.rain-accumulation__regional-grid dd {
+  margin: 0;
+  color: var(--portal-ink);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.rain-accumulation__regional-note {
+  margin: 0;
+}
+
+.rain-accumulation__regional-state {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 4.5rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed rgb(7 30 47 / 14%);
+  border-radius: 0.85rem;
+  background: rgb(248 251 252 / 82%);
+}
+
+.rain-accumulation a:focus-visible {
+  outline: 3px solid rgb(24 189 205 / 38%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1100px) {
+  .rain-accumulation__summary,
+  .rain-accumulation__regional-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .rain-accumulation__heading,
+  .rain-accumulation__regional > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rain-accumulation__rule {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .rain-accumulation {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+
+  .rain-accumulation__summary,
+  .rain-accumulation__regional-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rain-accumulation *,
+  .rain-accumulation *::before,
+  .rain-accumulation *::after {
+    scroll-behavior: auto;
+    transition: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .rain-accumulation,
+  .rain-accumulation__summary article,
+  .rain-accumulation__regional-grid article,
+  .rain-accumulation__rule,
+  .rain-accumulation__regional-state {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
