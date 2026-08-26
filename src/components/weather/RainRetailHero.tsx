@@ -24,6 +24,7 @@ type RainRetailHeroProps = {
   weather: WeatherData;
   advisoryLevel: AdvisoryLevel;
   officialAlertCount?: number;
+  observedRainDaily?: number | null;
 };
 
 type RetailMetric = {
@@ -87,12 +88,13 @@ export function RainRetailHero({
   weather,
   advisoryLevel,
   officialAlertCount = 0,
+  observedRainDaily = null,
 }: RainRetailHeroProps) {
   const hours = weather.hourly.slice(0, 12);
   const days = weather.daily.slice(0, 7);
   const hasHourlyForecast = hours.length > 0;
   const hasDailyForecast = days.length > 0;
-  const hasRainData = hasHourlyForecast || hasDailyForecast;
+  const hasRainData = hasHourlyForecast || hasDailyForecast || observedRainDaily !== null;
   const today = days[0] ?? null;
   const peakCandidate = hours.reduce<(typeof hours)[number] | null>(
     (selected, hour) =>
@@ -121,29 +123,34 @@ export function RainRetailHero({
   const hasAlert = officialAlertCount > 0;
   const metrics: RetailMetric[] = [
     {
+      label: "Chuva observada hoje",
+      value: observedRainDaily === null ? "Em atualização" : formatMillimeters(observedRainDaily),
+      detail: "Medição da Embrapa",
+      icon: Gauge,
+    },
+    {
       label: "Volume previsto hoje",
       value: formatMillimeters(today?.precipitation),
+      detail: "Previsão do modelo",
       icon: Droplets,
     },
     {
       label: "Total previsto em 7 dias",
       value: hasDailyForecast ? formatMillimeters(totalRain) : "—",
-      icon: Gauge,
-    },
-    {
-      label: "Horários com 30% ou mais",
-      value: hasHourlyForecast ? `${wetHours} de ${hours.length}` : "Em atualização",
-      icon: Umbrella,
+      detail: "Não somado ao observado",
+      icon: CloudRain,
     },
   ];
 
   const description = hasHourlyForecast && hasDailyForecast
-    ? "Veja a chance de chuva nas próximas 12 horas, o volume estimado para hoje e os dias com maior possibilidade de precipitação."
+    ? "Veja quanto a estação local já registrou e compare, sem somar os períodos, com a chance e o volume previstos para hoje e os próximos dias."
     : hasHourlyForecast
-      ? "Veja a chance de chuva nas próximas horas. O volume diário e a previsão dos próximos dias estão em atualização."
+      ? "Veja a chuva observada na estação local e a chance prevista nas próximas horas. O volume diário ainda está em atualização."
       : hasDailyForecast
-        ? "A previsão diária está disponível; a chance de chuva por horário ainda está em atualização."
-        : "A previsão de chuva está em atualização. Consulte novamente em alguns instantes.";
+        ? "A chuva observada e a previsão diária estão disponíveis; a chance por horário ainda está em atualização."
+        : observedRainDaily !== null
+          ? "A medição local de chuva está disponível enquanto a previsão detalhada é atualizada."
+          : "Os dados de chuva estão em atualização. Consulte novamente em alguns instantes.";
 
   const hourlyChanceLabel = highestRainChance === null
     ? "Chance horária em atualização"
@@ -170,7 +177,7 @@ export function RainRetailHero({
           </span>
 
           <h1 id="rain-retail-hero-title">
-            Chuva em Pelotas: <span>chance por horário e volume previsto.</span>
+            Chuva em Pelotas hoje: <span>acumulado, chance e previsão.</span>
           </h1>
 
           <p>{description}</p>
@@ -191,23 +198,13 @@ export function RainRetailHero({
           </div>
 
           <div className="today-retail-hero__actions">
-            {hasHourlyForecast ? (
-              <a className="today-retail-hero__primary" href="#chuva-por-hora">
-                Ver chance por horário <ArrowRight aria-hidden="true" />
-              </a>
-            ) : hasDailyForecast ? (
-              <a className="today-retail-hero__primary" href="#chuva-na-semana">
-                Ver chuva nos próximos 7 dias <ArrowRight aria-hidden="true" />
-              </a>
-            ) : (
-              <Link className="today-retail-hero__primary" to="/tempo-hoje-pelotas">
-                Ver tempo de hoje <ArrowRight aria-hidden="true" />
-              </Link>
-            )}
+            <a className="today-retail-hero__primary" href="#chuva-acumulada">
+              Ver chuva acumulada <ArrowRight aria-hidden="true" />
+            </a>
 
-            {hasDailyForecast && hasHourlyForecast ? (
-              <a className="today-retail-hero__secondary" href="#chuva-na-semana">
-                Ver chuva nos próximos 7 dias
+            {hasHourlyForecast ? (
+              <a className="today-retail-hero__secondary" href="#chuva-por-hora">
+                Ver chance por horário
               </a>
             ) : (
               <Link className="today-retail-hero__secondary" to="/previsao-7-dias-pelotas">
@@ -221,7 +218,7 @@ export function RainRetailHero({
           <article
             className="today-retail-hero__current rain-retail-hero__current"
             style={photoStyle}
-            aria-label={hasRainData ? "Resumo da previsão de chuva em Pelotas" : "Previsão de chuva em atualização em Pelotas"}
+            aria-label={hasRainData ? "Resumo da chuva observada e prevista em Pelotas" : "Dados de chuva em atualização em Pelotas"}
           >
             <div
               className="today-retail-hero__current-photo"
@@ -233,7 +230,7 @@ export function RainRetailHero({
               <header>
                 <div>
                   <span>Pelotas, RS</span>
-                  <small>Previsão para as próximas 12 horas</small>
+                  <small>Observação local e previsão</small>
                 </div>
                 <b>
                   <i aria-hidden="true" /> Chuva
