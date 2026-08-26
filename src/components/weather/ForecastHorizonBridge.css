@@ -1,0 +1,86 @@
+.forecast-horizon-bridge {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: clamp(1.1rem, 2.4vw, 1.7rem);
+  border: 1px solid rgb(94 44 237 / 14%);
+  border-radius: 1rem;
+  background:
+    radial-gradient(circle at 2% 50%, rgb(24 189 205 / 9%), transparent 18rem),
+    radial-gradient(circle at 98% 20%, rgb(94 44 237 / 8%), transparent 20rem),
+    rgb(255 255 255 / 96%);
+}
+
+.forecast-horizon-bridge > svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  color: #5e2ced;
+}
+
+.forecast-horizon-bridge > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.forecast-horizon-bridge span {
+  color: #078997;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.forecast-horizon-bridge h2,
+.forecast-horizon-bridge p {
+  margin: 0;
+}
+
+.forecast-horizon-bridge h2 {
+  color: var(--portal-ink);
+  font-size: clamp(1.25rem, 2.1vw, 1.8rem);
+  letter-spacing: -0.035em;
+}
+
+.forecast-horizon-bridge p {
+  max-width: 72ch;
+  color: #5d7683;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.forecast-horizon-bridge > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 999px;
+  background: #5e2ced;
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.forecast-horizon-bridge > a svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.forecast-horizon-bridge > a:focus-visible {
+  outline: 3px solid rgb(24 189 205 / 42%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .forecast-horizon-bridge {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .forecast-horizon-bridge > a {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
