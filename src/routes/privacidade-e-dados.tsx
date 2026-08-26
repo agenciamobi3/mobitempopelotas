@@ -78,7 +78,9 @@ function PrivacyDataPage() {
               dados e remover definitivamente a conta.
             </p>
             <div className="privacy-actions">
-              <Link to="/conta">Abrir minha conta</Link>
+              <Link to="/conta" search={{ erro: undefined, next: "/conta" }}>
+                Abrir minha conta
+              </Link>
               <Link to="/metodologia">Consultar metodologia e fontes</Link>
             </div>
           </section>
