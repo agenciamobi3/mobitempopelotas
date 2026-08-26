@@ -1,0 +1,139 @@
+.hydrology-current-answer {
+  width: min(100% - 2rem, var(--internal-weather-frame-max, 1180px));
+  margin: 1.25rem auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--background, #fff) 94%, #e8f7fb 6%);
+  scroll-margin-top: 8rem;
+}
+
+.hydrology-current-answer__copy {
+  min-width: 0;
+}
+
+.hydrology-current-answer__eyebrow {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.72;
+}
+
+.hydrology-current-answer h2 {
+  margin: 0;
+  font-size: clamp(1.55rem, 2.8vw, 2.35rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+
+.hydrology-current-answer__copy > p {
+  margin: 0.8rem 0 0;
+  max-width: 70ch;
+  line-height: 1.65;
+  opacity: 0.82;
+}
+
+.hydrology-current-answer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.hydrology-current-answer__actions a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.68rem 0.9rem;
+  border-radius: 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.hydrology-current-answer__signals {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.hydrology-current-answer__signals article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  padding: 0.9rem;
+  border: 1px solid color-mix(in srgb, currentColor 11%, transparent);
+  border-radius: 0.95rem;
+  background: color-mix(in srgb, var(--background, #fff) 97%, currentColor 3%);
+}
+
+.hydrology-current-answer__signals article > svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.12rem;
+}
+
+.hydrology-current-answer__signals article > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+
+.hydrology-current-answer__signals strong {
+  font-size: 0.94rem;
+  line-height: 1.3;
+}
+
+.hydrology-current-answer__signals span {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  opacity: 0.75;
+}
+
+.hydrology-current-answer__signals .is-stale,
+.hydrology-current-answer__signals .is-unavailable {
+  border-style: dashed;
+}
+
+@media (max-width: 860px) {
+  .hydrology-current-answer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .hydrology-current-answer {
+    width: min(100% - 1rem, var(--internal-weather-frame-max, 1180px));
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+
+  .hydrology-current-answer__actions {
+    display: grid;
+  }
+
+  .hydrology-current-answer__actions a {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hydrology-current-answer *,
+  .hydrology-current-answer *::before,
+  .hydrology-current-answer *::after {
+    scroll-behavior: auto;
+  }
+}
+
+.hydrology-current-answer a:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 3px;
+}

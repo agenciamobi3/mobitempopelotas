@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
 import { DefesaCivilHydroNetwork } from "@/components/hydrology/DefesaCivilHydroNetwork";
+import { HydrologyCurrentSituationAnswer } from "@/components/hydrology/HydrologyCurrentSituationAnswer";
 import {
   HydrologyOverviewHero,
   HydrologyOverviewV2,
@@ -19,9 +20,9 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Situação das águas em Pelotas";
+const PAGE_TITLE = "Enchente em Pelotas hoje? Situação das águas e níveis";
 const PAGE_DESCRIPTION =
-  "Acompanhe o nível no Laranjal, pontos da Lagoa dos Patos, o Guaíba e rios ligados ao SACE, com horário, tendência e informações sobre chuva e vento.";
+  "Veja a situação das águas em Pelotas hoje, com nível do Laranjal, Lagoa dos Patos, Guaíba e SACE, horários das leituras e contexto sem transformar nível isolado em diagnóstico de enchente.";
 const PAGE_PATH = "/situacao-hidrologica-pelotas";
 
 const HYDROLOGY_PAGE_CONTENT = {
@@ -42,6 +43,16 @@ const HYDROLOGY_PAGE_CONTENT = {
     "Quando uma estação não transmite, não há dado atual para interpretar; isso não significa que o nível esteja normal.",
   ],
   faqs: [
+    {
+      question: "Há enchente em Pelotas hoje?",
+      answer:
+        "O Tempo Pelotas não confirma enchente ou risco para a cidade a partir de uma única régua. A página reúne as leituras mais recentes disponíveis do Laranjal, Lagoa dos Patos, Guaíba e redes regionais, preservando horário e classificação de cada fonte. Para decisões de segurança, consulte a Defesa Civil e as autoridades locais.",
+    },
+    {
+      question: "Existe risco de enchente em Pelotas?",
+      answer:
+        "Nível de uma estação, chuva ou vento isolados não bastam para afirmar risco para toda a cidade. O portal mostra os sinais disponíveis sem convertê-los automaticamente em alerta. Quando houver orientação oficial, ela deve prevalecer para decisões de segurança.",
+    },
     ...HYDROLOGY_EDITORIAL_CONTENT.faqs,
     {
       question: "Como o Tempo Pelotas pretende usar os dados da ANA e da RHN?",
@@ -115,6 +126,8 @@ export const Route = createFileRoute("/situacao-hidrologica-pelotas")({
           { name: "Situação das águas em Pelotas", path: PAGE_PATH },
         ],
         about: [
+          "Enchente em Pelotas hoje",
+          "Risco de enchente em Pelotas",
           "Nível da Lagoa dos Patos",
           "Estação Laranjal",
           "Rede Hidrometeorológica Nacional",
@@ -165,6 +178,11 @@ function SituacaoHidrologicaPage() {
         />
       )}
     >
+      <HydrologyCurrentSituationAnswer
+        level={data.level}
+        lagoon={data.lagoon}
+        sace={data.sace}
+      />
       <HydrologyOverviewV2
         weather={data.weather}
         level={data.level}

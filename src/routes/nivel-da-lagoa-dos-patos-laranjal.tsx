@@ -14,9 +14,9 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Nível da Lagoa dos Patos no Laranjal";
+const PAGE_TITLE = "Nível da Lagoa dos Patos hoje no Laranjal, Pelotas";
 const PAGE_DESCRIPTION =
-  "Acompanhe a medição da Estação Laranjal, a evolução do nível nas últimas 24 horas e informações sobre chuva e vento em Pelotas.";
+  "Veja o nível da Lagoa dos Patos hoje na Estação Laranjal, em Pelotas, com horário da última leitura, tendência e variação nas últimas 24 horas.";
 const PAGE_PATH = "/nivel-da-lagoa-dos-patos-laranjal";
 
 const LARANJAL_PAGE_CONTENT = {
@@ -33,6 +33,11 @@ const LARANJAL_PAGE_CONTENT = {
     "Em condição de risco, siga a Defesa Civil, as autoridades municipais e os comunicados oficiais.",
   ],
   faqs: [
+    {
+      question: "Qual é o nível da Lagoa dos Patos hoje em Pelotas?",
+      answer:
+        "A leitura mais recente da Estação Laranjal aparece no topo desta página, junto com o horário da medição, o estado de atualização e a tendência observada. A leitura representa a referência própria da estação no Laranjal e não toda a Lagoa dos Patos.",
+    },
     {
       question: "A medição exibida no Laranjal já vem da ANA/RHN?",
       answer:
@@ -86,7 +91,8 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
           { name: "Nível da Lagoa no Laranjal", path: PAGE_PATH },
         ],
         about: [
-          "Nível da Lagoa dos Patos",
+          "Nível da Lagoa dos Patos hoje",
+          "Nível da Lagoa dos Patos em Pelotas",
           "Estação Laranjal",
           "Praia do Laranjal",
           "Rede Hidrometeorológica Nacional",

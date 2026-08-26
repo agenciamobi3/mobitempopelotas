@@ -53,22 +53,22 @@ export function HydrologyEditorialHero({
           <ArrowLeft aria-hidden="true" /> {overview ? "Visão geral" : "Situação das águas"}
         </Link>
         <span className="hydrology-editorial-eyebrow">
-          {overview ? "Águas e segurança em Pelotas" : "Medição local · Estação Laranjal"}
+          {overview ? "Águas e segurança em Pelotas" : "Nível hoje · Estação Laranjal"}
         </span>
         <h1>
           {overview
             ? "Acompanhe as águas que influenciam Pelotas."
-            : "Nível da Lagoa dos Patos no Laranjal."}
+            : "Nível da Lagoa dos Patos hoje no Laranjal."}
         </h1>
         <p>
           {overview
             ? "Comece pela leitura local da Estação Laranjal, observe a mudança recente e compare com outros pontos da Lagoa e do Guaíba."
-            : "Acompanhe a medição pública do LabHidroSens/UFPel, a evolução das últimas 24 horas e as informações de chuva e vento para Pelotas."}
+            : "Veja a última leitura disponível da Estação Laranjal, o horário da medição, a tendência recente e a variação do nível nas últimas 24 horas."}
         </p>
 
         <div className="hydrology-editorial-points" aria-label="Informações principais">
-          <span>Leitura local com horário e origem</span>
-          <span>Mudança recente sem classificação automática de risco</span>
+          <span>Última leitura com horário e estado de atualização</span>
+          <span>Tendência e variações de 1 h, 6 h e 24 h</span>
         </div>
 
         <div className="hydrology-editorial-actions">
