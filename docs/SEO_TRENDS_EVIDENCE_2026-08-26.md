@@ -301,3 +301,110 @@ Cada novo lote de sugestões ou Trends deve ser classificado em uma destas açõ
 5. intenção ainda não possui evidência suficiente.
 
 Nenhuma página nova deve nascer apenas da presença de uma palavra-chave. Ela precisa conseguir entregar uma resposta útil, atualizada e diferenciada ao visitante.
+
+## 15. Próxima rodada ampla de HAR/Trends — coleta planejada
+
+Antes de fechar o mapa definitivo de páginas, realizar uma coleta maior no Google Trends e preservar o HAR apenas como insumo local de análise. O HAR bruto continua proibido no repositório por poder conter cookies, tokens e headers de sessão.
+
+### 15.1. Níveis e hidrologia
+
+Pesquisar e comparar, em blocos de até cinco termos:
+
+- `nível lagoa dos patos`;
+- `nível da lagoa dos patos hoje`;
+- `nível lagoa dos patos pelotas`;
+- `nível lagoa dos patos laranjal`;
+- `nível da lagoa em pelotas`;
+- `nível guaíba`;
+- `nível guaíba hoje`;
+- `nível canal são gonçalo`;
+- `nível lagoa dos patos rio grande`;
+- `situação lagoa dos patos`.
+
+Objetivo: separar busca por leitura/nível atual de busca por risco, enchente ou interpretação.
+
+### 15.2. Enchente, alagamento e risco
+
+Pesquisar:
+
+- `enchente pelotas`;
+- `alagamento pelotas`;
+- `lagoa dos patos enchente`;
+- `lagoa dos patos cheia`;
+- `risco de enchente pelotas`;
+- `tem risco de enchente em pelotas`;
+- `vai alagar no laranjal`.
+
+Objetivo: descobrir se existe intenção própria suficiente para página/estado de situação atual ou se as páginas hidrológicas existentes devem receber blocos de resposta direta.
+
+Não confundir nível de estação com afirmação automática de inundação, segurança ou risco.
+
+### 15.3. Eventos meteorológicos
+
+Pesquisar:
+
+- `ciclone pelotas`;
+- `temporal pelotas`;
+- `alerta pelotas`;
+- `chuva forte pelotas`;
+- `acumulado de chuva pelotas`;
+- `vento forte pelotas`;
+- `rajadas pelotas`;
+- `radar chuva pelotas`;
+- `granizo pelotas`;
+- `geada pelotas`;
+- `neblina pelotas`.
+
+Objetivo: identificar intenções episódicas que possam ser atendidas por páginas permanentes com estado dinâmico, sem publicar evento ou alerta sem confirmação por dado real/fonte oficial.
+
+### 15.4. Perguntas completas usadas pelo visitante
+
+Pesquisar formulações naturais como:
+
+- `qual o nível da lagoa dos patos hoje`;
+- `a lagoa dos patos está subindo`;
+- `tem risco de enchente em pelotas`;
+- `vai alagar no laranjal`;
+- `quanto choveu em pelotas hoje`;
+- `quanto vai chover em pelotas`;
+- `vai chover sábado em pelotas`;
+- `como vai ficar o tempo sexta em pelotas`.
+
+Objetivo: capturar a linguagem de pergunta que pode orientar H2, resposta curta, FAQ visível ou seção de uma página existente. Não criar URL separada para cada pergunta.
+
+### 15.5. Dias da semana e fim de semana
+
+Completar a validação iniciada nesta rodada com:
+
+- sexta-feira;
+- sábado;
+- domingo;
+- fim de semana;
+- variações `vai chover`, `como vai ficar o tempo`, `tempo de manhã`, `tempo à tarde` e `tempo à noite` quando o Trends sugerir volume/sinal suficiente.
+
+### 15.6. Como coletar
+
+Quando possível:
+
+1. usar janela anual e registrar a janela exata;
+2. pesquisar primeiro Brasil e depois Rio Grande do Sul;
+3. exportar `Principais` e `Em ascensão` para cada bloco relevante;
+4. preservar comparações usadas como referência de escala, como `tempo amanhã` e `previsão 7 dias`;
+5. manter o HAR completo fora do Git;
+6. enviar o HAR e os CSVs para análise conjunta;
+7. não reutilizar cookies, tokens ou headers autenticados encontrados no HAR.
+
+### 15.7. Método de análise do HAR grande
+
+A próxima análise deve ser feita por camadas, não por leitura manual linear do arquivo inteiro:
+
+1. inventariar as requisições do Trends e identificar endpoints que carregam interesse ao longo do tempo, consultas relacionadas e comparações;
+2. extrair somente payloads úteis e sanitizados;
+3. agrupar os resultados por intenção: previsão curta, dia da semana, horizonte estendido, hidrologia, risco, eventos, cidades e perguntas completas;
+4. cruzar termos repetidos entre diferentes consultas do Trends;
+5. separar `top` de `rising` e registrar que os índices são relativos;
+6. comparar Brasil versus Rio Grande do Sul quando os dois recortes existirem;
+7. produzir uma matriz `consulta -> intenção -> página atual -> ação -> dado necessário -> prioridade`;
+8. só depois propor novas URLs ou alterações de copy.
+
+O objetivo dessa rodada maior é fechar um plano SEO sustentado por linguagem real de busca, sem transformar o portal em coleção de páginas genéricas ou duplicadas.
