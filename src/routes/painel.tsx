@@ -19,7 +19,10 @@ export const Route = createFileRoute("/painel")({
   loader: async () => {
     const snapshot = await getAccountSnapshot();
     if (snapshot.status === "unauthenticated") {
-      throw redirect({ to: "/conta", search: { next: "/painel" } });
+      throw redirect({
+        to: "/conta",
+        search: { erro: undefined, next: "/painel" },
+      });
     }
     return snapshot;
   },
