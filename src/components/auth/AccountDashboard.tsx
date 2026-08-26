@@ -16,12 +16,13 @@ const dashboardFooterSource = {
 } satisfies WeatherData["source"];
 
 type AuthenticatedAccount = Extract<AccountSnapshot, { status: "authenticated" }>;
+type DashboardPublicPath = "/situacao-hidrologica-pelotas" | "/radar-e-satelite-pelotas";
 
 type DashboardModule = {
   title: string;
   description: string;
   state: "available" | "preparing" | "pro";
-  href?: string;
+  href?: DashboardPublicPath;
 };
 
 function moduleStateLabel(state: DashboardModule["state"]) {
@@ -93,7 +94,11 @@ export function AccountDashboard({ snapshot }: { snapshot: AuthenticatedAccount 
           </div>
 
           <div className="account-dashboard__actions">
-            <Link className="account-dashboard__primary" to="/conta">
+            <Link
+              className="account-dashboard__primary"
+              to="/conta"
+              search={{ erro: undefined, next: "/conta" }}
+            >
               Configurar minha conta
             </Link>
             <Link className="account-dashboard__secondary" to="/">
