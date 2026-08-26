@@ -56,7 +56,7 @@ export function evaluateRegionalCandidateDraftPromotion(
     findRegionalCandidateValidation(candidate.slug),
 ): RegionalCandidateDraftPromotionResult {
   const reasons: RegionalCandidateDraftPromotionReason[] = [];
-  const readiness = evaluateRegionalCandidateReadiness(candidate);
+  const readinessEvaluation = evaluateRegionalCandidateReadiness(candidate);
 
   if (candidate.status !== "approved") {
     reasons.push("not-approved");
@@ -70,7 +70,7 @@ export function evaluateRegionalCandidateDraftPromotion(
     reasons.push("coordinates-not-validated");
   }
 
-  if (!readiness.hydrologyEvidenceValidated) {
+  if (!readinessEvaluation.readiness.hydrologyEvidenceValidated) {
     reasons.push("hydrology-not-validated");
   }
 
