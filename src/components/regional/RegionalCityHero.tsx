@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, CloudRain } from "lucide-react";
 
 import { WeatherSplitHero, type WeatherSplitHeroTone } from "@/components/weather/WeatherSplitHero";
+import { regionalCityEditorialProfile } from "@/lib/regional-city-editorial";
 import { selectPriorityRegionalAlert } from "@/lib/weather/regional-alert-priority";
 import type { RegionalCityWeatherData } from "@/lib/weather/regional-city-weather.types";
 import { WeatherIcon } from "@/production/components/weather-icon";
@@ -46,6 +47,7 @@ function heroTone(data: RegionalCityWeatherData): WeatherSplitHeroTone {
 
 export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
   const city = data.city;
+  const editorial = regionalCityEditorialProfile(city);
   const current = data.current;
   const today = data.daily[0] ?? null;
   const hasHourlyForecast = Boolean(today && data.hourly.length > 0);
@@ -80,11 +82,11 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
       ? `${condition} · sensação não informada`
       : `${condition} · sensação de ${metric(current.feelsLike, "°")}`
     : "Estimativa atual em atualização";
-  const description = current && hasHourlyForecast
-    ? "Compare a condição estimada agora com temperatura, chuva e vento previstos para as próximas horas e veja a tendência dos próximos dias no município."
+  const description = editorial?.heroDescription ?? (current && hasHourlyForecast
+    ? `Veja o tempo em ${city.name} agora, compare temperatura, chuva e vento nas próximas horas e acompanhe a tendência dos próximos dias.`
     : hasHourlyForecast || hasDailyTrend
-      ? "A estimativa atual pode estar em atualização. Consulte a previsão disponível para as próximas horas ou dias do município."
-      : "Os dados meteorológicos deste município estão em atualização. Nenhum valor foi preenchido manualmente.";
+      ? `A estimativa atual de ${city.name} pode estar em atualização. Consulte a previsão disponível para as próximas horas e dias.`
+      : `Os dados meteorológicos de ${city.name} estão em atualização. Nenhum valor foi preenchido manualmente.`);
 
   const primaryAction = hasHourlyForecast ? (
     <a href="#previsao-hoje">
@@ -110,7 +112,7 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
         </Link>
       }
       eyebrow={`Previsão local · ${city.group}`}
-      title={`Como o tempo deve mudar em ${city.name}.`}
+      title={`Tempo em ${city.name} hoje`}
       description={description}
       actions={
         <>
