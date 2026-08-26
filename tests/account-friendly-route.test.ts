@@ -9,6 +9,7 @@ const legacyAccountRoute = readFileSync("src/routes/minha-conta.tsx", "utf8");
 const callbackRoute = readFileSync("src/routes/auth/callback.ts", "utf8");
 const accountAction = readFileSync("src/components/auth/AuthAccountAction.tsx", "utf8");
 const accountPage = readFileSync("src/components/auth/AccountPage.tsx", "utf8");
+const accountDashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
 const loginCard = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const privacyPage = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
@@ -26,7 +27,11 @@ test("friendly account route serves both visitor login and authenticated prefere
 test("authenticated dashboard is a separate noindex route shared by Free and PRO", () => {
   assert.match(dashboardRoute, /createFileRoute\("\/painel"\)/);
   assert.match(dashboardRoute, /getAccountSnapshot/);
-  assert.match(dashboardRoute, /redirect\(\{ to: "\/conta", search: \{ next: "\/painel" \} \}\)/);
+  assert.match(dashboardRoute, /to:\s*"\/conta"/);
+  assert.match(
+    dashboardRoute,
+    /search:\s*\{\s*erro:\s*undefined,\s*next:\s*"\/painel"\s*\}/,
+  );
   assert.match(dashboardRoute, /<AccountDashboard snapshot=\{snapshot\}/);
   assert.match(dashboardRoute, /noindex, nofollow/);
 });
@@ -53,7 +58,9 @@ test("active authentication flow no longer generates the old query URL", () => {
   assert.match(accountPage, /window\.location\.assign\("\/conta"\)/);
   assert.match(accountPage, /<Link to="\/painel">Abrir meu painel/);
   assert.match(loginCard, /safeNextPath\(nextPath, "\/conta"\)/);
-  assert.match(privacyPage, /<Link to="\/conta">Abrir minha conta<\/Link>/);
+  assert.match(privacyPage, /to="\/conta" search=\{\{ erro: undefined, next: "\/conta" \}\}/);
+  assert.match(accountDashboard, /to="\/conta"/);
+  assert.match(accountDashboard, /search=\{\{ erro: undefined, next: "\/conta" \}\}/);
 });
 
 test("account and dashboard routes are rendered without the generic topic shell", () => {
