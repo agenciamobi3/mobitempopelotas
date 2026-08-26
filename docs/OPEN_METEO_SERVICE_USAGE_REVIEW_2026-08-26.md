@@ -43,6 +43,17 @@ Portanto:
 
 São contratos diferentes e precisam ser tratados separadamente.
 
+### 2.3. Seasonal Forecast API e nível de plano
+
+Na tabela de preços revisada em 26/08/2026, a família que inclui Seasonal Forecast API, Ensemble Weather API, Historical Weather API, Historical Forecast API, Previous Model Runs API e Single Runs API aparece disponível no Free/Open-Access e nos planos Professional/Enterprise, mas não no Standard.
+
+Consequência para o desenho atual:
+
+- para uso comercial apenas do forecast padrão, um plano comercial compatível pode ser suficiente conforme os termos vigentes;
+- para a tendência de 30 dias baseada na Seasonal Forecast API, o plano comercial precisa oferecer essa API; na tabela atual isso aponta para **Professional ou Enterprise**, ou então self-host/alternativa licenciada.
+
+Não codificar o tier como verdade permanente. Preços e escopo de plano são condições externas e devem ser conferidos antes da contratação/ativação.
+
 ## 3. Situação atual encontrada no repositório
 
 A auditoria do código ativo encontrou chamadas diretas ao endpoint público `https://api.open-meteo.com/v1/forecast` em vários fluxos, incluindo:
@@ -71,6 +82,17 @@ Na revisão desta data, não foi encontrada no repositório uma configuração e
 O `.env.example` também não possui essas variáveis.
 
 Conclusão operacional: **não assumir que a modalidade comercial/self-host já está resolvida apenas porque a integração técnica existe e funciona.**
+
+### 3.1. Atribuição pública já existente
+
+A auditoria do footer confirmou que a atribuição básica ao Open-Meteo já existe no portal:
+
+- `src/lib/public-source-links.ts` registra `Open-Meteo` com link para `https://open-meteo.com/`;
+- `src/components/layout/Footer.tsx` renderiza esse mapa de fontes no bloco `Fontes e proveniência` do footer compartilhado.
+
+Isso é positivo e deve ser preservado.
+
+Ainda assim, a revisão futura deve confirmar se a forma/posição final atende integralmente à exigência vigente de atribuição para todas as superfícies que exibem dados Open-Meteo, inclusive APIs, embeds ou experiências que possam não carregar o footer normal.
 
 ## 4. Impacto sobre a previsão de 30 dias
 
@@ -120,6 +142,8 @@ O próprio ECMWF orienta a faixa subseasonal como leitura das condições média
 - `precipitation_mean`;
 - `precipitation_anomaly`.
 
+Os nomes acima foram confirmados também no enum `ForecastVariableWeekly` do código upstream do Open-Meteo.
+
 Não ampliar o primeiro contrato com EFI, SOT ou probabilidades avançadas antes de a página básica estar validada e a semântica de cada campo estar coberta por testes.
 
 ## 6. Como a interface deve traduzir o dado
@@ -143,7 +167,7 @@ Escolher e registrar uma das modalidades abaixo.
 
 ### Opção A — API comercial Open-Meteo
 
-- contratar plano adequado;
+- contratar plano que inclua a Seasonal Forecast API;
 - usar endpoint customer correspondente;
 - armazenar API key somente server-side;
 - nunca colocar a chave em `VITE_*`;
@@ -151,6 +175,8 @@ Escolher e registrar uma das modalidades abaixo.
 - garantir atribuição CC BY 4.0 no produto.
 
 O código upstream do Open-Meteo reconhece explicitamente `customer-seasonal-api.open-meteo.com` como host da Seasonal API.
+
+No quadro de planos consultado em 26/08/2026, Seasonal Forecast API não aparece habilitada no Standard; aparece na família de APIs disponível em Professional/Enterprise. Confirmar novamente antes de assinar, porque essa condição é externa e pode mudar.
 
 ### Opção B — self-host
 
