@@ -26,6 +26,7 @@ const ALERTS_PAGE_CONTENT = {
     "Confira sempre os horários de início e término, porque um aviso programado ainda pode não estar em vigor.",
     "Um alerta regional ou estadual não significa, necessariamente, que todos os bairros de Pelotas terão o mesmo impacto.",
     "A página preserva o horário de publicação, a validade e a lista territorial recebida do aviso oficial quando esses campos estão disponíveis no CAP/RSS do INMET.",
+    "Um alerta de chuva não informa quanto já choveu na estação local; acumulados observados e previsão ficam na página de chuva.",
     "A ausência de alerta não elimina mudanças rápidas no tempo nem substitui o acompanhamento de radar e previsão.",
     "Quando a consulta ao INMET estiver indisponível, a página informa a falha em vez de interpretar a ausência de dados como ausência de risco.",
     "Em situação de risco, siga prioritariamente as orientações do INMET, da Defesa Civil e das autoridades locais.",
@@ -40,6 +41,11 @@ const ALERTS_PAGE_CONTENT = {
       question: "Nenhum alerta listado significa que não haverá temporal?",
       answer:
         "Não. Significa apenas que não há aviso ativo ou programado do INMET identificado para Pelotas nos dados consultados. Mudanças locais e rápidas ainda podem ocorrer.",
+    },
+    {
+      question: "O alerta do INMET informa quanto choveu em Pelotas?",
+      answer:
+        "Não necessariamente. O aviso descreve fenômeno, período, abrangência e perigo. Para consultar chuva já medida e separar esse valor do volume previsto, use a página Chuva em Pelotas.",
     },
     {
       question: "O que significa um alerta programado?",
@@ -74,9 +80,9 @@ const ALERTS_PAGE_CONTENT = {
       description: "Acompanhe áreas de chuva, nuvens e imagens meteorológicas recentes.",
     },
     {
-      label: "Chuva por horário em Pelotas",
+      label: "Chuva acumulada e por horário em Pelotas",
       href: "/chuva-em-pelotas" as const,
-      description: "Compare chance, volume e os períodos de maior possibilidade de chuva.",
+      description: "Compare o que já foi medido com chance e volume previstos, sem misturar as séries.",
     },
     {
       label: "Metodologia do Tempo Pelotas",
