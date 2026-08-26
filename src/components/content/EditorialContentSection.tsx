@@ -1,12 +1,31 @@
 import { Link } from "@tanstack/react-router";
 
-import type { EditorialContentDefinition } from "@/lib/editorial-content";
+import type {
+  EditorialContentDefinition,
+  EditorialRelatedLink,
+} from "@/lib/editorial-content";
 
 import "./EditorialContentSection.css";
 
+type AdditionalEditorialPath =
+  | "/blog"
+  | "/enchente-2024-pelotas-laranjal"
+  | "/privacidade-e-dados"
+  | "/quem-somos"
+  | "/status-dos-dados"
+  | "/tempo-na-regiao-sul-rs";
+
+type EditorialSectionRelatedLink = Omit<EditorialRelatedLink, "href"> & {
+  href: EditorialRelatedLink["href"] | AdditionalEditorialPath;
+};
+
+type EditorialSectionContent = Omit<EditorialContentDefinition, "relatedLinks"> & {
+  relatedLinks: readonly EditorialSectionRelatedLink[];
+};
+
 type EditorialContentSectionProps = {
   id: string;
-  content: EditorialContentDefinition;
+  content: EditorialSectionContent;
 };
 
 export function EditorialContentSection({ id, content }: EditorialContentSectionProps) {
