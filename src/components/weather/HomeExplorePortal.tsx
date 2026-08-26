@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
 
+import type { EditorialInternalPath } from "@/lib/editorial-content";
+
 import "./HomeExplorePortal.css";
 
 type ExploreGroup = {
   eyebrow: string;
   title: string;
-  links: ReadonlyArray<{ label: string; to: string }>;
+  links: ReadonlyArray<{ label: string; to: EditorialInternalPath }>;
 };
 
 const exploreGroups: ReadonlyArray<ExploreGroup> = [
