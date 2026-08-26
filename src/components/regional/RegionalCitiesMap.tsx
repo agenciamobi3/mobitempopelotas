@@ -170,7 +170,7 @@ export function RegionalCitiesMap({ items }: RegionalCitiesMapProps) {
           minZoom: 4,
           maxZoom: 11,
           cooperativeGestures: true,
-          attributionControl: true,
+          attributionControl: {},
         });
         mapRef.current = map;
 
