@@ -41,16 +41,13 @@ test("regional registry has unique slugs, IBGE codes and valid coordinates", () 
 test("nearby regional cities are selected by geographic distance", () => {
   const pelotas = REGIONAL_CITIES.find((city) => city.slug === REGIONAL_HOME_CITY_SLUG);
   assert.ok(pelotas);
-
   const nearest = nearestRegionalCities(pelotas, 5);
   assert.equal(nearest.length, 5);
   assert.ok(nearest.every((item) => item.city.slug !== pelotas.slug));
   assert.ok(nearest.every((item) => Number.isFinite(item.distanceKm) && item.distanceKm > 0));
-
   for (let index = 1; index < nearest.length; index += 1) {
     assert.ok(nearest[index - 1]!.distanceKm <= nearest[index]!.distanceKm);
   }
-
   const capao = REGIONAL_CITIES.find((city) => city.slug === "capao-do-leao-rs");
   assert.ok(capao);
   assert.ok(regionalCityDistanceKm(pelotas, capao) < 20);
@@ -62,16 +59,13 @@ test("nearby regional cities are selected by geographic distance", () => {
 test("Pelotas consolidates authority on the homepage while other cities remain indexable", () => {
   const publicPaths = new Set(PUBLIC_ROUTES.map((item) => item.path));
   const pelotas = REGIONAL_CITIES.find((city) => city.slug === REGIONAL_HOME_CITY_SLUG);
-
   assert.ok(pelotas);
   assert.equal(regionalCityPath(pelotas), "/");
   assert.ok(publicPaths.has("/"));
   assert.ok(!publicPaths.has("/tempo-em/pelotas-rs"));
-
   for (const city of REGIONAL_CITIES.filter((item) => item.slug !== REGIONAL_HOME_CITY_SLUG)) {
     assert.ok(publicPaths.has(regionalCityPath(city)), `sitemap sem ${city.name}`);
   }
-
   assert.match(route, /createFileRoute\("\/tempo-em\/\$citySlug"\)/);
   assert.match(route, /params\.citySlug === REGIONAL_HOME_CITY_SLUG/);
   assert.match(route, /statusCode:\s*301/);
@@ -80,42 +74,20 @@ test("Pelotas consolidates authority on the homepage while other cities remain i
   assert.match(directoryRoute, /createFileRoute\("\/tempo-na-regiao-sul-rs"\)/);
 });
 
-test("regional page metadata uses the requested city's coordinates and local context", () => {
+test("regional page metadata uses the requested city's coordinates and local intent", () => {
   const bage = REGIONAL_CITIES.find((city) => city.slug === "bage-rs");
   assert.ok(bage);
-
   const head = createPageHead("Tempo em Bagé, RS", "Previsão local.", regionalCityPath(bage), [], {
-    geo: {
-      region: "BR-RS",
-      placename: bage.name,
-      latitude: bage.latitude,
-      longitude: bage.longitude,
-    },
+    geo: { region: "BR-RS", placename: bage.name, latitude: bage.latitude, longitude: bage.longitude },
   });
-
-  assert.ok(
-    head.meta.some(
-      (entry) =>
-        "name" in entry &&
-        entry.name === "geo.placename" &&
-        "content" in entry &&
-        entry.content === "Bagé",
-    ),
-  );
-  assert.ok(
-    head.meta.some(
-      (entry) =>
-        "name" in entry &&
-        entry.name === "geo.position" &&
-        "content" in entry &&
-        entry.content === `${bage.latitude};${bage.longitude}`,
-    ),
-  );
+  assert.ok(head.meta.some((entry) => "name" in entry && entry.name === "geo.placename" && "content" in entry && entry.content === "Bagé"));
+  assert.ok(head.meta.some((entry) => "name" in entry && entry.name === "geo.position" && "content" in entry && entry.content === `${bage.latitude};${bage.longitude}`));
   assert.match(route, /placename:\s*city\.name/);
   assert.match(route, /latitude:\s*city\.latitude/);
   assert.match(route, /longitude:\s*city\.longitude/);
-  assert.match(route, /Contexto regional: \$\{city\.descriptor\}/);
-  assert.match(page, /city\.descriptor/);
+  assert.match(route, /regionalCityPageTitle\(city\)/);
+  assert.match(route, /regionalCityMetaDescription\(city\)/);
+  assert.match(page, /regionalCityEditorialProfile\(city\)/);
 });
 
 test("city pages query real coordinate forecasts and municipal INMET alerts", () => {
@@ -135,7 +107,7 @@ test("city pages query real coordinate forecasts and municipal INMET alerts", ()
 test("regional first fold follows the wind page split composition", () => {
   assert.match(page, /<RegionalCityHero data=\{data\}/);
   assert.match(hero, /<WeatherSplitHero/);
-  assert.match(hero, /title={`Como o tempo deve mudar em \$\{city\.name\}\.\`}/);
+  assert.match(hero, /title={`Tempo em \$\{city\.name\} hoje`}/);
   assert.match(hero, /currentLabel=\{current \? "Temperatura estimada agora" : "Estimativa atual"\}/);
   assert.match(hero, /highlightLabel="Maior chance de chuva nas próximas 24h"/);
   assert.match(hero, /label: "Umidade estimada"/);
