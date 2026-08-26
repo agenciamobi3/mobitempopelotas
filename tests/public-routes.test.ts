@@ -9,6 +9,7 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/tempo-hoje-pelotas",
   "/tempo-amanha-pelotas",
   "/previsao-7-dias-pelotas",
+  "/previsao-15-dias-pelotas",
   "/meteograma-pelotas",
   "/clima-em-pelotas",
   "/alertas",
