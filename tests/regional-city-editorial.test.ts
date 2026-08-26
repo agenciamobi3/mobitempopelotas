@@ -12,6 +12,10 @@ const heroSource = readFileSync(
   new URL("../src/components/regional/RegionalCityHero.tsx", import.meta.url),
   "utf8",
 );
+const editorialSource = readFileSync(
+  new URL("../src/lib/regional-city-editorial.ts", import.meta.url),
+  "utf8",
+);
 const heroCss = readFileSync(
   new URL("../src/components/regional/RegionalCityHero.css", import.meta.url),
   "utf8",
@@ -61,7 +65,7 @@ test("páginas regionais reutilizam os componentes aprovados das páginas intern
 });
 
 test("primeira dobra regional segue a composição dividida da página de vento", () => {
-  assert.match(heroSource, /title={`Como o tempo deve mudar em \$\{city\.name\}\.\`}/);
+  assert.match(heroSource, /title={`Tempo em \$\{city\.name\} hoje`}/);
   assert.match(heroSource, /currentLabel=\{current \? "Temperatura estimada agora" : "Estimativa atual"\}/);
   assert.match(heroSource, /highlightLabel="Maior chance de chuva nas próximas 24h"/);
   assert.match(heroSource, /label: "Umidade estimada"/);
@@ -79,6 +83,23 @@ test("primeira dobra regional segue a composição dividida da página de vento"
   assert.match(splitHeroCss, /linear-gradient\(145deg, #102437, #18334f 58%, #25375c\)/);
   assert.match(splitHeroCss, /@media \(max-width: 980px\)/);
   assert.match(heroCss, /\.regional-city-split-hero/);
+});
+
+test("SEO regional usa intenção direta e contexto próprio nas cidades prioritárias", () => {
+  assert.match(editorialSource, /Tempo em \$\{city\.name\} hoje: previsão, chuva e vento/);
+  for (const slug of [
+    "rio-grande-rs",
+    "cangucu-rs",
+    "dom-pedrito-rs",
+    "jaguarao-rs",
+    "capao-do-leao-rs",
+  ]) {
+    assert.match(editorialSource, new RegExp(`"${slug}"`));
+  }
+  assert.match(pageSource, /regionalCityMetaDescription\(city\)/);
+  assert.match(pageSource, /editorial\?\.sectionTitle/);
+  assert.match(pageSource, /editorial\?\.introduction/);
+  assert.match(pageSource, /editorial\?\.facts/);
 });
 
 test("hero regional não inventa pico de chuva, rajada ou leitura atual", () => {
