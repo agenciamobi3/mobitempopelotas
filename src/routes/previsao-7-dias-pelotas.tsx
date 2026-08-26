@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
+import { ForecastHorizonBridge } from "@/components/weather/ForecastHorizonBridge";
 import { SevenDayForecastPageV2 } from "@/components/weather/SevenDayForecastPageV2";
 import { SevenDayRetailHero } from "@/components/weather/SevenDayRetailHero";
 import { SEVEN_DAY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
@@ -104,6 +105,7 @@ function PrevisaoSeteDiasPage() {
       )}
     >
       <SevenDayForecastPageV2 data={weather} />
+      <ForecastHorizonBridge />
       <EditorialContentSection
         id="como-interpretar-a-previsao-semanal"
         content={SEVEN_DAY_PAGE_CONTENT}
