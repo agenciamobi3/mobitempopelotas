@@ -1,14 +1,17 @@
-# Plano SEO por intenção de busca — previsão em Pelotas
+# Plano SEO por intenção de busca — Tempo Pelotas
 
 Data de criação: 26/08/2026  
+Última ampliação: 26/08/2026  
 Status: planejamento — não implementar automaticamente sem nova rodada de revisão  
 Branch de referência: `main`
 
 ## 1. Objetivo
 
-Registrar a estratégia de páginas para buscas de previsão do tempo em Pelotas identificadas nas sugestões do Google, preservando o plano para receber novas intenções antes da implementação.
+Registrar a estratégia de páginas para buscas de previsão do tempo identificadas nas sugestões do Google, preservando o plano para receber novas intenções antes da implementação.
 
-Buscas observadas inicialmente:
+O plano deve usar essas sugestões como sinais de linguagem e de intenção, não como prova isolada de volume de busca. Antes de transformar qualquer termo em nova URL, cruzar com arquitetura atual, Search Console, utilidade real ao visitante e capacidade de responder com dados próprios ou fontes confiáveis.
+
+### Primeiro lote observado — Pelotas
 
 - previsão do tempo em Pelotas para 10 dias;
 - previsão do tempo Pelotas por hora;
@@ -19,9 +22,22 @@ Buscas observadas inicialmente:
 - previsão do tempo Pelotas 20 dias;
 - previsão do tempo Pelotas agora.
 
-Princípio: responder bem à intenção do visitante, sem criar várias páginas quase iguais apenas para trocar um número ou palavra-chave.
+### Segundo lote observado — sugestões relacionadas
 
-## 2. Arquitetura proposta
+- tempo porto alegre;
+- tempo rio grande;
+- previsão do tempo em pelotas para 10 dias;
+- tempo santa maria rs;
+- tempo canguçu;
+- previsão do tempo em pelotas amanhã;
+- tempo camaquã;
+- tempo dom pedrito;
+- tempo uruguaiana;
+- tempo cassino.
+
+Princípio: responder bem à intenção do visitante, sem criar várias páginas quase iguais apenas para trocar um número, uma cidade ou uma palavra-chave.
+
+## 2. Arquitetura proposta para Pelotas
 
 | Intenção de busca | Destino planejado | Situação |
 | --- | --- | --- |
@@ -373,17 +389,202 @@ Quando as novas rotas forem implementadas:
 10. atualizar sitemap, navegação, testes e documentação mestre;
 11. acompanhar Search Console por consulta e página antes de abrir novas URLs semelhantes.
 
-## 10. Pendências para a próxima rodada
+## 10. Expansão regional orientada pelas novas sugestões do Google
 
-Este documento permanece aberto para incorporar novas sugestões de busca enviadas pelo usuário antes da implementação.
+O segundo lote mostra que o Google relaciona a intenção do usuário não apenas a Pelotas, mas também a outras cidades do Rio Grande do Sul. Isso é útil para descobrir novas frentes, mas não significa que o Tempo Pelotas deva publicar páginas para todo o Estado de uma vez.
+
+O inventário atual possui 24 cidades regionais aprovadas e indexáveis. A expansão já possui gate próprio `draft -> basic -> complete`. Novas localidades devem entrar por esse fluxo e só chegar à indexação depois de dados, conteúdo local, mobile, SEO e operação estarem validados.
+
+### 10.1 Buscas já cobertas pela arquitetura atual
+
+#### `tempo rio grande`
+
+Destino atual:
+
+`/tempo-em/rio-grande-rs`
+
+Ação planejada:
+
+- manter a URL;
+- revisar o title para conter naturalmente `Tempo em Rio Grande hoje` ou formulação equivalente sem perder a marca;
+- garantir H1 direto para quem procura o tempo na cidade;
+- manter temperatura, chuva, vento, alertas e previsão em destaque;
+- reforçar copy local ligada à posição entre Lagoa dos Patos e oceano, somente com afirmações sustentáveis;
+- criar links contextuais para São José do Norte, Pelotas e, futuramente, Cassino quando essa frente existir.
+
+Copy de abertura candidata:
+
+> Veja o tempo em Rio Grande agora e a previsão para as próximas horas e dias. Confira temperatura, chance de chuva, vento e avisos que podem afetar a cidade.
+
+#### `tempo canguçu`
+
+Destino atual:
+
+`/tempo-em/cangucu-rs`
+
+Ação planejada:
+
+- manter a URL;
+- reforçar `Tempo em Canguçu` no title/H1 sem keyword stuffing;
+- destacar previsão local por coordenadas;
+- usar contexto simples sobre área rural e Serra do Sudeste somente onde for útil;
+- manter links para Pelotas, Morro Redondo, Piratini e cidades próximas.
+
+Copy de abertura candidata:
+
+> Veja o tempo em Canguçu agora e a previsão para os próximos dias. Acompanhe temperatura, chuva, vento e mudanças previstas para o município.
+
+#### `tempo dom pedrito`
+
+Destino atual:
+
+`/tempo-em/dom-pedrito-rs`
+
+Ação planejada:
+
+- manter a URL;
+- reforçar title/H1 para `Tempo em Dom Pedrito`;
+- priorizar chuva, vento, mínima e máxima;
+- usar contexto de atividades rurais apenas como utilidade ao visitante, sem transformar a página em texto genérico sobre agronegócio.
+
+Copy de abertura candidata:
+
+> Veja o tempo em Dom Pedrito agora e a previsão para os próximos dias. Confira temperatura, chuva, vento e as principais mudanças esperadas para o município.
+
+### 10.2 Melhor candidato imediato de expansão municipal
+
+#### `tempo camaquã`
+
+Camaquã não faz parte das 24 cidades atuais. É o candidato mais coerente deste lote para uma próxima onda regional porque amplia naturalmente a cobertura da Costa Doce e se conecta geograficamente ao eixo já existente de Cristal e São Lourenço do Sul.
+
+Destino candidato:
+
+`/tempo-em/camaqua-rs`
+
+Não publicar diretamente como `complete`.
+
+Fluxo planejado:
+
+1. cadastrar como `draft`;
+2. validar código IBGE, coordenadas e dados meteorológicos;
+3. preparar descriptor e copy local próprios;
+4. validar avisos aplicáveis;
+5. testar visual/mobile e navegação regional;
+6. promover para `basic` se for útil validar publicamente sem indexação;
+7. promover para `complete` somente depois da revisão SEO final.
+
+Copy de abertura candidata:
+
+> Veja o tempo em Camaquã agora e a previsão para os próximos dias. Confira temperatura, chuva, vento e mudanças previstas para a cidade e arredores.
+
+Title candidato:
+
+`Tempo em Camaquã hoje: previsão, chuva e vento | Tempo Pelotas`
+
+H1 candidato:
+
+`Tempo em Camaquã hoje`
+
+### 10.3 Localidade especial — Cassino
+
+`tempo cassino` merece tratamento separado porque Cassino não deve ser cadastrado como se fosse um município apenas para caber em `regional-cities.ts`.
+
+A intenção é local e meteorologicamente útil, especialmente por se tratar de área costeira. Antes de publicar, criar ou estender um contrato próprio de localidades dentro de municípios, evitando misturar município, bairro, praia e balneário na mesma estrutura sem distinção.
+
+Destino candidato:
+
+`/tempo-no-cassino-rs`
+
+Alternativa a validar antes da implementação:
+
+`/tempo-no-cassino-rio-grande-rs`
+
+Preferir a URL mais curta somente se canonical, breadcrumbs e conteúdo deixarem claro que se trata do Cassino em Rio Grande/RS.
+
+Copy de abertura candidata:
+
+> Veja o tempo no Cassino agora e a previsão para as próximas horas e dias. Confira temperatura, chance de chuva, vento e mudanças previstas para a área da praia.
+
+Se a página for criada, deve usar coordenadas próprias do Cassino e não apenas repetir os dados do centro de Rio Grande.
+
+### 10.4 Cidades maiores fora do recorte regional atual
+
+As sugestões também trouxeram:
+
+- `tempo porto alegre`;
+- `tempo santa maria rs`;
+- `tempo uruguaiana`.
+
+Essas cidades não fazem parte do inventário regional atual e representam uma decisão de produto maior: deixar de ser apenas um portal de Pelotas/Zona Sul e começar a disputar buscas meteorológicas em escala estadual.
+
+Não publicar essas páginas apenas porque apareceram na sugestão relacionada.
+
+Manter como candidatos de expansão futura e exigir pelo menos um dos sinais abaixo antes de avançar:
+
+- impressões reais no Search Console;
+- crescimento de buscas por cidades fora da Zona Sul;
+- decisão explícita de transformar o produto em cobertura estadual;
+- capacidade operacional para manter conteúdo, dados e navegação coerentes em todo o RS.
+
+Prioridade provisória dentro desse grupo:
+
+1. Porto Alegre — maior potencial de demanda, mas também maior concorrência e maior distância do posicionamento atual;
+2. Santa Maria — relevante como centro regional do Estado;
+3. Uruguaiana — útil se houver decisão de abrir um eixo Fronteira Oeste.
+
+A existência dessas sugestões deve ser registrada e monitorada, não convertida automaticamente em páginas.
+
+### 10.5 Ordem de prioridade regional após este lote
+
+1. otimizar as páginas já existentes de Rio Grande, Canguçu e Dom Pedrito para a linguagem exata vista nas buscas;
+2. preparar Camaquã no gate `draft`;
+3. desenhar o contrato correto para localidades como Cassino;
+4. acompanhar Search Console e novas sugestões;
+5. só depois decidir sobre Porto Alegre, Santa Maria e Uruguaiana.
+
+### 10.6 Regra para páginas municipais
+
+Não criar uma página apenas com nome da cidade trocado.
+
+Cada página promovida a `complete` deve ter:
+
+- coordenadas próprias;
+- código IBGE quando for município;
+- previsão realmente consultada para aquele local;
+- title e H1 claros;
+- uma abertura própria e simples;
+- contexto local útil e verificável;
+- cidades próximas coerentes;
+- avisos oficiais aplicáveis quando disponíveis;
+- canonical correto;
+- sitemap apenas depois do gate de publicação;
+- testes de rota e SEO.
+
+## 11. O que aprendemos com as sugestões relacionadas
+
+As sugestões do Google servem como um mapa de linguagem real do usuário.
+
+Elas mostram três tipos de oportunidade diferentes:
+
+1. **páginas já existentes que podem ser melhor alinhadas à forma como as pessoas buscam**, como Rio Grande, Canguçu e Dom Pedrito;
+2. **lacunas regionais coerentes**, como Camaquã e potencialmente Cassino;
+3. **expansão de escopo**, como Porto Alegre, Santa Maria e Uruguaiana, que só deve acontecer se os dados de busca e a estratégia do produto justificarem.
+
+A prioridade é capturar demanda sem diluir a autoridade local do Tempo Pelotas.
+
+## 12. Pendências para as próximas rodadas
+
+Este documento permanece aberto para incorporar novas sugestões de busca antes da implementação.
 
 Para cada nova busca, decidir explicitamente:
 
 - se já existe uma página que responde bem;
 - se a página existente precisa apenas de copy/seção adicional;
 - se a intenção justifica uma URL própria;
+- se é município, bairro, praia, balneário ou outro tipo de localidade;
 - qual dado real será necessário para responder;
 - quais páginas podem canibalizar essa intenção;
-- como o visitante deve seguir para horizontes mais próximos ou mais detalhados.
+- como o visitante deve seguir para horizontes mais próximos ou mais detalhados;
+- se a oportunidade pertence ao recorte regional atual ou representa expansão estadual.
 
-Não iniciar a criação das novas páginas até concluir essa consolidação.
+Não iniciar a criação das novas páginas até concluir essa consolidação das sugestões recebidas.
