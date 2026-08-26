@@ -8,6 +8,13 @@ const homeEditorialForecast = readFileSync(
   "src/production/components/home-forecast-editorial.tsx",
   "utf8",
 );
+const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
+const rainAccumulation = readFileSync(
+  "src/components/weather/RainAccumulationContext.tsx",
+  "utf8",
+);
+const rainHero = readFileSync("src/components/weather/RainRetailHero.tsx", "utf8");
+const alertsRoute = readFileSync("src/routes/alertas.tsx", "utf8");
 
 test("hourly precipitation API requests millimetres rather than deriving volume from probability", () => {
   assert.match(apiRoute, /hourly:\s*"precipitation"/);
@@ -38,4 +45,29 @@ test("production home keeps chance and hourly millimetres in the same compact ra
 test("rain probability remains visible separately from hourly volume", () => {
   assert.match(forecastStory, /<strong>\{rain\.chance\}%<\/strong>/);
   assert.match(forecastStory, /style=\{\{ width: `\$\{rain\.chance\}%` \}\}/);
+});
+
+test("página de chuva separa acumulado observado de volume previsto", () => {
+  assert.match(rainRoute, /<RainAccumulationContext data=\{weather\}/);
+  assert.match(rainRoute, /observedRainDaily=\{observedRainDaily\}/);
+  assert.match(rainHero, /Chuva em Pelotas hoje:/);
+  assert.match(rainAccumulation, /observation\.accumulated\.rainDaily/);
+  assert.match(rainAccumulation, /observation\.accumulated\.rainMonthly/);
+  assert.match(rainAccumulation, /Total previsto em 7 dias/);
+  assert.match(rainAccumulation, /Não some observado e previsto/);
+  assert.match(rainAccumulation, /janelas podem se sobrepor/);
+});
+
+test("acumulados da Defesa Civil são enriquecimento progressivo, não bloqueio do loader", () => {
+  assert.match(rainAccumulation, /getDefesaCivilHydroData/);
+  assert.match(rainAccumulation, /useEffect/);
+  assert.match(rainAccumulation, /station\.rain\.h24Mm/);
+  assert.match(rainAccumulation, /station\.freshness === "recent"/);
+  assert.match(rainAccumulation, /station\.freshness === "delayed"/);
+  assert.doesNotMatch(rainRoute, /getDefesaCivilHydroData/);
+});
+
+test("alertas orientam o visitante para acumulado sem confundir aviso com medição", () => {
+  assert.match(alertsRoute, /Um alerta de chuva não informa quanto já choveu/);
+  assert.match(alertsRoute, /Chuva acumulada e por horário em Pelotas/);
 });
