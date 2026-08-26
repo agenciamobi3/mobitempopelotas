@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { PORTAL_FOOTER_SOURCE } from "@/components/layout/footer-source";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
 
@@ -22,7 +23,7 @@ export function DataExperiencePageShell({
       <main id="conteudo-principal" tabIndex={-1}>
         {children}
       </main>
-      <SiteFooter source="Tempo Pelotas" />
+      <SiteFooter source={PORTAL_FOOTER_SOURCE} />
     </div>
   );
 }
