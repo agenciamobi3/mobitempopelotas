@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
+import { RainAccumulationContext } from "@/components/weather/RainAccumulationContext";
 import { RainForecastPageV2 } from "@/components/weather/RainForecastPageV2";
 import { RainHourlyVolumeContext } from "@/components/weather/RainHourlyVolumeContext";
 import { RainRetailHero } from "@/components/weather/RainRetailHero";
@@ -11,24 +12,36 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 import { getPelotasMeteogram } from "@/lib/weather/meteogram.functions";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Chuva em Pelotas";
+const PAGE_TITLE = "Chuva em Pelotas hoje: acumulado, chance e previsão";
 const PAGE_DESCRIPTION =
-  "Veja chance e volume de chuva em Pelotas por horário, acumulados previstos para hoje e os próximos 7 dias, rajadas, radar e avisos oficiais do INMET.";
+  "Veja a chuva acumulada observada em Pelotas, chance e volume previsto por horário, acumulados regionais e avisos oficiais do INMET.";
 const PAGE_PATH = "/chuva-em-pelotas";
 
 const RAIN_PAGE_CONTENT = {
   ...RAIN_EDITORIAL_CONTENT,
-  eyebrow: "Entenda a previsão de chuva",
-  title: "Como ler chance e volume de chuva em Pelotas",
+  eyebrow: "Entenda a chuva observada e prevista",
+  title: "Como ler chuva acumulada, chance e volume previsto em Pelotas",
   answer:
-    "A chance percentual indica a possibilidade de chover no horário ou dia informado. O volume em milímetros estima quanto pode acumular. A página mostra também o volume previsto por hora nas próximas horas, sem tratar previsão como chuva já medida.",
+    "A página separa a chuva que já foi medida da chuva que ainda é prevista. O acumulado diário da Embrapa descreve a medição na estação local; os acumulados de 24 horas da Defesa Civil pertencem a estações regionais; chance e volume futuro vêm do modelo meteorológico.",
   facts: [
+    "Chuva observada e chuva prevista são informações diferentes e aparecem com fonte e período próprios.",
+    "O acumulado diário da Embrapa não é somado ao volume previsto para hoje, porque as janelas podem se sobrepor.",
+    "Acumulados de 24 horas da Defesa Civil RS pertencem ao ponto de cada estação e não representam automaticamente toda Pelotas.",
     "Chance de chuva responde se a precipitação pode ocorrer; milímetros estimam quanto pode acumular no período.",
-    "O detalhamento horário usa um perfil estruturado do Open-Meteo e mantém chance percentual e volume em milímetros como informações separadas.",
-    "Os valores futuros são previsões. Chuva já registrada deve aparecer identificada como medição de estação ou pluviômetro.",
+    "O detalhamento horário usa dados estruturados do Open-Meteo e mantém chance percentual e volume em milímetros separados.",
     "Em risco de temporal, alagamento ou inundação, consulte os avisos oficiais e acompanhe radar e situação hidrológica.",
   ],
   faqs: [
+    {
+      question: "Quanto choveu hoje em Pelotas?",
+      answer:
+        "A seção de chuva acumulada mostra o valor diário publicado pela estação da Embrapa Clima Temperado quando a leitura está disponível e atual. O número representa o ponto da estação, não todos os bairros de Pelotas.",
+    },
+    {
+      question: "Posso somar a chuva observada com a previsão para hoje?",
+      answer:
+        "Não. O acumulado observado e o total previsto podem cobrir horas em comum. Somá-los criaria um total enganoso. Por isso, o portal mantém medição e previsão em blocos separados.",
+    },
     {
       question: "O que significa 70% de chance de chuva?",
       answer:
@@ -40,14 +53,14 @@ const RAIN_PAGE_CONTENT = {
         "Não necessariamente. A chance indica a possibilidade de ocorrência; o volume em milímetros estima a quantidade. Compare os dois valores antes de avaliar o possível impacto.",
     },
     {
+      question: "O acumulado de 24 horas da Defesa Civil é a chuva de Pelotas?",
+      answer:
+        "Não necessariamente. Cada acumulado pertence à estação identificada e à sua janela móvel de 24 horas. Ele serve como observação regional e deve ser lido junto do nome, horário e distância da estação.",
+    },
+    {
       question: "O volume mostrado por hora já foi medido?",
       answer:
         "Não. O volume por hora desta página é uma previsão do modelo para cada intervalo futuro. Chuva observada só é apresentada como medição quando há uma fonte de estação ou pluviômetro identificada com horário.",
-    },
-    {
-      question: "A chuva mostrada nesta página já foi medida?",
-      answer:
-        "Não quando o horário ou dia ainda está no futuro. Nesse caso, chance e volume são previsões. Medições observadas devem ser identificadas separadamente com fonte e horário.",
     },
   ],
   relatedLinks: [
@@ -81,12 +94,15 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
           { name: "Chuva em Pelotas", path: PAGE_PATH },
         ],
         about: [
+          "Chuva acumulada em Pelotas",
+          "Quanto choveu hoje em Pelotas",
+          "Chuva observada pela Embrapa em Pelotas",
+          "Acumulado de chuva em 24 horas",
           "Previsão de chuva em Pelotas",
           "Probabilidade de chuva em Pelotas",
           "Volume de precipitação por hora em Pelotas",
           "Chuva por hora em Pelotas",
           "Acumulado previsto de chuva em Pelotas",
-          "Melhores horários sem chuva em Pelotas",
           "Alertas oficiais de chuva em Pelotas",
         ],
       }),
@@ -105,6 +121,12 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
 
 function ChuvaPage() {
   const { weather, meteogram } = Route.useLoaderData();
+  const embrapaStatus = weather.weather.sources.embrapa.status;
+  const observedRainDaily =
+    weather.weather.observation.status !== "unavailable" &&
+    (embrapaStatus === "live" || embrapaStatus === "partial")
+      ? weather.weather.observation.accumulated.rainDaily
+      : null;
 
   return (
     <InternalWeatherPageShell
@@ -115,9 +137,11 @@ function ChuvaPage() {
           weather={productionWeather}
           advisoryLevel={advisoryLevel}
           officialAlertCount={officialAlertCount}
+          observedRainDaily={observedRainDaily}
         />
       )}
     >
+      <RainAccumulationContext data={weather} />
       <RainForecastPageV2 data={weather} />
       <RainHourlyVolumeContext meteogram={meteogram} />
       <EditorialContentSection
