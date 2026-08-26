@@ -4,12 +4,49 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { AuthAccountAction } from "@/components/auth/AuthAccountAction";
+import type { EditorialInternalPath } from "@/lib/editorial-content";
 import type { InmetAlertSeverity } from "@/production/lib/inmet-alerts";
 import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
 import "./home-editorial-header.css";
 
-const megaMenus = [
+type MegaMenuId = "forecast" | "monitoring" | "water" | "region" | "explore";
+type HeaderStaticPath =
+  | EditorialInternalPath
+  | "/blog"
+  | "/enchente-2024-pelotas-laranjal"
+  | "/status-dos-dados"
+  | "/tempo-na-regiao-sul-rs";
+
+type HeaderStaticLink = {
+  label: string;
+  to: HeaderStaticPath;
+  description: string;
+};
+
+type HeaderRegionalLink = {
+  label: string;
+  to: "/tempo-em/$citySlug";
+  params: { citySlug: string };
+  path: `/tempo-em/${string}`;
+  description: string;
+};
+
+type HeaderMenuLink = HeaderStaticLink | HeaderRegionalLink;
+
+type HeaderMenuDefinition = {
+  id: MegaMenuId;
+  label: string;
+  summary: string;
+  activePaths: readonly string[];
+  featured: HeaderStaticLink & { eyebrow: string };
+  sections: readonly {
+    title: string;
+    links: readonly HeaderMenuLink[];
+  }[];
+};
+
+const megaMenus: readonly HeaderMenuDefinition[] = [
   {
     id: "forecast",
     label: "Previsão",
@@ -274,9 +311,7 @@ const megaMenus = [
       },
     ],
   },
-] as const;
-
-type MegaMenuId = (typeof megaMenus)[number]["id"];
+];
 
 function isActivePath(pathname: string, to: string) {
   if (to === "/") return pathname === "/";
@@ -287,8 +322,12 @@ function isMenuActive(pathname: string, activePaths: readonly string[]) {
   return activePaths.some((path) => pathname === path || pathname.startsWith(path));
 }
 
-function itemPath(item: { to: string } | { to: string; path: string }) {
-  return "path" in item ? item.path : item.to;
+function isRegionalMenuLink(item: HeaderMenuLink): item is HeaderRegionalLink {
+  return item.to === "/tempo-em/$citySlug";
+}
+
+function itemPath(item: HeaderMenuLink) {
+  return isRegionalMenuLink(item) ? item.path : item.to;
 }
 
 function alertLabel(level: AdvisoryLevel, officialSeverity: InmetAlertSeverity) {
@@ -462,7 +501,7 @@ export function HomeEditorialHeader({
                                   const path = itemPath(item);
                                   const active = isActivePath(pathname, path);
 
-                                  if ("params" in item) {
+                                  if (isRegionalMenuLink(item)) {
                                     return (
                                       <Link
                                         key={path}
@@ -565,7 +604,7 @@ export function HomeEditorialHeader({
                       const path = itemPath(item);
                       const active = isActivePath(pathname, path);
 
-                      if ("params" in item) {
+                      if (isRegionalMenuLink(item)) {
                         return (
                           <Link
                             key={path}
