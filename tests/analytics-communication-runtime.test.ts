@@ -8,10 +8,19 @@ const push = readFileSync("src/components/pwa/PushNotificationsManager.tsx", "ut
 const ticketWidget = readFileSync("src/components/mobi-ticket/MobiTicketWidgetLoader.tsx", "utf8");
 const privacy = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
 
-test("GA4 tag is present in the SSR head and SPA navigations emit one explicit pageview", () => {
+test("GA4 keeps the SSR queue but defers the external library while SPA pageviews remain explicit", () => {
   assert.match(root, /G-97YX7HPD90/);
+  assert.match(root, /window\.dataLayer = window\.dataLayer \|\| \[\]/);
+  assert.match(root, /function gtag\(\)\{dataLayer\.push\(arguments\);\}/);
   assert.match(root, /googletagmanager\.com\/gtag\/js/);
   assert.match(root, /send_page_view:\s*false/);
+  assert.match(root, /requestIdleCallback/);
+  assert.match(root, /GOOGLE_ANALYTICS_IDLE_TIMEOUT_MS/);
+  assert.match(root, /window\.setTimeout\(loadAnalytics, GOOGLE_ANALYTICS_FALLBACK_DELAY_MS\)/);
+  assert.match(root, /data-tempo-pelotas-ga4/);
+  assert.match(root, /dataset\.tempoPelotasGa4 = "true"/);
+  assert.match(root, /<GoogleAnalyticsLoader\s*\/>/);
+  assert.doesNotMatch(root, /<script\s+async[\s\S]*?googletagmanager\.com\/gtag\/js/);
   assert.match(root, /useRouterState/);
   assert.match(root, /state\.location\.href/);
   assert.match(root, /"event",\s*"page_view"/);
