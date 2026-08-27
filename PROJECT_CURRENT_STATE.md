@@ -40,7 +40,7 @@ Estado geral:
 | Enchente de 2024 | Ativo | Registro histórico permanente |
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
-| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e links internos globais |
+| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção e links internos globais |
 | Conta / login Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -222,6 +222,8 @@ WRF/GFS/GFS Agro permanecem como visualização gráfica complementar em `/meteo
 
 Observado e previsto não são somados automaticamente, pois as janelas podem se sobrepor. Acumulados regionais pertencem à estação identificada e não representam automaticamente toda Pelotas.
 
+A página também responde visivelmente à intenção `Vai chover hoje em Pelotas?` usando os valores dinâmicos de chance e volume já exibidos, sem gravar uma resposta meteorológica fixa em conteúdo editorial.
+
 ## 8. REDEMET e monitoramento visual
 
 Integração server-side com `REDEMET_API_KEY` somente no servidor.
@@ -243,6 +245,8 @@ Documento: `docs/REDEMET_OPERATIONS.md`.
 ### Laranjal / Lagoa dos Patos
 
 A Estação Laranjal é a referência operacional local apresentada para Pelotas. O portal preserva nível, horário, idade da leitura, tendência e variações recentes sem converter leitura atrasada em valor atual.
+
+A página do Laranjal responde também à intenção `nível em tempo real`, mas de forma estrita: ela descreve a leitura mais recente recebida, sempre acompanhada de horário e estado de atualização. Dado atrasado ou indisponível nunca é chamado de medição atual em tempo real.
 
 A rede da Lagoa agrega pontos como Rio Grande/FURG, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã. Réguas distintas não devem ser comparadas por simples subtração sem referência compatível.
 
@@ -308,7 +312,7 @@ A rota `/historico-climatico-pelotas` apresenta janela pública recente sem cham
 
 A rota `/enchente-1941-pelotas` foi implementada em 27/08/2026 após pesquisa documental própria. Ela usa o acervo Nelson Nobre Magalhães preservado pela UCPel, trabalho de pesquisadores da UFPel e registros oficiais da Prefeitura para explicar a referência histórica de 2,88 m associada ao Canal São Gonçalo, a documentação fotográfica da duração da cheia e a comparação controlada com 2024. A página não trata 2,88 m como cota da Estação Laranjal nem transfere a referência para outras réguas.
 
-As páginas de 1941 e 2024 possuem links recíprocos e ambas foram incluídas no diretório global “Águas” do rodapé, formando uma sequência histórica rastreável junto das páginas operacionais atuais.
+As páginas de 1941 e 2024 possuem links recíprocos e ambas foram incluídas no diretório global “Águas” do rodapé, formando uma sequência histórica rastreável junto das páginas operacionais atuais. A página de situação hidrológica também aponta para os dois registros históricos, fechando a navegação entre situação atual e memória das grandes cheias.
 
 Documentos:
 
@@ -365,6 +369,8 @@ Os levantamentos do Google Trends de 26/08/2026 estão documentados sem HAR brut
 Em 27/08/2026, `/nivel-do-guaiba` avançou como URL operacional com contrato de dados já existente e utilidade hidrológica distinta. Na sequência, `/enchente-1941-pelotas` passou pelo gate documental e foi publicada como ativo histórico: a canonical não inclui `Laranjal` porque a base forte levantada sustenta Pelotas, Praça do Porto e Canal São Gonçalo, sem ampliar territorialmente o fato histórico além das fontes.
 
 A rodada seguinte reforçou links internos globais sem abrir novas URLs: o rodapé passa a expor `/previsao-15-dias-pelotas`, `/nivel-do-guaiba`, `/enchente-1941-pelotas` e `/enchente-2024-pelotas-laranjal`. A navegação contextual das páginas históricas também permanece recíproca.
+
+Em 27/08/2026, uma nova rodada refinou snippets e malha interna sem abrir URLs: a Home passou a assumir explicitamente a intenção `agora` no title/description, enquanto `/tempo-hoje-pelotas` ficou com `hoje / por hora`; Chuva passou a responder visivelmente `Vai chover hoje em Pelotas?`; Laranjal passou a responder à intenção `tempo real` preservando horário/status e sem chamar leitura atrasada de atual; Situação das Águas passou a ligar também para o registro de 1941. As páginas municipais não foram alteradas porque o conector do Search Console continua sem assinatura ativa e não há evidência nova suficiente para enriquecimento por cidade.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -448,6 +454,8 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/standalone-route-shell.test.ts` passa a proteger o contrato de composição: qualquer módulo de rota que renderize `InternalWeatherPageShell` ou `ContentPageShell` deve constar no conjunto standalone de `SiteLayout`, evitando dois headers, dois footers e dois elementos `main` na mesma página.
 
+`tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, passou a proteger a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e as ligações do cluster hidrológico/histórico.
+
 ## 18. Deploy e Supabase
 
 Disciplina atual:
@@ -476,17 +484,18 @@ Pendências reais, não funcionalidades declaradas como prontas:
 
 1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` sobre a árvore já regenerada;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
-3. concluir E2E de autenticação com duas contas descartáveis;
-4. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
-5. definir rollups e APIs históricas server-side;
-6. continuar validação ANA/RHN e inventário/semântica da Defesa Civil RS;
-7. validar os smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real;
-8. concluir auditoria WCAG 2.2 AA, Core Web Vitals e responsividade ampla;
-9. manter PWA/Web Push suspenso até validação controlada;
-10. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
-11. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
-12. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
-13. retomar CPTEC/SIGMA apenas na janela de revisão planejada.
+3. recapturar Search Console para medir CTR da Home, Hoje e Chuva, acompanhar o cluster hidrológico e decidir sexta/sábado;
+4. concluir E2E de autenticação com duas contas descartáveis;
+5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
+6. definir rollups e APIs históricas server-side;
+7. continuar validação ANA/RHN e inventário/semântica da Defesa Civil RS;
+8. validar os smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real;
+9. concluir auditoria WCAG 2.2 AA, Core Web Vitals e responsividade ampla;
+10. manter PWA/Web Push suspenso até validação controlada;
+11. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
+12. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
+13. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
+14. retomar CPTEC/SIGMA apenas na janela de revisão planejada.
 
 ## 22. Documentos especializados principais
 
