@@ -97,6 +97,11 @@ const HYDROLOGY_PAGE_CONTENT = {
       description: "Acompanhe Cais Mauá e Gasômetro com horário, tendência e referências próprias.",
     },
     {
+      label: "Enchente de 1941 em Pelotas",
+      href: "/enchente-1941-pelotas" as const,
+      description: "Consulte a referência histórica documentada no Canal São Gonçalo sem transferir essa cota para as réguas atuais.",
+    },
+    {
       label: "Enchente de 2024 em Pelotas",
       href: "/enchente-2024-pelotas-laranjal" as const,
       description: "Veja a linha do tempo da cheia e como a água avançou do Guaíba até Pelotas e o Laranjal.",
