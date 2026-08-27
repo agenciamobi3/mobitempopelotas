@@ -244,6 +244,9 @@ export function Flood2024HistoricalPage() {
           <h2>O evento de 2024 explica por que o portal acompanha toda a Lagoa</h2>
         </div>
         <div className="tp-flood-related__links">
+          <Link to="/enchente-1941-pelotas">
+            Enchente de 1941 em Pelotas <span aria-hidden="true">→</span>
+          </Link>
           <Link to="/situacao-hidrologica-pelotas">
             Situação atual das águas <span aria-hidden="true">→</span>
           </Link>
