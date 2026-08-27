@@ -19,9 +19,9 @@ concurrency:
 
 jobs:
   validate:
-    name: Testes, build, rotas, typecheck e lint
+    name: Testes, build, rotas, typecheck, lint e navegador
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -49,6 +49,9 @@ jobs:
 
       - name: Navegação editorial e megamenu
         run: node --test tests/editorial-megamenu-navigation.test.ts
+
+      - name: Teclado e foco do header
+        run: node --test tests/header-keyboard-accessibility.test.ts
 
       - name: Footer editorial e proveniência
         run: node --test tests/footer-editorial-navigation.test.ts
@@ -105,3 +108,38 @@ jobs:
         env:
           LINT_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
         run: node scripts/lint-changed.mjs
+
+      - name: Iniciar preview de produção
+        run: |
+          npm run preview -- --host 127.0.0.1 > /tmp/tempo-pelotas-preview.log 2>&1 &
+          echo $! > /tmp/tempo-pelotas-preview.pid
+          for attempt in {1..45}; do
+            if curl --fail --silent --show-error http://127.0.0.1:4173/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/tempo-pelotas-preview.log
+          exit 1
+
+      - name: Acessibilidade, responsividade e Web Vitals de laboratório
+        env:
+          CANDIDATE_URL: http://127.0.0.1:4173
+          QUALITY_PERF_STRICT: "false"
+        run: node scripts/browser-quality-smoke.mjs
+
+      - name: Salvar relatório de qualidade do navegador
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-quality-${{ github.sha }}
+          path: artifacts/browser-quality
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Encerrar preview de produção
+        if: always()
+        run: |
+          if [ -f /tmp/tempo-pelotas-preview.pid ]; then
+            kill "$(cat /tmp/tempo-pelotas-preview.pid)" 2>/dev/null || true
+          fi
