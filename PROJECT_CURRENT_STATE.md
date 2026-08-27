@@ -599,3 +599,17 @@ Em 27/08/2026, screenshots do domínio público evidenciaram três regressões d
 `tests/screenshot-layout-regressions.test.ts`, incluído em `test:contracts`, protege esses três contratos. Nenhuma rota, sitemap, fonte meteorológica/hidrológica, regra de severidade do alerta, coletor, banco ou autenticação foi modificada.
 
 A correção está versionada, mas a validação visual pós-deploy ainda deve ser feita no domínio publicado e o CI continua sem ser considerado aprovado enquanto o runner não executar os steps normalmente.
+
+## 25. Resiliência de fontes após a revisão de produção
+
+A mesma revisão de 27/08/2026 mostrou que parte dos estados degradados não era apenas visual. A política de fontes foi fortalecida sem trocar a natureza dos dados apresentados.
+
+Na previsão municipal oficial do INMET, `src/lib/weather/inmet-forecast-resilient.server.ts` passa a priorizar a rota municipal atual observada para o código IBGE de Pelotas e mantém a rota histórica já usada pelo projeto como contingência. A segunda tentativa entra de forma escalonada após 450 ms ou imediatamente quando a primeira falha. O deadline global do agregado oficial permanece em **1,9 s**, evitando transformar a contingência em regressão de TTFB. Se as duas rotas falharem, o estado continua `unavailable`; nenhum outro provedor é apresentado como previsão oficial do INMET.
+
+No satélite, `src/lib/redemet/redemet-satellite-resilient.server.ts` preserva REDEMET/DECEA como primeira escolha para Realçado e Infravermelho. Se essa camada não estiver utilizável dentro do orçamento, GOES/INMET pode assumir como contingência oficial, com `provider`, produto e `sourceLabel` identificando explicitamente a origem real. O canal **Visível não recebe fallback infravermelho**, porque isso mudaria a semântica do produto escolhido. Quando as duas fontes falham, o estado degradado permanece visível e conserva o diagnóstico.
+
+A Home também passou a apresentar o bloco como “Monitoramento meteorológico”, declarar `REDEMET / DECEA + INMET` como fontes e descrever as imagens como observações recentes atualizadas conforme disponibilidade, em vez de generalizar todo o bloco como “tempo real”.
+
+`tests/source-resilience-regressions.test.ts`, incluído em `test:contracts`, protege prioridade/fallback do INMET, deadline, preferência REDEMET, contingência GOES/INMET e a proibição de substituir Visível por infravermelho. O documento especializado é `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md`.
+
+Esta rodada não adiciona rota pública, migration, Edge Function, secret ou variável de ambiente. A validação de produção e a execução da suíte permanecem pendentes enquanto o runner do GitHub Actions não voltar a executar normalmente.
