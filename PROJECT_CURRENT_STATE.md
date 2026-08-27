@@ -40,7 +40,7 @@ Estado geral:
 | Enchente de 2024 | Ativo | Registro histórico permanente |
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
-| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção e links internos globais |
+| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção, FAQ visível/regional, entidades geográficas e links internos globais |
 | Conta / login Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -88,7 +88,7 @@ Rotas que renderizam `InternalWeatherPageShell` ou `ContentPageShell` são trata
 
 `src/lib/public-routes.ts` é a fonte programática do sitemap.
 
-Inventário após a publicação da página histórica de 1941: **48 URLs indexáveis**, sendo **25 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal.
+Inventário após a publicação da página histórica de 1941: **48 URLs indexáveis**, sendo **25 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal. A rodada posterior de refinamento/enriquecimento não criou novas URLs e manteve esse inventário.
 
 ### Rotas fixas
 
@@ -222,7 +222,7 @@ WRF/GFS/GFS Agro permanecem como visualização gráfica complementar em `/meteo
 
 Observado e previsto não são somados automaticamente, pois as janelas podem se sobrepor. Acumulados regionais pertencem à estação identificada e não representam automaticamente toda Pelotas.
 
-A página também responde visivelmente à intenção `Vai chover hoje em Pelotas?` usando os valores dinâmicos de chance e volume já exibidos, sem gravar uma resposta meteorológica fixa em conteúdo editorial.
+A página também responde visivelmente à intenção `Vai chover hoje em Pelotas?` usando os valores dinâmicos de chance e volume já exibidos, sem gravar uma resposta meteorológica fixa em conteúdo editorial. A navegação de aprofundamento liga Chuva a Radar, Situação das Águas, Laranjal e alertas oficiais.
 
 ## 8. REDEMET e monitoramento visual
 
@@ -267,7 +267,7 @@ A página não transforma nível do Guaíba em diagnóstico automático para Pel
 
 O contexto do SACE continua preservando a classificação da própria estação. Situação elevada em outro ponto não é convertida automaticamente em risco para Pelotas.
 
-O diretório global do rodapé passou a apontar diretamente para `/nivel-do-guaiba`, conectando a página operacional ao cluster Laranjal → situação das águas → Guaíba.
+O diretório global do rodapé aponta diretamente para `/nivel-do-guaiba`, conectando a página operacional ao cluster Laranjal → situação das águas → Guaíba. A malha editorial também conecta o Guaíba aos registros de 1941 e 2024, sempre preservando as referências próprias das réguas atuais e históricas.
 
 ### Defesa Civil RS
 
@@ -347,7 +347,9 @@ Características:
 - fallback acessível mantém links das cidades se o mapa falhar;
 - nenhuma expansão municipal é automática.
 
-As páginas regionais usam Open-Meteo por coordenada própria e alertas INMET pelo código municipal. Rio Grande, Canguçu, Dom Pedrito, Jaguarão e Capão do Leão possuem camada editorial local reforçada.
+As páginas regionais usam Open-Meteo por coordenada própria e alertas INMET pelo código municipal. Onze municípios possuem perfil editorial local específico: Rio Grande, São José do Norte, São Lourenço do Sul, Canguçu, Morro Redondo, Capão do Leão, Jaguarão, Santa Vitória do Palmar, Chuí, Bagé e Dom Pedrito.
+
+Todas as páginas municipais públicas exibem FAQ local visível com `FAQPage` correspondente, `BreadcrumbList` e entidade `Place`/`GeoCoordinates` no JSON-LD. Os municípios sem perfil específico usam FAQ editorial padrão parametrizada pelo nome da cidade, sem transformar previsão de modelo em observação local nem inventar característica meteorológica não sustentada.
 
 Documento de gate: `docs/REGIONAL_CITY_PUBLICATION_GATE.md`.
 
@@ -370,7 +372,9 @@ Em 27/08/2026, `/nivel-do-guaiba` avançou como URL operacional com contrato de 
 
 A rodada seguinte reforçou links internos globais sem abrir novas URLs: o rodapé passa a expor `/previsao-15-dias-pelotas`, `/nivel-do-guaiba`, `/enchente-1941-pelotas` e `/enchente-2024-pelotas-laranjal`. A navegação contextual das páginas históricas também permanece recíproca.
 
-Em 27/08/2026, uma nova rodada refinou snippets e malha interna sem abrir URLs: a Home passou a assumir explicitamente a intenção `agora` no title/description, enquanto `/tempo-hoje-pelotas` ficou com `hoje / por hora`; Chuva passou a responder visivelmente `Vai chover hoje em Pelotas?`; Laranjal passou a responder à intenção `tempo real` preservando horário/status e sem chamar leitura atrasada de atual; Situação das Águas passou a ligar também para o registro de 1941. As páginas municipais não foram alteradas porque o conector do Search Console continua sem assinatura ativa e não há evidência nova suficiente para enriquecimento por cidade.
+Em 27/08/2026, a fase passou de expansão para refinamento das 48 URLs existentes. A Home assumiu explicitamente a intenção `agora`, enquanto `/tempo-hoje-pelotas` ficou com `hoje / por hora`; Chuva passou a responder visivelmente `Vai chover hoje em Pelotas?`; a malha interna conecta Hoje → 7 dias → 15 dias, Chuva → Radar → Situação das Águas → Laranjal e o cluster Laranjal ↔ Guaíba ↔ 1941 ↔ 2024. O refinamento não altera a separação entre observação, previsão, alerta e histórico.
+
+As páginas municipais também foram enriquecidas estrutural e editorialmente sem depender de novas keywords do Search Console: 11 cidades possuem perfil local específico e todas as páginas municipais públicas passaram a ter FAQ visível/schema correspondente, breadcrumbs e entidade geográfica. Não houve expansão do inventário, doorway pages nem criação automática de páginas por cidade.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -380,6 +384,7 @@ Documentos:
 - `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md`;
 - `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md`;
 - `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md`;
+- `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md`;
 - `docs/FLOOD_1941_RESEARCH_2026-08-27.md`.
 
 ## 14. Conta, Free e PRO
@@ -452,9 +457,11 @@ Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer st
 
 Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/generate-route-tree.mjs` para incorporar `/nivel-do-guaiba` e `/enchente-1941-pelotas`. A reprodução determinística do estado anterior gerou exatamente o mesmo blob SHA já versionado antes da alteração, confirmando equivalência com o gerador oficial; a nova saída foi então versionada sem alterar o script. A dívida de árvore desatualizada foi removida no código, embora `routes:check` ainda precise ser executado em um runner funcional para confirmação executável.
 
-`tests/standalone-route-shell.test.ts` passa a proteger o contrato de composição: qualquer módulo de rota que renderize `InternalWeatherPageShell` ou `ContentPageShell` deve constar no conjunto standalone de `SiteLayout`, evitando dois headers, dois footers e dois elementos `main` na mesma página.
+`tests/standalone-route-shell.test.ts` protege o contrato de composição: qualquer módulo de rota que renderize `InternalWeatherPageShell` ou `ContentPageShell` deve constar no conjunto standalone de `SiteLayout`, evitando dois headers, dois footers e dois elementos `main` na mesma página.
 
-`tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, passou a proteger a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e as ligações do cluster hidrológico/histórico.
+`tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, protege a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e ligações do cluster hidrológico/histórico.
+
+`tests/seo-editorial-enrichment.test.ts` foi adicionado nesta rodada para proteger Home/Hoje, Chuva, o cluster Laranjal/Guaíba/1941/2024 e o enriquecimento regional com FAQ visível, `FAQPage`, `BreadcrumbList` e entidade geográfica. O contrato está versionado, mas não deve ser descrito como executado enquanto os runners permanecerem indisponíveis.
 
 ## 18. Deploy e Supabase
 
@@ -468,7 +475,7 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente.
+As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. A rodada posterior de refinamento SEO também não alterou banco, coletores, secrets ou variáveis de ambiente.
 
 ## 19. PWA / Web Push
 
@@ -484,7 +491,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 
 1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` sobre a árvore já regenerada;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
-3. recapturar Search Console para medir CTR da Home, Hoje e Chuva, acompanhar o cluster hidrológico e decidir sexta/sábado;
+3. recapturar Search Console para medir CTR da Home, Hoje e Chuva, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
 4. concluir E2E de autenticação com duas contas descartáveis;
 5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
 6. definir rollups e APIs históricas server-side;
@@ -513,6 +520,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 | `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md` | Arquitetura de intenção SEO |
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
 | `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md` | Intenção x fonte x etapas |
+| `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento de snippets, links internos, entidades, FAQ e páginas regionais sem novas URLs |
 | `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Implementação da previsão de 15 dias |
 | `docs/EMBRAPA_GEOINFO_DATASET_SURVEY_2026-08-26.md` | Levantamento GeoInfo Embrapa |
 | `docs/DATA_ACCESS_PUBLIC_FREE_PRO_PLAN.md` | Política Público/Free/PRO/REVIEW |
