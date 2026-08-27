@@ -27,6 +27,11 @@ const footerGroups = [
         to: "/previsao-7-dias-pelotas",
       },
       {
+        label: "Próximos 15 dias",
+        ariaLabel: "Ver a previsão do tempo para os próximos 15 dias em Pelotas",
+        to: "/previsao-15-dias-pelotas",
+      },
+      {
         label: "Meteograma",
         ariaLabel: "Ver o meteograma horário de Pelotas",
         to: "/meteograma-pelotas",
@@ -85,6 +90,16 @@ const footerGroups = [
         label: "Nível no Laranjal",
         ariaLabel: "Ver o nível da Lagoa dos Patos na Praia do Laranjal",
         to: "/nivel-da-lagoa-dos-patos-laranjal",
+      },
+      {
+        label: "Nível do Guaíba",
+        ariaLabel: "Ver o nível atual do Guaíba e suas referências de medição",
+        to: "/nivel-do-guaiba",
+      },
+      {
+        label: "Enchente de 1941",
+        ariaLabel: "Consultar o registro histórico da enchente de 1941 em Pelotas",
+        to: "/enchente-1941-pelotas",
       },
       {
         label: "Enchente de 2024",
