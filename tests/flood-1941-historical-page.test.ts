@@ -4,6 +4,7 @@ import test from "node:test";
 
 const route = readFileSync("src/routes/enchente-1941-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/history/Flood1941HistoricalPage.tsx", "utf8");
+const page2024 = readFileSync("src/components/history/Flood2024HistoricalPage.tsx", "utf8");
 const content = readFileSync("src/lib/content/flood-1941-pelotas.ts", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 
@@ -36,6 +37,7 @@ test("1941 and 2024 are linked without collapsing station references", () => {
   assert.match(page, /15 de maio/);
   assert.match(page, /níveis de estações diferentes não devem ser convertidos/);
   assert.match(page, /\/enchente-2024-pelotas-laranjal/);
+  assert.match(page2024, /\/enchente-1941-pelotas/);
   assert.match(page, /\/nivel-da-lagoa-dos-patos-laranjal/);
   assert.match(page, /\/nivel-do-guaiba/);
 });
