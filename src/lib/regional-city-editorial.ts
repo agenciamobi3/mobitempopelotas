@@ -8,11 +8,6 @@ export type RegionalCityEditorialProfile = {
   facts: readonly string[];
 };
 
-export type RegionalCityFaq = {
-  question: string;
-  answer: string;
-};
-
 const PRIORITY_REGIONAL_EDITORIAL: Readonly<Record<string, RegionalCityEditorialProfile>> = {
   "rio-grande-rs": {
     metaDescription:
@@ -194,25 +189,4 @@ export function regionalCityMetaDescription(city: RegionalCity) {
 
 export function regionalCityEditorialProfile(city: RegionalCity) {
   return PRIORITY_REGIONAL_EDITORIAL[city.slug] ?? null;
-}
-
-export function regionalCityFaqs(city: RegionalCity): readonly RegionalCityFaq[] {
-  return [
-    {
-      question: `A previsão de ${city.name} usa os dados de Pelotas?`,
-      answer: `Não. O Tempo Pelotas consulta a previsão para as coordenadas cadastradas de ${city.name}. Pelotas permanece como referência editorial do portal, mas os valores meteorológicos desta página são calculados para o próprio município.`,
-    },
-    {
-      question: `A previsão vale para todo o município de ${city.name}?`,
-      answer: `Não de forma uniforme. A página usa as coordenadas centrais de ${city.name} como referência. Chuva localizada, vento, nevoeiro e temperatura podem variar entre bairros, áreas rurais e outros pontos do município.`,
-    },
-    {
-      question: `Os avisos do INMET mostrados para ${city.name} são oficiais?`,
-      answer: `Sim, quando um aviso é reconhecido e exibido como oficial, ele vem da consulta municipal do INMET para o código de ${city.name}. A validade, a severidade e as orientações pertencem ao próprio aviso oficial.`,
-    },
-    {
-      question: `Quando devo atualizar a previsão de ${city.name}?`,
-      answer: `Atualize a página perto do horário da atividade ou deslocamento. Para decisões importantes, confira novamente chuva, vento, rajadas e eventuais avisos oficiais, porque os modelos são recalculados ao longo do dia.`,
-    },
-  ];
 }
