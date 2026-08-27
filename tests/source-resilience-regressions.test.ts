@@ -41,17 +41,19 @@ function imageLayer(
   };
 }
 
-test("previsao municipal INMET tenta endpoint atual antes da rota historica", () => {
+test("previsao municipal INMET prioriza endpoint atual e escalona a rota historica", () => {
   const current = inmetResilientSource.indexOf("/api/forecast/");
   const legacy = inmetResilientSource.indexOf("/previsao/");
 
   assert.ok(current >= 0);
   assert.ok(legacy > current);
-  assert.match(inmetResilientSource, /CURRENT_ENDPOINT_TIMEOUT_MS = 1_200/);
-  assert.match(inmetResilientSource, /fetchInmetForecast\(\)/);
+  assert.match(inmetResilientSource, /CURRENT_ENDPOINT_TIMEOUT_MS = 1_400/);
+  assert.match(inmetResilientSource, /LEGACY_ENDPOINT_TIMEOUT_MS = 1_100/);
+  assert.match(inmetResilientSource, /LEGACY_START_DELAY_MS = 450/);
+  assert.match(inmetResilientSource, /setTimeout\(startLegacy, LEGACY_START_DELAY_MS\)/);
   assert.match(officialSources, /fetchResilientInmetForecast/);
   assert.match(officialSources, /OFFICIAL_SOURCE_DEADLINE_MS\.inmetForecast/);
-  assert.match(sourcePolicy, /inmetForecast:\s*3_200/);
+  assert.match(sourcePolicy, /inmetForecast:\s*1_900/);
 });
 
 test("satelite preserva REDEMET quando a camada pedida esta disponivel", () => {
