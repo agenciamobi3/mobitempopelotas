@@ -40,7 +40,7 @@ Estado geral:
 | Enchente de 2024 | Ativo | Registro histórico permanente |
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
-| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter e Schema.org |
+| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e links internos globais |
 | Conta / login Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -81,6 +81,8 @@ Scripts operacionais principais:
 - `npm run cutover:smoke`.
 
 GitHub `main` permanece a fonte de versionamento. Lovable não substitui o Supabase externo e não deve ser usado para provisionar banco paralelo.
+
+Rotas que renderizam `InternalWeatherPageShell` ou `ContentPageShell` são tratadas como standalone em `SiteLayout`, evitando um segundo header/footer global. Em 27/08/2026 esse contrato foi corrigido para incluir 15 dias, Guaíba, Enchente de 1941 e Quem Somos e passou a ter teste automático que varre as rotas com shell próprio.
 
 ## 4. Rotas públicas indexáveis
 
@@ -159,7 +161,7 @@ A nova página atende as intenções de 10 e 15 dias na mesma URL. Não existe p
 
 A interface separa dias 1–7 de dias 8–15 e explica que a incerteza aumenta com o horizonte. Não existe percentual artificial de confiança. Alertas do INMET não são extrapolados para datas sem aviso publicado.
 
-A página de 7 dias possui ligação explícita para a janela de 15 dias.
+A página de 7 dias possui ligação explícita para a janela de 15 dias. O diretório global do rodapé também passou a expor a previsão de 15 dias como próximo horizonte, reforçando descoberta e rastreamento interno sem criar URL redundante de 10 dias.
 
 Documento especializado: `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md`.
 
@@ -261,6 +263,8 @@ A página não transforma nível do Guaíba em diagnóstico automático para Pel
 
 O contexto do SACE continua preservando a classificação da própria estação. Situação elevada em outro ponto não é convertida automaticamente em risco para Pelotas.
 
+O diretório global do rodapé passou a apontar diretamente para `/nivel-do-guaiba`, conectando a página operacional ao cluster Laranjal → situação das águas → Guaíba.
+
 ### Defesa Civil RS
 
 Integração pública GraphQL server-side ativa por padrão. `DEFESA_CIVIL_HYDRO_ENABLED=false` funciona como kill switch.
@@ -303,6 +307,8 @@ Já existem, em diferentes estágios, observações Embrapa, extremos diários, 
 A rota `/historico-climatico-pelotas` apresenta janela pública recente sem chamar 30 dias recentes de “normal climatológica”. A rota `/enchente-2024-pelotas-laranjal` preserva o registro histórico de 2024.
 
 A rota `/enchente-1941-pelotas` foi implementada em 27/08/2026 após pesquisa documental própria. Ela usa o acervo Nelson Nobre Magalhães preservado pela UCPel, trabalho de pesquisadores da UFPel e registros oficiais da Prefeitura para explicar a referência histórica de 2,88 m associada ao Canal São Gonçalo, a documentação fotográfica da duração da cheia e a comparação controlada com 2024. A página não trata 2,88 m como cota da Estação Laranjal nem transfere a referência para outras réguas.
+
+As páginas de 1941 e 2024 possuem links recíprocos e ambas foram incluídas no diretório global “Águas” do rodapé, formando uma sequência histórica rastreável junto das páginas operacionais atuais.
 
 Documentos:
 
@@ -357,6 +363,8 @@ Princípio: não criar URLs quase duplicadas apenas para trocar número, dia ou 
 Os levantamentos do Google Trends de 26/08/2026 estão documentados sem HAR bruto no repositório. A evidência reforçou 15 dias, hidrologia/enchente, Guaíba, sexta/sábado e consultas regionais.
 
 Em 27/08/2026, `/nivel-do-guaiba` avançou como URL operacional com contrato de dados já existente e utilidade hidrológica distinta. Na sequência, `/enchente-1941-pelotas` passou pelo gate documental e foi publicada como ativo histórico: a canonical não inclui `Laranjal` porque a base forte levantada sustenta Pelotas, Praça do Porto e Canal São Gonçalo, sem ampliar territorialmente o fato histórico além das fontes.
+
+A rodada seguinte reforçou links internos globais sem abrir novas URLs: o rodapé passa a expor `/previsao-15-dias-pelotas`, `/nivel-do-guaiba`, `/enchente-1941-pelotas` e `/enchente-2024-pelotas-laranjal`. A navegação contextual das páginas históricas também permanece recíproca.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -439,6 +447,8 @@ Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer st
 Existe ainda uma dívida versionada: `src/routeTree.gen.ts` está em formato anterior ao template atual de `scripts/generate-route-tree.mjs`. `build`, `typecheck`, `test` e `test:routes` regeneram a árvore antes de rodar, mas `routes:check` exige que o arquivo versionado seja regenerado e commitado. Esse gate deve ser corrigido/confirmado assim que houver execução local ou runner funcional; não alterar o gerador apenas para esconder a divergência.
 
 As novas rotas `/nivel-do-guaiba` e `/enchente-1941-pelotas` dependem dessa regeneração normal da árvore pelo script existente; o arquivo gerado não foi editado manualmente nessas rodadas.
+
+`tests/standalone-route-shell.test.ts` passa a proteger o contrato de composição: qualquer módulo de rota que renderize `InternalWeatherPageShell` ou `ContentPageShell` deve constar no conjunto standalone de `SiteLayout`, evitando dois headers, dois footers e dois elementos `main` na mesma página.
 
 ## 18. Deploy e Supabase
 
