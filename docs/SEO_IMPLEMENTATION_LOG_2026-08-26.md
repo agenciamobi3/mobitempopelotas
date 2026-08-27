@@ -184,6 +184,40 @@ Testes/documentação:
 - `docs/FLOOD_1941_RESEARCH_2026-08-27.md` registra fontes, fatos utilizáveis e limites editoriais;
 - `PROJECT_CURRENT_STATE.md` passa a registrar 48 URLs indexáveis, sendo 25 fixas e 23 municipais.
 
+## Fechamento técnico da rodada de 27/08/2026
+
+Além das páginas em si, a revisão encontrou e corrigiu dois pontos de arquitetura que poderiam reduzir qualidade de SEO ou experiência:
+
+### Shell de páginas dedicadas
+
+`SiteLayout` não reconhecia todas as rotas que já renderizam `InternalWeatherPageShell` ou `ContentPageShell`. Isso poderia produzir header/footer e elemento `main` duplicados em páginas dedicadas.
+
+Foram incluídas no contrato standalone:
+
+- `/previsao-15-dias-pelotas`;
+- `/nivel-do-guaiba`;
+- `/enchente-1941-pelotas`;
+- `/quem-somos`.
+
+`tests/standalone-route-shell.test.ts` agora percorre os módulos de rota e protege esse contrato para páginas futuras.
+
+### Links internos globais
+
+O rodapé passou a expor explicitamente:
+
+- `/previsao-15-dias-pelotas`;
+- `/nivel-do-guaiba`;
+- `/enchente-1941-pelotas`;
+- `/enchente-2024-pelotas-laranjal`.
+
+A decisão foi reforçar descoberta e rastreamento sem inflar o cabeçalho principal nem criar novas URLs.
+
+### Árvore de rotas
+
+`src/routeTree.gen.ts` foi regenerado em 27/08/2026 usando o contrato de `scripts/generate-route-tree.mjs`, incorporando Guaíba e 1941. A reprodução determinística do estado anterior produziu exatamente o mesmo blob SHA que estava versionado, confirmando equivalência com o gerador antes de acrescentar as duas rotas novas.
+
+A pendência de árvore desatualizada foi, portanto, eliminada do código. `routes:check`, build, typecheck e a suíte completa ainda dependem de runner funcional para confirmação executável.
+
 ## Gate das páginas por dia da semana
 
 O Trends de 26/08/2026 trouxe sinal direto para sexta-feira e sábado, mas o plano exige cruzamento com Search Console antes de abrir uma URL permanente.
@@ -198,8 +232,8 @@ Decisão:
 
 ## Próximas etapas planejadas
 
-1. regenerar a árvore de rotas pelo gerador existente e executar os gates de build/typecheck/testes quando houver runner/local disponível;
-2. validar `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, canonical e sitemap;
+1. executar `routes:check`, build, typecheck e testes quando houver runner/local disponível;
+2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, canonical e sitemap;
 3. recapturar Search Console para decidir sexta/sábado;
-4. reforçar links internos do cluster histórico/hidrológico conforme a nova rota for publicada e rastreada;
+4. acompanhar descoberta/rastreamento do cluster Guaíba → Lagoa/Laranjal e 1941 ↔ 2024 após publicação;
 5. manter 30 dias, Canal São Gonçalo e páginas de evento condicionados aos contratos de fonte definidos no plano.
