@@ -573,6 +573,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 | `docs/CPTEC_SIGMA_RESEARCH.md` | Pesquisa futura CPTEC/SIGMA |
 | `docs/PRODUCTION_CUTOVER.md` | Runbook de produção |
 | `docs/RUNTIME_READINESS.md` | Preflight do runtime |
+| `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` | Coerência de HTML, service worker, chunks e recuperação de navegação entre deploys |
 
 ## 23. Regra de manutenção
 
@@ -613,3 +614,21 @@ A Home também passou a apresentar o bloco como “Monitoramento meteorológico�
 `tests/source-resilience-regressions.test.ts`, incluído em `test:contracts`, protege prioridade/fallback do INMET, deadline, preferência REDEMET, contingência GOES/INMET e a proibição de substituir Visível por infravermelho. O documento especializado é `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md`.
 
 Esta rodada não adiciona rota pública, migration, Edge Function, secret ou variável de ambiente. A validação de produção e a execução da suíte permanecem pendentes enquanto o runner do GitHub Actions não voltar a executar normalmente.
+
+## 26. Coerência de navegação e cache entre deploys
+
+Em 27/08/2026, relatos de usuários e captura do domínio publicado mostraram ocorrências recorrentes do boundary global e mensagens de conteúdo não encontrado durante a navegação entre páginas. A investigação tratou o problema como incoerência de versão entre HTML, runtime cliente, chunks lazy e server functions, e não como falha isolada da página de Vento.
+
+O runtime público agora possui três barreiras complementares:
+
+- documentos HTML SSR, fora de embeds, recebem `Cache-Control: no-store, no-cache, max-age=0, must-revalidate`, `CDN-Cache-Control: no-store`, `Pragma: no-cache` e `Expires: 0`, evitando que HTML de uma publicação antiga continue apontando para assets de outra;
+- `public/sw.js` passou para a geração `tempo-pelotas-v9`, usa `skipWaiting()` e `clients.claim()`, preserva a geração atual e uma geração anterior do próprio Tempo Pelotas durante a transição, mantém assets com hash reutilizáveis entre essas gerações, força navegação de documento com `cache: no-store` e recarrega abas antigas quando um worker novo assume;
+- se um asset versionado solicitado por uma aba antiga não estiver em cache e responder `404` ou `410`, o worker navega novamente o próprio cliente, com trava por `clientId` para não repetir a recuperação na mesma execução.
+
+A limpeza do service worker ficou restrita a chaves com prefixo do Tempo Pelotas; caches pertencentes a outras camadas não devem ser eliminados por essa rotina. Arquivos em `/brand/`, que não têm a mesma garantia de hash dos bundles, continuam usando revalidação de rede em vez do cache-first entre gerações.
+
+No React/TanStack, `src/lib/stale-client-recovery.ts` continua como segunda linha de recuperação para erros de chunk, preload, fetch e server functions, com uma recarga protegida por URL/janela e sem loop. `/vento-em-pelotas` e `/chuva-em-pelotas` usam `src/lib/weather/public-weather-page-loader.ts` com `Promise.allSettled`, de modo que uma falha de transporte de uma das consultas não promove automaticamente toda a rota ao boundary global.
+
+`tests/service-worker-static-cache.test.ts`, `tests/pwa-app-refinement.test.ts` e `tests/public-route-resilience.test.ts` protegem os contratos correspondentes. A build conectada do Lovable foi reconstruída após as alterações e uma nova publicação foi disparada, mas a propagação final no domínio canônico e a execução do GitHub Actions ainda precisam ser confirmadas separadamente; os runners continuam sem ser considerados aprovados enquanto não executarem os steps.
+
+Documento especializado: `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md`.
