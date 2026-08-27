@@ -29,7 +29,7 @@ export const Route = createFileRoute("/privacidade-e-dados")({
 function PrivacyDataPage() {
   return (
     <ContentPageShell pageClassName="privacy-data-shell">
-      <main className="privacy-page" id="conteudo-principal" tabIndex={-1}>
+      <div className="privacy-page">
         <header className="privacy-hero">
           <div>
             <span className="eyebrow">Privacidade e controle</span>
@@ -85,7 +85,7 @@ function PrivacyDataPage() {
             </div>
           </section>
         </div>
-      </main>
+      </div>
     </ContentPageShell>
   );
 }
