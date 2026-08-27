@@ -16,6 +16,7 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/radar-e-satelite-pelotas",
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
+  "/nivel-do-guaiba",
   "/cameras-ao-vivo-pelotas",
   "/tempo-na-regiao-sul-rs",
   "/metodologia",
@@ -99,6 +100,7 @@ test("mantém atualização frequente nas páginas operacionais", () => {
     "/radar-e-satelite-pelotas",
     "/situacao-hidrologica-pelotas",
     "/nivel-da-lagoa-dos-patos-laranjal",
+    "/nivel-do-guaiba",
     "/cameras-ao-vivo-pelotas",
   ];
 
