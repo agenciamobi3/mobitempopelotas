@@ -15,6 +15,7 @@ export type EditorialInternalPath =
   | "/meteograma-pelotas"
   | "/metodologia"
   | "/nivel-da-lagoa-dos-patos-laranjal"
+  | "/nivel-do-guaiba"
   | "/previsao-7-dias-pelotas"
   | "/radar-e-satelite-pelotas"
   | "/situacao-hidrologica-pelotas"
@@ -78,467 +79,559 @@ export const HOME_EDITORIAL_CONTENT = {
     {
       label: "Radar e satélite",
       href: "/radar-e-satelite-pelotas",
-      description: "Acompanhe a evolução regional de chuva, nuvens e trovoadas.",
+      description: "Acompanhe produtos visuais de monitoramento regional.",
     },
   ],
-} satisfies EditorialContentDefinition;
+} as const satisfies EditorialContentDefinition;
 
 export const TODAY_EDITORIAL_CONTENT = {
-  eyebrow: "Resposta rápida",
-  title: "Como interpretar o tempo de hoje em Pelotas",
+  eyebrow: "Como interpretar o dia",
+  title: "Previsão de hoje em Pelotas: o que observar",
   answer:
-    "A página de hoje combina a observação local mais recente com a previsão para as próximas horas. Temperatura atual e sensação térmica pertencem à medição quando a estação está disponível; chuva, máxima, mínima e evolução horária são previsões.",
+    "Para planejar o dia, combine a condição observada agora com a evolução prevista por hora. Temperatura, chuva, vento e alertas podem mudar ao longo do período, e cada informação mantém sua fonte e finalidade próprias.",
   facts: [
-    "Medição e previsão são exibidas em blocos diferentes para evitar confusão entre dado observado e valor estimado.",
-    "Chance de chuva representa probabilidade; o volume em milímetros representa a quantidade estimada para o período.",
-    "A previsão pode mudar durante o dia conforme novas rodadas dos modelos e novas observações locais.",
+    "A temperatura atual é uma observação quando existe leitura local recente; a evolução das próximas horas é previsão.",
+    "Chance de chuva e volume previsto são medidas diferentes: uma indica probabilidade, a outra estima quantidade.",
+    "Rajadas podem ser maiores que o vento médio e merecem atenção em atividades externas.",
   ],
   faqs: [
     {
-      question: "A temperatura atual é uma previsão?",
+      question: "A previsão por hora é uma medição?",
       answer:
-        "Quando há leitura local recente, a temperatura atual vem da estação observacional identificada na página. Se a medição estiver indisponível, o portal não substitui esse campo por uma previsão sem informar a diferença.",
+        "Não. Os horários futuros são previsões. A observação atual aparece separada quando existe uma estação local utilizável.",
     },
     {
-      question: "Chance de chuva e volume previsto são a mesma coisa?",
+      question: "Por que a previsão pode mudar ao longo do dia?",
       answer:
-        "Não. A chance de chuva indica a probabilidade de ocorrer precipitação, enquanto o volume em milímetros estima quanto pode chover durante o período.",
+        "Modelos são atualizados com novas informações e a atmosfera evolui continuamente. Por isso, chuva, vento e temperatura podem receber ajustes.",
     },
     {
-      question: "Quando devo consultar a previsão novamente?",
+      question: "Onde vejo alertas oficiais?",
       answer:
-        "Consulte novamente antes de deslocamentos, eventos ou atividades ao ar livre, especialmente quando houver instabilidade, vento forte ou avisos oficiais ativos.",
+        "A página de alertas reúne os avisos oficiais disponíveis para Pelotas, preservando validade, severidade, abrangência e orientações da fonte.",
     },
   ],
   relatedLinks: [
     {
-      label: "Previsão para amanhã em Pelotas",
+      label: "Previsão para amanhã",
       href: "/tempo-amanha-pelotas",
-      description: "Planeje o próximo dia com máxima, mínima, chuva e vento.",
+      description: "Veja a evolução prevista para o próximo dia.",
     },
     {
       label: "Chuva em Pelotas",
       href: "/chuva-em-pelotas",
-      description: "Veja probabilidade por horário e volume previsto.",
+      description: "Compare probabilidade e volume de precipitação.",
     },
     {
-      label: "Avisos meteorológicos oficiais",
+      label: "Alertas oficiais",
       href: "/alertas",
-      description: "Confira alertas vigentes e orientações de segurança.",
+      description: "Confira avisos vigentes e orientações oficiais.",
     },
   ],
-} satisfies EditorialContentDefinition;
+} as const satisfies EditorialContentDefinition;
+
+export const TOMORROW_EDITORIAL_CONTENT = {
+  eyebrow: "Planeje o próximo dia",
+  title: "Como usar a previsão de amanhã em Pelotas",
+  answer:
+    "A previsão de amanhã ajuda a organizar horários, deslocamentos e atividades externas, mas deve ser revisada conforme o dia se aproxima. Compare temperatura, chuva e vento e confira alertas oficiais quando houver mudança de tempo relevante.",
+  facts: [
+    "Mínima e máxima representam a faixa prevista para o dia, não valores constantes ao longo de todas as horas.",
+    "Chance de chuva não indica sozinha quanto vai chover; o volume previsto complementa a leitura.",
+    "Para decisões sensíveis ao vento, consulte também as rajadas previstas.",
+  ],
+  faqs: [
+    {
+      question: "A previsão de amanhã ainda pode mudar?",
+      answer:
+        "Sim. Mesmo em horizonte curto, ajustes são possíveis conforme entram observações e novas rodadas dos modelos.",
+    },
+    {
+      question: "Como saber em que horário pode chover amanhã?",
+      answer:
+        "Quando o período estiver dentro da janela horária do portal, a página de hoje/por hora oferece o detalhamento mais próximo do evento.",
+    },
+    {
+      question: "A previsão substitui um alerta oficial?",
+      answer:
+        "Não. A previsão descreve o tempo esperado; avisos oficiais possuem critérios, validade e orientações próprias e devem ser consultados separadamente.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Previsão de 7 dias",
+      href: "/previsao-7-dias-pelotas",
+      description: "Compare amanhã com a tendência da semana.",
+    },
+    {
+      label: "Tempo hoje em Pelotas",
+      href: "/tempo-hoje-pelotas",
+      description: "Acompanhe as próximas horas e a condição atual.",
+    },
+    {
+      label: "Vento em Pelotas",
+      href: "/vento-em-pelotas",
+      description: "Veja velocidade, direção e rajadas previstas.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
 
 export const SEVEN_DAY_EDITORIAL_CONTENT = {
-  eyebrow: "Planejamento semanal",
-  title: "Como usar a previsão de 7 dias para Pelotas",
+  eyebrow: "Entenda a tendência semanal",
+  title: "Como interpretar a previsão dos próximos 7 dias",
   answer:
-    "A previsão semanal é mais útil para identificar tendências de temperatura, chuva e vento do que para definir horários exatos com muitos dias de antecedência. Quanto mais distante o dia, maior a possibilidade de ajuste.",
+    "A previsão de uma semana é útil para comparar dias mais frios, quentes, secos, chuvosos ou ventosos, mas a confiança tende a diminuir conforme a data fica mais distante. Use os primeiros dias para decisões práticas e revise os demais conforme se aproximarem.",
   facts: [
-    "Os primeiros dias normalmente têm maior estabilidade do que o fim da janela de sete dias.",
-    "Probabilidade de chuva, volume previsto e rajadas devem ser analisados em conjunto.",
-    "Atividades sensíveis ao tempo devem ser confirmadas novamente na previsão de hoje ou de amanhã.",
+    "Cada card representa uma previsão diária e pode mudar nas atualizações seguintes.",
+    "Mínima, máxima, chance de chuva, volume e rajada respondem perguntas diferentes e devem ser lidos em conjunto.",
+    "Alertas oficiais aparecem separadamente e não são extrapolados para datas sem aviso publicado.",
   ],
   faqs: [
     {
       question: "A previsão de 7 dias é confiável?",
       answer:
-        "Ela é adequada para acompanhar tendências, mas a precisão diminui com a distância temporal. Para decisões operacionais, confirme os dados nas páginas de hoje e amanhã.",
+        "Ela é útil para planejamento, especialmente nos primeiros dias. Quanto mais distante a data, maior a possibilidade de ajustes.",
     },
     {
-      question: "Por que a previsão muda ao longo da semana?",
+      question: "Por que um dia pode ter alta chance de chuva e pouco volume?",
       answer:
-        "Modelos meteorológicos recebem novas observações e recalculam a atmosfera várias vezes ao dia. Pequenas mudanças iniciais podem alterar chuva, temperatura e vento previstos.",
+        "Probabilidade e quantidade são métricas distintas. Pode haver boa chance de ocorrência com acumulado baixo, ou uma chance menor associada a eventos mais localizados.",
     },
     {
-      question: "Qual dado devo observar primeiro?",
+      question: "O portal mostra alerta para toda a semana?",
       answer:
-        "Comece pela condição predominante e pela faixa de temperatura; depois compare chance e volume de chuva, rajadas de vento e alertas oficiais.",
+        "Não. Avisos oficiais só são exibidos quando a fonte publica validade e abrangência aplicáveis. O portal não cria alertas a partir da previsão.",
     },
   ],
   relatedLinks: [
     {
-      label: "Tempo hoje em Pelotas",
-      href: "/tempo-hoje-pelotas",
-      description: "Veja a observação atual e a evolução das próximas horas.",
-    },
-    {
-      label: "Tempo amanhã em Pelotas",
+      label: "Previsão de amanhã",
       href: "/tempo-amanha-pelotas",
-      description: "Consulte a previsão detalhada para o próximo dia.",
+      description: "Aprofunde o próximo dia antes de tomar decisões práticas.",
     },
     {
-      label: "Vento e rajadas em Pelotas",
+      label: "Chuva em Pelotas",
+      href: "/chuva-em-pelotas",
+      description: "Veja probabilidade, volume e acumulados de precipitação.",
+    },
+    {
+      label: "Vento em Pelotas",
       href: "/vento-em-pelotas",
-      description: "Compare velocidade, direção e rajadas previstas.",
+      description: "Compare vento médio, direção e rajadas.",
     },
   ],
-} satisfies EditorialContentDefinition;
+} as const satisfies EditorialContentDefinition;
 
 export const RAIN_EDITORIAL_CONTENT = {
-  eyebrow: "Leitura da precipitação",
-  title: "O que significam chance de chuva e milímetros previstos",
+  eyebrow: "Chuva sem confusão",
+  title: "Chance de chuva e volume previsto não são a mesma coisa",
   answer:
-    "A probabilidade informa a chance de chover em Pelotas durante o período analisado. O volume em milímetros estima a quantidade de precipitação. Um percentual alto não significa, por si só, chuva volumosa.",
+    "A probabilidade indica a chance de ocorrer precipitação no período; o volume em milímetros estima quanto pode acumular. Para entender o impacto potencial, compare os dois e mantenha chuva observada separada da previsão futura.",
   facts: [
-    "Probabilidade responde se pode chover; milímetros ajudam a estimar quanto pode chover.",
-    "Previsão acumulada não é o mesmo que chuva já medida por uma estação ou pluviômetro.",
-    "Em risco de temporal, alagamento ou inundação, consulte os avisos oficiais e a situação hidrológica.",
+    "Chuva observada vem de estação ou rede de medição identificada; chuva prevista vem de modelo meteorológico.",
+    "Acumulados com janelas diferentes não devem ser somados automaticamente.",
+    "Aviso de chuva do INMET é um produto oficial separado da medição e da previsão numérica.",
   ],
   faqs: [
     {
-      question: "O que significa 70% de chance de chuva?",
+      question: "70% de chance significa que vai chover 70% do dia?",
       answer:
-        "Significa que a fonte estima alta probabilidade de ocorrer precipitação no local e período indicados. O percentual não informa sozinho a duração nem a intensidade da chuva.",
+        "Não. O percentual expressa probabilidade de ocorrência no local e período considerados; não representa duração da chuva.",
     },
     {
-      question: "Quantos milímetros representam chuva forte?",
+      question: "Milímetros de chuva são chance de chuva?",
       answer:
-        "O impacto depende do intervalo de tempo, da distribuição da chuva, da drenagem e das condições anteriores. Por isso, o volume previsto deve ser analisado junto de alertas e observações locais.",
+        "Não. Milímetros representam quantidade acumulada ou prevista de água; chance é uma probabilidade.",
     },
     {
-      question: "A chuva prevista já foi medida?",
+      question: "Onde vejo se há aviso oficial de chuva forte?",
       answer:
-        "Não. Os valores futuros são estimativas dos modelos. Medições observadas devem ser identificadas como acumulado registrado por uma estação ou rede de monitoramento.",
+        "Na página de alertas, que preserva severidade, validade, abrangência e instruções publicadas pela fonte oficial.",
     },
   ],
   relatedLinks: [
     {
-      label: "Previsão completa de hoje",
-      href: "/tempo-hoje-pelotas",
-      description: "Compare chuva, temperatura, sensação térmica e vento.",
-    },
-    {
-      label: "Radar e satélite meteorológico",
-      href: "/radar-e-satelite-pelotas",
-      description: "Observe a posição e a evolução regional das áreas de chuva.",
-    },
-    {
-      label: "Alertas de chuva e tempestade",
+      label: "Alertas oficiais",
       href: "/alertas",
-      description: "Consulte avisos oficiais vigentes para Pelotas.",
-    },
-  ],
-} satisfies EditorialContentDefinition;
-
-export const WIND_EDITORIAL_CONTENT = {
-  eyebrow: "Leitura do vento",
-  title: "Diferença entre velocidade do vento, direção e rajadas",
-  answer:
-    "A velocidade representa o vento médio no período; a rajada é um pico de curta duração e pode ser bem mais forte. A direção informa de onde o vento vem e ajuda a entender mudanças no tempo e efeitos locais.",
-  facts: [
-    "Vento médio e rajada não devem ser comparados como se fossem a mesma medida.",
-    "Rajadas podem afetar árvores, estruturas leves, navegação, trânsito e atividades ao ar livre.",
-    "Quando houver aviso oficial, a orientação de segurança prevalece sobre a interpretação geral da previsão.",
-  ],
-  faqs: [
-    {
-      question: "Qual é a diferença entre vento e rajada?",
-      answer:
-        "O vento é a velocidade média em um intervalo; a rajada é um aumento breve e mais intenso. Por isso, a rajada máxima costuma ser superior ao vento sustentado.",
-    },
-    {
-      question: "O que significa a direção do vento?",
-      answer:
-        "A direção indica de onde o vento sopra. Vento sul, por exemplo, vem do sul em direção ao norte.",
-    },
-    {
-      question: "Quando o vento exige atenção?",
-      answer:
-        "Atenção é necessária quando as rajadas aumentam, existem estruturas vulneráveis ou há avisos oficiais. Consulte também a evolução horária antes de atividades externas ou náuticas.",
-    },
-  ],
-  relatedLinks: [
-    {
-      label: "Tempo hoje em Pelotas",
-      href: "/tempo-hoje-pelotas",
-      description: "Veja a medição local e a previsão para as próximas horas.",
-    },
-    {
-      label: "Previsão para os próximos 7 dias",
-      href: "/previsao-7-dias-pelotas",
-      description: "Compare as rajadas e tendências ao longo da semana.",
-    },
-    {
-      label: "Avisos meteorológicos oficiais",
-      href: "/alertas",
-      description: "Verifique alertas relacionados a vento forte e tempestades.",
-    },
-  ],
-} satisfies EditorialContentDefinition;
-
-export const RADAR_EDITORIAL_CONTENT = {
-  eyebrow: "Monitoramento por imagem",
-  title: "Como interpretar radar, satélite e registros de trovoadas",
-  answer:
-    "O radar ajuda a localizar ecos associados à precipitação e acompanhar seu deslocamento regional. O satélite mostra nuvens e características de seus topos, enquanto os registros de trovoadas indicam atividade elétrica detectada. São produtos complementares, não equivalentes.",
-  facts: [
-    "O horário de cada quadro é essencial: imagens antigas não representam necessariamente a situação atual.",
-    "Nuvens visíveis no satélite não significam, por si só, chuva no solo em Pelotas.",
-    "Radar, satélite e trovoadas ajudam a acompanhar a evolução regional, mas não substituem alertas oficiais nem medições locais.",
-  ],
-  faqs: [
-    {
-      question: "O radar mostra se está chovendo exatamente no meu bairro?",
-      answer:
-        "O radar oferece uma visão regional com resolução e alcance limitados. Distância, relevo, altura do feixe e intensidade da precipitação podem afetar a leitura; confirme a situação com observação local e avisos oficiais.",
-    },
-    {
-      question: "Uma nuvem no satélite significa chuva?",
-      answer:
-        "Não necessariamente. A imagem mostra cobertura e características das nuvens. Para avaliar precipitação, compare satélite, radar, previsão e observações próximas.",
-    },
-    {
-      question: "Registro de trovoada é o mesmo que alerta meteorológico?",
-      answer:
-        "Não. Ele indica atividade elétrica detectada em uma área e horário. Alertas são comunicados oficiais emitidos com critérios próprios de risco, abrangência e validade.",
-    },
-  ],
-  relatedLinks: [
-    {
-      label: "Chuva prevista em Pelotas",
-      href: "/chuva-em-pelotas",
-      description: "Compare imagens regionais com probabilidade e volume previstos.",
-    },
-    {
-      label: "Avisos meteorológicos oficiais",
-      href: "/alertas",
-      description: "Verifique severidade, abrangência e período dos avisos do INMET.",
-    },
-    {
-      label: "Fontes e metodologia",
-      href: "/metodologia",
-      description: "Entenda a origem, a atualização e os limites de cada produto.",
-    },
-  ],
-} satisfies EditorialContentDefinition;
-
-export const EMBRAPA_EDITORIAL_CONTENT = {
-  eyebrow: "Observação meteorológica local",
-  title: "O que a estação da Embrapa mede em Pelotas",
-  answer:
-    "A estação da Embrapa Clima Temperado fornece observações realizadas em um ponto específico de Pelotas. Temperatura, umidade, pressão, vento e chuva medidos pela estação descrevem aquele local e horário; não são valores previstos para toda a cidade.",
-  facts: [
-    "Medição observada registra o que ocorreu no ponto da estação; previsão estima condições futuras para uma área.",
-    "Bairros diferentes podem apresentar variações de temperatura, vento e chuva por distância e características locais.",
-    "A data e o horário da última leitura devem ser verificados antes de interpretar qualquer valor como condição atual.",
-  ],
-  faqs: [
-    {
-      question: "A temperatura da Embrapa é a temperatura atual de Pelotas?",
-      answer:
-        "É uma medição local válida para a estação e para o horário informado. Ela é uma referência importante para Pelotas, mas não representa necessariamente todos os bairros ao mesmo tempo.",
-    },
-    {
-      question: "Por que a estação pode mostrar um valor diferente do aplicativo?",
-      answer:
-        "Aplicativos frequentemente exibem valores de modelos ou de outros pontos de observação. A estação publica uma medição no local; diferenças de fonte, distância e horário são esperadas.",
-    },
-    {
-      question: "A estação da Embrapa fornece previsão do tempo?",
-      answer:
-        "Nesta página, a função principal da Embrapa é observacional. As previsões do portal são identificadas separadamente e vêm das fontes meteorológicas indicadas em cada atualização.",
-    },
-  ],
-  relatedLinks: [
-    {
-      label: "Tempo hoje em Pelotas",
-      href: "/tempo-hoje-pelotas",
-      description: "Compare a observação local com a previsão das próximas horas.",
-    },
-    {
-      label: "Histórico climático recente",
-      href: "/historico-climatico-pelotas",
-      description: "Consulte máximas, mínimas, chuva e vento dos últimos dias.",
-    },
-    {
-      label: "Fontes e metodologia",
-      href: "/metodologia",
-      description: "Veja como a estação participa da consolidação dos dados.",
-    },
-  ],
-} satisfies EditorialContentDefinition;
-
-export const HISTORY_EDITORIAL_CONTENT = {
-  eyebrow: "Contexto recente",
-  title: "Como interpretar o histórico dos últimos 30 dias",
-  answer:
-    "O histórico reúne dias completos recentes para mostrar o que efetivamente ocorreu em Pelotas segundo a fonte identificada. Ele ajuda a comparar máximas, mínimas, chuva e rajadas, mas não substitui uma normal climatológica calculada com décadas de dados.",
-  facts: [
-    "Histórico descreve o passado; previsão estima o futuro.",
-    "Trinta dias mostram um período recente, não definem sozinhos o clima de Pelotas.",
-    "Falhas ou lacunas da fonte devem permanecer explícitas e não ser preenchidas com valores inventados.",
-  ],
-  faqs: [
-    {
-      question: "O histórico climático é uma previsão?",
-      answer:
-        "Não. A página apresenta dados de dias já concluídos. Para condições futuras, consulte as páginas de hoje, amanhã e sete dias.",
-    },
-    {
-      question: "Os últimos 30 dias representam o clima normal de Pelotas?",
-      answer:
-        "Não. Normais climatológicas exigem séries longas e metodologia específica. A janela de 30 dias serve para contexto recente e comparação operacional.",
-    },
-    {
-      question: "Por que a máxima diária difere da temperatura atual?",
-      answer:
-        "A máxima é o maior valor registrado durante um dia completo. A temperatura atual corresponde a uma leitura em um horário específico.",
-    },
-  ],
-  relatedLinks: [
-    {
-      label: "Estação Embrapa em Pelotas",
-      href: "/estacao-embrapa-pelotas",
-      description: "Consulte a observação meteorológica local mais recente.",
-    },
-    {
-      label: "Previsão para os próximos 7 dias",
-      href: "/previsao-7-dias-pelotas",
-      description: "Compare o período recente com a tendência futura.",
-    },
-    {
-      label: "Metodologia dos dados",
-      href: "/metodologia",
-      description: "Veja origem, período de cobertura e limitações da série.",
-    },
-  ],
-} satisfies EditorialContentDefinition;
-
-export const CAMERAS_EDITORIAL_CONTENT = {
-  eyebrow: "Observação visual",
-  title: "Como usar as câmeras para acompanhar o tempo em Pelotas",
-  answer:
-    "As câmeras oferecem contexto visual sobre céu, visibilidade, superfície e condições aparentes em pontos específicos. Elas complementam radar, satélite, estações e previsão, mas uma imagem não mede temperatura, vento, volume de chuva ou nível da água.",
-  facts: [
-    "Uma transmissão só deve ser tratada como ao vivo quando o estado e o horário indicarem atualização recente.",
-    "Lente molhada, neblina, reflexos, posição da câmera e iluminação podem alterar a percepção da imagem.",
-    "Condições observadas em um ponto não representam automaticamente toda Pelotas ou toda a orla do Laranjal.",
-  ],
-  faqs: [
-    {
-      question: "Todas as câmeras estão sempre ao vivo?",
-      answer:
-        "Não. O portal informa o estado conhecido de cada transmissão. Uma câmera pode estar indisponível, apresentar imagem estática ou depender de uma transmissão pública externa.",
-    },
-    {
-      question: "A câmera confirma que está chovendo em Pelotas?",
-      answer:
-        "Ela pode mostrar chuva aparente no ponto enquadrado, mas não mede intensidade nem abrangência. Compare com radar, estação local e previsão.",
-    },
-    {
-      question: "A imagem substitui os dados meteorológicos?",
-      answer:
-        "Não. Câmeras são apoio visual. Decisões de segurança devem considerar medições, avisos oficiais e informações das autoridades.",
-    },
-  ],
-  relatedLinks: [
-    {
-      label: "Tempo hoje em Pelotas",
-      href: "/tempo-hoje-pelotas",
-      description: "Compare a imagem com observação e previsão horária.",
+      description: "Confira avisos meteorológicos vigentes para Pelotas.",
     },
     {
       label: "Radar e satélite",
       href: "/radar-e-satelite-pelotas",
-      description: "Acompanhe nuvens, precipitação e trovoadas na região.",
+      description: "Acompanhe visualmente áreas de precipitação e nebulosidade.",
     },
     {
-      label: "Nível da Lagoa no Laranjal",
-      href: "/nivel-da-lagoa-dos-patos-laranjal",
-      description: "Consulte a telemetria pública e a tendência recente da água.",
+      label: "Tempo hoje em Pelotas",
+      href: "/tempo-hoje-pelotas",
+      description: "Veja a evolução prevista nas próximas horas.",
     },
   ],
-} satisfies EditorialContentDefinition;
+} as const satisfies EditorialContentDefinition;
 
-export const HYDROLOGY_EDITORIAL_CONTENT = {
-  eyebrow: "Leitura das águas",
-  title: "Como interpretar a situação hidrológica de Pelotas",
+export const WIND_EDITORIAL_CONTENT = {
+  eyebrow: "Vento e rajadas",
+  title: "Vento médio e rajada descrevem comportamentos diferentes",
   answer:
-    "A página reúne leituras de estações e contexto meteorológico para acompanhar a Lagoa dos Patos e sistemas relacionados. Cada estação possui localização, referência e horário próprios; por isso, valores de pontos diferentes não devem ser comparados como se fossem uma única régua.",
+    "A velocidade do vento ajuda a entender o fluxo predominante; a rajada representa picos mais fortes e curtos. Em atividades ao ar livre, navegação ou situações de tempo severo, a rajada pode ser mais relevante do que a média.",
   facts: [
-    "A tendência recente ajuda a identificar subida, estabilidade ou descida, mas não é uma previsão garantida do nível futuro.",
-    "Vento, chuva, descargas fluviais e circulação da Lagoa dos Patos podem influenciar níveis em escalas e locais diferentes.",
-    "Situações de inundação ou emergência devem ser avaliadas pelos órgãos responsáveis e pelos comunicados oficiais.",
+    "Direção indica de onde o vento vem, seguindo a convenção meteorológica.",
+    "Rajadas podem variar rapidamente e não significam que o vento permanece naquele pico durante todo o período.",
+    "Aviso oficial de vento forte deve ser consultado separadamente quando publicado.",
   ],
   faqs: [
     {
-      question: "O nível é igual em toda a Lagoa dos Patos?",
+      question: "Rajada e vento são a mesma coisa?",
       answer:
-        "Não. Vento, geometria da lagoa, afluentes e localização provocam diferenças entre estações. Cada leitura deve ser interpretada no ponto e na referência informados.",
+        "Não. A rajada é um aumento curto e mais intenso da velocidade; o vento médio descreve um comportamento mais sustentado.",
     },
     {
-      question: "Um nível em elevação significa que haverá inundação?",
+      question: "A direção do vento mostra para onde ele vai?",
       answer:
-        "Não necessariamente. A elevação é um sinal de tendência, mas o impacto depende de cotas locais, duração, vento, chuva, drenagem e orientações oficiais.",
+        "Na convenção meteorológica, a direção normalmente indica de onde o vento vem. Um vento sul, por exemplo, sopra a partir do sul.",
     },
     {
-      question: "Qual é a relação entre tempo e nível da água?",
+      question: "Onde vejo alerta de vento forte?",
       answer:
-        "Chuva contribui para vazões e volumes, enquanto ventos persistentes podem represar ou deslocar água na Lagoa dos Patos. Os efeitos variam conforme direção, intensidade e duração.",
+        "Consulte a página de alertas oficiais. O portal não cria um alerta apenas porque o modelo prevê rajadas elevadas.",
     },
   ],
   relatedLinks: [
     {
-      label: "Nível da Lagoa no Laranjal",
-      href: "/nivel-da-lagoa-dos-patos-laranjal",
-      description: "Veja a leitura local e a evolução das últimas horas.",
-    },
-    {
-      label: "Avisos meteorológicos oficiais",
+      label: "Alertas oficiais",
       href: "/alertas",
-      description: "Consulte alertas associados a chuva, vento e tempestades.",
+      description: "Confira avisos de vento e tempestade publicados para Pelotas.",
     },
     {
-      label: "Fontes e metodologia",
-      href: "/metodologia",
-      description: "Conheça as redes, referências e limites das integrações.",
+      label: "Radar e satélite",
+      href: "/radar-e-satelite-pelotas",
+      description: "Acompanhe sistemas meteorológicos na região.",
+    },
+    {
+      label: "Chuva em Pelotas",
+      href: "/chuva-em-pelotas",
+      description: "Compare vento com chance e volume de precipitação.",
     },
   ],
-} satisfies EditorialContentDefinition;
+} as const satisfies EditorialContentDefinition;
 
-export const LARANJAL_LEVEL_EDITORIAL_CONTENT = {
-  eyebrow: "Telemetria no Laranjal",
-  title: "O que significa a leitura do nível da Lagoa no Laranjal",
+export const ALERTS_EDITORIAL_CONTENT = {
+  eyebrow: "Avisos oficiais",
+  title: "Como interpretar alertas meteorológicos para Pelotas",
   answer:
-    "A leitura representa o nível registrado pela Estação Laranjal no horário informado e segundo a referência publicada pela fonte. A evolução das últimas horas ajuda a identificar tendência local, mas não deve ser interpretada isoladamente como previsão de alagamento ou inundação.",
+    "Avisos oficiais possuem evento, severidade, período de validade, área afetada e instruções próprias. O Tempo Pelotas organiza essas informações, mas não aumenta, reduz ou inventa a classificação publicada pela fonte.",
   facts: [
-    "Telemetria pode sofrer atrasos, interrupções ou correções; a última atualização deve acompanhar qualquer leitura.",
-    "Uma variação curta pode refletir vento, oscilação local ou ruído, por isso a sequência de leituras é mais informativa do que um ponto isolado.",
-    "Em condição de risco, siga a Defesa Civil, autoridades municipais e comunicados oficiais.",
+    "Severidade e instruções pertencem ao aviso oficial.",
+    "Ausência de um aviso recuperado pelo portal não deve ser interpretada automaticamente como ausência de risco.",
+    "Radar, previsão, trovoadas e medições podem complementar a compreensão do cenário, mas não substituem o alerta oficial.",
   ],
   faqs: [
     {
-      question: "O que representa o número exibido para o Laranjal?",
+      question: "Quem emite os alertas mostrados pelo Tempo Pelotas?",
       answer:
-        "Ele representa a leitura da estação no referencial utilizado pela fonte. Não deve ser comparado diretamente com marcas físicas ou outras estações sem conhecer o mesmo datum e a mesma metodologia.",
+        "Os avisos meteorológicos exibidos pelo portal são publicados por fontes oficiais identificadas, como o INMET, com seus próprios critérios e orientações.",
     },
     {
-      question: "Com que frequência o nível é atualizado?",
+      question: "O Tempo Pelotas pode criar um alerta próprio?",
       answer:
-        "A frequência depende da fonte e da disponibilidade da telemetria. O portal apresenta o horário da última leitura válida e informa quando os dados estão indisponíveis ou defasados.",
+        "O portal pode explicar observações e previsões, mas não deve apresentar uma interpretação própria como se fosse um aviso oficial.",
     },
     {
-      question: "Um valor alto confirma inundação no Laranjal?",
+      question: "Se não aparece alerta, está tudo seguro?",
       answer:
-        "Não por si só. O impacto depende da referência local, da tendência, do vento, da drenagem e das condições em cada trecho. Utilize comunicados das autoridades para decisões de segurança.",
+        "Não necessariamente. Falhas de consulta, atraso de atualização ou mudanças rápidas podem ocorrer. Em situação de risco, consulte diretamente os canais oficiais e a Defesa Civil.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Radar e satélite",
+      href: "/radar-e-satelite-pelotas",
+      description: "Veja produtos visuais que ajudam a acompanhar a evolução do tempo.",
+    },
+    {
+      label: "Chuva em Pelotas",
+      href: "/chuva-em-pelotas",
+      description: "Compare chuva observada, chance e volume previsto.",
+    },
+    {
+      label: "Vento em Pelotas",
+      href: "/vento-em-pelotas",
+      description: "Acompanhe vento médio, direção e rajadas.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
+
+export const RADAR_EDITORIAL_CONTENT = {
+  eyebrow: "Monitoramento visual",
+  title: "Radar e satélite mostram o que está sendo observado, não uma previsão fechada",
+  answer:
+    "As imagens ajudam a localizar áreas de precipitação, nebulosidade e atividade convectiva no horário indicado. Elas devem ser lidas junto da previsão e dos alertas, sem transformar uma imagem isolada em diagnóstico automático do que acontecerá em Pelotas.",
+  facts: [
+    "Cada imagem mantém produto, fonte e horário próprios.",
+    "Imagem de radar ou satélite atrasada deve ser identificada como tal.",
+    "Atividade elétrica do STSC é monitoramento e não equivale a alerta oficial de tempestade.",
+  ],
+  faqs: [
+    {
+      question: "O radar mostra exatamente onde vai chover depois?",
+      answer:
+        "Ele mostra ecos observados no horário do quadro. A evolução futura exige previsão e acompanhamento das imagens seguintes.",
+    },
+    {
+      question: "Satélite e radar são a mesma coisa?",
+      answer:
+        "Não. O satélite observa características das nuvens a partir do espaço; o radar detecta ecos relacionados à precipitação e outros alvos na área de cobertura.",
+    },
+    {
+      question: "Trovoada no STSC significa alerta oficial?",
+      answer:
+        "Não. STSC é uma observação de atividade elétrica. Alertas oficiais possuem fonte, severidade, validade e instruções próprias.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Alertas oficiais",
+      href: "/alertas",
+      description: "Confira avisos vigentes e orientações oficiais.",
+    },
+    {
+      label: "Chuva em Pelotas",
+      href: "/chuva-em-pelotas",
+      description: "Veja chance, volume previsto e chuva observada.",
+    },
+    {
+      label: "Tempo hoje em Pelotas",
+      href: "/tempo-hoje-pelotas",
+      description: "Compare o monitoramento visual com a previsão das próximas horas.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
+
+export const LARANJAL_LEVEL_EDITORIAL_CONTENT = {
+  eyebrow: "Nível da Lagoa dos Patos",
+  title: "A leitura do Laranjal representa uma estação local",
+  answer:
+    "O nível exibido pertence à referência da Estação Laranjal e ajuda a acompanhar a evolução local da Lagoa dos Patos. Ele não deve ser comparado diretamente com réguas de outros municípios nem tratado isoladamente como confirmação de inundação.",
+  facts: [
+    "Sempre confira o horário da leitura e o estado de atualização.",
+    "A tendência é calculada a partir da própria série recente do Laranjal.",
+    "Outros pontos da Lagoa e do Guaíba são referências regionais, não substitutos da estação local.",
+  ],
+  faqs: [
+    {
+      question: "O nível do Laranjal é o nível de toda a Lagoa dos Patos?",
+      answer:
+        "Não. É uma medição local na referência da Estação Laranjal. Outros pontos da Lagoa podem apresentar valores e tendências diferentes.",
+    },
+    {
+      question: "Posso comparar diretamente o Laranjal com Rio Grande ou Guaíba?",
+      answer:
+        "Não por simples subtração. Cada régua possui referência própria. A comparação mais segura observa tendência, horário e evolução de cada ponto.",
+    },
+    {
+      question: "Nível alto significa inundação?",
+      answer:
+        "Não necessariamente. O impacto depende da referência da estação, da evolução, do vento, da drenagem e das condições locais. Para segurança, siga comunicados oficiais.",
     },
   ],
   relatedLinks: [
     {
       label: "Situação das águas em Pelotas",
       href: "/situacao-hidrologica-pelotas",
-      description: "Compare a leitura local com a rede regional e o contexto meteorológico.",
+      description: "Veja o contexto regional da Lagoa, Guaíba e rios que influenciam o sistema.",
     },
     {
-      label: "Avisos meteorológicos oficiais",
-      href: "/alertas",
-      description: "Confira alertas vigentes de chuva, vento e tempestade.",
+      label: "Chuva em Pelotas",
+      href: "/chuva-em-pelotas",
+      description: "Compare a evolução do nível com chuva observada e prevista.",
     },
     {
-      label: "Câmeras do Laranjal",
-      href: "/cameras-ao-vivo-pelotas",
-      description: "Use observação visual como complemento, sem substituir a telemetria.",
+      label: "Vento em Pelotas",
+      href: "/vento-em-pelotas",
+      description: "Acompanhe direção e rajadas que podem influenciar a Lagoa.",
     },
   ],
-} satisfies EditorialContentDefinition;
+} as const satisfies EditorialContentDefinition;
+
+export const CLIMATE_EDITORIAL_CONTENT = {
+  eyebrow: "Clima e estações do ano",
+  title: "Clima descreve padrões de longo prazo, não a previsão de hoje",
+  answer:
+    "Climatologia resume o comportamento típico observado ao longo de períodos extensos. Ela ajuda a entender sazonalidade de temperatura, chuva e vento, mas não substitui a previsão para um dia específico.",
+  facts: [
+    "Normais climatológicas exigem séries longas e períodos padronizados.",
+    "Um mês recente mais quente ou mais chuvoso não redefine sozinho o clima local.",
+    "Previsão diária e climatologia respondem perguntas diferentes e devem permanecer separadas.",
+  ],
+  faqs: [
+    {
+      question: "Clima e tempo são a mesma coisa?",
+      answer:
+        "Não. Tempo descreve condições atmosféricas em períodos curtos; clima resume padrões observados ao longo de muitos anos.",
+    },
+    {
+      question: "A página de clima diz se vai chover hoje?",
+      answer:
+        "Não. Para hoje, use a previsão diária e os dados observados. A página de clima explica comportamento sazonal e contexto de longo prazo.",
+    },
+    {
+      question: "Trinta dias são suficientes para definir uma normal climatológica?",
+      answer:
+        "Não. Normais climatológicas usam períodos padronizados e séries muito mais longas.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Histórico recente",
+      href: "/historico-climatico-pelotas",
+      description: "Compare os últimos dias sem confundir o recorte com normal climatológica.",
+    },
+    {
+      label: "Estação Embrapa",
+      href: "/estacao-embrapa-pelotas",
+      description: "Veja observações meteorológicas locais identificadas.",
+    },
+    {
+      label: "Tempo hoje em Pelotas",
+      href: "/tempo-hoje-pelotas",
+      description: "Consulte a previsão e a condição atual do dia.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
+
+export const HISTORY_EDITORIAL_CONTENT = {
+  eyebrow: "Histórico recente",
+  title: "Histórico de 30 dias não é normal climatológica",
+  answer:
+    "O histórico recente ajuda a comparar dias quentes, frios, secos, chuvosos ou ventosos dentro da janela consultada. Ele não deve ser usado sozinho para concluir se o período foi normal ou recorde em relação ao clima de Pelotas.",
+  facts: [
+    "A fonte histórica e o período efetivamente disponível são identificados na página.",
+    "Dados ausentes permanecem ausentes e não são preenchidos com zero.",
+    "Recordes dentro de 30 dias são apenas extremos da janela, não recordes históricos oficiais do município.",
+  ],
+  faqs: [
+    {
+      question: "O dia mais quente dos últimos 30 dias é recorde de Pelotas?",
+      answer:
+        "Não. É apenas o maior valor dentro da janela consultada e da fonte usada pela página.",
+    },
+    {
+      question: "Posso comparar diretamente esse histórico com uma normal climatológica?",
+      answer:
+        "Somente com cuidado e usando períodos e fontes compatíveis. A página não faz essa equivalência automaticamente.",
+    },
+    {
+      question: "O que acontece se a fonte histórica falhar?",
+      answer:
+        "O portal pode usar dias já arquivados quando disponíveis e identifica explicitamente estados parciais, sem inventar números para completar a série.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Clima de Pelotas",
+      href: "/clima-em-pelotas",
+      description: "Entenda padrões sazonais e a diferença entre clima e tempo.",
+    },
+    {
+      label: "Estação Embrapa",
+      href: "/estacao-embrapa-pelotas",
+      description: "Consulte observações locais e extremos diários.",
+    },
+    {
+      label: "Metodologia",
+      href: "/metodologia",
+      description: "Veja como o portal diferencia observação, previsão e histórico.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
+
+export const EMBRAPA_STATION_EDITORIAL_CONTENT = {
+  eyebrow: "Observação local",
+  title: "O que a Estação Embrapa mostra sobre Pelotas",
+  answer:
+    "A estação fornece observações meteorológicas locais que o Tempo Pelotas usa para representar a condição medida quando a leitura está recente e utilizável. Campos indisponíveis permanecem ausentes e não são substituídos por previsão.",
+  facts: [
+    "Observação de estação e previsão de modelo permanecem separadas.",
+    "O horário da leitura é parte essencial da informação e ajuda a identificar atraso.",
+    "Extremos diários e acumulados pertencem à estação e ao período informado.",
+  ],
+  faqs: [
+    {
+      question: "A temperatura da Embrapa é uma previsão?",
+      answer:
+        "Não. Quando a estação está disponível, trata-se de uma observação medida. Previsões futuras aparecem em outras camadas do portal.",
+    },
+    {
+      question: "O que acontece quando a estação fica indisponível?",
+      answer:
+        "O portal identifica a ausência ou atraso em vez de apresentar um valor de modelo como se tivesse sido medido pela estação.",
+    },
+    {
+      question: "Os acumulados da estação representam toda Pelotas?",
+      answer:
+        "Não necessariamente. Eles representam a medição no ponto da estação e ajudam a contextualizar o município, mas a chuva pode variar entre bairros e áreas rurais.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Tempo hoje em Pelotas",
+      href: "/tempo-hoje-pelotas",
+      description: "Veja a observação atual junto da previsão das próximas horas.",
+    },
+    {
+      label: "Histórico recente",
+      href: "/historico-climatico-pelotas",
+      description: "Compare a evolução dos últimos dias.",
+    },
+    {
+      label: "Metodologia",
+      href: "/metodologia",
+      description: "Entenda como a estação entra no contrato meteorológico do portal.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
+
+export const FROST_EDITORIAL_CONTENT = {
+  eyebrow: "Geada e frio",
+  title: "Mapa de geadas é observação/registro e não deve ser confundido com previsão automática",
+  answer:
+    "O produto de geadas ajuda a identificar registros e contexto de frio conforme a fonte publicada. Ele não deve ser transformado em previsão de geada futura sem um contrato meteorológico específico que sustente essa afirmação.",
+  facts: [
+    "O horário e a data do produto devem acompanhar qualquer interpretação.",
+    "Frio intenso favorece geada, mas temperatura prevista sozinha não confirma ocorrência em todo o estado.",
+    "Avisos oficiais, quando existentes, permanecem separados do mapa.",
+  ],
+  faqs: [
+    {
+      question: "O mapa mostra onde vai gear amanhã?",
+      answer:
+        "Não necessariamente. A página identifica a natureza do produto exibido e não converte registro/monitoramento em previsão futura sem fonte adequada.",
+    },
+    {
+      question: "Geada ocorre apenas quando a temperatura do ar chega a 0 °C?",
+      answer:
+        "Não. A formação depende também da temperatura junto à superfície, umidade, vento, nebulosidade e condições locais.",
+    },
+    {
+      question: "Onde vejo a previsão de temperatura para Pelotas?",
+      answer:
+        "Use as páginas de hoje, amanhã ou 7 dias, conforme o horizonte desejado.",
+    },
+  ],
+  relatedLinks: [
+    {
+      label: "Tempo hoje em Pelotas",
+      href: "/tempo-hoje-pelotas",
+      description: "Consulte a temperatura e a evolução das próximas horas.",
+    },
+    {
+      label: "Previsão de 7 dias",
+      href: "/previsao-7-dias-pelotas",
+      description: "Compare mínimas e máximas da semana.",
+    },
+    {
+      label: "Alertas oficiais",
+      href: "/alertas",
+      description: "Veja avisos meteorológicos publicados para Pelotas.",
+    },
+  ],
+} as const satisfies EditorialContentDefinition;
