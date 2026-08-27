@@ -14,13 +14,18 @@ const liveBackground = readFileSync(
   "utf8",
 );
 
-test("homepage does not block SSR on camera discovery", () => {
+test("homepage does not block SSR and defers camera discovery until browser idle", () => {
   assert.doesNotMatch(homeRoute, /getWeatherCameras/);
   assert.doesNotMatch(homeRoute, /cameraData/);
   assert.match(homeRoute, /weather, laranjal, guaiba, lagoon/);
   assert.match(productionHome, /getWeatherCameras/);
   assert.match(productionHome, /useEffect/);
   assert.match(productionHome, /useState<WeatherCameraData \| null>\(null\)/);
+  assert.match(productionHome, /CAMERA_DISCOVERY_IDLE_TIMEOUT_MS\s*=\s*2_000/);
+  assert.match(productionHome, /CAMERA_DISCOVERY_FALLBACK_DELAY_MS\s*=\s*900/);
+  assert.match(productionHome, /requestIdleCallback\(discoverCamera/);
+  assert.match(productionHome, /setTimeout\(discoverCamera, CAMERA_DISCOVERY_FALLBACK_DELAY_MS\)/);
+  assert.match(productionHome, /cancelIdleCallback/);
   assert.match(productionHome, /getWeatherCameras\(\)/);
   assert.match(productionHome, /setCameraData\(nextCameraData\)/);
 });
