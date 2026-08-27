@@ -1,0 +1,377 @@
+.guaiba-page {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 32px 0 72px;
+}
+
+.guaiba-hero,
+.guaiba-panel,
+.guaiba-metrics article,
+.guaiba-reference-card {
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--background, #fff) 96%, currentColor 4%);
+}
+
+.guaiba-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
+  gap: 28px;
+  padding: clamp(24px, 5vw, 48px);
+}
+
+.guaiba-kicker {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.guaiba-hero h1,
+.guaiba-section-heading h2,
+.guaiba-source h2 {
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.guaiba-hero h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  line-height: 0.98;
+}
+
+.guaiba-hero__copy > p:not(.guaiba-kicker) {
+  max-width: 720px;
+  margin: 18px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  opacity: 0.78;
+}
+
+.guaiba-status {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.guaiba-status svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.guaiba-status div {
+  display: grid;
+  gap: 3px;
+}
+
+.guaiba-status span {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.guaiba-hero__reading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 280px;
+  padding: 24px;
+  border-radius: 22px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.guaiba-level {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.guaiba-level svg {
+  width: 30px;
+  height: 30px;
+  align-self: center;
+}
+
+.guaiba-level strong {
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.06em;
+}
+
+.guaiba-level span {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.guaiba-hero__reading > p {
+  margin: 16px 0 2px;
+  font-weight: 800;
+}
+
+.guaiba-hero__reading > small {
+  opacity: 0.65;
+}
+
+.guaiba-trend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.guaiba-trend svg {
+  width: 28px;
+  height: 28px;
+}
+
+.guaiba-trend div {
+  display: grid;
+  gap: 2px;
+}
+
+.guaiba-trend span {
+  font-size: 0.82rem;
+  opacity: 0.65;
+}
+
+.guaiba-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.guaiba-metrics article {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+}
+
+.guaiba-metrics span,
+.guaiba-reference-card dt {
+  font-size: 0.82rem;
+  opacity: 0.64;
+}
+
+.guaiba-metrics strong {
+  font-size: 1.35rem;
+}
+
+.guaiba-panel {
+  margin-top: 18px;
+  padding: clamp(22px, 4vw, 36px);
+}
+
+.guaiba-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.guaiba-section-heading h2,
+.guaiba-source h2 {
+  font-size: clamp(1.55rem, 3vw, 2.3rem);
+}
+
+.guaiba-section-heading > svg {
+  width: 28px;
+  height: 28px;
+  opacity: 0.5;
+}
+
+.guaiba-chart {
+  overflow: hidden;
+}
+
+.guaiba-chart svg {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+}
+
+.guaiba-chart__labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  opacity: 0.72;
+}
+
+.guaiba-chart-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 120px;
+  opacity: 0.68;
+}
+
+.guaiba-note {
+  margin: 20px 0 0;
+  line-height: 1.65;
+  opacity: 0.72;
+}
+
+.guaiba-reference-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.guaiba-reference-card {
+  padding: 22px;
+}
+
+.guaiba-reference-card__heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.guaiba-reference-card__heading div {
+  display: grid;
+  gap: 4px;
+}
+
+.guaiba-reference-card__heading span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.65;
+}
+
+.guaiba-reference-card__heading svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.5;
+}
+
+.guaiba-reference-card__value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 20px 0;
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+.guaiba-reference-card__value span {
+  font-size: 1rem;
+}
+
+.guaiba-reference-card dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.guaiba-reference-card dl div {
+  display: grid;
+  gap: 4px;
+}
+
+.guaiba-reference-card dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.guaiba-reference-card > p {
+  margin: 18px 0 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  opacity: 0.68;
+}
+
+.guaiba-source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.guaiba-source p {
+  max-width: 720px;
+  margin: 12px 0 0;
+  line-height: 1.6;
+  opacity: 0.72;
+}
+
+.guaiba-source__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.guaiba-source__links a,
+.guaiba-related a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.guaiba-source__links svg {
+  width: 16px;
+  height: 16px;
+}
+
+.guaiba-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 860px) {
+  .guaiba-hero,
+  .guaiba-reference-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guaiba-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guaiba-source {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .guaiba-page {
+    width: min(100% - 20px, 1180px);
+    padding-top: 18px;
+  }
+
+  .guaiba-hero {
+    padding: 22px;
+  }
+
+  .guaiba-hero__reading {
+    min-height: 220px;
+  }
+
+  .guaiba-metrics,
+  .guaiba-reference-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .guaiba-chart__labels {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
