@@ -60,6 +60,16 @@ const TODAY_PAGE_CONTENT = {
       description: "Veja máxima, mínima, chuva e vento previstos para o próximo dia.",
     },
     {
+      label: "Previsão de 7 dias",
+      href: "/previsao-7-dias-pelotas" as const,
+      description: "Amplie a leitura para a tendência da semana em Pelotas.",
+    },
+    {
+      label: "Previsão de 15 dias",
+      href: "/previsao-15-dias-pelotas" as const,
+      description: "Veja a janela estendida e acompanhe como a incerteza aumenta nos dias mais distantes.",
+    },
+    {
       label: "Chuva por horário em Pelotas",
       href: "/chuva-em-pelotas" as const,
       description: "Compare chance, volume e os períodos com maior possibilidade de chuva.",
@@ -97,6 +107,8 @@ export const Route = createFileRoute("/tempo-hoje-pelotas")({
           "Visibilidade prevista em Pelotas",
           "Camadas de nuvens baixas, médias e altas",
           "Previsão por hora em Pelotas",
+          "Previsão de 7 dias em Pelotas",
+          "Previsão de 15 dias em Pelotas",
           "Melhores horários para atividades ao ar livre em Pelotas",
           "Janelas de chuva e vento nas próximas horas",
           "Medição meteorológica da Embrapa em Pelotas",
