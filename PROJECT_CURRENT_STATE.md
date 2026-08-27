@@ -353,6 +353,8 @@ As páginas regionais usam Open-Meteo por coordenada própria e alertas INMET pe
 
 Uma camada concorrente chegou a aplicar FAQ praticamente igual e `FAQPage` a todas as páginas municipais. Essa camada foi removida na revisão de 27/08/2026 por ser excessivamente templated. O gate atual permite perfis locais distintos, mas bloqueia FAQ em massa que apenas substitua o nome do município sem evidência e conteúdo próprios.
 
+Em 27/08/2026, o schema editorial do hub regional foi refinado para descrever explicitamente previsão por cidade, mapa meteorológico regional e temperatura/chuva/vento por município. A mudança não altera o inventário de 24 cidades, o fallback nem os dados consultados.
+
 Documento de gate: `docs/REGIONAL_CITY_PUBLICATION_GATE.md`.
 
 ## 13. SEO e pesquisa de intenção
@@ -381,6 +383,8 @@ Na mesma janela, perfis editoriais locais foram ampliados para alguns município
 A continuação da rodada refinou mais cinco URLs existentes: `/tempo-amanha-pelotas` passou a ter camada editorial e FAQ próprios para a decisão do próximo dia; `/previsao-7-dias-pelotas` passou a cobrir também a intenção de previsão da semana; `/previsao-15-dias-pelotas` consolidou explicitamente 10 e 15 dias sem URL duplicada; `/vento-em-pelotas` passou a cobrir vento hoje, direção e rajadas por hora preservando observação x previsão; e `/radar-e-satelite-pelotas` reforçou a intenção radar de chuva, tratando “agora” como a imagem mais recente disponível com timestamp, sem chamar quadro atrasado de tempo real. Nenhuma dessas mudanças criou nova fonte, coletor ou rota.
 
 A terceira parte da rodada separou intenções que ainda estavam próximas: `/meteograma-pelotas` passou a assumir **meteograma e previsão horária detalhada por até 48h**, diferenciando-se de Hoje; `/clima-em-pelotas` passou a assumir **clima, estações do ano e climatologia**; `/historico-climatico-pelotas` passou a assumir **histórico meteorológico recente de 30 dias**; `/mapa-de-geadas-rio-grande-do-sul` passou a trazer “mapa de geadas observadas” no snippet e continua explicitamente não preditivo; e `/alertas` passou a explicitar **Alertas do INMET em Pelotas e região**, com ligação contextual à hidrologia sem converter aviso meteorológico em diagnóstico de inundação. `/estacao-embrapa-pelotas` foi revisada e permaneceu inalterada por já possuir intenção própria de observação local.
+
+A auditoria final das páginas de apoio manteve `/cameras-ao-vivo-pelotas`, `/blog` e `/metodologia` sem mudanças por já estarem semanticamente maduras. `/privacidade-e-dados` teve um `<main>` aninhado removido porque `ContentPageShell` já fornece o elemento principal; `/status-dos-dados` ganhou schema editorial, breadcrumbs e entidades coerentes com disponibilidade/incidentes; e o hub regional ganhou entidades mais descritivas sem novas cidades. Essas mudanças não alteram política de privacidade, coleta de conta, monitoramento operacional ou integrações.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -467,7 +471,7 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, protege a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e ligações do cluster hidrológico/histórico.
 
-`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, Meteograma, Clima, Histórico, Alertas, Geadas, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento, imagem recente x tempo real no radar, Meteograma 48h x Hoje, Clima/Climatologia x histórico recente e geada observada x previsão futura. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
+`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, Meteograma, Clima, Histórico, Alertas, Geadas, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento, imagem recente x tempo real no radar, Meteograma 48h x Hoje, Clima/Climatologia x histórico recente, geada observada x previsão futura, ausência de `<main>` duplicado em Privacidade, schema do Status dos Dados e entidades do hub regional. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
 
 ## 18. Deploy e Supabase
 
@@ -481,7 +485,7 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente.
+As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação.
 
 ## 19. PWA / Web Push
 
