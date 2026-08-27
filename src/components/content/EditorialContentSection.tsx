@@ -9,7 +9,9 @@ import "./EditorialContentSection.css";
 
 type AdditionalEditorialPath =
   | "/blog"
+  | "/enchente-1941-pelotas"
   | "/enchente-2024-pelotas-laranjal"
+  | "/previsao-15-dias-pelotas"
   | "/privacidade-e-dados"
   | "/quem-somos"
   | "/status-dos-dados"
