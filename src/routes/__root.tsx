@@ -34,11 +34,53 @@ import productionCss from "@/production/production-styles.css?url";
 import appCss from "../styles.css?url";
 
 const GOOGLE_ANALYTICS_MEASUREMENT_ID = "G-97YX7HPD90";
+const GOOGLE_ANALYTICS_IDLE_TIMEOUT_MS = 3_000;
+const GOOGLE_ANALYTICS_FALLBACK_DELAY_MS = 1_500;
 
 type AnalyticsWindow = Window & {
   dataLayer?: unknown[][];
   gtag?: (...args: unknown[]) => void;
 };
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+function GoogleAnalyticsLoader() {
+  useEffect(() => {
+    const idleWindow = window as IdleWindow;
+    let idleHandle: number | null = null;
+    let fallbackTimer: number | null = null;
+
+    const loadAnalytics = () => {
+      idleHandle = null;
+      fallbackTimer = null;
+      if (document.querySelector("script[data-tempo-pelotas-ga4]")) return;
+
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_MEASUREMENT_ID}`;
+      script.dataset.tempoPelotasGa4 = "true";
+      document.head.appendChild(script);
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      idleHandle = idleWindow.requestIdleCallback(loadAnalytics, {
+        timeout: GOOGLE_ANALYTICS_IDLE_TIMEOUT_MS,
+      });
+    } else {
+      fallbackTimer = window.setTimeout(loadAnalytics, GOOGLE_ANALYTICS_FALLBACK_DELAY_MS);
+    }
+
+    return () => {
+      if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  return null;
+}
 
 function GoogleAnalyticsPageviews() {
   const href = useRouterState({ select: (state) => state.location.href });
@@ -177,10 +219,6 @@ gtag('config', '${GOOGLE_ANALYTICS_MEASUREMENT_ID}', {
     <html lang="pt-BR">
       <head>
         <HeadContent />
-        <script
-          async
-          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_MEASUREMENT_ID}`}
-        />
         <script dangerouslySetInnerHTML={{ __html: analyticsBootstrap }} />
       </head>
       <body>
@@ -198,6 +236,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <GoogleAnalyticsLoader />
       <GoogleAnalyticsPageviews />
       <WeatherMinuteRefresh />
       <ViewportScrollRoot>
