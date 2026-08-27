@@ -9,8 +9,7 @@ import "@/components/weather/WindNavigationAvailability.css";
 import { WIND_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getPelotasMeteogram } from "@/lib/weather/meteogram.functions";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Vento em Pelotas hoje: direção e rajadas por hora";
 const PAGE_DESCRIPTION =
@@ -134,13 +133,11 @@ export const Route = createFileRoute("/vento-em-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, WIND_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [weather, meteogram] = await Promise.all([
-      getWeatherIntelligence(),
-      getPelotasMeteogram(),
-    ]);
-    return { weather, meteogram };
-  },
+  loader: () =>
+    loadPublicWeatherWithMeteogram({
+      meteogramUnavailableMessage:
+        "A direção detalhada por hora está temporariamente indisponível. As demais informações de vento permanecem acessíveis quando houver dados.",
+    }),
   staleTime: 5 * 60 * 1_000,
   component: VentoPage,
 });
