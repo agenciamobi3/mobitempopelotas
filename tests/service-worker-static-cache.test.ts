@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const serviceWorker = readFileSync("public/sw.js", "utf8");
+const productionServer = readFileSync("src/server-brazil.ts", "utf8");
 
 test("service worker usa nova geracao e precacheia a marca oficial", () => {
   assert.match(serviceWorker, /CACHE_NUMBER = 9/);
@@ -34,6 +35,15 @@ test("navegacao de documento ignora cache HTTP e worker atualiza abas antigas", 
   assert.match(serviceWorker, /navigationPreload\?\.disable\(\)/);
   assert.match(serviceWorker, /refreshClientsAfterWorkerUpgrade/);
   assert.match(serviceWorker, /await self\.clients\.claim\(\)/);
+});
+
+test("HTML SSR nao pode permanecer em cache entre publicacoes", () => {
+  assert.match(productionServer, /function isHtmlDocumentRequest\(request: Request, response: Response\)/);
+  assert.match(productionServer, /fetchMode === "navigate"/);
+  assert.match(productionServer, /contentType\.toLowerCase\(\)\.includes\("text\/html"\)/);
+  assert.match(productionServer, /Cache-Control", "no-store, no-cache, max-age=0, must-revalidate"/);
+  assert.match(productionServer, /CDN-Cache-Control", "no-store"/);
+  assert.match(productionServer, /Expires", "0"/);
 });
 
 test("service worker continua coalescendo requests simultaneos de asset", () => {
