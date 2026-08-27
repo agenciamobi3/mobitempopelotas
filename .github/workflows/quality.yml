@@ -98,6 +98,9 @@ jobs:
       - name: Build de produção
         run: npm run build
 
+      - name: Medir peso dos assets do build
+        run: npm run quality:assets
+
       - name: Contrato das rotas públicas
         run: npm run test:routes
 
@@ -126,14 +129,16 @@ jobs:
         env:
           CANDIDATE_URL: http://127.0.0.1:4173
           QUALITY_PERF_STRICT: "false"
-        run: node scripts/browser-quality-smoke.mjs
+        run: npm run quality:browser
 
-      - name: Salvar relatório de qualidade do navegador
+      - name: Salvar relatórios de qualidade
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-quality-${{ github.sha }}
-          path: artifacts/browser-quality
+          name: quality-reports-${{ github.sha }}
+          path: |
+            artifacts/build-assets
+            artifacts/browser-quality
           if-no-files-found: warn
           retention-days: 14
 
