@@ -12,9 +12,9 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 import { getPelotasMeteogram } from "@/lib/weather/meteogram.functions";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Vento em Pelotas";
+const PAGE_TITLE = "Vento em Pelotas hoje: direção e rajadas por hora";
 const PAGE_DESCRIPTION =
-  "Veja o vento agora, direção observada, direção prevista por hora, rajadas nas próximas 24 horas, horários mais fortes, previsão para 7 dias e avisos oficiais em Pelotas.";
+  "Veja o vento em Pelotas hoje, direção observada, direção prevista por hora, rajadas nas próximas 24 horas, horários mais fortes, previsão de 7 dias e avisos oficiais.";
 const PAGE_PATH = "/vento-em-pelotas";
 
 const WIND_PAGE_CONTENT = {
@@ -22,7 +22,7 @@ const WIND_PAGE_CONTENT = {
   eyebrow: "Entenda os dados de vento",
   title: "Como ler vento, direção e rajadas em Pelotas",
   answer:
-    "O vento atual e sua direção são tratados como observação quando vêm da estação. As próximas horas são previsão de modelo. A página mantém essas duas leituras separadas e agora também mostra a direção prevista por horário no perfil detalhado do Open-Meteo.",
+    "O vento atual e sua direção são tratados como observação quando vêm da estação. As próximas horas são previsão de modelo. A página mantém essas duas leituras separadas e também mostra a direção prevista por horário no perfil detalhado do Open-Meteo.",
   facts: [
     "Vento e rajada não representam a mesma medida: a rajada é um aumento rápido e normalmente mais forte.",
     "A direção informa de onde o vento vem. Vento sul sopra do sul em direção ao norte.",
@@ -32,6 +32,11 @@ const WIND_PAGE_CONTENT = {
     "Orla, áreas abertas, pontes e locais com árvores ou objetos soltos podem sentir vento diferente do ponto usado pela estação ou pelo modelo.",
   ],
   faqs: [
+    {
+      question: "Como está o vento hoje em Pelotas?",
+      answer:
+        "A página mostra a leitura atual disponível, sua origem e a previsão de vento e rajadas para as próximas horas. Consulte o horário da observação e o perfil por hora para evitar tratar um valor antigo como condição atual.",
+    },
     {
       question: "Qual é a diferença entre vento e rajada?",
       answer:
@@ -80,6 +85,11 @@ const WIND_PAGE_CONTENT = {
       description: "Compare temperatura, chuva e rajadas previstas para cada dia.",
     },
     {
+      label: "Previsão de 15 dias",
+      href: "/previsao-15-dias-pelotas" as const,
+      description: "Veja rajadas e tendência de vento no horizonte estendido, com maior incerteza na segunda semana.",
+    },
+    {
       label: "Radar e satélite",
       href: "/radar-e-satelite-pelotas" as const,
       description: "Observe sistemas meteorológicos associados a chuva, tempestade e mudanças de vento.",
@@ -106,9 +116,10 @@ export const Route = createFileRoute("/vento-em-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Vento em Pelotas", path: PAGE_PATH },
+          { name: "Vento em Pelotas hoje", path: PAGE_PATH },
         ],
         about: [
+          "Vento em Pelotas hoje",
           "Vento atual em Pelotas",
           "Origem da velocidade e direção do vento",
           "Rajadas de vento em Pelotas",
