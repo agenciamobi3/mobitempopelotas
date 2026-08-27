@@ -22,11 +22,26 @@ async function getAppServer() {
   return appServerPromise;
 }
 
+function isHtmlDocumentRequest(request: Request, response: Response) {
+  if (request.method !== "GET") return false;
+
+  const fetchMode = request.headers.get("Sec-Fetch-Mode");
+  const contentType = response.headers.get("Content-Type") ?? "";
+  const accept = request.headers.get("Accept") ?? "";
+
+  return (
+    fetchMode === "navigate" ||
+    contentType.toLowerCase().includes("text/html") ||
+    accept.toLowerCase().includes("text/html")
+  );
+}
+
 function applyBaselineSecurityHeaders(request: Request, response: Response) {
   const url = new URL(request.url);
   const headers = new Headers(response.headers);
   const isEmbed = url.pathname.startsWith("/embed/");
   const isSensitiveApi = SENSITIVE_API_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
+  const isHtmlDocument = !isEmbed && isHtmlDocumentRequest(request, response);
 
   if (!headers.has("X-Content-Type-Options")) headers.set("X-Content-Type-Options", "nosniff");
   if (!headers.has("Referrer-Policy")) {
@@ -42,6 +57,16 @@ function applyBaselineSecurityHeaders(request: Request, response: Response) {
   }
 
   applyGlobalContentSecurityPolicy(request, headers);
+
+  // O HTML SSR referencia chunks versionados do mesmo deploy. Cachear o documento
+  // entre publicacoes pode misturar HTML antigo com assets novos e quebrar a
+  // navegacao SPA. Assets com hash continuam livres para cache imutavel pelo host.
+  if (isHtmlDocument) {
+    headers.set("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");
+    headers.set("CDN-Cache-Control", "no-store");
+    headers.set("Pragma", "no-cache");
+    headers.set("Expires", "0");
+  }
 
   if (isSensitiveApi) {
     headers.set("Cache-Control", "private, no-store, max-age=0");
