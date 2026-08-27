@@ -119,5 +119,18 @@ test("cliente recupera uma unica vez bundles antigos depois de deploy", () => {
   assert.match(staleClientRecovery, /window\.location\.reload\(\)/);
 
   assert.match(rootRoute, /installVitePreloadRecovery/);
-  assert.match(rootRoute, /recoverStaleClientAssets\(error\)/);
+  assert.match(rootRoute, /markClientRuntimeReady\(\)/);
+  assert.match(rootRoute, /recoverClientNavigationFailure\(error\)/);
+});
+
+test("falha transitoria de server fn durante navegacao recebe hard reload protegido", () => {
+  assert.match(staleClientRecovery, /TRANSIENT_NAVIGATION_PATTERNS/);
+  assert.match(staleClientRecovery, /server function/i);
+  assert.match(staleClientRecovery, /serverfn/i);
+  assert.match(staleClientRecovery, /failed to fetch/i);
+  assert.match(staleClientRecovery, /404\|408\|410\|425\|429\|500\|502\|503\|504/);
+  assert.match(staleClientRecovery, /clientRuntimeReady/);
+  assert.match(staleClientRecovery, /navigator\.onLine === false/);
+  assert.match(staleClientRecovery, /reason: "asset" \| "navigation"/);
+  assert.doesNotMatch(staleClientRecovery, /while\s*\(/);
 });
