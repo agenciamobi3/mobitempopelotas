@@ -1,6 +1,6 @@
 import { fetchCppmetForecast } from "./cppmet.server";
 import { getCentralEmbrapaObservation } from "./embrapa-central.server";
-import { fetchInmetForecast } from "./inmet-forecast.server";
+import { fetchResilientInmetForecast } from "./inmet-forecast-resilient.server";
 import { fetchInmetStationReference } from "./inmet-station.server";
 import { fetchStableInmetAlerts } from "./inmet-stable.server";
 import type {
@@ -16,7 +16,7 @@ import { OFFICIAL_SOURCE_DEADLINE_MS } from "./source-policy.ts";
 
 const EMBRAPA_URL = "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm";
 const INMET_ALERTS_URL = "https://apiprevmet3.inmet.gov.br/avisos/rss";
-const INMET_FORECAST_URL = "https://apiprevmet3.inmet.gov.br/previsao/4314407";
+const INMET_FORECAST_URL = "https://portal.inmet.gov.br/";
 const INMET_STATION_URL = "https://apiprevmet3.inmet.gov.br/estacao/proxima/4314407";
 const INMET_PORTAL_URL = "https://avisos.inmet.gov.br/";
 const CPPMET_URL = "https://wp.ufpel.edu.br/cppmet/";
@@ -151,9 +151,9 @@ export async function fetchOfficialWeatherSources(): Promise<OfficialWeatherSour
       unavailableInmet,
     ),
     settleWithin(
-      fetchInmetForecast(),
+      fetchResilientInmetForecast(),
       "Previsão do INMET",
-      OFFICIAL_SOURCE_DEADLINE_MS.inmet,
+      OFFICIAL_SOURCE_DEADLINE_MS.inmetForecast,
       unavailableInmetForecast,
     ),
     settleWithin(
