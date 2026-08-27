@@ -8,6 +8,10 @@ const pageSource = readFileSync(
   new URL("../src/components/regional/RegionalCityWeatherPage.tsx", import.meta.url),
   "utf8",
 );
+const routeSource = readFileSync(
+  new URL("../src/routes/tempo-em/$citySlug.tsx", import.meta.url),
+  "utf8",
+);
 const heroSource = readFileSync(
   new URL("../src/components/regional/RegionalCityHero.tsx", import.meta.url),
   "utf8",
@@ -89,9 +93,15 @@ test("SEO regional usa intenção direta e contexto próprio nas cidades priorit
   assert.match(editorialSource, /Tempo em \$\{city\.name\} hoje: previsão, chuva e vento/);
   for (const slug of [
     "rio-grande-rs",
+    "sao-jose-do-norte-rs",
+    "sao-lourenco-do-sul-rs",
     "cangucu-rs",
+    "piratini-rs",
     "dom-pedrito-rs",
+    "bage-rs",
     "jaguarao-rs",
+    "santa-vitoria-do-palmar-rs",
+    "chui-rs",
     "capao-do-leao-rs",
   ]) {
     assert.match(editorialSource, new RegExp(`"${slug}"`));
@@ -100,6 +110,12 @@ test("SEO regional usa intenção direta e contexto próprio nas cidades priorit
   assert.match(pageSource, /editorial\?\.sectionTitle/);
   assert.match(pageSource, /editorial\?\.introduction/);
   assert.match(pageSource, /editorial\?\.facts/);
+});
+
+test("SEO regional evita FAQ templated em massa sem evidência específica", () => {
+  assert.doesNotMatch(pageSource, /regionalCityFaqs|perguntas-frequentes|regional-city-faq/);
+  assert.doesNotMatch(routeSource, /regionalCityFaqs|createFaqPageJsonLd/);
+  assert.doesNotMatch(pageCss, /\.faq\b/);
 });
 
 test("hero regional não inventa pico de chuva, rajada ou leitura atual", () => {
