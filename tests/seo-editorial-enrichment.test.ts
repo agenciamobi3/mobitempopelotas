@@ -15,6 +15,7 @@ const hydrology = source("src/routes/situacao-hidrologica-pelotas.tsx");
 const guaiba = source("src/routes/nivel-do-guaiba.tsx");
 const regionalEditorial = source("src/lib/regional-city-editorial.ts");
 const regionalPage = source("src/components/regional/RegionalCityWeatherPage.tsx");
+const regionalRoute = source("src/routes/tempo-em/$citySlug.tsx");
 
 test("home e hoje formam um cluster de intenção sem criar novas URLs redundantes", () => {
   assert.match(home, /Tempo agora em Pelotas/);
@@ -47,16 +48,19 @@ test("cluster hidrológico conecta operação atual e memória histórica preser
   assert.match(guaiba, /não transferi-la para as réguas atuais do Guaíba/);
 });
 
-test("páginas regionais expõem contexto local, FAQ visível e schema correspondente", () => {
+test("páginas regionais preservam perfis locais sem FAQ templated em massa", () => {
   const priorityProfiles = [...regionalEditorial.matchAll(/^\s{2}"[a-z0-9-]+-rs": \{/gm)];
-  assert.ok(priorityProfiles.length >= 10, `esperava ao menos 10 perfis editoriais, encontrou ${priorityProfiles.length}`);
+  assert.ok(
+    priorityProfiles.length >= 10,
+    `esperava ao menos 10 perfis editoriais, encontrou ${priorityProfiles.length}`,
+  );
 
-  assert.match(regionalEditorial, /regionalCityEditorialFaqs/);
+  assert.match(regionalEditorial, /"sao-jose-do-norte-rs"/);
   assert.match(regionalEditorial, /"sao-lourenco-do-sul-rs"/);
+  assert.match(regionalEditorial, /"piratini-rs"/);
+  assert.match(regionalEditorial, /"bage-rs"/);
   assert.match(regionalEditorial, /"santa-vitoria-do-palmar-rs"/);
   assert.match(regionalEditorial, /"chui-rs"/);
-  assert.match(regionalPage, /id="perguntas-sobre-tempo-local"/);
-  assert.match(regionalPage, /"@type": "FAQPage"/);
-  assert.match(regionalPage, /"@type": "BreadcrumbList"/);
-  assert.match(regionalPage, /"@type": "Place"/);
+  assert.doesNotMatch(regionalPage, /perguntas-frequentes|perguntas-sobre-tempo-local|FAQPage/);
+  assert.doesNotMatch(regionalRoute, /createFaqPageJsonLd|regionalCityFaqs|regionalCityEditorialFaqs/);
 });
