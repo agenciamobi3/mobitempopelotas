@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { withRedemetLastGood } from "@/lib/redemet/redemet-last-good.server";
-import { fetchRedemetSatellite } from "@/lib/redemet/redemet.server";
+import { fetchResilientSatellite } from "@/lib/redemet/redemet-satellite-resilient.server";
 import {
   isUsefulVisibleSatelliteTimestamp,
   keepUsefulVisibleSatelliteFrames,
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/redemet/satellite")({
 
         const upstreamFrames = type === "vis" ? VISIBLE_LOOKBACK_FRAMES : frames;
         const payload = await withRedemetLastGood(`satellite:${type}:${upstreamFrames}`, () =>
-          fetchRedemetSatellite(type, upstreamFrames),
+          fetchResilientSatellite(type, upstreamFrames),
         );
         const publicPayload = type === "vis" ? daylightVisiblePayload(payload, frames) : payload;
 
