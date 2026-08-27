@@ -42,6 +42,7 @@ import { Route as ClimaEmPelotasRouteImport } from './routes/clima-em-pelotas'
 import { Route as ContaRouteImport } from './routes/conta'
 import { Route as EmbedNivelLaranjalRouteImport } from './routes/embed/nivel-laranjal'
 import { Route as EmbedStatusTempoAgoraRouteImport } from './routes/embed/status-tempo-agora'
+import { Route as Enchente1941PelotasRouteImport } from './routes/enchente-1941-pelotas'
 import { Route as Enchente2024PelotasLaranjalRouteImport } from './routes/enchente-2024-pelotas-laranjal'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EstacaoEmbrapaPelotasRouteImport } from './routes/estacao-embrapa-pelotas'
@@ -52,6 +53,7 @@ import { Route as MeteogramaPelotasRouteImport } from './routes/meteograma-pelot
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as NivelDaLagoaDosPatosLaranjalRouteImport } from './routes/nivel-da-lagoa-dos-patos-laranjal'
+import { Route as NivelDoGuaibaRouteImport } from './routes/nivel-do-guaiba'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PelotasDotJsonRouteImport } from './routes/pelotas[.]json'
 import { Route as Previsao15DiasPelotasRouteImport } from './routes/previsao-15-dias-pelotas'
@@ -274,6 +276,12 @@ const EmbedStatusTempoAgoraRoute = EmbedStatusTempoAgoraRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 
+const Enchente1941PelotasRoute = Enchente1941PelotasRouteImport.update({
+  id: '/enchente-1941-pelotas',
+  path: '/enchente-1941-pelotas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
 const Enchente2024PelotasLaranjalRoute = Enchente2024PelotasLaranjalRouteImport.update({
   id: '/enchente-2024-pelotas-laranjal',
   path: '/enchente-2024-pelotas-laranjal',
@@ -331,6 +339,12 @@ const MinhaContaRoute = MinhaContaRouteImport.update({
 const NivelDaLagoaDosPatosLaranjalRoute = NivelDaLagoaDosPatosLaranjalRouteImport.update({
   id: '/nivel-da-lagoa-dos-patos-laranjal',
   path: '/nivel-da-lagoa-dos-patos-laranjal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const NivelDoGuaibaRoute = NivelDoGuaibaRouteImport.update({
+  id: '/nivel-do-guaiba',
+  path: '/nivel-do-guaiba',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -471,6 +485,7 @@ type RouteMap = {
   '/conta': typeof ContaRoute
   '/embed/nivel-laranjal': typeof EmbedNivelLaranjalRoute
   '/embed/status-tempo-agora': typeof EmbedStatusTempoAgoraRoute
+  '/enchente-1941-pelotas': typeof Enchente1941PelotasRoute
   '/enchente-2024-pelotas-laranjal': typeof Enchente2024PelotasLaranjalRoute
   '/entrar': typeof EntrarRoute
   '/estacao-embrapa-pelotas': typeof EstacaoEmbrapaPelotasRoute
@@ -481,6 +496,7 @@ type RouteMap = {
   '/metodologia': typeof MetodologiaRoute
   '/minha-conta': typeof MinhaContaRoute
   '/nivel-da-lagoa-dos-patos-laranjal': typeof NivelDaLagoaDosPatosLaranjalRoute
+  '/nivel-do-guaiba': typeof NivelDoGuaibaRoute
   '/painel': typeof PainelRoute
   '/pelotas.json': typeof PelotasDotJsonRoute
   '/previsao-15-dias-pelotas': typeof Previsao15DiasPelotasRoute
@@ -754,6 +770,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbedStatusTempoAgoraRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/enchente-1941-pelotas': {
+      id: '/enchente-1941-pelotas'
+      path: '/enchente-1941-pelotas'
+      fullPath: '/enchente-1941-pelotas'
+      preLoaderRoute: typeof Enchente1941PelotasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/enchente-2024-pelotas-laranjal': {
       id: '/enchente-2024-pelotas-laranjal'
       path: '/enchente-2024-pelotas-laranjal'
@@ -822,6 +845,13 @@ declare module '@tanstack/react-router' {
       path: '/nivel-da-lagoa-dos-patos-laranjal'
       fullPath: '/nivel-da-lagoa-dos-patos-laranjal'
       preLoaderRoute: typeof NivelDaLagoaDosPatosLaranjalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nivel-do-guaiba': {
+      id: '/nivel-do-guaiba'
+      path: '/nivel-do-guaiba'
+      fullPath: '/nivel-do-guaiba'
+      preLoaderRoute: typeof NivelDoGuaibaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -981,6 +1011,7 @@ const rootRouteChildren = {
   ContaRoute,
   EmbedNivelLaranjalRoute,
   EmbedStatusTempoAgoraRoute,
+  Enchente1941PelotasRoute,
   Enchente2024PelotasLaranjalRoute,
   EntrarRoute,
   EstacaoEmbrapaPelotasRoute,
@@ -991,6 +1022,7 @@ const rootRouteChildren = {
   MetodologiaRoute,
   MinhaContaRoute,
   NivelDaLagoaDosPatosLaranjalRoute,
+  NivelDoGuaibaRoute,
   PainelRoute,
   PelotasDotJsonRoute,
   Previsao15DiasPelotasRoute,
