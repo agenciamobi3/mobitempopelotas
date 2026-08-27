@@ -11,10 +11,26 @@ const STALE_ASSET_PATTERNS = [
   /unable to preload css/i,
 ];
 
+const TRANSIENT_NAVIGATION_PATTERNS = [
+  /failed to fetch/i,
+  /fetch failed/i,
+  /networkerror/i,
+  /network error/i,
+  /load failed/i,
+  /failed to load resource/i,
+  /server function/i,
+  /serverfn/i,
+  /unexpected token ['"]?</i,
+  /\b(?:404|408|410|425|429|500|502|503|504)\b/,
+];
+
 type RecoveryRecord = {
   href: string;
   attemptedAt: number;
+  reason: "asset" | "navigation";
 };
+
+let clientRuntimeReady = false;
 
 function errorMessage(error: unknown) {
   if (error instanceof Error) return `${error.name}: ${error.message}`;
@@ -27,11 +43,20 @@ export function isStaleClientAssetError(error: unknown) {
   return STALE_ASSET_PATTERNS.some((pattern) => pattern.test(message));
 }
 
+export function isTransientClientNavigationError(error: unknown) {
+  if (error instanceof Response) {
+    return [404, 408, 410, 425, 429, 500, 502, 503, 504].includes(error.status);
+  }
+
+  const message = errorMessage(error);
+  return TRANSIENT_NAVIGATION_PATTERNS.some((pattern) => pattern.test(message));
+}
+
 function currentHref() {
   return `${window.location.pathname}${window.location.search}${window.location.hash}`;
 }
 
-function canAttemptRecovery() {
+function canAttemptRecovery(reason: RecoveryRecord["reason"]) {
   const href = currentHref();
 
   try {
@@ -46,7 +71,7 @@ function canAttemptRecovery() {
 
     window.sessionStorage.setItem(
       RECOVERY_STORAGE_KEY,
-      JSON.stringify({ href, attemptedAt: Date.now() } satisfies RecoveryRecord),
+      JSON.stringify({ href, attemptedAt: Date.now(), reason } satisfies RecoveryRecord),
     );
     return true;
   } catch {
@@ -55,13 +80,44 @@ function canAttemptRecovery() {
   }
 }
 
+function hardReload(reason: RecoveryRecord["reason"]) {
+  if (!canAttemptRecovery(reason)) return false;
+  window.location.reload();
+  return true;
+}
+
+export function markClientRuntimeReady() {
+  if (typeof window === "undefined") return;
+  clientRuntimeReady = true;
+}
+
 export function recoverStaleClientAssets(error?: unknown) {
   if (typeof window === "undefined") return false;
   if (error !== undefined && !isStaleClientAssetError(error)) return false;
-  if (!canAttemptRecovery()) return false;
+  return hardReload("asset");
+}
 
-  window.location.reload();
-  return true;
+/**
+ * Falhas de navegação cliente podem surgir quando uma aba antiga atravessa um
+ * novo deploy: o bundle ainda em memória tenta carregar um chunk ou server fn
+ * que já pertence à versão anterior. Nessa situação uma navegação completa da
+ * própria URL atualiza HTML + runtime e normalmente resolve o problema.
+ *
+ * A recuperação genérica só é habilitada depois que o app hidratou com
+ * sucesso. Assim, um bug determinístico no carregamento inicial não entra em
+ * ciclo de reload. sessionStorage limita a uma tentativa automática por URL.
+ */
+export function recoverClientNavigationFailure(error: unknown) {
+  if (typeof window === "undefined") return false;
+
+  if (isStaleClientAssetError(error)) {
+    return hardReload("asset");
+  }
+
+  if (!clientRuntimeReady || !isTransientClientNavigationError(error)) return false;
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return false;
+
+  return hardReload("navigation");
 }
 
 export function installVitePreloadRecovery() {
