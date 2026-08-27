@@ -15,7 +15,6 @@
 }
 
 .context,
-.faq,
 .related,
 .sources {
   border: 1px solid rgb(7 30 47 / 9%);
@@ -40,7 +39,6 @@
 }
 
 .context h2,
-.faq h2,
 .related h2 {
   max-width: 920px;
   margin: 7px 0 0;
@@ -52,8 +50,7 @@
   text-wrap: balance;
 }
 
-.context p,
-.faq > header p {
+.context p {
   max-width: 72ch;
   color: #5d7683;
   line-height: 1.75;
@@ -90,75 +87,6 @@
   box-shadow: 0 0 0 5px rgb(24 189 205 / 10%);
   content: "";
   transform: translateY(-50%);
-}
-
-.faq {
-  display: grid;
-  grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(28px, 5vw, 72px);
-  background:
-    radial-gradient(circle at 8% 10%, rgb(24 189 205 / 6%), transparent 22rem),
-    rgb(255 255 255 / 96%);
-}
-
-.faq > header {
-  padding-left: clamp(14px, 1.5vw, 22px);
-  border-left: 3px solid #5e2ced;
-}
-
-.faq > div {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-}
-
-.faq details {
-  overflow: hidden;
-  border: 1px solid rgb(7 30 47 / 8%);
-  border-radius: 14px;
-  background: #fff;
-}
-
-.faq summary {
-  position: relative;
-  padding: 17px 48px 17px 18px;
-  color: #18384a;
-  font-size: 0.8rem;
-  font-weight: 850;
-  line-height: 1.45;
-  cursor: pointer;
-  list-style: none;
-}
-
-.faq summary::-webkit-details-marker {
-  display: none;
-}
-
-.faq summary::after {
-  position: absolute;
-  top: 50%;
-  right: 18px;
-  color: #5e2ced;
-  font-size: 1rem;
-  content: "+";
-  transform: translateY(-50%);
-}
-
-.faq details[open] summary::after {
-  content: "−";
-}
-
-.faq details p {
-  margin: 0;
-  padding: 0 18px 18px;
-  color: #5d7683;
-  font-size: 0.74rem;
-  line-height: 1.65;
-}
-
-.faq summary:focus-visible {
-  outline: 2px solid #5e2ced;
-  outline-offset: -2px;
 }
 
 .related > header {
@@ -280,7 +208,6 @@
 
 @media (max-width: 900px) {
   .context,
-  .faq,
   .related > header {
     grid-template-columns: 1fr;
   }
@@ -292,7 +219,6 @@
 
 @media (max-width: 760px) {
   .context h2,
-  .faq h2,
   .related h2 {
     font-size: clamp(2.1rem, 11vw, 3.4rem);
   }
