@@ -38,7 +38,7 @@ Estado geral:
 | Histórico climático | Ativo | Janela pública e Historical Data Layer privado em expansão |
 | Enchente de 1941 | Implementada em 27/08/2026 | Registro documental de Pelotas com referência histórica do São Gonçalo e fontes UCPel/UFPel/Prefeitura |
 | Enchente de 2024 | Ativo | Registro histórico permanente |
-| Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
+| Câmeras | Ativo com dependência externa | Live/replay com estados explícitos; descoberta e player visual da Home são diferidos para não disputar o caminho crítico |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção, entidades geográficas e links internos globais |
 | Qualidade de navegador | Gate versionado, execução pendente | Acessibilidade estrutural, responsividade, peso do build e Web Vitals de laboratório; não há aprovação enquanto os runners não executarem o workflow |
@@ -463,7 +463,7 @@ O workflow `Qualidade` deveria executar, entre outros gates:
 
 1. template de ambiente;
 2. `test:contracts`;
-3. testes especializados, incluindo teclado/foco do header;
+3. testes especializados, incluindo teclado/foco do header e a câmera ao vivo diferida da Home;
 4. `routes:check`;
 5. build;
 6. relatório de peso dos assets do build;
@@ -484,6 +484,8 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 `tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, Meteograma, Clima, Histórico, Alertas, Geadas, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento, imagem recente x tempo real no radar, Meteograma 48h x Hoje, Clima/Climatologia x histórico recente, geada observada x previsão futura, ausência de `<main>` duplicado em Privacidade, schema do Status dos Dados e entidades do hub regional. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades.
 
 `tests/header-keyboard-accessibility.test.ts` protege o contrato ARIA dos menus e a restauração de foco ao fechar um painel com `Escape`.
+
+`tests/home-live-camera-hero.test.ts` protege a cadeia progressiva da câmera do Laranjal: descoberta de câmera em idle, ausência da câmera no SSR, validação de transmissão HTTPS/live, player decorativo em idle/lazy, supressão em Save-Data/2G/offline/reduced-motion e manutenção do link editorial para a página de câmeras.
 
 `scripts/browser-quality-smoke.mjs` é o gate de navegador atual e não depende de Playwright. Ele usa Chrome/Chromium via Chrome DevTools Protocol e cobre inicialmente nove rotas representativas em 320×720, 768×1024 e 1280×900. O gate bloqueia regressões estruturais como idioma/title ausentes, quantidade incorreta de H1 ou `<main>`, skip link invisível ao foco, IDs duplicados, controles sem nome, campos sem rótulo, imagens sem `alt`, overflow horizontal e falha de fechamento/restauração de foco no menu. Ele registra TTFB, FCP, LCP e CLS como **métricas de laboratório**. Nesta etapa, os limiares recomendados de performance geram avisos por padrão; não devem ser apresentados como CrUX ou Core Web Vitals de campo.
 
@@ -507,7 +509,7 @@ Disciplina atual:
 
 As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação.
 
-A fase de qualidade adicionou contratos de frontend/CI/documentação, adiou o JavaScript externo do MOBI Ticket para período ocioso do navegador e retirou Web Push do root enquanto suspenso. Essas mudanças não alteram fonte meteorológica/hidrológica, banco ou autenticação.
+A fase de qualidade adicionou contratos de frontend/CI/documentação, adiou o JavaScript externo do MOBI Ticket para período ocioso do navegador, retirou Web Push do root enquanto suspenso e tornou a câmera visual da Home totalmente progressiva: descoberta em idle e player em idle/lazy com supressão em condições de economia de dados/conectividade/reduced-motion. Essas mudanças não alteram fonte meteorológica/hidrológica, banco ou autenticação.
 
 ## 19. PWA / Web Push
 
