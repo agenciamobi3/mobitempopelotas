@@ -33,6 +33,11 @@ const RAIN_PAGE_CONTENT = {
   ],
   faqs: [
     {
+      question: "Vai chover hoje em Pelotas?",
+      answer:
+        "A página mostra a chance e o volume previsto por horário para hoje. Como a previsão muda com novas rodadas do modelo, confira os períodos mais próximos do horário de interesse e compare também radar e avisos oficiais quando houver instabilidade.",
+    },
+    {
       question: "Quanto choveu hoje em Pelotas?",
       answer:
         "A seção de chuva acumulada mostra o valor diário publicado pela estação da Embrapa Clima Temperado quando a leitura está disponível e atual. O número representa o ponto da estação, não todos os bairros de Pelotas.",
