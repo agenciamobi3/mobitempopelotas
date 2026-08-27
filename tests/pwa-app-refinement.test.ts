@@ -103,11 +103,10 @@ test("legacy PWA layers and unrelated global styles cannot restyle the installer
   }
 });
 
-test("service worker keeps live pages network-first and caches only application assets", () => {
-  assert.match(serviceWorker, /tempo-pelotas-v6/);
-  assert.match(serviceWorker, /navigationPreload\?\.enable\(\)/);
-  assert.match(serviceWorker, /event\.preloadResponse/);
-  assert.match(serviceWorker, /onlineOnlyNavigation\(event\)/);
+test("service worker keeps live pages fresh and caches only application assets", () => {
+  assert.match(serviceWorker, /CACHE_NUMBER = 9/);
+  assert.match(serviceWorker, /fetch\(event\.request, \{ cache: "no-store" \}\)/);
+  assert.match(serviceWorker, /cacheFirstVersionedAsset\(request, event\)/);
   assert.match(serviceWorker, /url\.pathname\.startsWith\("\/assets\/"\)/);
   assert.match(serviceWorker, /url\.pathname\.startsWith\("\/brand\/"\)/);
   assert.doesNotMatch(serviceWorker, /url\.pathname\.endsWith\("\.png"\)/);
