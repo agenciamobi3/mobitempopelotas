@@ -64,6 +64,11 @@ const GUAIBA_PAGE_CONTENT = {
       description: "Consulte a referência local apresentada pelo Tempo Pelotas para o Laranjal.",
     },
     {
+      label: "Enchente de 1941 em Pelotas",
+      href: "/enchente-1941-pelotas" as const,
+      description: "Entenda a referência histórica documentada no Canal São Gonçalo sem transferi-la para as réguas atuais do Guaíba.",
+    },
+    {
       label: "Enchente de 2024",
       href: "/enchente-2024-pelotas-laranjal" as const,
       description: "Relembre a evolução histórica do evento de 2024 entre Guaíba, Lagoa e Pelotas.",
@@ -96,6 +101,7 @@ export const Route = createFileRoute("/nivel-do-guaiba")({
           "Tendência do nível do Guaíba",
           "Variação do nível do Guaíba em 24 horas",
           "Sistema Guaíba e Lagoa dos Patos",
+          "Cheias históricas de 1941 e 2024 em Pelotas",
         ],
       }),
       createFaqPageJsonLd(PAGE_PATH, GUAIBA_PAGE_CONTENT.faqs),
