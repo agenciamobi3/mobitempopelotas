@@ -9,9 +9,9 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 import { getPelotasWeatherHistory } from "@/lib/weather/history.functions";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Clima de Pelotas";
+const PAGE_TITLE = "Clima de Pelotas: estações do ano e climatologia";
 const PAGE_DESCRIPTION =
-  "Entenda as estações do ano, a influência da Lagoa dos Patos e por que frio, calor, chuva e vento podem mudar rapidamente em Pelotas.";
+  "Entenda o clima de Pelotas, as estações do ano, a influência da Lagoa dos Patos, as Normais Climatológicas do INMET e a diferença entre clima e tempo recente.";
 const PAGE_PATH = "/clima-em-pelotas";
 
 const CLIMATE_CONTENT = {
@@ -31,6 +31,11 @@ const CLIMATE_CONTENT = {
       question: "Qual é a diferença entre tempo e clima?",
       answer:
         "Tempo descreve a condição atual e a previsão para horas ou dias. Clima resume médias, padrões e variações observados durante muitos anos.",
+    },
+    {
+      question: "Qual é a diferença entre clima e histórico de 30 dias?",
+      answer:
+        "O histórico de 30 dias descreve somente um período recente. Clima e climatologia exigem séries longas, períodos de referência definidos e controle de qualidade. Por isso, a página de histórico recente complementa esta página, mas não substitui uma normal climatológica.",
     },
     {
       question: "Os últimos 30 dias mostram o clima normal de Pelotas?",
@@ -55,9 +60,19 @@ const CLIMATE_CONTENT = {
   ],
   relatedLinks: [
     {
-      label: "Histórico de 30 dias",
+      label: "Histórico meteorológico de 30 dias",
       href: "/historico-climatico-pelotas" as const,
-      description: "Compare máximas, mínimas, chuva e rajadas dos últimos dias.",
+      description: "Compare máximas, mínimas, chuva e rajadas do período recente sem tratá-lo como climatologia.",
+    },
+    {
+      label: "Estação Embrapa em Pelotas",
+      href: "/estacao-embrapa-pelotas" as const,
+      description: "Consulte medições locais e o histórico observacional de 24 horas da estação.",
+    },
+    {
+      label: "Mapa de geadas observadas no RS",
+      href: "/mapa-de-geadas-rio-grande-do-sul" as const,
+      description: "Veja registros observados de geada em estações do INMET sem confundi-los com previsão futura.",
     },
     {
       label: "Tempo hoje em Pelotas",
@@ -65,9 +80,9 @@ const CLIMATE_CONTENT = {
       description: "Consulte a condição atual e a previsão das próximas horas.",
     },
     {
-      label: "Previsão hora a hora",
+      label: "Meteograma de Pelotas",
       href: "/meteograma-pelotas" as const,
-      description: "Acompanhe temperatura, chuva, nuvens, visibilidade, pressão e vento.",
+      description: "Acompanhe a previsão detalhada de temperatura, chuva, nuvens, visibilidade, pressão e vento por até 48 horas.",
     },
     {
       label: "Como os dados funcionam",
@@ -86,17 +101,17 @@ export const Route = createFileRoute("/clima-em-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Clima de Pelotas", path: PAGE_PATH },
+          { name: "Clima e climatologia de Pelotas", path: PAGE_PATH },
         ],
         about: [
           "Clima de Pelotas",
+          "Climatologia de Pelotas",
           "Estações do ano em Pelotas",
           "Normais Climatológicas do INMET",
-          "Climatologia de Pelotas",
           "Chuva ao longo do ano em Pelotas",
           "Frentes frias e massas de ar no sul do Rio Grande do Sul",
           "Influência da Lagoa dos Patos no tempo local",
-          "Histórico meteorológico recente de Pelotas",
+          "Diferença entre histórico recente e climatologia",
           "Diferença entre tempo e clima",
         ],
       }),
