@@ -153,7 +153,45 @@ A página passou a explicitar melhor a intenção **radar de chuva em Pelotas** 
 
 A palavra “agora” só deve ser interpretada como **quadro mais recente retornado pela fonte**, sempre acompanhado de horário. Uma imagem atrasada não é renomeada como tempo real. Radar, satélite e STSC continuam separados da previsão por hora e dos alertas oficiais.
 
-## 6. Dados estruturados e entidades
+## 6. Meteograma, alertas, geadas, clima e histórico recente
+
+A terceira parte da rodada atacou sobreposição semântica entre páginas já maduras, em vez de criar novas URLs.
+
+### `/meteograma-pelotas`
+
+O meteograma passa a assumir explicitamente a intenção **previsão hora a hora detalhada por até 48 horas**. Isso o diferencia da rota Hoje, que continua orientada ao resumo prático do dia.
+
+O conteúdo explica a diferença entre as duas experiências e reforça que ponto de orvalho, nuvens por camada, visibilidade, pressão, vento, rajadas e CAPE são variáveis de previsão de modelo. Os produtos WRF/GFS do SIMAGRO permanecem como imagens complementares, sem OCR nem mistura numérica.
+
+### `/clima-em-pelotas`
+
+A página de clima passa a explicitar **estações do ano e climatologia**, além das Normais Climatológicas do INMET. O objetivo é evitar que a URL de clima concorra com o histórico recente.
+
+A página reforça que climatologia exige séries longas, período de referência e controle de qualidade. Os últimos 30 dias podem contextualizar o presente, mas não definem o clima normal da cidade.
+
+### `/historico-climatico-pelotas`
+
+A rota passa a usar de forma explícita a expressão **histórico meteorológico de 30 dias**, deixando claro no title, description e FAQ que se trata de comportamento recente.
+
+A página não chama o período de climatologia, normal climática ou recorde histórico oficial. O link para `/clima-em-pelotas` explica a diferença entre as duas intenções.
+
+### `/mapa-de-geadas-rio-grande-do-sul`
+
+O title foi alinhado à intenção **mapa de geadas observadas**, preservando a semântica de dado passado. A página continua deixando explícito que os pontos representam estações e não a área total atingida, e que o mapa não é previsão para a próxima madrugada.
+
+A malha editorial conecta o mapa à previsão de amanhã e de 7 dias sem misturar observação passada com risco futuro.
+
+### `/alertas`
+
+O snippet passa a explicitar **Alertas do INMET em Pelotas e região**. A lógica de avisos não foi alterada: validade, abrangência, severidade e orientações continuam pertencendo ao INMET.
+
+A página passa a ligar também para a situação hidrológica em episódios de chuva persistente ou enchente, com caveat de que um alerta meteorológico não é convertido automaticamente em diagnóstico de nível ou inundação.
+
+### `/estacao-embrapa-pelotas`
+
+A página foi revisada nesta rodada, mas não precisou de mudança. Ela já possui intenção própria e bem separada: **observação local de estação**, com horário, idade da leitura, chuva, vento, histórico de 24 horas e saúde operacional dos dados.
+
+## 7. Dados estruturados e entidades
 
 O enriquecimento busca coerência entre conteúdo visível e schema. Não são adicionadas respostas ocultas apenas para motores de busca.
 
@@ -167,7 +205,7 @@ FAQPage e FAQ templado não são adicionados em massa. Se uma cidade justificar 
 
 Nas páginas editoriais principais, `about` foi refinado para refletir intenções e entidades efetivamente tratadas pelo conteúdo.
 
-## 7. Testes de contrato
+## 8. Testes de contrato
 
 Além dos testes especializados já existentes, foi adicionado:
 
@@ -188,11 +226,15 @@ O contrato protege:
 - papel de 7 dias como previsão semanal;
 - consolidação de 10 e 15 dias em uma única URL;
 - separação entre vento observado e vento previsto;
-- tratamento de radar como imagem recente com timestamp, sem prometer tempo real quando a fonte estiver atrasada.
+- tratamento de radar como imagem recente com timestamp, sem prometer tempo real quando a fonte estiver atrasada;
+- distinção Meteograma 48h x Hoje;
+- distinção Clima/Climatologia x Histórico meteorológico de 30 dias;
+- mapa de geadas como observação passada e não previsão futura;
+- alertas como avisos oficiais do INMET, sem converter indisponibilidade em ausência de risco.
 
 O teste foi incluído em `test:contracts`. Os contratos estão versionados, mas a suíte completa ainda depende da restauração dos runners do GitHub Actions. Esta documentação **não declara os testes como executados**.
 
-## 8. O que não foi feito
+## 9. O que não foi feito
 
 Esta rodada deliberadamente não:
 
@@ -205,14 +247,14 @@ Esta rodada deliberadamente não:
 - criou migration, Edge Function, secret ou variável de ambiente;
 - alterou a árvore de rotas, porque nenhuma rota nova foi criada.
 
-## 9. Gate de Search Console
+## 10. Gate de Search Console
 
 A indisponibilidade atual do conector de Search Console não impede refinamentos estruturais que melhoram páginas existentes, mas continua bloqueando decisões dependentes de evidência nova de consulta/CTR.
 
 Permanecem condicionadas a nova captura de Search Console:
 
 - decisão final sobre páginas permanentes de sexta-feira/sábado;
-- medição de CTR após os novos snippets de Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento e Radar;
+- medição de CTR após os novos snippets de Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento, Radar, Meteograma, Alertas, Geadas, Clima e Histórico;
 - priorização quantitativa da próxima rodada por município.
 
 ## Decisão
