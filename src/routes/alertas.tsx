@@ -11,7 +11,7 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Alertas meteorológicos em Pelotas e região";
+const PAGE_TITLE = "Alertas do INMET em Pelotas e região";
 const PAGE_DESCRIPTION =
   "Consulte alertas meteorológicos oficiais do INMET para Pelotas e região, com nível de perigo, validade, publicação, municípios afetados e orientações de segurança.";
 const PAGE_PATH = "/alertas";
@@ -85,6 +85,11 @@ const ALERTS_PAGE_CONTENT = {
       description: "Compare o que já foi medido com chance e volume previstos, sem misturar as séries.",
     },
     {
+      label: "Situação das águas em Pelotas",
+      href: "/situacao-hidrologica-pelotas" as const,
+      description: "Em episódios de chuva persistente ou enchente, acompanhe níveis e leituras regionais sem converter um alerta meteorológico em diagnóstico hidrológico automático.",
+    },
+    {
       label: "Metodologia do Tempo Pelotas",
       href: "/metodologia" as const,
       description: "Entenda como as fontes oficiais são consultadas e quais são seus limites.",
@@ -101,7 +106,7 @@ export const Route = createFileRoute("/alertas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Alertas meteorológicos", path: PAGE_PATH },
+          { name: "Alertas do INMET", path: PAGE_PATH },
         ],
         about: [
           "Alertas meteorológicos do INMET",
