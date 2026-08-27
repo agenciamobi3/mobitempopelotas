@@ -41,12 +41,13 @@ Estado geral:
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção, entidades geográficas e links internos globais |
-| Qualidade de navegador | Gate versionado, execução pendente | Acessibilidade estrutural, responsividade e Web Vitals de laboratório; não há aprovação enquanto os runners não executarem o workflow |
+| Qualidade de navegador | Gate versionado, execução pendente | Acessibilidade estrutural, responsividade, peso do build e Web Vitals de laboratório; não há aprovação enquanto os runners não executarem o workflow |
 | Conta / login Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
 | Gate geográfico / CSP / rate limit | Ativo | Segurança em camada de aplicação; smoke real ainda deve ser confirmado |
-| PWA / Web Push | Suspenso | Código preservado; reativação depende de validação controlada |
+| PWA / instalação e offline | Ativo técnico | Manifest, service worker, instalação/atualização e experiência offline permanecem montados no portal |
+| Web Push | Suspenso | Código preservado, mas `PushNotificationsManager` foi retirado do root e não consulta configuração global enquanto suspenso |
 | GeoInfo Embrapa | Pesquisa documentada | Camada temática futura; não integra o forecast de 15 dias |
 | CPTEC / SIGMA | Pesquisa futura | Fora do runtime público até nova revisão |
 
@@ -80,6 +81,7 @@ Scripts operacionais principais:
 - `npm run lint`;
 - `npm run quality:browser`;
 - `npm run quality:a11y`;
+- `npm run quality:assets`;
 - `npm run runtime:check`;
 - `npm run cutover:smoke`.
 
@@ -464,13 +466,14 @@ O workflow `Qualidade` deveria executar, entre outros gates:
 3. testes especializados, incluindo teclado/foco do header;
 4. `routes:check`;
 5. build;
-6. testes de rotas;
-7. TypeScript;
-8. lint incremental;
-9. preview local do build;
-10. Browser Quality Smoke com relatório de acessibilidade, responsividade e Web Vitals de laboratório.
+6. relatório de peso dos assets do build;
+7. testes de rotas;
+8. TypeScript;
+9. lint incremental;
+10. preview local do build;
+11. Browser Quality Smoke com relatório de acessibilidade, responsividade e Web Vitals de laboratório.
 
-Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer step, com `runner_id=0` e `steps=[]`. Isso é falha de infraestrutura/execução do Actions e não evidencia resultado dos testes do código. O gate de navegador foi versionado em 27/08/2026, mas **não deve ser descrito como executado ou aprovado** enquanto esse bloqueio persistir.
+Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer step, com `runner_id=0` e `steps=[]`. Isso é falha de infraestrutura/execução do Actions e não evidencia resultado dos testes do código. Os gates de navegador e de peso do build foram versionados em 27/08/2026, mas **não devem ser descritos como executados ou aprovados** enquanto esse bloqueio persistir.
 
 Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/generate-route-tree.mjs` para incorporar `/nivel-do-guaiba` e `/enchente-1941-pelotas`. A reprodução determinística do estado anterior gerou exatamente o mesmo blob SHA já versionado antes da alteração, confirmando equivalência com o gerador oficial; a nova saída foi então versionada sem alterar o script. A dívida de árvore desatualizada foi removida no código, embora `routes:check` ainda precise ser executado em um runner funcional para confirmação executável.
 
@@ -482,7 +485,9 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/header-keyboard-accessibility.test.ts` protege o contrato ARIA dos menus e a restauração de foco ao fechar um painel com `Escape`.
 
-`scripts/browser-quality-smoke.mjs` é o gate de navegador atual e não depende de Playwright. Ele usa Chrome/Chromium via Chrome DevTools Protocol e cobre inicialmente nove rotas representativas em 320×720, 768×1024 e 1280×900. O gate bloqueia regressões estruturais como idioma/title ausentes, quantidade incorreta de H1 ou `<main>`, skip link invisível ao foco, IDs duplicados, controles sem nome, campos sem rótulo, imagens sem `alt`, overflow horizontal e falha de fechamento/restauração de foco no menu. Ele registra TTFB, FCP, LCP e CLS como **métricas de laboratório**. Nesta etapa, os limiares recomendados de performance geram avisos por padrão; não devem ser apresentados como CrUX ou Core Web Vitals de campo. O workflow prevê salvar `artifacts/browser-quality` como artifact para inspeção.
+`scripts/browser-quality-smoke.mjs` é o gate de navegador atual e não depende de Playwright. Ele usa Chrome/Chromium via Chrome DevTools Protocol e cobre inicialmente nove rotas representativas em 320×720, 768×1024 e 1280×900. O gate bloqueia regressões estruturais como idioma/title ausentes, quantidade incorreta de H1 ou `<main>`, skip link invisível ao foco, IDs duplicados, controles sem nome, campos sem rótulo, imagens sem `alt`, overflow horizontal e falha de fechamento/restauração de foco no menu. Ele registra TTFB, FCP, LCP e CLS como **métricas de laboratório**. Nesta etapa, os limiares recomendados de performance geram avisos por padrão; não devem ser apresentados como CrUX ou Core Web Vitals de campo.
+
+`scripts/build-asset-report.mjs` mede os arquivos públicos gerados pelo build, separa JavaScript/CSS/imagens/fontes/outros, calcula gzip para JS/CSS e lista os maiores arquivos. Não há budget rígido antes do primeiro baseline. O workflow prevê salvar `artifacts/build-assets` e `artifacts/browser-quality` no artifact `quality-reports-*` para inspeção.
 
 O nome histórico `scripts/accessibility-editorial-smoke.mjs` permanece como alias para o Browser Quality Smoke, evitando duas implementações divergentes e eliminando a dependência não declarada de Playwright que existia no script antigo.
 
@@ -500,11 +505,17 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação. A fase de qualidade adiciona apenas contratos de frontend/CI/documentação e não altera fonte meteorológica, hidrológica, banco ou autenticação.
+As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação.
+
+A fase de qualidade adicionou contratos de frontend/CI/documentação, adiou o JavaScript externo do MOBI Ticket para período ocioso do navegador e retirou Web Push do root enquanto suspenso. Essas mudanças não alteram fonte meteorológica/hidrológica, banco ou autenticação.
 
 ## 19. PWA / Web Push
 
-Código preservado, ativação pública suspensa. Reativação depende de teste real de service worker, subscribe/unsubscribe, permissões, rolagem, Chrome normal/anônimo/mobile e ausência de regressões de UI.
+O PWA de instalação/atualização permanece ativo tecnicamente: `PwaManager` continua registrando `/sw.js`, o manifest permanece no head e `PwaAppExperience` mantém comportamento de standalone/conectividade. Isso não transforma dados antigos em condições meteorológicas atuais.
+
+Web Push permanece suspenso. `PushNotificationsManager.tsx` e as APIs de configuração/inscrição são preservados, mas o manager não é montado em `src/routes/__root.tsx`; portanto o runtime público não solicita `/api/push/config` nem apresenta o launcher de notificações enquanto essa função não for reativada de forma controlada.
+
+Reativação de Web Push depende de teste real de service worker, subscribe/unsubscribe, permissões, rolagem, Chrome normal/anônimo/mobile e ausência de regressões de UI.
 
 ## 20. Pesquisa futura CPTEC / SIGMA
 
@@ -514,7 +525,7 @@ A pesquisa técnica existe em `docs/CPTEC_SIGMA_RESEARCH.md`, mas permanece fora
 
 Pendências reais, não funcionalidades declaradas como prontas:
 
-1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` e o Browser Quality Smoke sobre o build de produção;
+1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check`, relatório de assets e Browser Quality Smoke sobre o build de produção;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
 3. recapturar Search Console para medir CTR da Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento, Radar, Meteograma, Alertas, Geadas, Clima e Histórico, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
 4. concluir E2E de autenticação com duas contas descartáveis;
@@ -522,8 +533,8 @@ Pendências reais, não funcionalidades declaradas como prontas:
 6. definir rollups e APIs históricas server-side;
 7. continuar validação ANA/RHN e inventário/semântica da Defesa Civil RS;
 8. validar os smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real;
-9. executar o baseline de navegador já versionado, concluir auditoria manual WCAG 2.2 AA, responsividade ampla/zoom-reflow e obter medição confiável de Core Web Vitals de campo antes de endurecer thresholds de performance;
-10. manter PWA/Web Push suspenso até validação controlada;
+9. executar os baselines de peso/navegador já versionados, concluir auditoria manual WCAG 2.2 AA, responsividade ampla/zoom-reflow e obter medição confiável de Core Web Vitals de campo antes de endurecer thresholds de performance;
+10. manter Web Push suspenso até validação controlada; preservar PWA ativo sem esconder dados meteorológicos atuais atrás de cache;
 11. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
 12. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
 13. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
@@ -546,7 +557,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
 | `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md` | Intenção x fonte x etapas |
 | `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento de snippets, links internos, entidades e perfis regionais sem FAQ genérico nem novas URLs |
-| `docs/QUALITY_A11Y_CWV_2026-08-27.md` | Baseline de acessibilidade, responsividade e Web Vitals de laboratório |
+| `docs/QUALITY_A11Y_CWV_2026-08-27.md` | Baseline de acessibilidade, responsividade, peso do build e Web Vitals de laboratório |
 | `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Implementação da previsão de 15 dias |
 | `docs/EMBRAPA_GEOINFO_DATASET_SURVEY_2026-08-26.md` | Levantamento GeoInfo Embrapa |
 | `docs/DATA_ACCESS_PUBLIC_FREE_PRO_PLAN.md` | Política Público/Free/PRO/REVIEW |
