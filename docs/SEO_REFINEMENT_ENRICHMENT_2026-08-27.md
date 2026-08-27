@@ -191,7 +191,33 @@ A página passa a ligar também para a situação hidrológica em episódios de 
 
 A página foi revisada nesta rodada, mas não precisou de mudança. Ela já possui intenção própria e bem separada: **observação local de estação**, com horário, idade da leitura, chuva, vento, histórico de 24 horas e saúde operacional dos dados.
 
-## 7. Dados estruturados e entidades
+## 7. Páginas de apoio e transparência
+
+A última parte da rodada revisou as páginas que sustentam navegação, transparência e confiança do portal. A regra foi não adicionar conteúdo onde não havia ganho real.
+
+### `/privacidade-e-dados`
+
+Foi corrigida uma estrutura HTML inválida: a rota usava `ContentPageShell`, que já fornece o `<main id="conteudo-principal">`, e ainda renderizava outro `<main>` dentro dele.
+
+O contêiner interno passou a ser um `div`, preservando classes, conteúdo e comportamento. A correção melhora semântica e acessibilidade sem alterar política, coleta de dados ou fluxo de conta.
+
+### `/status-dos-dados`
+
+A página já possuía conteúdo operacional forte, com estados por integração, histórico de incidentes, disponibilidade e explicação de falhas parciais. O refinamento adicionou `createEditorialPageJsonLd`, breadcrumbs e entidades `about` coerentes com o conteúdo visível.
+
+Nenhuma coleta, regra de disponibilidade, incidente, manutenção ou estado operacional foi alterado.
+
+### `/tempo-na-regiao-sul-rs`
+
+O hub regional manteve a mesma URL, as mesmas 24 cidades e o mesmo fallback. O schema editorial passou a descrever melhor a função da página como **previsão por cidade e mapa meteorológico regional**, sem gerar nova rota municipal, FAQ genérico ou conteúdo automático.
+
+### Páginas revisadas sem mudança
+
+- `/cameras-ao-vivo-pelotas`: já diferencia transmissão ao vivo, gravação e vídeo sem horário confirmado; não foi forçada a usar “ao vivo” no title porque nem todas as câmeras estão necessariamente live.
+- `/blog`: já identifica claramente o feed CPPMet/UFPel e mantém links para as publicações originais; não recebeu texto artificial.
+- `/metodologia`: já possui descrição aprofundada das fontes, horários, fallback, diferenças entre medição/previsão/resumo e limites de uso; permaneceu inalterada.
+
+## 8. Dados estruturados e entidades
 
 O enriquecimento busca coerência entre conteúdo visível e schema. Não são adicionadas respostas ocultas apenas para motores de busca.
 
@@ -203,9 +229,9 @@ Nas páginas regionais atuais:
 
 FAQPage e FAQ templado não são adicionados em massa. Se uma cidade justificar perguntas próprias no futuro, elas devem nascer de conteúdo realmente específico e passar pelo mesmo gate editorial.
 
-Nas páginas editoriais principais, `about` foi refinado para refletir intenções e entidades efetivamente tratadas pelo conteúdo.
+Nas páginas editoriais principais, `about` foi refinado para refletir intenções e entidades efetivamente tratadas pelo conteúdo. A página de Status dos Dados também passa a expor breadcrumbs e entidades de disponibilidade/monitoramento sem transformar estado operacional em conteúdo estático.
 
-## 8. Testes de contrato
+## 9. Testes de contrato
 
 Além dos testes especializados já existentes, foi adicionado:
 
@@ -230,11 +256,14 @@ O contrato protege:
 - distinção Meteograma 48h x Hoje;
 - distinção Clima/Climatologia x Histórico meteorológico de 30 dias;
 - mapa de geadas como observação passada e não previsão futura;
-- alertas como avisos oficiais do INMET, sem converter indisponibilidade em ausência de risco.
+- alertas como avisos oficiais do INMET, sem converter indisponibilidade em ausência de risco;
+- ausência de `<main>` duplicado em Privacidade;
+- schema/breadcrumbs da página de Status dos Dados;
+- entidade e papel de previsão por cidade no hub regional.
 
 O teste foi incluído em `test:contracts`. Os contratos estão versionados, mas a suíte completa ainda depende da restauração dos runners do GitHub Actions. Esta documentação **não declara os testes como executados**.
 
-## 9. O que não foi feito
+## 10. O que não foi feito
 
 Esta rodada deliberadamente não:
 
@@ -244,10 +273,12 @@ Esta rodada deliberadamente não:
 - criou doorway pages;
 - criou FAQ parametrizado em massa para cidades;
 - alterou Open-Meteo, Embrapa, INMET, REDEMET, SACE, Defesa Civil ou coletores hidrológicos;
+- alterou política de privacidade, autenticação ou dados da conta;
+- alterou monitoramento, incidentes ou regras do Status dos Dados;
 - criou migration, Edge Function, secret ou variável de ambiente;
 - alterou a árvore de rotas, porque nenhuma rota nova foi criada.
 
-## 10. Gate de Search Console
+## 11. Gate de Search Console
 
 A indisponibilidade atual do conector de Search Console não impede refinamentos estruturais que melhoram páginas existentes, mas continua bloqueando decisões dependentes de evidência nova de consulta/CTR.
 
@@ -261,4 +292,4 @@ Permanecem condicionadas a nova captura de Search Console:
 
 **Continuar refinando as 48 URLs existentes antes de expandir o inventário.**
 
-A próxima rodada deve priorizar conteúdo útil, resposta imediata, entidades, links internos, acessibilidade, Core Web Vitals e sinais reais de Search Console, mantendo a regra de que cada nova URL precisa de intenção, fonte e utilidade próprias.
+Com a arquitetura de intenção principal agora mais bem delimitada, a próxima rodada deve migrar do refinamento textual para validação executável e de experiência: runners/CI, domínio publicado, acessibilidade, Core Web Vitals, responsividade e Search Console. Novas URLs continuam exigindo intenção, fonte e utilidade próprias.
