@@ -5,6 +5,7 @@ import test from "node:test";
 const root = readFileSync("src/routes/__root.tsx", "utf8");
 const login = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 const push = readFileSync("src/components/pwa/PushNotificationsManager.tsx", "utf8");
+const ticketWidget = readFileSync("src/components/mobi-ticket/MobiTicketWidgetLoader.tsx", "utf8");
 const privacy = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
 
 test("GA4 tag is present in the SSR head and SPA navigations emit one explicit pageview", () => {
@@ -32,6 +33,17 @@ test("push manager is mounted globally but remains runtime-gated by push configu
   assert.match(root, /<PushNotificationsManager\s*\/>/);
   assert.match(push, /\/api\/push\/config/);
   assert.match(push, /\/api\/push\/subscription/);
+});
+
+test("ticket widget remains global but defers third-party JavaScript until the browser is idle", () => {
+  assert.match(root, /<MobiTicketWidgetLoader\s*\/>/);
+  assert.match(ticketWidget, /requestIdleCallback/);
+  assert.match(ticketWidget, /IDLE_TIMEOUT_MS/);
+  assert.match(ticketWidget, /window\.setTimeout\(loadWidget, FALLBACK_DELAY_MS\)/);
+  assert.match(ticketWidget, /script\.async = true/);
+  assert.match(ticketWidget, /agenciamobi\.com\.br\/widget\/mobi-ticket\.js/);
+  assert.match(ticketWidget, /cancelIdleCallback/);
+  assert.match(ticketWidget, /window\.clearTimeout/);
 });
 
 test("Google login explains authentication without exposing infrastructure jargon", () => {
