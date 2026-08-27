@@ -587,3 +587,15 @@ Uma pessoa deve conseguir abrir este arquivo e responder rapidamente:
 - quais pendências impedem declarar determinada camada como concluída.
 
 Quando o detalhe ultrapassar esse nível, ele deve permanecer no documento especializado correspondente e ser apenas referenciado aqui.
+
+## 24. Correções visuais identificadas no domínio publicado
+
+Em 27/08/2026, screenshots do domínio público evidenciaram três regressões de apresentação, todas corrigidas no código sem alterar contratos de dados:
+
+- a grade de sete horas da Home passa a ficar contida no frame a partir de `880px`, deixando a rolagem horizontal para viewports mais estreitos;
+- o estado de camada REDEMET indisponível na Home deixa de herdar simultaneamente `top/bottom` e texto claro do mapa-base, passando a ser um card compacto e legível sobre o mapa;
+- o aviso municipal do INMET passa a possuir layout autocontido nas páginas regionais, sem depender de regras `home-inmet-alerts` escopadas ao shell da Home, eliminando concatenação visual de rótulos, valores e ações.
+
+`tests/screenshot-layout-regressions.test.ts`, incluído em `test:contracts`, protege esses três contratos. Nenhuma rota, sitemap, fonte meteorológica/hidrológica, regra de severidade do alerta, coletor, banco ou autenticação foi modificada.
+
+A correção está versionada, mas a validação visual pós-deploy ainda deve ser feita no domínio publicado e o CI continua sem ser considerado aprovado enquanto o runner não executar os steps normalmente.
