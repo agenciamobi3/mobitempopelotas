@@ -107,7 +107,53 @@ A expansão editorial regional deve ocorrer cidade por cidade, com contexto úti
 
 O helper genérico de FAQ que havia ficado sem uso durante uma edição intermediária foi removido do código, mantendo a decisão explícita e reduzindo superfície morta.
 
-## 5. Dados estruturados e entidades
+## 5. Amanhã, semana, 10/15 dias, vento e radar
+
+A segunda parte da rodada refinou cinco URLs já existentes, sem alterar o inventário do sitemap.
+
+### `/tempo-amanha-pelotas`
+
+A página de amanhã passou a assumir de forma mais explícita a intenção de **decisão do próximo dia**. Além do conteúdo operacional já existente, recebeu camada editorial e FAQ visível para explicar:
+
+- temperatura mínima e máxima de amanhã;
+- chance e volume de chuva;
+- vento e rajadas;
+- diferença entre consultar amanhã e consultar a janela semanal;
+- necessidade de confirmar novamente a previsão conforme o horário se aproxima.
+
+A malha de aprofundamento conecta Amanhã a Hoje, Chuva, 7 dias, 15 dias e alertas oficiais.
+
+### `/previsao-7-dias-pelotas`
+
+A rota semanal continua sendo a URL canônica para o horizonte de sete dias e passou a cobrir explicitamente também a intenção natural de **previsão da semana**.
+
+Não foi criada uma segunda URL para “semana”. A página permanece orientada à comparação entre dias e mantém a ponte para o horizonte de 15 dias.
+
+### `/previsao-15-dias-pelotas`
+
+A rota consolida as intenções de **10 dias e 15 dias** na mesma experiência. O portal não cria uma página de 10 dias que repetiria os primeiros dez cards da previsão estendida.
+
+A segunda semana continua apresentada com cautela maior. A página não sugere que o dia 15 possui a mesma previsibilidade do dia 2 e não extrapola alertas oficiais para datas sem aviso publicado.
+
+### `/vento-em-pelotas`
+
+A intenção editorial foi refinada para cobrir de forma direta:
+
+- `vento em Pelotas hoje`;
+- direção do vento;
+- rajadas por hora;
+- diferença entre vento médio e rajada;
+- diferença entre direção observada e direção prevista.
+
+Observação de estação e previsão de modelo permanecem separadas. A página não transforma resumo de rajada em alerta oficial.
+
+### `/radar-e-satelite-pelotas`
+
+A página passou a explicitar melhor a intenção **radar de chuva em Pelotas** e o uso da imagem mais recente disponível.
+
+A palavra “agora” só deve ser interpretada como **quadro mais recente retornado pela fonte**, sempre acompanhado de horário. Uma imagem atrasada não é renomeada como tempo real. Radar, satélite e STSC continuam separados da previsão por hora e dos alertas oficiais.
+
+## 6. Dados estruturados e entidades
 
 O enriquecimento busca coerência entre conteúdo visível e schema. Não são adicionadas respostas ocultas apenas para motores de busca.
 
@@ -121,7 +167,7 @@ FAQPage e FAQ templado não são adicionados em massa. Se uma cidade justificar 
 
 Nas páginas editoriais principais, `about` foi refinado para refletir intenções e entidades efetivamente tratadas pelo conteúdo.
 
-## 6. Testes de contrato
+## 7. Testes de contrato
 
 Além dos testes especializados já existentes, foi adicionado:
 
@@ -137,11 +183,16 @@ O contrato protege:
 - cluster Laranjal/Guaíba/1941/2024;
 - proibição de transferir referências históricas para réguas atuais;
 - existência de pelo menos dez perfis editoriais regionais específicos;
-- ausência de FAQ/schema FAQ parametrizado em massa nas páginas municipais.
+- ausência de FAQ/schema FAQ parametrizado em massa nas páginas municipais;
+- camada editorial própria da página de amanhã;
+- papel de 7 dias como previsão semanal;
+- consolidação de 10 e 15 dias em uma única URL;
+- separação entre vento observado e vento previsto;
+- tratamento de radar como imagem recente com timestamp, sem prometer tempo real quando a fonte estiver atrasada.
 
 O teste foi incluído em `test:contracts`. Os contratos estão versionados, mas a suíte completa ainda depende da restauração dos runners do GitHub Actions. Esta documentação **não declara os testes como executados**.
 
-## 7. O que não foi feito
+## 8. O que não foi feito
 
 Esta rodada deliberadamente não:
 
@@ -154,14 +205,14 @@ Esta rodada deliberadamente não:
 - criou migration, Edge Function, secret ou variável de ambiente;
 - alterou a árvore de rotas, porque nenhuma rota nova foi criada.
 
-## 8. Gate de Search Console
+## 9. Gate de Search Console
 
 A indisponibilidade atual do conector de Search Console não impede refinamentos estruturais que melhoram páginas existentes, mas continua bloqueando decisões dependentes de evidência nova de consulta/CTR.
 
 Permanecem condicionadas a nova captura de Search Console:
 
 - decisão final sobre páginas permanentes de sexta-feira/sábado;
-- medição de CTR após os novos snippets de Home, Hoje e Chuva;
+- medição de CTR após os novos snippets de Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento e Radar;
 - priorização quantitativa da próxima rodada por município.
 
 ## Decisão
