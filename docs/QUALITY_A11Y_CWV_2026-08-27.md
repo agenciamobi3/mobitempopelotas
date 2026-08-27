@@ -229,6 +229,8 @@ O workflow `.github/workflows/quality.yml` passou a prever:
 
 A proteção especializada da Home também inclui `tests/home-live-camera-hero.test.ts`, garantindo que descoberta e player da câmera ao vivo permaneçam diferidos e que o `iframe` não volte a usar `loading="eager"` no caminho crítico.
 
+O workflow já executa `tests/analytics-communication-runtime.test.ts`; esse contrato agora protege também que a biblioteca externa do GA4 permaneça diferida, enquanto a fila `dataLayer/gtag` e os pageviews SPA continuam disponíveis.
+
 Artefatos:
 
 - `artifacts/build-assets/report.json`;
@@ -258,10 +260,12 @@ Foram revisadas algumas áreas de maior peso e aplicadas otimizações apenas qu
 - a área do mapa de radar reserva altura por breakpoint, reduzindo risco de layout shift;
 - imagens gráficas do SIMAGRO usam `loading="lazy"` e `decoding="async"`;
 - o JavaScript externo do MOBI Ticket continua disponível globalmente, mas agora é injetado em `requestIdleCallback`, com timeout de 2,5 s e fallback de 1,5 s quando a API de idle não existe;
+- a fila do Google Analytics (`dataLayer/gtag`) continua criada no `<head>` SSR, porém o download externo de `gtag/js` deixou de ser um `<script async>` estático e passou a ser injetado em `requestIdleCallback`, com timeout de 3 s e fallback de 1,5 s. Pageviews explícitos de navegação SPA podem ser enfileirados antes da biblioteca externa terminar de carregar;
+- `send_page_view: false`, o ID `G-97YX7HPD90`, `allow_google_signals: false` e `allow_ad_personalization_signals: false` permanecem inalterados; a otimização não expande coleta nem ativa sinais publicitários;
 - o `PushNotificationsManager` foi retirado do root enquanto Web Push estiver suspenso. O código e as APIs de push continuam preservados, mas a página pública deixa de carregar essa interface e consultar `/api/push/config` na hidratação global;
 - o PWA de instalação/atualização e experiência offline permanece separado do estado de Web Push e continua montado no root.
 
-A mudança do ticket não remove o canal: ela apenas evita que um script de terceiro dispute CPU/rede com o primeiro render. A mudança de Push reconcilia o runtime com o estado de produto suspenso e com o teste especializado de PWA que já exigia ausência do manager no root.
+A mudança do ticket não remove o canal: ela apenas evita que um script de terceiro dispute CPU/rede com o primeiro render. A mudança do GA4 preserva a fila e a medição explícita de pageviews, mas tira o download de terceiro do caminho crítico. A mudança de Push reconcilia o runtime com o estado de produto suspenso e com o teste especializado de PWA que já exigia ausência do manager no root.
 
 A cadeia da câmera agora é explicitamente progressiva: **descoberta em idle → validação da transmissão → player em idle/lazy → supressão em rede econômica/offline/reduced-motion**. Como a transmissão é uma camada visual decorativa (`aria-hidden`) e possui uma página própria para consulta, o conteúdo meteorológico principal continua tendo prioridade.
 
@@ -300,4 +304,4 @@ Automação não fecha WCAG 2.2 AA sozinha. Continuam necessários testes manuai
 
 ## Decisão
 
-**A fase de qualidade passa a ter gates versionados para estrutura no navegador e peso do build, além de três otimizações de caminho crítico: ticket em idle, Web Push fora do root enquanto suspenso e cadeia da câmera ao vivo totalmente diferida/condicionada. A fase ainda não é declarada aprovada enquanto a infraestrutura de CI não executar os contratos e a auditoria manual não estiver concluída.**
+**A fase de qualidade passa a ter gates versionados para estrutura no navegador e peso do build, além de quatro otimizações de caminho crítico: ticket em idle, GA4 externo em idle, Web Push fora do root enquanto suspenso e cadeia da câmera ao vivo totalmente diferida/condicionada. A fase ainda não é declarada aprovada enquanto a infraestrutura de CI não executar os contratos e a auditoria manual não estiver concluída.**
