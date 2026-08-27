@@ -92,6 +92,11 @@ const HYDROLOGY_PAGE_CONTENT = {
       description: "Veja a página detalhada da Estação Laranjal e sua evolução recente.",
     },
     {
+      label: "Nível do Guaíba",
+      href: "/nivel-do-guaiba" as const,
+      description: "Acompanhe Cais Mauá e Gasômetro com horário, tendência e referências próprias.",
+    },
+    {
       label: "Enchente de 2024 em Pelotas",
       href: "/enchente-2024-pelotas-laranjal" as const,
       description: "Veja a linha do tempo da cheia e como a água avançou do Guaíba até Pelotas e o Laranjal.",
