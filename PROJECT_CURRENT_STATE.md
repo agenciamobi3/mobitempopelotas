@@ -88,7 +88,7 @@ Rotas que renderizam `InternalWeatherPageShell` ou `ContentPageShell` são trata
 
 `src/lib/public-routes.ts` é a fonte programática do sitemap.
 
-Inventário após a publicação da página histórica de 1941: **48 URLs indexáveis**, sendo **25 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal. A rodada posterior de refinamento/enriquecimento não criou novas URLs e manteve esse inventário.
+Inventário após a publicação da página histórica de 1941: **48 URLs indexáveis**, sendo **25 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal. As rodadas posteriores de refinamento/enriquecimento não criaram novas URLs e mantiveram esse inventário.
 
 ### Rotas fixas
 
@@ -157,7 +157,7 @@ Contrato:
 - estados `live`, `partial` e `unavailable`;
 - dia com campo obrigatório ausente não é preenchido com zero.
 
-A nova página atende as intenções de 10 e 15 dias na mesma URL. Não existe página separada de 10 dias.
+A página atende explicitamente as intenções de 10 e 15 dias na mesma URL. Não existe página separada de 10 dias, porque os primeiros dez dias já pertencem à mesma série diária e uma rota adicional seria redundante.
 
 A interface separa dias 1–7 de dias 8–15 e explica que a incerteza aumenta com o horizonte. Não existe percentual artificial de confiança. Alertas do INMET não são extrapolados para datas sem aviso publicado.
 
@@ -237,6 +237,8 @@ Ativo:
 - allowlists e HTTPS obrigatório.
 
 Radar, satélite e STSC são monitoramento/observação visual. STSC não é alerta oficial e distância não representa intensidade ou trajetória.
+
+Em 27/08/2026, `/radar-e-satelite-pelotas` foi refinada para cobrir explicitamente a intenção `radar de chuva em Pelotas`. Quando o conteúdo usa a ideia de “agora”, ela significa o **quadro mais recente disponível**, sempre subordinado ao timestamp da fonte; imagem atrasada não é apresentada como tempo real. Os valores meteorológicos exibidos ao lado continuam sendo previsão independente das imagens REDEMET.
 
 Documento: `docs/REDEMET_OPERATIONS.md`.
 
@@ -360,7 +362,7 @@ Arquitetura atual por horizonte:
 - agora: Home;
 - hoje/por hora: `/tempo-hoje-pelotas`;
 - amanhã: `/tempo-amanha-pelotas`;
-- 7 dias: `/previsao-7-dias-pelotas`;
+- 7 dias/semana: `/previsao-7-dias-pelotas`;
 - 10/15 dias: `/previsao-15-dias-pelotas`;
 - 20/30 dias: ainda não publicado.
 
@@ -375,6 +377,8 @@ A rodada seguinte reforçou links internos globais sem abrir novas URLs: o rodap
 Em 27/08/2026, a fase passou de expansão para refinamento das 48 URLs existentes. A Home assumiu explicitamente a intenção `agora`, enquanto `/tempo-hoje-pelotas` ficou com `hoje / por hora`; Chuva passou a responder visivelmente `Vai chover hoje em Pelotas?`; a malha interna conecta Hoje → 7 dias → 15 dias, Chuva → Radar → Situação das Águas → Laranjal e o cluster Laranjal ↔ Guaíba ↔ 1941 ↔ 2024. O refinamento não altera a separação entre observação, previsão, alerta e histórico.
 
 Na mesma janela, perfis editoriais locais foram ampliados para alguns municípios já publicados. Eles foram preservados por terem contexto factual distinto de costa, Lagoa dos Patos, Campanha, Serra do Sudeste, fronteira ou relação regional; essa ampliação não é tratada como nova evidência de demanda. O Search Console continua indisponível por assinatura, portanto novos perfis, novas cidades e decisões por dia da semana continuam dependentes de evidência posterior. O FAQ/schema genérico aplicado em massa às cidades foi removido para evitar conteúdo templated.
+
+A continuação da rodada refinou mais cinco URLs existentes: `/tempo-amanha-pelotas` passou a ter camada editorial e FAQ próprios para a decisão do próximo dia; `/previsao-7-dias-pelotas` passou a cobrir também a intenção de previsão da semana; `/previsao-15-dias-pelotas` consolidou explicitamente 10 e 15 dias sem URL duplicada; `/vento-em-pelotas` passou a cobrir vento hoje, direção e rajadas por hora preservando observação x previsão; e `/radar-e-satelite-pelotas` reforçou a intenção radar de chuva, tratando “agora” como a imagem mais recente disponível com timestamp, sem chamar quadro atrasado de tempo real. Nenhuma dessas mudanças criou nova fonte, coletor ou rota.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -461,7 +465,7 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, protege a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e ligações do cluster hidrológico/histórico.
 
-`tests/seo-editorial-enrichment.test.ts` protege Home/Hoje, Chuva, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
+`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento e imagem recente x tempo real no radar. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
 
 ## 18. Deploy e Supabase
 
@@ -475,7 +479,7 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. A rodada posterior de refinamento SEO também não alterou banco, coletores, secrets ou variáveis de ambiente.
+As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente.
 
 ## 19. PWA / Web Push
 
@@ -491,7 +495,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 
 1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` sobre a árvore já regenerada;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
-3. recapturar Search Console para medir CTR da Home, Hoje e Chuva, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
+3. recapturar Search Console para medir CTR da Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento e Radar, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
 4. concluir E2E de autenticação com duas contas descartáveis;
 5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
 6. definir rollups e APIs históricas server-side;
