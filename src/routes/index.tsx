@@ -9,9 +9,9 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import { ProductionHome, type HomeHydrologyResult } from "@/production/ProductionHome";
 
-const PAGE_TITLE = "Tempo em Pelotas hoje: previsão, chuva e vento";
+const PAGE_TITLE = "Tempo agora em Pelotas: temperatura, chuva e previsão";
 const PAGE_DESCRIPTION =
-  "Veja o tempo em Pelotas hoje com temperatura atual, previsão por hora e para 7 e 15 dias, chuva, vento, radar, alertas do INMET e situação das águas.";
+  "Veja o tempo agora em Pelotas com temperatura atual, sensação térmica, próximas horas, chuva, vento, previsão para 7 e 15 dias, radar, alertas do INMET e situação das águas.";
 const PAGE_PATH = "/";
 
 export const Route = createFileRoute("/")({
@@ -23,7 +23,9 @@ export const Route = createFileRoute("/")({
         path: PAGE_PATH,
         breadcrumbs: [{ name: "Tempo Pelotas", path: PAGE_PATH }],
         about: [
-          "Tempo em Pelotas hoje",
+          "Tempo agora em Pelotas",
+          "Temperatura atual em Pelotas",
+          "Sensação térmica em Pelotas",
           "Previsão do tempo em Pelotas",
           "Previsão do tempo por hora em Pelotas",
           "Previsão de 7 dias em Pelotas",
