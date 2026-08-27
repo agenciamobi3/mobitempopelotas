@@ -16,6 +16,8 @@
     "lint": "eslint .",
     "typecheck": "node scripts/generate-route-tree.mjs && tsc --noEmit",
     "format": "prettier --write .",
+    "quality:browser": "node scripts/browser-quality-smoke.mjs",
+    "quality:a11y": "node scripts/accessibility-editorial-smoke.mjs",
     "runtime:check": "node scripts/runtime-readiness-lovable.mjs",
     "runtime:check:example": "node scripts/runtime-readiness-lovable.mjs --example",
     "cutover:smoke": "node scripts/cutover-smoke.mjs && node scripts/seo-production-smoke.mjs"
