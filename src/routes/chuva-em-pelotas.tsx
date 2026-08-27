@@ -9,8 +9,7 @@ import { RainRetailHero } from "@/components/weather/RainRetailHero";
 import { RAIN_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getPelotasMeteogram } from "@/lib/weather/meteogram.functions";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Chuva em Pelotas hoje: acumulado, chance e previsão";
 const PAGE_DESCRIPTION =
@@ -129,13 +128,11 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, RAIN_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [weather, meteogram] = await Promise.all([
-      getWeatherIntelligence(),
-      getPelotasMeteogram(),
-    ]);
-    return { weather, meteogram };
-  },
+  loader: () =>
+    loadPublicWeatherWithMeteogram({
+      meteogramUnavailableMessage:
+        "O volume de chuva por hora está temporariamente indisponível. As demais informações de chuva permanecem acessíveis quando houver dados.",
+    }),
   staleTime: 5 * 60 * 1_000,
   component: ChuvaPage,
 });
