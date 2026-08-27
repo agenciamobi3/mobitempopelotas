@@ -12,9 +12,9 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getPelotasWeatherHistory } from "@/lib/weather/history.functions";
 
-const PAGE_TITLE = "Histórico de 30 dias em Pelotas";
+const PAGE_TITLE = "Histórico meteorológico de 30 dias em Pelotas";
 const PAGE_DESCRIPTION =
-  "Compare temperaturas máximas e mínimas, chuva, rajadas e variações dos últimos 30 dias completos em Pelotas.";
+  "Veja o histórico meteorológico recente de Pelotas: máximas, mínimas, chuva, rajadas e variações dos últimos 30 dias completos, sem tratar o período como climatologia.";
 const PAGE_PATH = "/historico-climatico-pelotas";
 
 const HISTORY_PAGE_CONTENT = {
@@ -32,6 +32,11 @@ const HISTORY_PAGE_CONTENT = {
     "Trinta dias não permitem concluir sozinhos se o período foi normal, quente, frio, seco ou chuvoso em relação ao clima de Pelotas.",
   ],
   faqs: [
+    {
+      question: "Qual é a diferença entre este histórico e a página Clima de Pelotas?",
+      answer:
+        "Este histórico compara somente os últimos 30 dias completos disponíveis. A página Clima de Pelotas explica padrões de longo prazo, estações do ano e referências climatológicas. Um período de 30 dias não substitui uma normal climatológica.",
+    },
     {
       question: "Os dados representam medições da Estação Embrapa?",
       answer:
@@ -60,19 +65,19 @@ const HISTORY_PAGE_CONTENT = {
   ],
   relatedLinks: [
     {
-      label: "Clima de Pelotas",
+      label: "Clima e climatologia de Pelotas",
       href: "/clima-em-pelotas" as const,
-      description: "Entenda as estações do ano e por que o tempo varia na cidade.",
+      description: "Entenda padrões de longo prazo, estações do ano e a diferença entre tempo e clima.",
     },
     {
       label: "Estação Embrapa",
       href: "/estacao-embrapa-pelotas" as const,
-      description: "Consulte temperatura, umidade, vento e chuva medidos em Pelotas.",
+      description: "Consulte temperatura, umidade, vento, chuva e o histórico observacional de 24 horas da estação.",
     },
     {
       label: "Previsão de 7 dias",
       href: "/previsao-7-dias-pelotas" as const,
-      description: "Compare os últimos dias com a previsão para a próxima semana.",
+      description: "Compare o período recente com a previsão para a próxima semana sem misturar observado e previsto.",
     },
     {
       label: "Como os dados funcionam",
@@ -91,10 +96,11 @@ export const Route = createFileRoute("/historico-climatico-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Histórico de 30 dias", path: PAGE_PATH },
+          { name: "Histórico meteorológico de 30 dias", path: PAGE_PATH },
         ],
         about: [
-          "Histórico meteorológico de Pelotas",
+          "Histórico meteorológico recente de Pelotas",
+          "Últimos 30 dias em Pelotas",
           "Temperaturas máximas e mínimas recentes",
           "Chuva acumulada nos últimos 30 dias",
           "Rajadas de vento recentes",
