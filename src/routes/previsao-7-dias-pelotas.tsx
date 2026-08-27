@@ -10,9 +10,9 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Previsão de 7 dias para Pelotas";
+const PAGE_TITLE = "Previsão do tempo em Pelotas: 7 dias e semana";
 const PAGE_DESCRIPTION =
-  "Veja a previsão de 7 dias para Pelotas com mínimas, máximas, chance e volume de chuva, rajadas, comparação diária e previsões do INMET e CPPMet/UFPel.";
+  "Veja a previsão do tempo para 7 dias e a semana em Pelotas, com mínimas, máximas, chance e volume de chuva, rajadas e comparação entre os dias.";
 const PAGE_PATH = "/previsao-7-dias-pelotas";
 
 const SEVEN_DAY_PAGE_CONTENT = {
@@ -20,13 +20,20 @@ const SEVEN_DAY_PAGE_CONTENT = {
   eyebrow: "Entenda a previsão semanal",
   title: "Como interpretar a previsão dos próximos 7 dias",
   answer:
-    "Use a previsão de 7 dias para comparar tendências de temperatura, chuva e vento. Os primeiros dias costumam orientar melhor decisões práticas; os dias mais distantes devem ser confirmados novamente conforme se aproximarem.",
+    "Use a previsão de 7 dias para comparar tendências de temperatura, chuva e vento ao longo da semana. Os primeiros dias costumam orientar melhor decisões práticas; os dias mais distantes devem ser confirmados novamente conforme se aproximarem.",
   facts: [
     "Mínima e máxima mostram a faixa prevista para cada dia, não a temperatura durante todo o período.",
     "Chance de chuva indica probabilidade; volume em milímetros estima quanto pode acumular no dia.",
+    "Rajada máxima e vento médio não são a mesma medida e podem ter impactos diferentes.",
     "Para escolher horários e tomar decisões sensíveis ao tempo, confirme a previsão nas páginas de hoje ou amanhã.",
+    "Para datas depois da primeira semana, use a página de 15 dias como tendência estendida e confirme novamente quando a data se aproximar.",
   ],
   faqs: [
+    {
+      question: "Como fica o tempo em Pelotas nesta semana?",
+      answer:
+        "A página compara os próximos sete dias com mínima, máxima, chuva e rajadas. Como o conteúdo é atualizado, use os cartões diários para identificar a tendência da semana em vez de depender de uma resposta fixa escrita no texto.",
+    },
     {
       question: "A previsão de 7 dias pode mudar?",
       answer:
@@ -42,6 +49,11 @@ const SEVEN_DAY_PAGE_CONTENT = {
       answer:
         "Observe juntos a chance percentual, o volume estimado em milímetros e os avisos oficiais. Um percentual alto não significa necessariamente o maior volume da semana.",
     },
+    {
+      question: "Onde vejo a previsão depois dos próximos 7 dias?",
+      answer:
+        "A página de 15 dias amplia a janela até a segunda semana. Ela deve ser usada como planejamento estendido, com incerteza maior nos dias mais distantes.",
+    },
   ],
   relatedLinks: [
     {
@@ -55,9 +67,19 @@ const SEVEN_DAY_PAGE_CONTENT = {
       description: "Consulte mínima, máxima, chuva, rajadas e orientações para o próximo dia.",
     },
     {
+      label: "Previsão de 15 dias",
+      href: "/previsao-15-dias-pelotas" as const,
+      description: "Continue para a segunda semana sem criar uma página redundante de 10 dias.",
+    },
+    {
       label: "Chuva por horário em Pelotas",
       href: "/chuva-em-pelotas" as const,
       description: "Compare chance, volume e os períodos com maior sinal de chuva.",
+    },
+    {
+      label: "Vento e rajadas em Pelotas",
+      href: "/vento-em-pelotas" as const,
+      description: "Veja direção, vento por hora e rajadas previstas.",
     },
   ],
 };
@@ -74,8 +96,9 @@ export const Route = createFileRoute("/previsao-7-dias-pelotas")({
           { name: "Previsão de 7 dias para Pelotas", path: PAGE_PATH },
         ],
         about: [
-          "Previsão do tempo em Pelotas",
-          "Tendência meteorológica em Pelotas",
+          "Previsão do tempo em Pelotas para 7 dias",
+          "Previsão do tempo para a semana em Pelotas",
+          "Tendência meteorológica semanal em Pelotas",
           "Previsão de chuva para 7 dias",
           "Temperaturas para os próximos 7 dias",
           "Rajadas de vento para os próximos dias",
