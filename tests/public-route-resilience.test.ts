@@ -128,7 +128,7 @@ test("falha transitoria de server fn durante navegacao recebe hard reload proteg
   assert.match(staleClientRecovery, /server function/i);
   assert.match(staleClientRecovery, /serverfn/i);
   assert.match(staleClientRecovery, /failed to fetch/i);
-  assert.match(staleClientRecovery, /404\|408\|410\|425\|429\|500\|502\|503\|504/);
+  assert.match(staleClientRecovery, /\[404, 408, 410, 425, 429, 500, 502, 503, 504\]/);
   assert.match(staleClientRecovery, /clientRuntimeReady/);
   assert.match(staleClientRecovery, /navigator\.onLine === false/);
   assert.match(staleClientRecovery, /reason: "asset" \| "navigation"/);
