@@ -9,9 +9,9 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Geadas observadas no Rio Grande do Sul";
+const PAGE_TITLE = "Mapa de geadas observadas no Rio Grande do Sul";
 const PAGE_DESCRIPTION =
-  "Veja registros de geada nas estações do INMET no Rio Grande do Sul, com período, tipo de estação, temperatura mínima, classificação, mapa e tabela.";
+  "Veja o mapa de geadas observadas nas estações do INMET no Rio Grande do Sul, com período, tipo de estação, temperatura mínima, classificação e tabela de registros.";
 const PAGE_PATH = "/mapa-de-geadas-rio-grande-do-sul";
 const RIO_GRANDE_DO_SUL_LOCATION = {
   "@type": "AdministrativeArea",
@@ -69,9 +69,14 @@ const FROST_PAGE_CONTENT = {
       description: "Consulte temperatura mínima, vento e evolução prevista para o próximo dia.",
     },
     {
-      label: "Clima de Pelotas",
+      label: "Previsão de 7 dias para Pelotas",
+      href: "/previsao-7-dias-pelotas" as const,
+      description: "Acompanhe a tendência de temperatura para a próxima semana sem confundir previsão com registro observado de geada.",
+    },
+    {
+      label: "Clima e climatologia de Pelotas",
       href: "/clima-em-pelotas" as const,
-      description: "Entenda o frio, as estações do ano e a diferença entre tempo e clima.",
+      description: "Entenda o frio, as estações do ano e a diferença entre tempo recente e climatologia.",
     },
     {
       label: "Estação Embrapa",
@@ -100,9 +105,10 @@ export const Route = createFileRoute("/mapa-de-geadas-rio-grande-do-sul")({
           breadcrumbs: [
             { name: "Início", path: "/" },
             { name: "Monitoramento", path: "/radar-e-satelite-pelotas" },
-            { name: "Geadas observadas no RS", path: PAGE_PATH },
+            { name: "Mapa de geadas observadas no RS", path: PAGE_PATH },
           ],
           about: [
+            "Mapa de geadas observadas no Rio Grande do Sul",
             "Geadas observadas no Rio Grande do Sul",
             "Estações meteorológicas do INMET",
             "Temperatura mínima por estação",
