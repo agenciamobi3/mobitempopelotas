@@ -32,12 +32,20 @@ import { getWeatherAdvisory, type AdvisoryLevel } from "@/production/lib/weather
 import "@/production/styles/home-editorial-status-refinements.css";
 import "@/production/styles/home-water-deferred.css";
 
+const CAMERA_DISCOVERY_IDLE_TIMEOUT_MS = 2_000;
+const CAMERA_DISCOVERY_FALLBACK_DELAY_MS = 900;
+
 const advisoryRank: Record<AdvisoryLevel, number> = { normal: 0, attention: 1, warning: 2 };
 const officialSeverityRank: Record<InmetAlertSeverity, number> = {
   unknown: 0,
   potential: 1,
   danger: 2,
   "great-danger": 3,
+};
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
 };
 
 const unavailableSource = {
@@ -153,18 +161,36 @@ export function ProductionHome({
 
   useEffect(() => {
     let mounted = true;
+    const idleWindow = window as IdleWindow;
+    let idleHandle: number | null = null;
+    let fallbackTimer: number | null = null;
 
-    void getWeatherCameras()
-      .then((nextCameraData) => {
-        if (mounted) setCameraData(nextCameraData);
-      })
-      .catch(() => {
-        // A câmera é um aprimoramento progressivo do hero e nunca deve bloquear
-        // ou degradar a leitura meteorológica principal da Home.
+    const discoverCamera = () => {
+      idleHandle = null;
+      fallbackTimer = null;
+
+      void getWeatherCameras()
+        .then((nextCameraData) => {
+          if (mounted) setCameraData(nextCameraData);
+        })
+        .catch(() => {
+          // A câmera é um aprimoramento progressivo do hero e nunca deve bloquear
+          // ou degradar a leitura meteorológica principal da Home.
+        });
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      idleHandle = idleWindow.requestIdleCallback(discoverCamera, {
+        timeout: CAMERA_DISCOVERY_IDLE_TIMEOUT_MS,
       });
+    } else {
+      fallbackTimer = window.setTimeout(discoverCamera, CAMERA_DISCOVERY_FALLBACK_DELAY_MS);
+    }
 
     return () => {
       mounted = false;
+      if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
     };
   }, []);
 
