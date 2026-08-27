@@ -68,6 +68,9 @@ jobs:
       - name: Fotografias locais do hero
         run: node --test tests/home-hero-local-photos.test.ts
 
+      - name: Câmera ao vivo diferida da Home
+        run: node --test tests/home-live-camera-hero.test.ts
+
       - name: Overlay de navegação
         run: node --test tests/route-loading-overlay.test.ts
 
