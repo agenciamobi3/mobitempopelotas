@@ -44,7 +44,7 @@ test("camera discovery failure preserves the normal weather hero", () => {
   assert.match(productionHome, /liveLaranjalCamera \? \(/);
 });
 
-test("live player is silent, immediate, retryable and non-interactive", () => {
+test("live player is silent, deferred, retryable and non-interactive", () => {
   assert.match(liveBackground, /autoplay", "1"/);
   assert.match(liveBackground, /mute", "1"/);
   assert.match(liveBackground, /controls", "0"/);
@@ -52,8 +52,18 @@ test("live player is silent, immediate, retryable and non-interactive", () => {
   assert.match(liveBackground, /disablekb", "1"/);
   assert.match(liveBackground, /MAX_RELOAD_ATTEMPTS\s*=\s*2/);
   assert.match(liveBackground, /PLAYER_RETRY_DELAY_MS\s*=\s*9_000/);
+  assert.match(liveBackground, /PLAYER_IDLE_TIMEOUT_MS\s*=\s*2_500/);
+  assert.match(liveBackground, /PLAYER_FALLBACK_DELAY_MS\s*=\s*1_500/);
+  assert.match(liveBackground, /requestIdleCallback/);
+  assert.match(liveBackground, /connection\?\.saveData/);
+  assert.match(liveBackground, /effectiveType !== "slow-2g"/);
+  assert.match(liveBackground, /effectiveType !== "2g"/);
+  assert.match(liveBackground, /prefers-reduced-motion: reduce/);
+  assert.match(liveBackground, /document\.visibilityState !== "visible"/);
+  assert.match(liveBackground, /navigator\.onLine/);
   assert.match(liveBackground, /setAttempt\(\(current\) => Math\.min\(current \+ 1/);
-  assert.match(liveBackground, /loading="eager"/);
+  assert.match(liveBackground, /loading="lazy"/);
+  assert.doesNotMatch(liveBackground, /loading="eager"/);
   assert.match(liveBackground, /onError=\{retryPlayer\}/);
   assert.match(liveBackground, /tabIndex=\{-1\}/);
   assert.match(liveBackground, /aria-hidden="true"/);
