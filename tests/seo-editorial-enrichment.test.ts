@@ -15,6 +15,11 @@ const fifteenDays = source("src/routes/previsao-15-dias-pelotas.tsx");
 const rain = source("src/routes/chuva-em-pelotas.tsx");
 const wind = source("src/routes/vento-em-pelotas.tsx");
 const radar = source("src/routes/radar-e-satelite-pelotas.tsx");
+const alerts = source("src/routes/alertas.tsx");
+const meteogram = source("src/routes/meteograma-pelotas.tsx");
+const frost = source("src/routes/mapa-de-geadas-rio-grande-do-sul.tsx");
+const climate = source("src/routes/clima-em-pelotas.tsx");
+const history = source("src/routes/historico-climatico-pelotas.tsx");
 const laranjal = source("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
 const hydrology = source("src/routes/situacao-hidrologica-pelotas.tsx");
 const guaiba = source("src/routes/nivel-do-guaiba.tsx");
@@ -75,6 +80,33 @@ test("radar cobre busca por chuva recente sem prometer imagem instantânea", () 
   assert.match(radar, /Confira esse horário antes de interpretar a imagem como situação atual/);
   assert.match(radar, /A sequência mostra registros passados e recentes, não uma projeção futura/);
   assert.match(radar, /href: "\/vento-em-pelotas"/);
+});
+
+test("meteograma, clima e histórico recente não disputam a mesma intenção", () => {
+  assert.match(meteogram, /Meteograma de Pelotas: previsão hora a hora por 48h/);
+  assert.match(meteogram, /Qual é a diferença entre o meteograma e a página Tempo hoje/);
+  assert.match(meteogram, /href: "\/vento-em-pelotas"/);
+  assert.match(meteogram, /href: "\/tempo-amanha-pelotas"/);
+
+  assert.match(climate, /Clima de Pelotas: estações do ano e climatologia/);
+  assert.match(climate, /Qual é a diferença entre clima e histórico de 30 dias/);
+  assert.match(climate, /Uma normal climatológica exige décadas de observações/);
+  assert.match(climate, /href: "\/mapa-de-geadas-rio-grande-do-sul"/);
+
+  assert.match(history, /Histórico meteorológico de 30 dias em Pelotas/);
+  assert.match(history, /Este histórico compara somente os últimos 30 dias completos disponíveis/);
+  assert.match(history, /Um período de 30 dias não substitui uma normal climatológica/);
+  assert.match(history, /sem tratar o período como climatologia/);
+});
+
+test("alertas e geadas preservam fonte oficial e diferença entre observação e previsão", () => {
+  assert.match(alerts, /Alertas do INMET em Pelotas e região/);
+  assert.match(alerts, /A ausência de alerta não elimina mudanças rápidas no tempo/);
+  assert.match(alerts, /href: "\/situacao-hidrologica-pelotas"/);
+
+  assert.match(frost, /Mapa de geadas observadas no Rio Grande do Sul/);
+  assert.match(frost, /O mapa mostra registros passados e não prevê geada para a próxima madrugada/);
+  assert.match(frost, /href: "\/previsao-7-dias-pelotas"/);
 });
 
 test("cluster hidrológico conecta operação atual e memória histórica preservando referências", () => {
