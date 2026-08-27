@@ -20,7 +20,8 @@ import { WeatherMinuteRefresh } from "@/components/weather/WeatherMinuteRefresh"
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import {
   installVitePreloadRecovery,
-  recoverStaleClientAssets,
+  markClientRuntimeReady,
+  recoverClientNavigationFailure,
 } from "@/lib/stale-client-recovery";
 import {
   SITE_DESCRIPTION,
@@ -119,7 +120,7 @@ function ErrorComponent({ error }: { error: Error; reset: () => void }) {
 
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-    recoverStaleClientAssets(error);
+    recoverClientNavigationFailure(error);
   }, [error]);
 
   return (
@@ -232,7 +233,10 @@ gtag('config', '${GOOGLE_ANALYTICS_MEASUREMENT_ID}', {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  useEffect(() => installVitePreloadRecovery(), []);
+  useEffect(() => {
+    markClientRuntimeReady();
+    return installVitePreloadRecovery();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
