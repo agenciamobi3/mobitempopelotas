@@ -46,7 +46,7 @@ Estado geral:
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
 | Gate geográfico / CSP / rate limit | Ativo | Segurança em camada de aplicação; smoke real ainda deve ser confirmado |
-| PWA / instalação e offline | Ativo técnico | Manifest, service worker, instalação/atualização e experiência offline permanecem montados no portal |
+| PWA / instalação e offline | Ativo técnico | Manifest, instalação/atualização e experiência offline permanecem ativos; registro do service worker ocorre após `load` + idle para não disputar o primeiro render |
 | Web Push | Suspenso | Código preservado, mas `PushNotificationsManager` foi retirado do root e não consulta configuração global enquanto suspenso |
 | GeoInfo Embrapa | Pesquisa documentada | Camada temática futura; não integra o forecast de 15 dias |
 | CPTEC / SIGMA | Pesquisa futura | Fora do runtime público até nova revisão |
@@ -489,6 +489,8 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/analytics-communication-runtime.test.ts` protege analytics e comunicação: a fila `dataLayer/gtag` permanece disponível desde o SSR, pageviews SPA continuam explícitos, o download externo do GA4 é diferido para idle com fallback e as flags de privacidade/publicidade continuam desativadas. O mesmo contrato mantém Web Push fora do root enquanto suspenso e o MOBI Ticket global diferido.
 
+`tests/pwa-app-refinement.test.ts` protege que o PWA continue montado com manifest e metadados móveis, preserve registro de `/sw.js`, escopo `/` e `updateViaCache: "none"`, mas só inicie o registro do service worker depois de `window.load` e período ocioso do navegador. O teste também preserva a política de navegação live network-first e a separação entre PWA e Web Push.
+
 `scripts/browser-quality-smoke.mjs` é o gate de navegador atual e não depende de Playwright. Ele usa Chrome/Chromium via Chrome DevTools Protocol e cobre inicialmente nove rotas representativas em 320×720, 768×1024 e 1280×900. O gate bloqueia regressões estruturais como idioma/title ausentes, quantidade incorreta de H1 ou `<main>`, skip link invisível ao foco, IDs duplicados, controles sem nome, campos sem rótulo, imagens sem `alt`, overflow horizontal e falha de fechamento/restauração de foco no menu. Ele registra TTFB, FCP, LCP e CLS como **métricas de laboratório**. Nesta etapa, os limiares recomendados de performance geram avisos por padrão; não devem ser apresentados como CrUX ou Core Web Vitals de campo.
 
 `scripts/build-asset-report.mjs` mede os arquivos públicos gerados pelo build, separa JavaScript/CSS/imagens/fontes/outros, calcula gzip para JS/CSS e lista os maiores arquivos. Não há budget rígido antes do primeiro baseline. O workflow prevê salvar `artifacts/build-assets` e `artifacts/browser-quality` no artifact `quality-reports-*` para inspeção.
@@ -511,11 +513,11 @@ Disciplina atual:
 
 As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação.
 
-A fase de qualidade adicionou contratos de frontend/CI/documentação, adiou o JavaScript externo do MOBI Ticket e do GA4 para período ocioso do navegador, retirou Web Push do root enquanto suspenso e tornou a câmera visual da Home totalmente progressiva: descoberta em idle e player em idle/lazy com supressão em condições de economia de dados/conectividade/reduced-motion. No GA4, o bootstrap `dataLayer/gtag`, a medição explícita de pageviews SPA, o ID e as flags de privacidade permanecem preservados. Essas mudanças não alteram fonte meteorológica/hidrológica, banco ou autenticação.
+A fase de qualidade adicionou contratos de frontend/CI/documentação, adiou o JavaScript externo do MOBI Ticket e do GA4 para período ocioso do navegador, retirou Web Push do root enquanto suspenso, adiou o registro do service worker para depois de `load + idle` e tornou a câmera visual da Home totalmente progressiva: descoberta em idle e player em idle/lazy com supressão em condições de economia de dados/conectividade/reduced-motion. No GA4, o bootstrap `dataLayer/gtag`, a medição explícita de pageviews SPA, o ID e as flags de privacidade permanecem preservados. Essas mudanças não alteram fonte meteorológica/hidrológica, banco ou autenticação.
 
 ## 19. PWA / Web Push
 
-O PWA de instalação/atualização permanece ativo tecnicamente: `PwaManager` continua registrando `/sw.js`, o manifest permanece no head e `PwaAppExperience` mantém comportamento de standalone/conectividade. Isso não transforma dados antigos em condições meteorológicas atuais.
+O PWA de instalação/atualização permanece ativo tecnicamente: `PwaManager` continua registrando `/sw.js`, mas o registro agora só é iniciado depois de `window.load` e período ocioso do navegador, evitando disputar o primeiro render. O manifest permanece no head, os listeners de instalação/atualização continuam ativos desde a hidratação e `PwaAppExperience` mantém comportamento de standalone/conectividade. A política network-first das páginas vivas e a tela offline informativa permanecem inalteradas. Isso não transforma dados antigos em condições meteorológicas atuais.
 
 Web Push permanece suspenso. `PushNotificationsManager.tsx` e as APIs de configuração/inscrição são preservados, mas o manager não é montado em `src/routes/__root.tsx`; portanto o runtime público não solicita `/api/push/config` nem apresenta o launcher de notificações enquanto essa função não for reativada de forma controlada.
 
