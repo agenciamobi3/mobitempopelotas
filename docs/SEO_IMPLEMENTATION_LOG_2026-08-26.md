@@ -137,6 +137,53 @@ Teste específico:
 
 Nenhuma migration, Edge Function, secret, variável de ambiente ou coletor foi criada nesta etapa.
 
+## Etapa 4 — registro documental da enchente de 1941
+
+Status em 27/08/2026: **implementada na `main`; validação publicada ainda pendente**.
+
+Nova URL canônica:
+
+- `/enchente-1941-pelotas`.
+
+Gate documental atendido com quatro grupos de evidência:
+
+- UCPel: acervo Nelson Nobre Magalhães com 61 fotografias de 1941 e descrição do uso desse material por pesquisadores da UFPel;
+- UFPel: reconstrução da marca histórica associada ao Canal São Gonçalo a partir de fotografia da Praça do Porto/Alfândega e validação com mapa de 1940 que registrava 2,88 m;
+- Prefeitura de Pelotas: uso oficial de 2,88 m como referência histórica em 12/05/2024 e registro de superação para 2,89 m em 15/05/2024;
+- SIIEPE/UFPel 2025: levantamento documental do evento de 1941 e georreferenciamento de fotografias históricas.
+
+Decisão de URL:
+
+- usar `/enchente-1941-pelotas`;
+- não usar `Laranjal` no slug, porque a base institucional forte levantada sustenta Pelotas, Praça do Porto e Canal São Gonçalo, sem evidência equivalente para tornar o Laranjal o núcleo documental do evento de 1941;
+- evitar aliases indexáveis redundantes.
+
+Conteúdo da página:
+
+- primeira dobra com `2,88 m`, `61 fotos` e duração documentada por semanas;
+- explicação de como a referência de 2,88 m foi reconstruída;
+- linha do tempo limitada às datas realmente sustentadas pelo acervo: maio, 17–18 de maio, fim de maio e início de junho;
+- comparação 1941 x 2024 com a mesma referência explicitamente identificada;
+- links externos para UCPel, Prefeitura e trabalho acadêmico da UFPel;
+- links internos para Enchente de 2024, situação atual das águas, Laranjal e Guaíba;
+- ligação recíproca adicionada na página de 2024.
+
+Regras protegidas:
+
+- 2,88 m não é tratado como cota geral de Pelotas;
+- 2,88 m não é transferido para Estação Laranjal, Guaíba ou outras réguas da Lagoa dos Patos;
+- não é inventada data exata de início ou encerramento do evento;
+- fotografias históricas de terceiros não foram copiadas para o repositório sem validação de licença;
+- comparação com 2024 mantém referência, fonte e contexto;
+- nenhum novo coletor, secret, migration, API ou variável de ambiente foi criado.
+
+Testes/documentação:
+
+- `tests/flood-1941-historical-page.test.ts` protege canonical, evidências, 2,88 m, fontes e semântica de comparação;
+- `tests/public-routes.test.ts` protege a rota pública e a cadência mensal;
+- `docs/FLOOD_1941_RESEARCH_2026-08-27.md` registra fontes, fatos utilizáveis e limites editoriais;
+- `PROJECT_CURRENT_STATE.md` passa a registrar 48 URLs indexáveis, sendo 25 fixas e 23 municipais.
+
 ## Gate das páginas por dia da semana
 
 O Trends de 26/08/2026 trouxe sinal direto para sexta-feira e sábado, mas o plano exige cruzamento com Search Console antes de abrir uma URL permanente.
@@ -152,7 +199,7 @@ Decisão:
 ## Próximas etapas planejadas
 
 1. regenerar a árvore de rotas pelo gerador existente e executar os gates de build/typecheck/testes quando houver runner/local disponível;
-2. validar `/nivel-do-guaiba` no domínio publicado, inclusive mobile, canonical, sitemap e estados `stale/unavailable`;
+2. validar `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, canonical e sitemap;
 3. recapturar Search Console para decidir sexta/sábado;
-4. avançar pesquisa documental da Enchente de 1941;
+4. reforçar links internos do cluster histórico/hidrológico conforme a nova rota for publicada e rastreada;
 5. manter 30 dias, Canal São Gonçalo e páginas de evento condicionados aos contratos de fonte definidos no plano.
