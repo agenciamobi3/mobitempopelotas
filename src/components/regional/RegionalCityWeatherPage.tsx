@@ -28,6 +28,7 @@ import "./RegionalCityPerformance.css";
 import styles from "./RegionalCityWeatherPage.module.css";
 import "./RegionalCityIdentity.css";
 import "./RegionalCityAccentContract.css";
+import "./RegionalCityAlertLayout.css";
 
 const regionalSections = [
   { href: "#avisos-municipais", label: "Avisos", detail: "INMET e orientações oficiais" },
