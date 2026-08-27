@@ -2,13 +2,13 @@
 
 Data: 27/08/2026  
 Branch: `main`  
-Escopo: acessibilidade estrutural, teclado, responsividade e métricas de laboratório das páginas públicas.
+Escopo: acessibilidade estrutural, teclado, responsividade, peso do build e métricas de laboratório das páginas públicas.
 
 ## 1. Objetivo
 
 Após a rodada de refinamento SEO das 48 URLs indexáveis, a prioridade passa de expansão/copy para **qualidade executável**.
 
-Esta etapa cria um gate reproduzível para detectar regressões visíveis e estruturais antes da publicação, sem adicionar nova dependência de navegador ao `package.json` e sem confundir medições de laboratório com dados reais de usuários.
+Esta etapa cria gates reproduzíveis para detectar regressões visíveis e estruturais antes da publicação, medir o peso dos assets gerados e observar performance em navegador, sem adicionar nova dependência de navegador ao `package.json` e sem confundir medições de laboratório com dados reais de usuários.
 
 O inventário público não muda: permanecem **48 URLs indexáveis**, sendo 25 rotas fixas e 23 páginas municipais.
 
@@ -191,44 +191,79 @@ A intenção é coletar primeiro um baseline reproduzível antes de transformar 
 
 A validação de campo deve usar dados reais quando houver volume suficiente, preferencialmente Search Console/CrUX ou telemetria RUM explicitamente aprovada.
 
-## 9. CI
+## 9. Peso do build
 
-O workflow `.github/workflows/quality.yml` passou a prever, após build/typecheck/lint:
+Foi adicionado:
 
-1. início de `vite preview` em `127.0.0.1:4173`;
-2. espera ativa pela Home;
-3. execução do Browser Quality Smoke;
-4. upload do relatório mesmo em caso de falha;
-5. encerramento do preview.
+- `scripts/build-asset-report.mjs`;
+- comando `npm run quality:assets`.
+
+Depois do build, o script localiza o diretório público gerado, percorre os arquivos e registra:
+
+- quantidade de arquivos;
+- tamanho bruto total;
+- total por categoria: JavaScript, CSS, imagens, fontes, source maps e outros;
+- gzip nível 9 para cada arquivo JavaScript/CSS;
+- soma do gzip de JavaScript + CSS;
+- lista dos 30 maiores arquivos.
+
+Saídas:
+
+- `artifacts/build-assets/report.json`;
+- `artifacts/build-assets/README.md`.
+
+Nenhum budget rígido foi inventado antes do primeiro baseline. O relatório do build também não representa automaticamente bytes de uma navegação: cache, preload, code splitting e recursos externos alteram o custo efetivo por rota.
+
+## 10. CI
+
+O workflow `.github/workflows/quality.yml` passou a prever:
+
+1. build de produção;
+2. geração do relatório de peso dos assets;
+3. testes de rotas, TypeScript e lint;
+4. início de `vite preview` em `127.0.0.1:4173`;
+5. espera ativa pela Home;
+6. execução do Browser Quality Smoke;
+7. upload dos relatórios mesmo em caso de falha;
+8. encerramento do preview.
 
 Artefatos:
 
+- `artifacts/build-assets/report.json`;
+- `artifacts/build-assets/README.md`;
 - `artifacts/browser-quality/report.json`;
 - `artifacts/browser-quality/README.md`.
 
-O artefato do GitHub Actions fica retido por 14 dias no contrato atual.
+O artifact do GitHub Actions fica retido por 14 dias no contrato atual.
 
-## 10. Estado de execução
+## 11. Estado de execução
 
 A implementação está versionada, mas **não há resultado de CI aprovado nesta documentação**.
 
-Os runners do workflow `Qualidade` continuam sendo uma pendência de infraestrutura registrada no projeto. Enquanto eles não iniciarem normalmente, a presença do gate no YAML não significa que o smoke foi executado pelo GitHub.
+Os runners do workflow `Qualidade` continuam sendo uma pendência de infraestrutura registrada no projeto. Enquanto eles não iniciarem normalmente, a presença dos gates no YAML não significa que o build report ou o smoke de navegador foram executados pelo GitHub.
 
 Também não se deve usar a tentativa no ambiente interno desta sessão como aprovação: o navegador local disponível ali bloqueou navegação por política administrativa do ambiente. Essa limitação é externa ao projeto e não produz um resultado válido de aprovação ou reprovação do portal.
 
-## 11. Performance: decisões desta rodada
+## 12. Performance: decisões desta rodada
 
-Foram revisadas algumas áreas de maior peso:
+Foram revisadas algumas áreas de maior peso e aplicadas otimizações apenas quando o contrato era claro:
 
 - a Home já carrega hidrologia de forma diferida com `Suspense/Await`;
 - a câmera ao vivo da Home é aprimoramento progressivo e não bloqueia o forecast principal;
 - o mapa de radar importa `maplibre-gl` dinamicamente no cliente;
 - a área do mapa de radar reserva altura por breakpoint, reduzindo risco de layout shift;
-- imagens gráficas do SIMAGRO usam `loading="lazy"` e `decoding="async"`.
+- imagens gráficas do SIMAGRO usam `loading="lazy"` e `decoding="async"`;
+- o JavaScript externo do MOBI Ticket continua disponível globalmente, mas agora é injetado em `requestIdleCallback`, com timeout de 2,5 s e fallback de 1,5 s quando a API de idle não existe;
+- o `PushNotificationsManager` foi retirado do root enquanto Web Push estiver suspenso. O código e as APIs de push continuam preservados, mas a página pública deixa de carregar essa interface e consultar `/api/push/config` na hidratação global;
+- o PWA de instalação/atualização e experiência offline permanece separado do estado de Web Push e continua montado no root.
+
+A mudança do ticket não remove o canal: ela apenas evita que um script de terceiro dispute CPU/rede com o primeiro render. A mudança de Push reconcilia o runtime com o estado de produto suspenso e com o teste especializado de PWA que já exigia ausência do manager no root.
 
 Não foi inventado `width/height` ou aspect ratio para produtos externos do SIMAGRO sem confirmação das dimensões de origem. O novo CLS de laboratório deve ajudar a decidir se essa superfície realmente precisa de reserva adicional antes de aplicar um valor arbitrário.
 
-## 12. O que ainda exige auditoria manual
+O CSS do MapLibre continua no head global nesta rodada porque há contrato automatizado explícito de cascata e o custo real ainda não foi medido no build/browser. A possível regionalização desse CSS deve ser decidida com baseline, não por suposição.
+
+## 13. O que ainda exige auditoria manual
 
 Automação não fecha WCAG 2.2 AA sozinha. Continuam necessários testes manuais de, no mínimo:
 
@@ -247,16 +282,16 @@ Automação não fecha WCAG 2.2 AA sozinha. Continuam necessários testes manuai
 - comportamento em reduced motion/forced colors;
 - responsividade real em dispositivos móveis.
 
-## 13. Próxima ordem de trabalho
+## 14. Próxima ordem de trabalho
 
-1. restaurar o runner e obter o primeiro relatório real do Browser Quality Smoke;
+1. restaurar o runner e obter o primeiro relatório real de assets + Browser Quality Smoke;
 2. corrigir regressões estruturais encontradas;
 3. capturar baseline de LCP/CLS/TTFB por rota e viewport;
-4. atacar os maiores custos mensuráveis de carregamento/renderização;
+4. comparar os maiores JS/CSS do build e atacar dependências globais comprovadamente caras;
 5. executar auditoria manual WCAG 2.2 AA nas rotas críticas;
 6. medir Core Web Vitals de campo quando houver fonte confiável e volume suficiente;
-7. somente depois promover thresholds de performance de aviso para gate bloqueante.
+7. somente depois promover thresholds de peso/performance de observação para gate bloqueante.
 
 ## Decisão
 
-**A fase de qualidade passa a ter um gate de navegador versionado e reproduzível, mas ainda não é declarada aprovada enquanto a infraestrutura de CI não executar o contrato e a auditoria manual não estiver concluída.**
+**A fase de qualidade passa a ter gates versionados para estrutura no navegador e peso do build, além de duas otimizações de caminho crítico; ainda não é declarada aprovada enquanto a infraestrutura de CI não executar os contratos e a auditoria manual não estiver concluída.**
