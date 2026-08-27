@@ -310,7 +310,7 @@ Já existem, em diferentes estágios, observações Embrapa, extremos diários, 
 
 `historical_data_sources.paid_access_allowed` permanece bloqueado por padrão até revisão específica de uso pago/exportável.
 
-A rota `/historico-climatico-pelotas` apresenta janela pública recente sem chamar 30 dias recentes de “normal climatológica”. A rota `/enchente-2024-pelotas-laranjal` preserva o registro histórico de 2024.
+A rota `/historico-climatico-pelotas` é definida como **histórico meteorológico recente de 30 dias** e não chama esse período de climatologia ou normal climática. A rota `/clima-em-pelotas` mantém a intenção de clima de longo prazo, estações do ano, climatologia e Normais Climatológicas do INMET. As duas páginas possuem ligação recíproca e explicam explicitamente a diferença entre período recente e referência climática. A rota `/enchente-2024-pelotas-laranjal` preserva o registro histórico de 2024.
 
 A rota `/enchente-1941-pelotas` foi implementada em 27/08/2026 após pesquisa documental própria. Ela usa o acervo Nelson Nobre Magalhães preservado pela UCPel, trabalho de pesquisadores da UFPel e registros oficiais da Prefeitura para explicar a referência histórica de 2,88 m associada ao Canal São Gonçalo, a documentação fotográfica da duração da cheia e a comparação controlada com 2024. A página não trata 2,88 m como cota da Estação Laranjal nem transfere a referência para outras réguas.
 
@@ -379,6 +379,8 @@ Em 27/08/2026, a fase passou de expansão para refinamento das 48 URLs existente
 Na mesma janela, perfis editoriais locais foram ampliados para alguns municípios já publicados. Eles foram preservados por terem contexto factual distinto de costa, Lagoa dos Patos, Campanha, Serra do Sudeste, fronteira ou relação regional; essa ampliação não é tratada como nova evidência de demanda. O Search Console continua indisponível por assinatura, portanto novos perfis, novas cidades e decisões por dia da semana continuam dependentes de evidência posterior. O FAQ/schema genérico aplicado em massa às cidades foi removido para evitar conteúdo templated.
 
 A continuação da rodada refinou mais cinco URLs existentes: `/tempo-amanha-pelotas` passou a ter camada editorial e FAQ próprios para a decisão do próximo dia; `/previsao-7-dias-pelotas` passou a cobrir também a intenção de previsão da semana; `/previsao-15-dias-pelotas` consolidou explicitamente 10 e 15 dias sem URL duplicada; `/vento-em-pelotas` passou a cobrir vento hoje, direção e rajadas por hora preservando observação x previsão; e `/radar-e-satelite-pelotas` reforçou a intenção radar de chuva, tratando “agora” como a imagem mais recente disponível com timestamp, sem chamar quadro atrasado de tempo real. Nenhuma dessas mudanças criou nova fonte, coletor ou rota.
+
+A terceira parte da rodada separou intenções que ainda estavam próximas: `/meteograma-pelotas` passou a assumir **meteograma e previsão horária detalhada por até 48h**, diferenciando-se de Hoje; `/clima-em-pelotas` passou a assumir **clima, estações do ano e climatologia**; `/historico-climatico-pelotas` passou a assumir **histórico meteorológico recente de 30 dias**; `/mapa-de-geadas-rio-grande-do-sul` passou a trazer “mapa de geadas observadas” no snippet e continua explicitamente não preditivo; e `/alertas` passou a explicitar **Alertas do INMET em Pelotas e região**, com ligação contextual à hidrologia sem converter aviso meteorológico em diagnóstico de inundação. `/estacao-embrapa-pelotas` foi revisada e permaneceu inalterada por já possuir intenção própria de observação local.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -465,7 +467,7 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, protege a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e ligações do cluster hidrológico/histórico.
 
-`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento e imagem recente x tempo real no radar. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
+`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, Meteograma, Clima, Histórico, Alertas, Geadas, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento, imagem recente x tempo real no radar, Meteograma 48h x Hoje, Clima/Climatologia x histórico recente e geada observada x previsão futura. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
 
 ## 18. Deploy e Supabase
 
@@ -495,7 +497,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 
 1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` sobre a árvore já regenerada;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
-3. recapturar Search Console para medir CTR da Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento e Radar, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
+3. recapturar Search Console para medir CTR da Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento, Radar, Meteograma, Alertas, Geadas, Clima e Histórico, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
 4. concluir E2E de autenticação com duas contas descartáveis;
 5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
 6. definir rollups e APIs históricas server-side;
