@@ -41,6 +41,11 @@ const LARANJAL_PAGE_CONTENT = {
         "A leitura mais recente da Estação Laranjal aparece no topo desta página, junto com o horário da medição, o estado de atualização e a tendência observada. A leitura representa a referência própria da estação no Laranjal e não toda a Lagoa dos Patos.",
     },
     {
+      question: "O nível da Lagoa dos Patos está em tempo real?",
+      answer:
+        "A página mostra a leitura mais recente recebida da fonte, sempre com horário e estado de atualização. Se a transmissão estiver atrasada ou indisponível, o dado é identificado dessa forma e não é apresentado como uma medição atual em tempo real.",
+    },
+    {
       question: "A medição exibida no Laranjal já vem da ANA/RHN?",
       answer:
         "Não necessariamente. A página identifica a fonte usada para cada leitura. O acesso à plataforma integrada da ANA/RHN está autorizado e a integração está em implantação, mas uma estação só entra como fonte pública depois de validarmos unidade, referência, horário e disponibilidade.",
