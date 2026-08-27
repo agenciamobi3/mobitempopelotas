@@ -36,6 +36,7 @@ Estado geral:
 | Hidrologia | Ativo | Laranjal, Lagoa dos Patos, Guaíba com página dedicada, SACE e rede regional |
 | Defesa Civil RS | Ativo público | Hidrometeorologia regional com kill switch server-side |
 | Histórico climático | Ativo | Janela pública e Historical Data Layer privado em expansão |
+| Enchente de 1941 | Implementada em 27/08/2026 | Registro documental de Pelotas com referência histórica do São Gonçalo e fontes UCPel/UFPel/Prefeitura |
 | Enchente de 2024 | Ativo | Registro histórico permanente |
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
@@ -85,7 +86,7 @@ GitHub `main` permanece a fonte de versionamento. Lovable não substitui o Supab
 
 `src/lib/public-routes.ts` é a fonte programática do sitemap.
 
-Inventário após a publicação da página dedicada do Guaíba: **47 URLs indexáveis**, sendo **24 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal.
+Inventário após a publicação da página histórica de 1941: **48 URLs indexáveis**, sendo **25 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal.
 
 ### Rotas fixas
 
@@ -106,6 +107,7 @@ Inventário após a publicação da página dedicada do Guaíba: **47 URLs index
 - `/estacao-embrapa-pelotas`;
 - `/clima-em-pelotas`;
 - `/historico-climatico-pelotas`;
+- `/enchente-1941-pelotas`;
 - `/enchente-2024-pelotas-laranjal`;
 - `/cameras-ao-vivo-pelotas`;
 - `/tempo-na-regiao-sul-rs`;
@@ -300,7 +302,12 @@ Já existem, em diferentes estágios, observações Embrapa, extremos diários, 
 
 A rota `/historico-climatico-pelotas` apresenta janela pública recente sem chamar 30 dias recentes de “normal climatológica”. A rota `/enchente-2024-pelotas-laranjal` preserva o registro histórico de 2024.
 
-Documento: `docs/HISTORICAL_DATA_INVENTORY.md`.
+A rota `/enchente-1941-pelotas` foi implementada em 27/08/2026 após pesquisa documental própria. Ela usa o acervo Nelson Nobre Magalhães preservado pela UCPel, trabalho de pesquisadores da UFPel e registros oficiais da Prefeitura para explicar a referência histórica de 2,88 m associada ao Canal São Gonçalo, a documentação fotográfica da duração da cheia e a comparação controlada com 2024. A página não trata 2,88 m como cota da Estação Laranjal nem transfere a referência para outras réguas.
+
+Documentos:
+
+- `docs/HISTORICAL_DATA_INVENTORY.md`;
+- `docs/FLOOD_1941_RESEARCH_2026-08-27.md`.
 
 ## 11. GeoInfo Embrapa
 
@@ -349,14 +356,17 @@ Princípio: não criar URLs quase duplicadas apenas para trocar número, dia ou 
 
 Os levantamentos do Google Trends de 26/08/2026 estão documentados sem HAR bruto no repositório. A evidência reforçou 15 dias, hidrologia/enchente, Guaíba, sexta/sábado e consultas regionais.
 
-Em 27/08/2026, `/nivel-do-guaiba` avançou como a próxima URL do plano com contrato de dados já existente e utilidade hidrológica distinta. As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
+Em 27/08/2026, `/nivel-do-guaiba` avançou como URL operacional com contrato de dados já existente e utilidade hidrológica distinta. Na sequência, `/enchente-1941-pelotas` passou pelo gate documental e foi publicada como ativo histórico: a canonical não inclui `Laranjal` porque a base forte levantada sustenta Pelotas, Praça do Porto e Canal São Gonçalo, sem ampliar territorialmente o fato histórico além das fontes.
+
+As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
 Documentos:
 
 - `docs/SEO_GSC_BASELINE_2026-08-16.md`;
 - `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md`;
 - `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md`;
-- `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md`.
+- `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md`;
+- `docs/FLOOD_1941_RESEARCH_2026-08-27.md`.
 
 ## 14. Conta, Free e PRO
 
@@ -428,7 +438,7 @@ Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer st
 
 Existe ainda uma dívida versionada: `src/routeTree.gen.ts` está em formato anterior ao template atual de `scripts/generate-route-tree.mjs`. `build`, `typecheck`, `test` e `test:routes` regeneram a árvore antes de rodar, mas `routes:check` exige que o arquivo versionado seja regenerado e commitado. Esse gate deve ser corrigido/confirmado assim que houver execução local ou runner funcional; não alterar o gerador apenas para esconder a divergência.
 
-A nova rota `/nivel-do-guaiba` depende dessa regeneração normal da árvore pelo script existente; o arquivo gerado não foi editado manualmente nesta rodada.
+As novas rotas `/nivel-do-guaiba` e `/enchente-1941-pelotas` dependem dessa regeneração normal da árvore pelo script existente; o arquivo gerado não foi editado manualmente nessas rodadas.
 
 ## 18. Deploy e Supabase
 
@@ -442,7 +452,7 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-A implementação de 15 dias e a nova página do Guaíba não exigem migration, Edge Function ou nova variável de ambiente.
+As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente.
 
 ## 19. PWA / Web Push
 
@@ -458,7 +468,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 
 1. restaurar os runners do GitHub Actions e executar a suíte completa;
 2. regenerar e versionar `src/routeTree.gen.ts` conforme o gerador atual;
-3. validar `/previsao-15-dias-pelotas` e `/nivel-do-guaiba` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
+3. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
 4. concluir E2E de autenticação com duas contas descartáveis;
 5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
 6. definir rollups e APIs históricas server-side;
@@ -468,9 +478,8 @@ Pendências reais, não funcionalidades declaradas como prontas:
 10. manter PWA/Web Push suspenso até validação controlada;
 11. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
 12. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
-13. pesquisar Enchente de 1941 com fontes documentais antes de publicar conteúdo histórico;
-14. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
-15. retomar CPTEC/SIGMA apenas na janela de revisão planejada.
+13. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
+14. retomar CPTEC/SIGMA apenas na janela de revisão planejada.
 
 ## 22. Documentos especializados principais
 
@@ -483,6 +492,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 | `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` | Rede hidrometeorológica Defesa Civil RS |
 | `docs/ANA_RHN_INTEGRATION.md` | ANA/RHN e gates de estação |
 | `docs/HISTORICAL_DATA_INVENTORY.md` | Histórico, governança e coletores |
+| `docs/FLOOD_1941_RESEARCH_2026-08-27.md` | Base documental e limites editoriais da enchente de 1941 |
 | `docs/SEO_GSC_BASELINE_2026-08-16.md` | Baseline Search Console |
 | `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md` | Arquitetura de intenção SEO |
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
