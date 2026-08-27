@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 26/08/2026  
+Última atualização: 27/08/2026  
 Branch operacional: `main`  
 Domínio canônico: `https://tempopelotas.com.br`
 
@@ -33,7 +33,7 @@ Estado geral:
 | Alertas oficiais | Ativo | INMET, com validade, abrangência e instruções preservadas |
 | Embrapa Clima Temperado | Ativo | Observação local, extremos e acumulados observados |
 | REDEMET / DECEA | Ativo com dependência externa | Radar, satélite e STSC/trovoadas |
-| Hidrologia | Ativo | Laranjal, Lagoa dos Patos, Guaíba, SACE e rede regional |
+| Hidrologia | Ativo | Laranjal, Lagoa dos Patos, Guaíba com página dedicada, SACE e rede regional |
 | Defesa Civil RS | Ativo público | Hidrometeorologia regional com kill switch server-side |
 | Histórico climático | Ativo | Janela pública e Historical Data Layer privado em expansão |
 | Enchente de 2024 | Ativo | Registro histórico permanente |
@@ -85,7 +85,7 @@ GitHub `main` permanece a fonte de versionamento. Lovable não substitui o Supab
 
 `src/lib/public-routes.ts` é a fonte programática do sitemap.
 
-Inventário após a implementação de 15 dias: **46 URLs indexáveis**, sendo **23 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal.
+Inventário após a publicação da página dedicada do Guaíba: **47 URLs indexáveis**, sendo **24 rotas fixas** e **23 páginas municipais**. Pelotas usa a Home como página regional principal.
 
 ### Rotas fixas
 
@@ -102,6 +102,7 @@ Inventário após a implementação de 15 dias: **46 URLs indexáveis**, sendo *
 - `/mapa-de-geadas-rio-grande-do-sul`;
 - `/situacao-hidrologica-pelotas`;
 - `/nivel-da-lagoa-dos-patos-laranjal`;
+- `/nivel-do-guaiba`;
 - `/estacao-embrapa-pelotas`;
 - `/clima-em-pelotas`;
 - `/historico-climatico-pelotas`;
@@ -243,7 +244,20 @@ A rede da Lagoa agrega pontos como Rio Grande/FURG, São Lourenço do Sul, Aramb
 
 ### Guaíba / SACE
 
-O portal mantém leitura do Guaíba e contexto regional do SACE, preservando a classificação da própria estação. Situação elevada em outro ponto não é convertida automaticamente em risco para Pelotas.
+A rota indexável `/nivel-do-guaiba` foi publicada em 27/08/2026 como página operacional dedicada do eixo hidrológico regional. Ela reutiliza o contrato server-side já existente, sem criar coletor novo:
+
+- Cais Mauá / MetSul-TideSat como série preferencial quando utilizável;
+- Usina do Gasômetro / Nível Guaíba como referência independente e contingência do contrato atual;
+- estado `live`, `stale` ou `unavailable`;
+- horário e idade da leitura;
+- tendência em cm/h;
+- variação em 24 h;
+- mínimo, média e máximo da janela disponível;
+- Cais Mauá e Gasômetro preservados como réguas e referências próprias.
+
+A página não transforma nível do Guaíba em diagnóstico automático para Pelotas e não transfere cotas entre estações. O Guaíba é apresentado como parte do sistema regional conectado à Lagoa dos Patos.
+
+O contexto do SACE continua preservando a classificação da própria estação. Situação elevada em outro ponto não é convertida automaticamente em risco para Pelotas.
 
 ### Defesa Civil RS
 
@@ -335,6 +349,8 @@ Princípio: não criar URLs quase duplicadas apenas para trocar número, dia ou 
 
 Os levantamentos do Google Trends de 26/08/2026 estão documentados sem HAR bruto no repositório. A evidência reforçou 15 dias, hidrologia/enchente, Guaíba, sexta/sábado e consultas regionais.
 
+Em 27/08/2026, `/nivel-do-guaiba` avançou como a próxima URL do plano com contrato de dados já existente e utilidade hidrológica distinta. As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
+
 Documentos:
 
 - `docs/SEO_GSC_BASELINE_2026-08-16.md`;
@@ -412,6 +428,8 @@ Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer st
 
 Existe ainda uma dívida versionada: `src/routeTree.gen.ts` está em formato anterior ao template atual de `scripts/generate-route-tree.mjs`. `build`, `typecheck`, `test` e `test:routes` regeneram a árvore antes de rodar, mas `routes:check` exige que o arquivo versionado seja regenerado e commitado. Esse gate deve ser corrigido/confirmado assim que houver execução local ou runner funcional; não alterar o gerador apenas para esconder a divergência.
 
+A nova rota `/nivel-do-guaiba` depende dessa regeneração normal da árvore pelo script existente; o arquivo gerado não foi editado manualmente nesta rodada.
+
 ## 18. Deploy e Supabase
 
 Disciplina atual:
@@ -424,7 +442,7 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-A implementação de 15 dias não exige migration, Edge Function ou nova variável de ambiente.
+A implementação de 15 dias e a nova página do Guaíba não exigem migration, Edge Function ou nova variável de ambiente.
 
 ## 19. PWA / Web Push
 
@@ -440,7 +458,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 
 1. restaurar os runners do GitHub Actions e executar a suíte completa;
 2. regenerar e versionar `src/routeTree.gen.ts` conforme o gerador atual;
-3. validar `/previsao-15-dias-pelotas` no domínio publicado, inclusive mobile, estados `partial/unavailable`, sitemap e canonical;
+3. validar `/previsao-15-dias-pelotas` e `/nivel-do-guaiba` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
 4. concluir E2E de autenticação com duas contas descartáveis;
 5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
 6. definir rollups e APIs históricas server-side;
