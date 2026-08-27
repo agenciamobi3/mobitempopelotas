@@ -33,10 +33,17 @@ test("PWA is mounted with manifest and mobile metadata", () => {
   assert.doesNotMatch(rootRoute, /caches\.keys\(\)/);
 });
 
-test("installer no longer mutates persistent document scroll state", () => {
+test("installer preserves behavior but defers service worker registration until after load and idle", () => {
   assert.match(manager, /navigator\.serviceWorker\.register\("\/sw\.js"/);
   assert.match(manager, /scope:\s*"\/"/);
   assert.match(manager, /updateViaCache:\s*"none"/);
+  assert.match(manager, /document\.readyState === "complete"/);
+  assert.match(manager, /window\.addEventListener\("load", scheduleInitialize/);
+  assert.match(manager, /requestIdleCallback/);
+  assert.match(manager, /PWA_REGISTRATION_IDLE_TIMEOUT_MS/);
+  assert.match(manager, /PWA_REGISTRATION_FALLBACK_DELAY_MS/);
+  assert.match(manager, /window\.setTimeout\([\s\S]*startInitialize/);
+  assert.match(manager, /cancelIdleCallback/);
   assert.match(manager, /aria-expanded=\{isOpen\}/);
   assert.match(manager, /event\.key === "Escape"/);
   assert.match(manager, /event\.key !== "Tab"/);
