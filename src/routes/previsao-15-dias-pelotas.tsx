@@ -9,20 +9,21 @@ import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
-const PAGE_TITLE = "Previsão do tempo em Pelotas para 15 dias";
+const PAGE_TITLE = "Previsão do tempo em Pelotas: 10 e 15 dias";
 const PAGE_DESCRIPTION =
-  "Veja a previsão do tempo em Pelotas para os próximos 15 dias, com mínima, máxima, chance de chuva, volume previsto e vento.";
+  "Veja a previsão do tempo em Pelotas para 10 e 15 dias, com mínima, máxima, chance de chuva, volume previsto, rajadas e incerteza maior na segunda semana.";
 const PAGE_PATH = "/previsao-15-dias-pelotas";
 
 const FIFTEEN_DAY_PAGE_CONTENT = {
   eyebrow: "Entenda a previsão estendida",
-  title: "Como interpretar a previsão dos próximos 15 dias",
+  title: "Como interpretar a previsão dos próximos 10 e 15 dias",
   answer:
     "A página amplia a janela diária para planejamento antecipado, mas não trata todos os 15 dias como igualmente certos. Os primeiros dias tendem a exigir menos ajustes; a segunda semana deve ser acompanhada como tendência e confirmada novamente conforme cada data se aproxima.",
   facts: [
     "Mínima, máxima, chance de chuva, volume e rajada são previsões do modelo para cada dia; não são observações já medidas.",
     "A consulta de 15 dias é separada do fluxo usado pela Home, Hoje, Amanhã e 7 dias, evitando aumentar o payload dessas páginas.",
     "Os primeiros 10 dias estão dentro desta mesma janela de 15 dias; o portal não cria uma página duplicada apenas para trocar o número do horizonte.",
+    "Dias 8 a 15 devem ser interpretados com mais cautela e confirmados novamente conforme se aproximarem.",
     "Avisos oficiais do INMET continuam separados da previsão do modelo e só devem ser interpretados dentro da validade e abrangência publicadas pela fonte.",
   ],
   faqs: [
@@ -35,6 +36,11 @@ const FIFTEEN_DAY_PAGE_CONTENT = {
       question: "Onde vejo a previsão de Pelotas para 10 dias?",
       answer:
         "Os primeiros 10 dias desta página formam a mesma previsão diária. O Tempo Pelotas concentra as buscas de 10 e 15 dias na mesma URL para evitar páginas repetidas.",
+    },
+    {
+      question: "Qual a diferença entre a previsão de 7 e 15 dias?",
+      answer:
+        "A janela de 7 dias é mais adequada para planejamento da semana. A página de 15 dias amplia o horizonte para a segunda semana, onde a incerteza é maior e a confirmação posterior se torna ainda mais importante.",
     },
     {
       question: "Chance alta de chuva significa grande volume?",
@@ -66,7 +72,12 @@ const FIFTEEN_DAY_PAGE_CONTENT = {
     {
       label: "Chuva em Pelotas",
       href: "/chuva-em-pelotas" as const,
-      description: "Compare chance e volume previsto de chuva.",
+      description: "Compare chance e volume previsto de chuva por horizonte mais curto.",
+    },
+    {
+      label: "Vento e rajadas em Pelotas",
+      href: "/vento-em-pelotas" as const,
+      description: "Consulte direção e rajadas com detalhe por hora e para os próximos dias.",
     },
   ],
 };
@@ -80,11 +91,12 @@ export const Route = createFileRoute("/previsao-15-dias-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Previsão de 15 dias para Pelotas", path: PAGE_PATH },
+          { name: "Previsão de 10 e 15 dias para Pelotas", path: PAGE_PATH },
         ],
         about: [
           "Previsão do tempo em Pelotas para 15 dias",
           "Previsão do tempo em Pelotas para 10 dias",
+          "Previsão estendida em Pelotas",
           "Temperaturas para os próximos 15 dias",
           "Chance de chuva nos próximos 15 dias",
           "Volume previsto de chuva em Pelotas",
