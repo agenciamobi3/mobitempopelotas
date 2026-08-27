@@ -40,7 +40,7 @@ Estado geral:
 | Enchente de 2024 | Ativo | Registro histórico permanente |
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
-| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção, FAQ visível/regional, entidades geográficas e links internos globais |
+| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção, entidades geográficas e links internos globais |
 | Conta / login Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -347,9 +347,9 @@ Características:
 - fallback acessível mantém links das cidades se o mapa falhar;
 - nenhuma expansão municipal é automática.
 
-As páginas regionais usam Open-Meteo por coordenada própria e alertas INMET pelo código municipal. Onze municípios possuem perfil editorial local específico: Rio Grande, São José do Norte, São Lourenço do Sul, Canguçu, Morro Redondo, Capão do Leão, Jaguarão, Santa Vitória do Palmar, Chuí, Bagé e Dom Pedrito.
+As páginas regionais usam Open-Meteo por coordenada própria e alertas INMET pelo código municipal. Onze municípios possuem perfil editorial local específico: Rio Grande, São José do Norte, São Lourenço do Sul, Canguçu, Piratini, Dom Pedrito, Bagé, Jaguarão, Santa Vitória do Palmar, Chuí e Capão do Leão. Esses perfis usam contexto factual distinto do município; as demais cidades continuam no contrato editorial comum.
 
-Todas as páginas municipais públicas exibem FAQ local visível com `FAQPage` correspondente, `BreadcrumbList` e entidade `Place`/`GeoCoordinates` no JSON-LD. Os municípios sem perfil específico usam FAQ editorial padrão parametrizada pelo nome da cidade, sem transformar previsão de modelo em observação local nem inventar característica meteorológica não sustentada.
+Uma camada concorrente chegou a aplicar FAQ praticamente igual e `FAQPage` a todas as páginas municipais. Essa camada foi removida na revisão de 27/08/2026 por ser excessivamente templated. O gate atual permite perfis locais distintos, mas bloqueia FAQ em massa que apenas substitua o nome do município sem evidência e conteúdo próprios.
 
 Documento de gate: `docs/REGIONAL_CITY_PUBLICATION_GATE.md`.
 
@@ -374,7 +374,7 @@ A rodada seguinte reforçou links internos globais sem abrir novas URLs: o rodap
 
 Em 27/08/2026, a fase passou de expansão para refinamento das 48 URLs existentes. A Home assumiu explicitamente a intenção `agora`, enquanto `/tempo-hoje-pelotas` ficou com `hoje / por hora`; Chuva passou a responder visivelmente `Vai chover hoje em Pelotas?`; a malha interna conecta Hoje → 7 dias → 15 dias, Chuva → Radar → Situação das Águas → Laranjal e o cluster Laranjal ↔ Guaíba ↔ 1941 ↔ 2024. O refinamento não altera a separação entre observação, previsão, alerta e histórico.
 
-As páginas municipais também foram enriquecidas estrutural e editorialmente sem depender de novas keywords do Search Console: 11 cidades possuem perfil local específico e todas as páginas municipais públicas passaram a ter FAQ visível/schema correspondente, breadcrumbs e entidade geográfica. Não houve expansão do inventário, doorway pages nem criação automática de páginas por cidade.
+Na mesma janela, perfis editoriais locais foram ampliados para alguns municípios já publicados. Eles foram preservados por terem contexto factual distinto de costa, Lagoa dos Patos, Campanha, Serra do Sudeste, fronteira ou relação regional; essa ampliação não é tratada como nova evidência de demanda. O Search Console continua indisponível por assinatura, portanto novos perfis, novas cidades e decisões por dia da semana continuam dependentes de evidência posterior. O FAQ/schema genérico aplicado em massa às cidades foi removido para evitar conteúdo templated.
 
 As páginas permanentes de sexta/sábado continuam condicionadas ao gate de intenção e Search Console; não devem ser publicadas apenas com o sinal isolado do Trends.
 
@@ -461,7 +461,7 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, protege a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e ligações do cluster hidrológico/histórico.
 
-`tests/seo-editorial-enrichment.test.ts` foi adicionado nesta rodada para proteger Home/Hoje, Chuva, o cluster Laranjal/Guaíba/1941/2024 e o enriquecimento regional com FAQ visível, `FAQPage`, `BreadcrumbList` e entidade geográfica. O contrato está versionado, mas não deve ser descrito como executado enquanto os runners permanecerem indisponíveis.
+`tests/seo-editorial-enrichment.test.ts` protege Home/Hoje, Chuva, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
 
 ## 18. Deploy e Supabase
 
@@ -520,7 +520,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 | `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md` | Arquitetura de intenção SEO |
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
 | `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md` | Intenção x fonte x etapas |
-| `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento de snippets, links internos, entidades, FAQ e páginas regionais sem novas URLs |
+| `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento de snippets, links internos, entidades e perfis regionais sem FAQ genérico nem novas URLs |
 | `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Implementação da previsão de 15 dias |
 | `docs/EMBRAPA_GEOINFO_DATASET_SURVEY_2026-08-26.md` | Levantamento GeoInfo Embrapa |
 | `docs/DATA_ACCESS_PUBLIC_FREE_PRO_PLAN.md` | Política Público/Free/PRO/REVIEW |
