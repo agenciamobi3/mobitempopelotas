@@ -80,7 +80,7 @@ Agora **11 municípios possuem perfil editorial local específico**:
 2. São José do Norte;
 3. São Lourenço do Sul;
 4. Canguçu;
-5. Morro Redondo;
+5. Piratini;
 6. Capão do Leão;
 7. Jaguarão;
 8. Santa Vitória do Palmar;
@@ -90,27 +90,34 @@ Agora **11 municípios possuem perfil editorial local específico**:
 
 Os perfis específicos tratam características geográficas e de uso da previsão que já pertencem ao cadastro editorial do projeto, sem transformar modelo numérico em observação local.
 
-Todas as páginas municipais públicas passam a apresentar:
+As páginas municipais preservam:
 
-- FAQ local visível;
-- `FAQPage` coerente com o FAQ visível;
-- `BreadcrumbList`;
-- entidade `Place` com `GeoCoordinates` no JSON-LD;
-- contexto explícito de que a previsão representa as coordenadas cadastradas;
+- title e description com intenção direta da própria cidade;
+- previsão consultada para as coordenadas cadastradas do município;
+- avisos oficiais consultados pelo código municipal do INMET;
+- contexto explícito de que a previsão representa a coordenada de referência e pode variar dentro do município;
+- entidade `Place` com `GeoCoordinates` no JSON-LD da página;
 - links geográficos para cidades próximas.
 
-Municípios sem perfil específico usam FAQ editorial padrão parametrizada pelo nome da cidade. O conteúdo não afirma clima observado, microclima ou fenômeno local sem fonte.
+### Decisão anti-doorway
+
+Não foi criado FAQ parametrizado em massa para as 23 páginas municipais. O projeto já possui contrato automatizado que impede esse padrão sem evidência específica.
+
+A expansão editorial regional deve ocorrer cidade por cidade, com contexto útil e distintivo. Não se deve gerar perguntas e respostas quase idênticas apenas substituindo o nome do município para ampliar texto ou schema.
+
+O helper genérico de FAQ que havia ficado sem uso durante uma edição intermediária foi removido do código, mantendo a decisão explícita e reduzindo superfície morta.
 
 ## 5. Dados estruturados e entidades
 
 O enriquecimento busca coerência entre conteúdo visível e schema. Não são adicionadas respostas ocultas apenas para motores de busca.
 
-Nas páginas regionais:
+Nas páginas regionais atuais:
 
-- `WebPage` referencia a entidade geográfica da cidade;
+- `WebPage` identifica title, description, URL e data de atualização;
 - `Place` e `GeoCoordinates` descrevem a localidade cadastrada;
-- `BreadcrumbList` representa a hierarquia de navegação;
-- `FAQPage` reproduz perguntas e respostas visíveis na interface.
+- `isPartOf` conecta a página ao `WebSite` Tempo Pelotas.
+
+FAQPage e FAQ templado não são adicionados em massa. Se uma cidade justificar perguntas próprias no futuro, elas devem nascer de conteúdo realmente específico e passar pelo mesmo gate editorial.
 
 Nas páginas editoriais principais, `about` foi refinado para refletir intenções e entidades efetivamente tratadas pelo conteúdo.
 
@@ -129,10 +136,10 @@ O contrato protege:
 - separação entre chuva observada e prevista;
 - cluster Laranjal/Guaíba/1941/2024;
 - proibição de transferir referências históricas para réguas atuais;
-- presença de FAQ visível e schema correspondente nas páginas regionais;
-- existência de pelo menos dez perfis editoriais regionais específicos.
+- existência de pelo menos dez perfis editoriais regionais específicos;
+- ausência de FAQ/schema FAQ parametrizado em massa nas páginas municipais.
 
-Os contratos foram versionados, mas a suíte completa ainda depende da restauração dos runners do GitHub Actions. Esta documentação **não declara os testes como executados**.
+O teste foi incluído em `test:contracts`. Os contratos estão versionados, mas a suíte completa ainda depende da restauração dos runners do GitHub Actions. Esta documentação **não declara os testes como executados**.
 
 ## 7. O que não foi feito
 
@@ -142,6 +149,7 @@ Esta rodada deliberadamente não:
 - criou previsão de 20/30 dias;
 - adicionou municípios ao inventário;
 - criou doorway pages;
+- criou FAQ parametrizado em massa para cidades;
 - alterou Open-Meteo, Embrapa, INMET, REDEMET, SACE, Defesa Civil ou coletores hidrológicos;
 - criou migration, Edge Function, secret ou variável de ambiente;
 - alterou a árvore de rotas, porque nenhuma rota nova foi criada.
