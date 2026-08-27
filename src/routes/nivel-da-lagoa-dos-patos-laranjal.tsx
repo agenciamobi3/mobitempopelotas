@@ -30,6 +30,8 @@ const LARANJAL_PAGE_CONTENT = {
     "Dados da ANA/RHN só devem ser apresentados como leitura de uma estação depois de validar sua unidade, referência, horário e estado de atualização; valores de referências diferentes não são convertidos automaticamente para o Laranjal.",
     "A estação pode ficar sem nova medição ou sofrer interrupções; sempre confira o horário e o aviso de atualização.",
     "Uma mudança curta pode resultar de vento, oscilação local ou ruído. A sequência de medições é mais útil do que um único ponto.",
+    "O nível do Guaíba ajuda a compor o contexto regional, mas não deve ser subtraído nem comparado diretamente com a régua do Laranjal.",
+    "As marcas históricas de 1941 e 2024 pertencem aos referenciais documentados em cada evento e não são convertidas em cota da Estação Laranjal.",
     "Em condição de risco, siga a Defesa Civil, as autoridades municipais e os comunicados oficiais.",
   ],
   faqs: [
@@ -58,12 +60,32 @@ const LARANJAL_PAGE_CONTENT = {
       answer:
         "Não por si só. O impacto depende da referência local, da evolução, do vento, da drenagem e das condições em cada trecho. Use os comunicados das autoridades para decisões de segurança.",
     },
+    {
+      question: "Posso comparar diretamente o nível do Laranjal com o Guaíba ou com a marca de 1941?",
+      answer:
+        "Não. Cada ponto usa localização e referência próprias. O portal conecta essas páginas para contexto regional e histórico, mas não converte uma régua na outra nem usa uma diferença simples entre os números.",
+    },
   ],
   relatedLinks: [
     {
       label: "Situação das águas em Pelotas",
       href: "/situacao-hidrologica-pelotas" as const,
       description: "Compare a medição local com outros pontos da Lagoa e do Guaíba.",
+    },
+    {
+      label: "Nível do Guaíba",
+      href: "/nivel-do-guaiba" as const,
+      description: "Acompanhe Cais Mauá e Gasômetro preservando as referências próprias de cada estação.",
+    },
+    {
+      label: "Enchente de 1941 em Pelotas",
+      href: "/enchente-1941-pelotas" as const,
+      description: "Veja a referência histórica documentada no São Gonçalo e por que ela não é cota da Estação Laranjal.",
+    },
+    {
+      label: "Enchente de 2024 em Pelotas e no Laranjal",
+      href: "/enchente-2024-pelotas-laranjal" as const,
+      description: "Consulte a linha do tempo da cheia de 2024 e o contexto hidrológico regional daquele evento.",
     },
     {
       label: "Avisos meteorológicos oficiais",
@@ -99,6 +121,8 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
           "Agência Nacional de Águas e Saneamento Básico",
           "Medição automática do nível em Pelotas",
           "Tendência do nível da água no Laranjal",
+          "Contexto regional do Guaíba e Lagoa dos Patos",
+          "Histórico das cheias de 1941 e 2024 em Pelotas",
         ],
       }),
       createFaqPageJsonLd(PAGE_PATH, LARANJAL_PAGE_CONTENT.faqs),
