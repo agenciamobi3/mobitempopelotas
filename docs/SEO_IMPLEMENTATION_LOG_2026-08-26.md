@@ -222,7 +222,7 @@ A pendência de árvore desatualizada foi, portanto, eliminada do código. `rout
 
 Status em 27/08/2026: **implementada na `main`; validação de CTR depende de nova leitura do Search Console**.
 
-A rodada partiu do baseline de 16/08/2026, no qual Laranjal e Situação das Águas já eram os ativos orgânicos mais fortes. Como o conector do Search Console continua sem assinatura ativa, nenhuma página regional foi alterada por inferência.
+A rodada partiu do baseline de 16/08/2026, no qual Laranjal e Situação das Águas já eram os ativos orgânicos mais fortes. Como o conector do Search Console continua sem assinatura ativa, nenhuma decisão regional foi tomada a partir de métricas novas de consulta ou CTR.
 
 Mudanças aplicadas:
 
@@ -231,17 +231,26 @@ Mudanças aplicadas:
 - `/chuva-em-pelotas` ganha FAQ visível `Vai chover hoje em Pelotas?`, sem resposta fixa que possa ficar desatualizada; a orientação remete aos valores dinâmicos da própria página, radar e avisos oficiais;
 - `/nivel-da-lagoa-dos-patos-laranjal` passa a responder explicitamente à intenção `tempo real`, esclarecendo que a página mostra a leitura mais recente com horário/status e nunca chama dado atrasado de medição atual;
 - `/situacao-hidrologica-pelotas` passa a ligar também para `/enchente-1941-pelotas`, fechando a sequência situação atual → Laranjal/Guaíba → memória de 1941/2024;
-- links de Chuva, Laranjal e páginas de horizonte já sincronizados na `main` foram preservados.
+- links de Chuva, Laranjal e páginas de horizonte já sincronizados na `main` foram preservados;
+- uma atualização concorrente ampliou perfis editoriais locais factuais de municípios já publicados; esses perfis foram preservados quando traziam contexto próprio de costa, Lagoa, Campanha, Serra do Sudeste ou fronteira, mas não são tratados como evidência nova de demanda;
+- a tentativa concorrente de aplicar FAQ/`FAQPage` praticamente idêntico às 23 páginas municipais foi removida por ser excessivamente templated.
 
 Regra estratégica preservada:
 
-- páginas municipais não recebem enriquecimento novo sem nova evidência de Search Console;
+- novos perfis regionais, novas cidades e decisões dependentes de intenção/CTR continuam condicionados a nova evidência do Search Console;
+- perfis locais existentes podem manter contexto factual distintivo, mas não justificam FAQ em massa apenas substituindo o nome do município;
 - nenhum alias, doorway page ou nova URL foi criado;
 - nenhum contrato meteorológico/hidrológico, coletor, secret, migration ou banco foi alterado.
 
 Proteção automática:
 
-- `tests/seo-content-accessibility.test.ts`, que já entra em `test:contracts`, agora verifica a separação `agora` x `hoje`, a intenção `vai chover`, o caveat de `tempo real` no Laranjal e os links do cluster hidrológico/histórico.
+- `tests/seo-content-accessibility.test.ts`, que já entra em `test:contracts`, verifica a separação `agora` x `hoje`, a intenção `vai chover`, o caveat de `tempo real` no Laranjal e os links do cluster hidrológico/histórico;
+- `tests/seo-editorial-enrichment.test.ts` protege o refinamento central e a existência dos perfis regionais específicos sem exigir FAQ genérico;
+- `tests/regional-city-editorial.test.ts` bloqueia a reintrodução de FAQ/`FAQPage` templated em massa nas páginas municipais.
+
+Documento detalhado da rodada:
+
+- `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md`.
 
 ## Gate das páginas por dia da semana
 
@@ -259,6 +268,6 @@ Decisão:
 
 1. executar `routes:check`, build, typecheck e testes quando houver runner/local disponível;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, canonical e sitemap;
-3. recapturar Search Console para medir CTR da Home/Hoje/Chuva e decidir sexta/sábado;
+3. recapturar Search Console para medir CTR da Home/Hoje/Chuva, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
 4. acompanhar descoberta/rastreamento do cluster Guaíba → Lagoa/Laranjal e 1941 ↔ 2024 após publicação;
 5. manter 30 dias, Canal São Gonçalo e páginas de evento condicionados aos contratos de fonte definidos no plano.
