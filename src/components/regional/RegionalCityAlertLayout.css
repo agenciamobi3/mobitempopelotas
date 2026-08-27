@@ -1,0 +1,142 @@
+/*
+ * Layout autocontido do aviso municipal do INMET.
+ * As classes home-inmet-alerts têm estilos-base escopados à Home; páginas
+ * regionais precisam possuir o próprio contrato para não depender daquele shell.
+ */
+
+.regional-city-official-alert {
+  --risk: #18bdcd;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(245px, 0.45fr);
+  overflow: hidden;
+  border: 1px solid #dce5e9;
+  border-radius: 16px;
+}
+
+.regional-city-official-alert .home-inmet-alerts__main {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 18px;
+  min-width: 0;
+  padding: 28px 24px;
+}
+
+.regional-city-official-alert .home-inmet-alerts__mark {
+  display: flex;
+  min-width: 0;
+  min-height: 64px;
+  align-self: start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 12px;
+  background: var(--risk);
+  color: #fff;
+}
+
+.regional-city-official-alert .home-inmet-alerts__mark small,
+.regional-city-official-alert .home-inmet-alerts__mark strong {
+  display: block;
+  color: inherit;
+}
+
+.regional-city-official-alert .home-inmet-alerts__copy {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.regional-city-official-alert .home-inmet-alerts__topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.regional-city-official-alert .home-inmet-alerts__copy h2 {
+  min-width: 0;
+  margin: 0;
+  line-height: 1.18;
+  overflow-wrap: anywhere;
+}
+
+.regional-city-official-alert .home-inmet-alerts__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  min-width: 0;
+}
+
+.regional-city-official-alert .home-inmet-alerts__meta > span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.regional-city-official-alert .home-inmet-alerts__meta :is(small, strong) {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.regional-city-official-alert .home-inmet-alerts__aside {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 28px 24px;
+  border-left: 1px solid #e1e8eb;
+  background: rgb(248 251 252 / 82%);
+}
+
+.regional-city-official-alert .home-inmet-alerts__aside > :is(strong, small) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.regional-city-official-alert .home-inmet-alerts__aside > a {
+  justify-self: start;
+}
+
+@media (max-width: 860px) {
+  .regional-city-official-alert {
+    grid-template-columns: 1fr;
+  }
+
+  .regional-city-official-alert .home-inmet-alerts__aside {
+    border-top: 1px solid #e1e8eb;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .regional-city-official-alert .home-inmet-alerts__main {
+    grid-template-columns: 1fr;
+    padding: 22px 18px;
+  }
+
+  .regional-city-official-alert .home-inmet-alerts__mark {
+    width: 64px;
+  }
+
+  .regional-city-official-alert .home-inmet-alerts__meta {
+    grid-template-columns: 1fr;
+  }
+
+  .regional-city-official-alert .home-inmet-alerts__aside {
+    padding: 22px 18px;
+  }
+}
+
+@media (forced-colors: active) {
+  .regional-city-official-alert {
+    border-color: CanvasText;
+  }
+
+  .regional-city-official-alert .home-inmet-alerts__aside {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+}
