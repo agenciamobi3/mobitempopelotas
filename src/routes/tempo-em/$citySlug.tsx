@@ -3,7 +3,6 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { RegionalCityWeatherPageClient } from "@/components/regional/RegionalCityWeatherPageClient";
 import { createPageHead } from "@/lib/page-meta";
 import {
-  regionalCityFaqs,
   regionalCityMetaDescription,
   regionalCityPageTitle,
 } from "@/lib/regional-city-editorial";
@@ -13,7 +12,6 @@ import {
   isRegionalCityIndexable,
   regionalCityPath,
 } from "@/lib/regional-cities";
-import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { getRegionalCityWeather } from "@/lib/weather/regional-city-weather.functions";
 
 export const Route = createFileRoute("/tempo-em/$citySlug")({
@@ -36,47 +34,11 @@ export const Route = createFileRoute("/tempo-em/$citySlug")({
   head: ({ loaderData }) => {
     const city = loaderData?.city;
     if (!city) return {};
-
-    const path = regionalCityPath(city);
-    const title = regionalCityPageTitle(city);
-    const description = regionalCityMetaDescription(city);
-    const faqs = regionalCityFaqs(city);
-    const location = {
-      "@type": "Place",
-      name: `${city.name}, Rio Grande do Sul`,
-      geo: {
-        "@type": "GeoCoordinates",
-        latitude: city.latitude,
-        longitude: city.longitude,
-      },
-    };
-
     return createPageHead(
-      title,
-      description,
-      path,
-      [
-        createEditorialPageJsonLd({
-          name: title,
-          description,
-          path,
-          breadcrumbs: [
-            { name: "Início", path: "/" },
-            { name: "Tempo na Zona Sul do RS", path: "/tempo-na-regiao-sul-rs" },
-            { name: `Tempo em ${city.name}`, path },
-          ],
-          about: [
-            `Tempo em ${city.name}`,
-            `Previsão do tempo em ${city.name}`,
-            `Chuva em ${city.name}`,
-            `Vento em ${city.name}`,
-            `Avisos do INMET em ${city.name}`,
-            city.descriptor,
-          ],
-          location,
-        }),
-        createFaqPageJsonLd(path, faqs),
-      ],
+      regionalCityPageTitle(city),
+      regionalCityMetaDescription(city),
+      regionalCityPath(city),
+      [],
       {
         indexable: isRegionalCityIndexable(city),
         geo: {
