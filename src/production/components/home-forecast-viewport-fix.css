@@ -1,0 +1,37 @@
+/*
+ * Correção final de contenção das próximas horas na Home.
+ * Em telas intermediárias há espaço suficiente para sete colunas fluidas;
+ * a rolagem horizontal fica reservada para viewports realmente estreitos.
+ */
+
+@media (min-width: 880px) {
+  .tp-home-forecast__hours {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    overflow-x: hidden;
+  }
+
+  .tp-home-forecast-hour {
+    min-width: 0;
+    padding-right: clamp(10px, 1.3vw, 18px);
+    padding-left: clamp(10px, 1.3vw, 18px);
+  }
+
+  .tp-home-forecast-hour__topline,
+  .tp-home-forecast-hour__condition,
+  .tp-home-forecast-hour__rain,
+  .tp-home-forecast-hour__wind {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 879px) {
+  .tp-home-forecast__hours {
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x proximity;
+  }
+
+  .tp-home-forecast-hour {
+    scroll-snap-align: start;
+  }
+}
