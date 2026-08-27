@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { createPageHead } from "@/lib/page-meta";
 import { getDataStatusPageData } from "@/lib/status/data-status.functions";
 import type { ServiceCategory, ServiceState } from "@/lib/status/data-status.types";
+import { createEditorialPageJsonLd } from "@/lib/structured-data";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
 import type { WeatherData } from "@/production/lib/weather-data";
@@ -63,7 +64,26 @@ function formatDuration(start: string, end: string) {
 }
 
 export const Route = createFileRoute("/status-dos-dados")({
-  head: () => createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH),
+  head: () =>
+    createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
+      createEditorialPageJsonLd({
+        name: PAGE_TITLE,
+        description: PAGE_DESCRIPTION,
+        path: PAGE_PATH,
+        breadcrumbs: [
+          { name: "Início", path: "/" },
+          { name: "Status dos dados e integrações", path: PAGE_PATH },
+        ],
+        about: [
+          "Status das fontes meteorológicas do Tempo Pelotas",
+          "Disponibilidade de integrações meteorológicas e hidrológicas",
+          "Histórico de incidentes de dados",
+          "Monitoramento de fontes meteorológicas",
+          "Monitoramento de fontes hidrológicas",
+          "Disponibilidade de radar e satélite",
+        ],
+      }),
+    ]),
   loader: () => getDataStatusPageData(),
   staleTime: 60 * 1_000,
   component: DataStatusPage,
