@@ -32,6 +32,29 @@ test("content routes expose visible answers and FAQ structured data", () => {
   }
 });
 
+test("core search intents remain distinct and internally connected", () => {
+  const home = read("src/routes/index.tsx");
+  const today = read("src/routes/tempo-hoje-pelotas.tsx");
+  const rain = read("src/routes/chuva-em-pelotas.tsx");
+  const laranjal = read("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
+  const situation = read("src/routes/situacao-hidrologica-pelotas.tsx");
+
+  assert.match(home, /Tempo agora em Pelotas: temperatura, chuva e previsão/);
+  assert.match(home, /"Tempo agora em Pelotas"/);
+  assert.match(today, /Tempo hoje em Pelotas: temperatura e previsão por hora/);
+  assert.match(today, /Previsão de 15 dias/);
+  assert.match(rain, /Vai chover hoje em Pelotas\?/);
+  assert.match(rain, /\/situacao-hidrologica-pelotas/);
+  assert.match(rain, /\/nivel-da-lagoa-dos-patos-laranjal/);
+  assert.match(laranjal, /O nível da Lagoa dos Patos está em tempo real\?/);
+  assert.match(laranjal, /atrasada ou indisponível/);
+  assert.match(laranjal, /\/nivel-do-guaiba/);
+  assert.match(laranjal, /\/enchente-1941-pelotas/);
+  assert.match(laranjal, /\/enchente-2024-pelotas-laranjal/);
+  assert.match(situation, /\/enchente-1941-pelotas/);
+  assert.match(situation, /\/enchente-2024-pelotas-laranjal/);
+});
+
 test("monitoring content distinguishes observation, imagery, history and telemetry", () => {
   const source = read("src/lib/editorial-content.ts");
 
