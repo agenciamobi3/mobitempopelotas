@@ -42,7 +42,7 @@ test("cluster hidrológico conecta operação atual e memória histórica preser
     assert.match(route, /\/enchente-2024-pelotas-laranjal/);
   }
 
-  assert.match(laranjal, /não deve ser transferida automaticamente para a régua atual do Laranjal/);
+  assert.match(laranjal, /não são convertidas em cota da Estação Laranjal/);
   assert.match(hydrology, /não devem ser comparados por simples subtração/);
   assert.match(guaiba, /não confirma risco de enchente em Pelotas/);
   assert.match(guaiba, /não transferi-la para as réguas atuais do Guaíba/);
@@ -61,6 +61,7 @@ test("páginas regionais preservam perfis locais sem FAQ templated em massa", ()
   assert.match(regionalEditorial, /"bage-rs"/);
   assert.match(regionalEditorial, /"santa-vitoria-do-palmar-rs"/);
   assert.match(regionalEditorial, /"chui-rs"/);
+  assert.doesNotMatch(regionalEditorial, /regionalCityFaqs|RegionalCityFaq/);
   assert.doesNotMatch(regionalPage, /perguntas-frequentes|perguntas-sobre-tempo-local|FAQPage/);
   assert.doesNotMatch(regionalRoute, /createFaqPageJsonLd|regionalCityFaqs|regionalCityEditorialFaqs/);
 });
