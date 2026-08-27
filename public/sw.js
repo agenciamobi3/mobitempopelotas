@@ -1,6 +1,8 @@
 /* global self, caches, fetch, Response, URL */
 
-const CACHE_VERSION = "tempo-pelotas-v8";
+const CACHE_NUMBER = 9;
+const CACHE_VERSION = `tempo-pelotas-v${CACHE_NUMBER}`;
+const CACHE_PREFIX = "tempo-pelotas-v";
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_FALLBACK_URL = "/offline.html";
@@ -10,43 +12,99 @@ const OPTIONAL_APP_SHELL_URLS = [
   "/brand/tempo-pelotas-purple.svg",
 ];
 const IN_FLIGHT_ASSET_REQUESTS = new Map();
+const RECOVERING_CLIENT_IDS = new Set();
+
+function cacheGeneration(cacheName) {
+  const match = /^tempo-pelotas-v(\d+)-(?:app-shell|runtime)$/.exec(cacheName);
+  return match ? Number(match[1]) : null;
+}
+
+async function installCurrentShell() {
+  const cache = await caches.open(APP_SHELL_CACHE);
+  const offlineResponse = await fetch(OFFLINE_FALLBACK_URL, {
+    cache: "reload",
+  });
+
+  if (!offlineResponse.ok) {
+    throw new Error(`Fallback offline respondeu HTTP ${offlineResponse.status}`);
+  }
+
+  await cache.put(OFFLINE_FALLBACK_URL, offlineResponse);
+  await Promise.allSettled(
+    OPTIONAL_APP_SHELL_URLS.map(async (url) => {
+      const response = await fetch(url, { cache: "reload" });
+      if (response.ok) await cache.put(url, response);
+    }),
+  );
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(APP_SHELL_CACHE).then(async (cache) => {
-      const offlineResponse = await fetch(OFFLINE_FALLBACK_URL, {
-        cache: "reload",
-      });
-
-      if (!offlineResponse.ok) {
-        throw new Error(`Fallback offline respondeu HTTP ${offlineResponse.status}`);
-      }
-
-      await cache.put(OFFLINE_FALLBACK_URL, offlineResponse);
-      await Promise.allSettled(
-        OPTIONAL_APP_SHELL_URLS.map(async (url) => {
-          const response = await fetch(url, { cache: "reload" });
-          if (response.ok) await cache.put(url, response);
-        }),
-      );
-    }),
+    (async () => {
+      await installCurrentShell();
+      // Atualizacao de runtime e cache e tratada como correcao de coerencia.
+      // Nao deixa um worker novo aguardando enquanto a aba continua no deploy antigo.
+      await self.skipWaiting();
+    })(),
   );
 });
 
+async function cleanOldTempoPelotasCaches() {
+  const keys = await caches.keys();
+  const generations = keys
+    .map(cacheGeneration)
+    .filter((value) => value !== null && value < CACHE_NUMBER);
+  const previousGeneration = generations.length ? Math.max(...generations) : null;
+  const keep = new Set([APP_SHELL_CACHE, RUNTIME_CACHE]);
+
+  if (previousGeneration !== null) {
+    keep.add(`tempo-pelotas-v${previousGeneration}-app-shell`);
+    keep.add(`tempo-pelotas-v${previousGeneration}-runtime`);
+  }
+
+  await Promise.all(
+    keys
+      .filter((key) => key.startsWith(CACHE_PREFIX) && !keep.has(key))
+      .map((key) => caches.delete(key)),
+  );
+
+  return previousGeneration !== null;
+}
+
+async function refreshClientsAfterWorkerUpgrade() {
+  const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+
+  await Promise.allSettled(
+    clients.map(async (client) => {
+      let clientUrl;
+      try {
+        clientUrl = new URL(client.url);
+      } catch {
+        return;
+      }
+
+      if (clientUrl.origin !== self.location.origin || !("navigate" in client)) return;
+      await client.navigate(client.url);
+    }),
+  );
+}
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    Promise.all([
-      caches
-        .keys()
-        .then((keys) =>
-          Promise.all(
-            keys
-              .filter((key) => key !== APP_SHELL_CACHE && key !== RUNTIME_CACHE)
-              .map((key) => caches.delete(key)),
-          ),
-        ),
-      self.registration.navigationPreload?.enable(),
-    ]).then(() => self.clients.claim()),
+    (async () => {
+      const upgrading = await cleanOldTempoPelotasCaches();
+
+      // A navegacao do portal precisa ignorar uma copia HTTP antiga do HTML.
+      // O proprio fetch handler usa cache:no-store, portanto preload nao agrega
+      // valor aqui e poderia competir com a requisicao fresca.
+      await self.registration.navigationPreload?.disable();
+      await self.clients.claim();
+
+      // Ao trocar a geracao do worker, abas ainda abertas podem estar executando
+      // JavaScript do deploy anterior. Recarregue-as uma vez para alinhar HTML,
+      // runtime e server functions antes da proxima navegacao SPA.
+      if (upgrading) await refreshClientsAfterWorkerUpgrade();
+    })(),
   );
 });
 
@@ -58,9 +116,7 @@ self.addEventListener("message", (event) => {
 
 async function onlineOnlyNavigation(event) {
   try {
-    const preloadResponse = await event.preloadResponse;
-    if (preloadResponse) return preloadResponse;
-    return await fetch(event.request);
+    return await fetch(event.request, { cache: "no-store" });
   } catch {
     return (await caches.match(OFFLINE_FALLBACK_URL)) || Response.error();
   }
@@ -87,7 +143,44 @@ function getAssetNetworkRequest(request, cache) {
   return networkPromise;
 }
 
-async function staleWhileRevalidate(request, event) {
+async function recoverClientAfterMissingVersionedAsset(event, response) {
+  if (!response || (response.status !== 404 && response.status !== 410)) return;
+  const clientId = event.clientId;
+  if (!clientId || RECOVERING_CLIENT_IDS.has(clientId)) return;
+
+  const client = await self.clients.get(clientId);
+  if (!client || !("navigate" in client)) return;
+
+  let clientUrl;
+  try {
+    clientUrl = new URL(client.url);
+  } catch {
+    return;
+  }
+  if (clientUrl.origin !== self.location.origin) return;
+
+  RECOVERING_CLIENT_IDS.add(clientId);
+  await client.navigate(client.url);
+}
+
+async function cacheFirstVersionedAsset(request, event) {
+  // /assets usa nomes com hash. Uma copia de geracao anterior com a mesma URL
+  // continua sendo o mesmo artefato e pode manter uma aba antiga funcional
+  // durante a pequena janela de transicao entre deploys.
+  const cached = await caches.match(request);
+  if (cached) return cached;
+
+  const cache = await caches.open(RUNTIME_CACHE);
+  const networkResponse = await getAssetNetworkRequest(request, cache);
+
+  if (networkResponse && (networkResponse.status === 404 || networkResponse.status === 410)) {
+    event.waitUntil(recoverClientAfterMissingVersionedAsset(event, networkResponse));
+  }
+
+  return networkResponse ? networkResponse.clone() : Response.error();
+}
+
+async function staleWhileRevalidateBrand(request, event) {
   const cache = await caches.open(RUNTIME_CACHE);
   const cached = await cache.match(request);
   const networkPromise = getAssetNetworkRequest(request, cache);
@@ -101,8 +194,12 @@ async function staleWhileRevalidate(request, event) {
   return networkResponse ? networkResponse.clone() : Response.error();
 }
 
-function isCacheableStaticAsset(url) {
-  return url.pathname.startsWith("/assets/") || url.pathname.startsWith("/brand/");
+function isVersionedApplicationAsset(url) {
+  return url.pathname.startsWith("/assets/");
+}
+
+function isBrandAsset(url) {
+  return url.pathname.startsWith("/brand/");
 }
 
 self.addEventListener("fetch", (event) => {
@@ -118,8 +215,13 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (isCacheableStaticAsset(url)) {
-    event.respondWith(staleWhileRevalidate(request, event));
+  if (isVersionedApplicationAsset(url)) {
+    event.respondWith(cacheFirstVersionedAsset(request, event));
+    return;
+  }
+
+  if (isBrandAsset(url)) {
+    event.respondWith(staleWhileRevalidateBrand(request, event));
   }
 });
 
