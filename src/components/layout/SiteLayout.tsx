@@ -16,6 +16,7 @@ const internalWeatherStandaloneRoutes = [
   "/tempo-hoje-pelotas",
   "/tempo-amanha-pelotas",
   "/previsao-7-dias-pelotas",
+  "/previsao-15-dias-pelotas",
   "/chuva-em-pelotas",
   "/vento-em-pelotas",
   "/alertas",
@@ -26,7 +27,10 @@ const internalWeatherStandaloneRoutes = [
   "/historico-climatico-pelotas",
   "/situacao-hidrologica-pelotas",
   "/mapa-de-geadas-rio-grande-do-sul",
+  "/nivel-do-guaiba",
+  "/enchente-1941-pelotas",
   "/enchente-2024-pelotas-laranjal",
+  "/quem-somos",
 ] as const;
 
 const standaloneRoutes = new Set([
