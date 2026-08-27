@@ -227,6 +227,8 @@ O workflow `.github/workflows/quality.yml` passou a prever:
 7. upload dos relatórios mesmo em caso de falha;
 8. encerramento do preview.
 
+A proteção especializada da Home também inclui `tests/home-live-camera-hero.test.ts`, garantindo que a câmera ao vivo permaneça um aprimoramento diferido e não volte a usar `loading="eager"` no caminho crítico.
+
 Artefatos:
 
 - `artifacts/build-assets/report.json`;
@@ -249,7 +251,9 @@ Também não se deve usar a tentativa no ambiente interno desta sessão como apr
 Foram revisadas algumas áreas de maior peso e aplicadas otimizações apenas quando o contrato era claro:
 
 - a Home já carrega hidrologia de forma diferida com `Suspense/Await`;
-- a câmera ao vivo da Home é aprimoramento progressivo e não bloqueia o forecast principal;
+- a descoberta da câmera ao vivo continua posterior à hidratação e não bloqueia SSR;
+- o player visual da câmera do Laranjal deixou de usar carregamento eager: o `iframe` só é criado quando a página está visível, a conexão não está offline/Save-Data/2G, o usuário não pediu `prefers-reduced-motion: reduce` e o navegador chega a um período ocioso; o `iframe` também passou a usar `loading="lazy"`;
+- o link editorial para a página de câmeras continua disponível quando a fonte informa uma transmissão ao vivo, mesmo quando o vídeo decorativo é suprimido por economia de dados, conectividade ou preferência de movimento;
 - o mapa de radar importa `maplibre-gl` dinamicamente no cliente;
 - a área do mapa de radar reserva altura por breakpoint, reduzindo risco de layout shift;
 - imagens gráficas do SIMAGRO usam `loading="lazy"` e `decoding="async"`;
@@ -258,6 +262,8 @@ Foram revisadas algumas áreas de maior peso e aplicadas otimizações apenas qu
 - o PWA de instalação/atualização e experiência offline permanece separado do estado de Web Push e continua montado no root.
 
 A mudança do ticket não remove o canal: ela apenas evita que um script de terceiro dispute CPU/rede com o primeiro render. A mudança de Push reconcilia o runtime com o estado de produto suspenso e com o teste especializado de PWA que já exigia ausência do manager no root.
+
+A mudança da câmera preserva o conteúdo meteorológico principal como primeira prioridade. Como a transmissão é uma camada visual decorativa (`aria-hidden`) e possui uma página própria para consulta, não há motivo para iniciar um player externo pesado em condições de rede econômica, aba oculta ou preferência explícita por redução de movimento.
 
 Não foi inventado `width/height` ou aspect ratio para produtos externos do SIMAGRO sem confirmação das dimensões de origem. O novo CLS de laboratório deve ajudar a decidir se essa superfície realmente precisa de reserva adicional antes de aplicar um valor arbitrário.
 
@@ -294,4 +300,4 @@ Automação não fecha WCAG 2.2 AA sozinha. Continuam necessários testes manuai
 
 ## Decisão
 
-**A fase de qualidade passa a ter gates versionados para estrutura no navegador e peso do build, além de duas otimizações de caminho crítico; ainda não é declarada aprovada enquanto a infraestrutura de CI não executar os contratos e a auditoria manual não estiver concluída.**
+**A fase de qualidade passa a ter gates versionados para estrutura no navegador e peso do build, além de três otimizações de caminho crítico: ticket em idle, Web Push fora do root enquanto suspenso e câmera ao vivo diferida/condicionada. A fase ainda não é declarada aprovada enquanto a infraestrutura de CI não executar os contratos e a auditoria manual não estiver concluída.**
