@@ -9,9 +9,9 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import { ProductionHome, type HomeHydrologyResult } from "@/production/ProductionHome";
 
-const PAGE_TITLE = "Tempo Pelotas — Previsão do tempo em Pelotas";
+const PAGE_TITLE = "Tempo em Pelotas hoje: previsão, chuva e vento";
 const PAGE_DESCRIPTION =
-  "Condições atuais, alertas oficiais e previsão meteorológica consolidada para Pelotas, Rio Grande do Sul.";
+  "Veja o tempo em Pelotas hoje com temperatura atual, previsão por hora e para 7 e 15 dias, chuva, vento, radar, alertas do INMET e situação das águas.";
 const PAGE_PATH = "/";
 
 export const Route = createFileRoute("/")({
@@ -23,10 +23,18 @@ export const Route = createFileRoute("/")({
         path: PAGE_PATH,
         breadcrumbs: [{ name: "Tempo Pelotas", path: PAGE_PATH }],
         about: [
-          "Tempo em Pelotas",
+          "Tempo em Pelotas hoje",
           "Previsão do tempo em Pelotas",
+          "Previsão do tempo por hora em Pelotas",
+          "Previsão de 7 dias em Pelotas",
+          "Previsão de 15 dias em Pelotas",
+          "Chuva em Pelotas",
+          "Vento em Pelotas",
+          "Alertas do INMET em Pelotas",
           "Meteorologia na Zona Sul do Rio Grande do Sul",
           "Lagoa dos Patos",
+          "Nível da Lagoa no Laranjal",
+          "Nível do Guaíba",
           "Câmera ao vivo da Praia do Laranjal",
         ],
       }),
