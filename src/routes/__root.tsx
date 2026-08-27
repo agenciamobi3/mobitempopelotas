@@ -14,7 +14,6 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ViewportScrollRoot } from "@/components/layout/ViewportScrollRoot";
 import { MobiTicketWidgetLoader } from "@/components/mobi-ticket/MobiTicketWidgetLoader";
 import { RouteLoadingOverlay } from "@/components/navigation/RouteLoadingOverlay";
-import { PushNotificationsManager } from "@/components/pwa/PushNotificationsManager";
 import { PwaAppExperience } from "@/components/pwa/PwaAppExperience";
 import { PwaManager } from "@/components/pwa/PwaManager";
 import { WeatherMinuteRefresh } from "@/components/weather/WeatherMinuteRefresh";
@@ -209,7 +208,6 @@ function RootComponent() {
       <RouteLoadingOverlay />
       <PwaAppExperience />
       <PwaManager />
-      <PushNotificationsManager />
       <MobiTicketWidgetLoader />
     </QueryClientProvider>
   );
