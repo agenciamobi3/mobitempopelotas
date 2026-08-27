@@ -11,6 +11,14 @@ type NavigatorWithStandalone = Navigator & {
   standalone?: boolean;
 };
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+const PWA_REGISTRATION_IDLE_TIMEOUT_MS = 3_000;
+const PWA_REGISTRATION_FALLBACK_DELAY_MS = 1_500;
+
 const FOCUSABLE_SELECTOR = [
   "a[href]",
   "button:not([disabled])",
@@ -71,6 +79,7 @@ export function PwaManager() {
   useEffect(() => {
     const standaloneQuery = window.matchMedia("(display-mode: standalone)");
     const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
+    const idleWindow = window as IdleWindow;
     const updateInstalledState = () => setIsInstalled(isStandaloneMode());
     const userAgent = navigator.userAgent.toLowerCase();
     const isTouchEnabledMac = userAgent.includes("macintosh") && navigator.maxTouchPoints > 1;
@@ -107,6 +116,25 @@ export function PwaManager() {
 
     let updateTimer: number | undefined;
     let registration: ServiceWorkerRegistration | null = null;
+    let idleHandle: number | null = null;
+    let fallbackTimer: number | null = null;
+    let loadListenerAttached = false;
+    let cancelled = false;
+
+    const handleUpdateFound = () => {
+      const installingWorker = registration?.installing;
+      if (!installingWorker) return;
+
+      installingWorker.addEventListener("statechange", () => {
+        if (
+          !cancelled &&
+          installingWorker.state === "installed" &&
+          navigator.serviceWorker.controller
+        ) {
+          setWaitingWorker(registration?.waiting ?? installingWorker);
+        }
+      });
+    };
 
     const initialize = async () => {
       try {
@@ -116,18 +144,9 @@ export function PwaManager() {
             updateViaCache: "none",
           });
 
+          if (cancelled) return;
           if (registration.waiting) setWaitingWorker(registration.waiting);
-
-          registration.addEventListener("updatefound", () => {
-            const installingWorker = registration?.installing;
-            if (!installingWorker) return;
-
-            installingWorker.addEventListener("statechange", () => {
-              if (installingWorker.state === "installed" && navigator.serviceWorker.controller) {
-                setWaitingWorker(registration?.waiting ?? installingWorker);
-              }
-            });
-          });
+          registration.addEventListener("updatefound", handleUpdateFound);
 
           updateTimer = window.setInterval(
             () => {
@@ -139,18 +158,50 @@ export function PwaManager() {
       } catch (error) {
         console.error("Não foi possível iniciar o aplicativo do Tempo Pelotas:", error);
       } finally {
-        setIsReady(true);
+        if (!cancelled) setIsReady(true);
       }
     };
 
-    void initialize();
+    const startInitialize = () => {
+      idleHandle = null;
+      fallbackTimer = null;
+      void initialize();
+    };
+
+    const scheduleInitialize = () => {
+      loadListenerAttached = false;
+      if (cancelled || idleHandle !== null || fallbackTimer !== null) return;
+
+      if (idleWindow.requestIdleCallback) {
+        idleHandle = idleWindow.requestIdleCallback(startInitialize, {
+          timeout: PWA_REGISTRATION_IDLE_TIMEOUT_MS,
+        });
+      } else {
+        fallbackTimer = window.setTimeout(
+          startInitialize,
+          PWA_REGISTRATION_FALLBACK_DELAY_MS,
+        );
+      }
+    };
+
+    if (document.readyState === "complete") {
+      scheduleInitialize();
+    } else {
+      loadListenerAttached = true;
+      window.addEventListener("load", scheduleInitialize, { once: true });
+    }
 
     return () => {
+      cancelled = true;
       standaloneQuery.removeEventListener("change", updateInstalledState);
       fullscreenQuery.removeEventListener("change", updateInstalledState);
       window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
       window.removeEventListener("appinstalled", handleInstalled);
       navigator.serviceWorker?.removeEventListener("controllerchange", handleControllerChange);
+      if (loadListenerAttached) window.removeEventListener("load", scheduleInitialize);
+      if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+      registration?.removeEventListener("updatefound", handleUpdateFound);
       if (updateTimer) window.clearInterval(updateTimer);
     };
   }, []);
