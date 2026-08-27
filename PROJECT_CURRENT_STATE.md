@@ -444,9 +444,7 @@ O workflow `Qualidade` deveria executar, entre outros gates:
 
 Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer step, com `runner_id=0` e `steps=[]`. Isso é falha de infraestrutura/execução do Actions e não evidencia resultado dos testes do código.
 
-Existe ainda uma dívida versionada: `src/routeTree.gen.ts` está em formato anterior ao template atual de `scripts/generate-route-tree.mjs`. `build`, `typecheck`, `test` e `test:routes` regeneram a árvore antes de rodar, mas `routes:check` exige que o arquivo versionado seja regenerado e commitado. Esse gate deve ser corrigido/confirmado assim que houver execução local ou runner funcional; não alterar o gerador apenas para esconder a divergência.
-
-As novas rotas `/nivel-do-guaiba` e `/enchente-1941-pelotas` dependem dessa regeneração normal da árvore pelo script existente; o arquivo gerado não foi editado manualmente nessas rodadas.
+Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/generate-route-tree.mjs` para incorporar `/nivel-do-guaiba` e `/enchente-1941-pelotas`. A reprodução determinística do estado anterior gerou exatamente o mesmo blob SHA já versionado antes da alteração, confirmando equivalência com o gerador oficial; a nova saída foi então versionada sem alterar o script. A dívida de árvore desatualizada foi removida no código, embora `routes:check` ainda precise ser executado em um runner funcional para confirmação executável.
 
 `tests/standalone-route-shell.test.ts` passa a proteger o contrato de composição: qualquer módulo de rota que renderize `InternalWeatherPageShell` ou `ContentPageShell` deve constar no conjunto standalone de `SiteLayout`, evitando dois headers, dois footers e dois elementos `main` na mesma página.
 
@@ -476,20 +474,19 @@ A pesquisa técnica existe em `docs/CPTEC_SIGMA_RESEARCH.md`, mas permanece fora
 
 Pendências reais, não funcionalidades declaradas como prontas:
 
-1. restaurar os runners do GitHub Actions e executar a suíte completa;
-2. regenerar e versionar `src/routeTree.gen.ts` conforme o gerador atual;
-3. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
-4. concluir E2E de autenticação com duas contas descartáveis;
-5. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
-6. definir rollups e APIs históricas server-side;
-7. continuar validação ANA/RHN e inventário/semântica da Defesa Civil RS;
-8. validar os smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real;
-9. concluir auditoria WCAG 2.2 AA, Core Web Vitals e responsividade ampla;
-10. manter PWA/Web Push suspenso até validação controlada;
-11. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
-12. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
-13. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
-14. retomar CPTEC/SIGMA apenas na janela de revisão planejada.
+1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` sobre a árvore já regenerada;
+2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
+3. concluir E2E de autenticação com duas contas descartáveis;
+4. auditar cobertura/gaps do Historical Data Layer e continuar backfills seguros;
+5. definir rollups e APIs históricas server-side;
+6. continuar validação ANA/RHN e inventário/semântica da Defesa Civil RS;
+7. validar os smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real;
+8. concluir auditoria WCAG 2.2 AA, Core Web Vitals e responsividade ampla;
+9. manter PWA/Web Push suspenso até validação controlada;
+10. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
+11. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
+12. manter GeoInfo Embrapa em trilha própria de descoberta/licenciamento antes de uso público/comercial;
+13. retomar CPTEC/SIGMA apenas na janela de revisão planejada.
 
 ## 22. Documentos especializados principais
 
