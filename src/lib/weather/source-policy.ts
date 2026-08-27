@@ -7,5 +7,6 @@ export const WEATHER_SOURCE_REQUEST_TIMEOUT_MS = {
 export const OFFICIAL_SOURCE_DEADLINE_MS = {
   embrapa: 1_900,
   inmet: 1_900,
+  inmetForecast: 3_200,
   cppmet: 1_800,
 } as const;
