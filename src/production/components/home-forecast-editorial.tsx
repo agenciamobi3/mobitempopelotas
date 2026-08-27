@@ -3,6 +3,7 @@ import { weatherConditionLabels } from "@/production/lib/hero-weather-presentati
 import type { WeatherData } from "@/production/lib/weather-data";
 
 import "./home-forecast-editorial.css";
+import "./home-forecast-viewport-fix.css";
 
 type HomeForecastEditorialProps = {
   weather: WeatherData;
