@@ -62,9 +62,16 @@ export const Route = createFileRoute("/tempo-na-regiao-sul-rs")({
           path: PAGE_PATH,
           breadcrumbs: [
             { name: "Início", path: "/" },
-            { name: "Tempo na região", path: PAGE_PATH },
+            { name: "Tempo na Região Sul do RS", path: PAGE_PATH },
           ],
-          about: ["Previsão do tempo na Zona Sul do Rio Grande do Sul", "Meteorologia regional"],
+          about: [
+            "Previsão do tempo na Zona Sul do Rio Grande do Sul",
+            "Previsão do tempo por cidade no sul do RS",
+            "Mapa meteorológico regional",
+            "Temperatura, chuva e vento por município",
+            "Pelotas e municípios da Região Sul do Rio Grande do Sul",
+            "Meteorologia regional",
+          ],
           location: SOUTHERN_RS_LOCATION,
         }),
       ],
