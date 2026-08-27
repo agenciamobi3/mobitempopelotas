@@ -70,9 +70,24 @@ const RAIN_PAGE_CONTENT = {
       description: "Veja temperatura, chance de chuva e rajadas nas próximas horas.",
     },
     {
+      label: "Previsão de 15 dias",
+      href: "/previsao-15-dias-pelotas" as const,
+      description: "Compare os próximos dias e acompanhe a tendência de precipitação em uma janela mais longa.",
+    },
+    {
       label: "Radar e satélite",
       href: "/radar-e-satelite-pelotas" as const,
       description: "Acompanhe a posição e o deslocamento das áreas de chuva na região.",
+    },
+    {
+      label: "Situação das águas em Pelotas",
+      href: "/situacao-hidrologica-pelotas" as const,
+      description: "Relacione chuva recente com níveis observados no Laranjal e na rede regional, sem confundir previsão com nível da água.",
+    },
+    {
+      label: "Nível da Lagoa no Laranjal",
+      href: "/nivel-da-lagoa-dos-patos-laranjal" as const,
+      description: "Acompanhe a leitura local, horário e tendência da Estação Laranjal.",
     },
     {
       label: "Avisos oficiais do INMET",
@@ -103,6 +118,7 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
           "Volume de precipitação por hora em Pelotas",
           "Chuva por hora em Pelotas",
           "Acumulado previsto de chuva em Pelotas",
+          "Relação entre chuva e situação hidrológica em Pelotas",
           "Alertas oficiais de chuva em Pelotas",
         ],
       }),
