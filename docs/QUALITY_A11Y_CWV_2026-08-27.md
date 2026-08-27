@@ -308,3 +308,15 @@ Automação não fecha WCAG 2.2 AA sozinha. Continuam necessários testes manuai
 ## Decisão
 
 **A fase de qualidade passa a ter gates versionados para estrutura no navegador e peso do build, além de cinco otimizações de caminho crítico: ticket em idle, GA4 externo em idle, Web Push fora do root enquanto suspenso, cadeia da câmera ao vivo totalmente diferida/condicionada e registro do service worker após load + idle. A fase ainda não é declarada aprovada enquanto a infraestrutura de CI não executar os contratos e a auditoria manual não estiver concluída.**
+
+## 15. Correções de regressão guiadas por screenshots
+
+Em 27/08/2026, screenshots do domínio publicado revelaram três regressões visuais que não eram falhas de fonte ou de semântica de dados:
+
+1. **Home — próximas horas:** o breakpoint de `1040px` forçava sete cards com largura mínima de `148px` e rolagem horizontal mesmo em larguras intermediárias capazes de acomodar a grade. O contrato final `home-forecast-viewport-fix.css` mantém sete colunas fluidas e contidas a partir de `880px`; abaixo disso, a rolagem horizontal permanece como comportamento intencional para telas estreitas.
+2. **Home — Radar/Satélite:** o aviso `map-radar-unavailable` herdava simultaneamente `top` e `bottom` do estilo-base, por isso o estado “Camada temporariamente indisponível” se esticava verticalmente sobre o mapa. O fundo claro da Home também herdava texto branco. `home-radar-unavailable-fix.css` zera `bottom/right`, preserva o posicionamento superior do refinamento visual, limita largura/altura e aplica contraste de texto adequado ao fundo claro.
+3. **Páginas municipais — aviso do INMET:** `RegionalOfficialAlertPanel` reutilizava classes `home-inmet-alerts`, mas o layout estrutural dessas classes estava escopado a `.site-shell--home-editorial`. Fora da Home, rótulos e valores ficavam visualmente concatenados. `RegionalCityAlertLayout.css` torna o card regional autocontido, com grid próprio, gaps, metadados separados e empilhamento responsivo.
+
+`tests/screenshot-layout-regressions.test.ts` protege os três contratos e foi incluído em `test:contracts`.
+
+A correção não altera fonte meteorológica, alerta recebido, regra de severidade, rota, sitemap, coletor, banco ou autenticação. A validação visual pós-deploy e os gates de CI continuam pendentes; a existência do fix no repositório não deve ser descrita como aprovação visual do domínio até a nova versão ser observada em produção.
