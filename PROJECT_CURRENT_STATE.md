@@ -41,6 +41,7 @@ Estado geral:
 | Câmeras | Ativo com dependência externa | Live/replay com estados explícitos |
 | Central Regional | Ativo | 24 cidades no inventário: Pelotas + 23 páginas municipais |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, snippets por intenção, entidades geográficas e links internos globais |
+| Qualidade de navegador | Gate versionado, execução pendente | Acessibilidade estrutural, responsividade e Web Vitals de laboratório; não há aprovação enquanto os runners não executarem o workflow |
 | Conta / login Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -77,12 +78,16 @@ Scripts operacionais principais:
 - `npm run routes:check`;
 - `npm run typecheck`;
 - `npm run lint`;
+- `npm run quality:browser`;
+- `npm run quality:a11y`;
 - `npm run runtime:check`;
 - `npm run cutover:smoke`.
 
 GitHub `main` permanece a fonte de versionamento. Lovable não substitui o Supabase externo e não deve ser usado para provisionar banco paralelo.
 
 Rotas que renderizam `InternalWeatherPageShell` ou `ContentPageShell` são tratadas como standalone em `SiteLayout`, evitando um segundo header/footer global. Em 27/08/2026 esse contrato foi corrigido para incluir 15 dias, Guaíba, Enchente de 1941 e Quem Somos e passou a ter teste automático que varre as rotas com shell próprio.
+
+O header público também recebeu proteção específica de teclado: ao fechar um megamenu ou menu móvel com `Escape` enquanto o foco está dentro do painel, o foco retorna ao controle que abriu aquele painel. O estado aberto/fechado continua pertencendo ao `HomeEditorialHeader`; a camada de restauração de foco não cria uma segunda fonte de estado.
 
 ## 4. Rotas públicas indexáveis
 
@@ -456,14 +461,16 @@ O workflow `Qualidade` deveria executar, entre outros gates:
 
 1. template de ambiente;
 2. `test:contracts`;
-3. testes especializados;
+3. testes especializados, incluindo teclado/foco do header;
 4. `routes:check`;
 5. build;
 6. testes de rotas;
 7. TypeScript;
-8. lint incremental.
+8. lint incremental;
+9. preview local do build;
+10. Browser Quality Smoke com relatório de acessibilidade, responsividade e Web Vitals de laboratório.
 
-Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer step, com `runner_id=0` e `steps=[]`. Isso é falha de infraestrutura/execução do Actions e não evidencia resultado dos testes do código.
+Estado em 26/08/2026: os runs recentes continuam terminando antes de qualquer step, com `runner_id=0` e `steps=[]`. Isso é falha de infraestrutura/execução do Actions e não evidencia resultado dos testes do código. O gate de navegador foi versionado em 27/08/2026, mas **não deve ser descrito como executado ou aprovado** enquanto esse bloqueio persistir.
 
 Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/generate-route-tree.mjs` para incorporar `/nivel-do-guaiba` e `/enchente-1941-pelotas`. A reprodução determinística do estado anterior gerou exatamente o mesmo blob SHA já versionado antes da alteração, confirmando equivalência com o gerador oficial; a nova saída foi então versionada sem alterar o script. A dívida de árvore desatualizada foi removida no código, embora `routes:check` ainda precise ser executado em um runner funcional para confirmação executável.
 
@@ -471,7 +478,15 @@ Em 27/08/2026, `src/routeTree.gen.ts` foi regenerado de acordo com `scripts/gene
 
 `tests/seo-content-accessibility.test.ts`, já incluído em `test:contracts`, protege a separação de intenção `agora` x `hoje`, a resposta editorial `Vai chover hoje em Pelotas?`, o caveat de `tempo real` no Laranjal e ligações do cluster hidrológico/histórico.
 
-`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, Meteograma, Clima, Histórico, Alertas, Geadas, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento, imagem recente x tempo real no radar, Meteograma 48h x Hoje, Clima/Climatologia x histórico recente, geada observada x previsão futura, ausência de `<main>` duplicado em Privacidade, schema do Status dos Dados e entidades do hub regional. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades. Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
+`tests/seo-editorial-enrichment.test.ts`, também incluído em `test:contracts`, protege Home/Hoje, Chuva, Amanhã, 7/15 dias, Vento, Radar, Meteograma, Clima, Histórico, Alertas, Geadas, o cluster Laranjal/Guaíba/1941/2024 e a existência de perfis regionais específicos, sem exigir FAQ genérico. O contrato verifica, entre outros pontos, 10/15 dias na mesma URL, observado x previsto no vento, imagem recente x tempo real no radar, Meteograma 48h x Hoje, Clima/Climatologia x histórico recente, geada observada x previsão futura, ausência de `<main>` duplicado em Privacidade, schema do Status dos Dados e entidades do hub regional. `tests/regional-city-editorial.test.ts` reforça o gate anti-template e impede que `FAQPage` genérico volte a ser renderizado em todas as cidades.
+
+`tests/header-keyboard-accessibility.test.ts` protege o contrato ARIA dos menus e a restauração de foco ao fechar um painel com `Escape`.
+
+`scripts/browser-quality-smoke.mjs` é o gate de navegador atual e não depende de Playwright. Ele usa Chrome/Chromium via Chrome DevTools Protocol e cobre inicialmente nove rotas representativas em 320×720, 768×1024 e 1280×900. O gate bloqueia regressões estruturais como idioma/title ausentes, quantidade incorreta de H1 ou `<main>`, skip link invisível ao foco, IDs duplicados, controles sem nome, campos sem rótulo, imagens sem `alt`, overflow horizontal e falha de fechamento/restauração de foco no menu. Ele registra TTFB, FCP, LCP e CLS como **métricas de laboratório**. Nesta etapa, os limiares recomendados de performance geram avisos por padrão; não devem ser apresentados como CrUX ou Core Web Vitals de campo. O workflow prevê salvar `artifacts/browser-quality` como artifact para inspeção.
+
+O nome histórico `scripts/accessibility-editorial-smoke.mjs` permanece como alias para o Browser Quality Smoke, evitando duas implementações divergentes e eliminando a dependência não declarada de Playwright que existia no script antigo.
+
+Esses contratos estão versionados, mas não devem ser descritos como executados enquanto os runners permanecerem indisponíveis.
 
 ## 18. Deploy e Supabase
 
@@ -485,7 +500,7 @@ Disciplina atual:
 - nunca declarar migration aplicada apenas porque o código foi publicado;
 - alterações de banco exigem revisão de RLS/grants e validação do schema real.
 
-As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação.
+As implementações de 15 dias, Guaíba e da página histórica de 1941 não exigem migration, Edge Function ou nova variável de ambiente. As rodadas posteriores de refinamento SEO também não criaram nova URL, fonte, coletor, migration, Edge Function, secret ou variável de ambiente. A correção semântica de Privacidade e os enriquecimentos de Status/hub regional também não alteram runtime de dados ou autenticação. A fase de qualidade adiciona apenas contratos de frontend/CI/documentação e não altera fonte meteorológica, hidrológica, banco ou autenticação.
 
 ## 19. PWA / Web Push
 
@@ -499,7 +514,7 @@ A pesquisa técnica existe em `docs/CPTEC_SIGMA_RESEARCH.md`, mas permanece fora
 
 Pendências reais, não funcionalidades declaradas como prontas:
 
-1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` sobre a árvore já regenerada;
+1. restaurar os runners do GitHub Actions e executar a suíte completa, incluindo `routes:check` e o Browser Quality Smoke sobre o build de produção;
 2. validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio publicado, inclusive mobile, estados degradados aplicáveis, sitemap e canonical;
 3. recapturar Search Console para medir CTR da Home, Hoje, Amanhã, Chuva, 7 dias, 15 dias, Vento, Radar, Meteograma, Alertas, Geadas, Clima e Histórico, acompanhar o cluster hidrológico, priorizar refinamentos quantitativos por município e decidir sexta/sábado;
 4. concluir E2E de autenticação com duas contas descartáveis;
@@ -507,7 +522,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 6. definir rollups e APIs históricas server-side;
 7. continuar validação ANA/RHN e inventário/semântica da Defesa Civil RS;
 8. validar os smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real;
-9. concluir auditoria WCAG 2.2 AA, Core Web Vitals e responsividade ampla;
+9. executar o baseline de navegador já versionado, concluir auditoria manual WCAG 2.2 AA, responsividade ampla/zoom-reflow e obter medição confiável de Core Web Vitals de campo antes de endurecer thresholds de performance;
 10. manter PWA/Web Push suspenso até validação controlada;
 11. avançar páginas por dia da semana somente com intenção/dado suficiente e sem doorway pages;
 12. criar previsão de 30 dias somente quando existir camada de tendência adequada para dias 16–30;
@@ -531,6 +546,7 @@ Pendências reais, não funcionalidades declaradas como prontas:
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
 | `docs/SEO_CONTENT_SOURCE_IMPLEMENTATION_PLAN_2026-08-26.md` | Intenção x fonte x etapas |
 | `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento de snippets, links internos, entidades e perfis regionais sem FAQ genérico nem novas URLs |
+| `docs/QUALITY_A11Y_CWV_2026-08-27.md` | Baseline de acessibilidade, responsividade e Web Vitals de laboratório |
 | `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Implementação da previsão de 15 dias |
 | `docs/EMBRAPA_GEOINFO_DATASET_SURVEY_2026-08-26.md` | Levantamento GeoInfo Embrapa |
 | `docs/DATA_ACCESS_PUBLIC_FREE_PRO_PLAN.md` | Política Público/Free/PRO/REVIEW |
