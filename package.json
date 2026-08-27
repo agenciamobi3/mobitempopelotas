@@ -18,6 +18,7 @@
     "format": "prettier --write .",
     "quality:browser": "node scripts/browser-quality-smoke.mjs",
     "quality:a11y": "node scripts/accessibility-editorial-smoke.mjs",
+    "quality:assets": "node scripts/build-asset-report.mjs",
     "runtime:check": "node scripts/runtime-readiness-lovable.mjs",
     "runtime:check:example": "node scripts/runtime-readiness-lovable.mjs --example",
     "cutover:smoke": "node scripts/cutover-smoke.mjs && node scripts/seo-production-smoke.mjs"
