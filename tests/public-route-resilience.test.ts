@@ -19,6 +19,12 @@ const metNorway = readFileSync("src/lib/weather/met-norway.server.ts", "utf8");
 const embrapaCentral = readFileSync("src/lib/weather/embrapa-central.server.ts", "utf8");
 const inmetStable = readFileSync("src/lib/weather/inmet-stable.server.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
+const publicWeatherPageLoader = readFileSync(
+  "src/lib/weather/public-weather-page-loader.ts",
+  "utf8",
+);
+const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
+const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 
 test("fallback meteorologico final preserva o contrato sem inventar valores", () => {
@@ -133,4 +139,18 @@ test("falha transitoria de server fn durante navegacao recebe hard reload proteg
   assert.match(staleClientRecovery, /navigator\.onLine === false/);
   assert.match(staleClientRecovery, /reason: "asset" \| "navigation"/);
   assert.doesNotMatch(staleClientRecovery, /while\s*\(/);
+});
+
+test("vento e chuva degradam chamadas secundarias sem abrir o boundary global", () => {
+  assert.match(publicWeatherPageLoader, /Promise\.allSettled/);
+  assert.match(publicWeatherPageLoader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(publicWeatherPageLoader, /status:\s*"unavailable"/);
+  assert.match(publicWeatherPageLoader, /hours:\s*\[\]/);
+
+  for (const routeSource of [windRoute, rainRoute]) {
+    assert.match(routeSource, /loadPublicWeatherWithMeteogram/);
+    assert.doesNotMatch(routeSource, /Promise\.all\(/);
+    assert.doesNotMatch(routeSource, /getPelotasMeteogram/);
+    assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
+  }
 });
