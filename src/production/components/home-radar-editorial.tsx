@@ -11,21 +11,22 @@ export function HomeRadarEditorial({ regionalWeather }: { regionalWeather: Weath
     <section className="tp-home-radar" aria-labelledby="tp-home-radar-title">
       <header className="tp-home-radar__intro">
         <div className="tp-home-radar__heading">
-          <span>Monitoramento em tempo real</span>
+          <span>Monitoramento meteorológico</span>
           <h2 id="tp-home-radar-title">
             Radar e satélite para acompanhar chuva, nebulosidade e trovoadas
           </h2>
           <p>
-            Camadas meteorológicas oficiais com foco em Pelotas e na Zona Sul. O mapa mostra o
-            passado recente observado; não é uma projeção do deslocamento futuro.
+            Camadas meteorológicas oficiais com foco em Pelotas e na Zona Sul, atualizadas conforme
+            a disponibilidade de cada fonte. O mapa mostra observações recentes; não é uma projeção
+            do deslocamento futuro.
           </p>
         </div>
 
         <div className="tp-home-radar__meta-wrap">
           <dl className="tp-home-radar__meta" aria-label="Referências do monitoramento">
             <div>
-              <dt>Fonte</dt>
-              <dd>REDEMET / DECEA</dd>
+              <dt>Fontes</dt>
+              <dd>REDEMET / DECEA + INMET</dd>
             </div>
             <div>
               <dt>Radar de referência</dt>
@@ -60,7 +61,7 @@ export function HomeRadarEditorial({ regionalWeather }: { regionalWeather: Weath
           </div>
           <div>
             <strong>Satélite</strong>
-            <span>Mostra cobertura e organização das nuvens em escala regional.</span>
+            <span>Mostra a organização das nuvens; GOES/INMET pode assumir a camada quando a REDEMET não responder.</span>
           </div>
           <div>
             <strong>Trovoadas</strong>
