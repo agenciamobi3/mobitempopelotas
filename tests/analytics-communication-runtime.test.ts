@@ -28,11 +28,11 @@ test("GA4 remains separated from account identity and advertising signals", () =
   assert.match(privacy, /Google Signals/);
 });
 
-test("push manager is mounted globally but remains runtime-gated by push configuration", () => {
-  assert.match(root, /import \{ PushNotificationsManager \}/);
-  assert.match(root, /<PushNotificationsManager\s*\/>/);
+test("Web Push code is preserved but remains outside the global root while suspended", () => {
+  assert.doesNotMatch(root, /PushNotificationsManager/);
   assert.match(push, /\/api\/push\/config/);
   assert.match(push, /\/api\/push\/subscription/);
+  assert.match(push, /Notification\.requestPermission/);
 });
 
 test("ticket widget remains global but defers third-party JavaScript until the browser is idle", () => {
