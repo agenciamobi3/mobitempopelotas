@@ -14,9 +14,9 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
-const PAGE_TITLE = "Previsão hora a hora em Pelotas";
+const PAGE_TITLE = "Meteograma de Pelotas: previsão hora a hora por 48h";
 const PAGE_DESCRIPTION =
-  "Acompanhe temperatura, chuva, nuvens, visibilidade, pressão, vento e tempestade nas próximas 24 ou 48 horas e compare produtos WRF/GFS do SIMAGRO RS para Pelotas.";
+  "Veja o meteograma de Pelotas com previsão hora a hora por até 48 horas: temperatura, chuva, nuvens, visibilidade, pressão, vento, rajadas e CAPE, além de produtos WRF/GFS do SIMAGRO RS.";
 const PAGE_PATH = "/meteograma-pelotas";
 
 const METEOGRAM_CONTENT = {
@@ -34,6 +34,11 @@ const METEOGRAM_CONTENT = {
     "Os meteogramas WRF e GFS do SIMAGRO RS aparecem como produtos gráficos complementares. O Tempo Pelotas não extrai números dessas imagens nem mistura seus valores com a série estruturada da página.",
   ],
   faqs: [
+    {
+      question: "Qual é a diferença entre o meteograma e a página Tempo hoje?",
+      answer:
+        "Tempo hoje resume a condição atual e a evolução prática do dia. O meteograma aprofunda a previsão hora a hora por até 48 horas e coloca no mesmo eixo variáveis como ponto de orvalho, nuvens por camada, visibilidade, pressão, vento, rajadas e CAPE.",
+    },
     {
       question: "Os gráficos mostram medições ou previsão?",
       answer:
@@ -72,9 +77,19 @@ const METEOGRAM_CONTENT = {
       description: "Veja a condição atual e o resumo das próximas horas.",
     },
     {
+      label: "Tempo amanhã em Pelotas",
+      href: "/tempo-amanha-pelotas" as const,
+      description: "Use a página dedicada ao próximo dia para mínima, máxima, chuva e vento.",
+    },
+    {
       label: "Chuva em Pelotas",
       href: "/chuva-em-pelotas" as const,
       description: "Compare a chance de chuva e o volume previsto por horário.",
+    },
+    {
+      label: "Vento em Pelotas",
+      href: "/vento-em-pelotas" as const,
+      description: "Aprofunde direção, vento médio e rajadas previstas ao longo do dia.",
     },
     {
       label: "Radar e satélite",
@@ -165,10 +180,11 @@ export const Route = createFileRoute("/meteograma-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Previsão hora a hora em Pelotas", path: PAGE_PATH },
+          { name: "Meteograma e previsão hora a hora em Pelotas", path: PAGE_PATH },
         ],
         about: [
           "Meteograma de Pelotas",
+          "Previsão hora a hora por 48 horas em Pelotas",
           "Previsão horária de temperatura e ponto de orvalho",
           "Chance e volume de chuva por hora",
           "Nuvens baixas, médias e altas",
