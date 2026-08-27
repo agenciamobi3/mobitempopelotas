@@ -20,6 +20,10 @@ const meteogram = source("src/routes/meteograma-pelotas.tsx");
 const frost = source("src/routes/mapa-de-geadas-rio-grande-do-sul.tsx");
 const climate = source("src/routes/clima-em-pelotas.tsx");
 const history = source("src/routes/historico-climatico-pelotas.tsx");
+const status = source("src/routes/status-dos-dados.tsx");
+const privacy = source("src/routes/privacidade-e-dados.tsx");
+const contentShell = source("src/components/layout/ContentPageShell.tsx");
+const regionalHub = source("src/routes/tempo-na-regiao-sul-rs.tsx");
 const laranjal = source("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
 const hydrology = source("src/routes/situacao-hidrologica-pelotas.tsx");
 const guaiba = source("src/routes/nivel-do-guaiba.tsx");
@@ -107,6 +111,23 @@ test("alertas e geadas preservam fonte oficial e diferença entre observação e
   assert.match(frost, /Mapa de geadas observadas no Rio Grande do Sul/);
   assert.match(frost, /O mapa mostra registros passados e não prevê geada para a próxima madrugada/);
   assert.match(frost, /href: "\/previsao-7-dias-pelotas"/);
+});
+
+test("páginas de apoio preservam semântica, estrutura e entidades", () => {
+  assert.match(contentShell, /<main id="conteudo-principal"/);
+  assert.match(privacy, /<ContentPageShell pageClassName="privacy-data-shell">/);
+  assert.match(privacy, /<div className="privacy-page">/);
+  assert.doesNotMatch(privacy, /<main className="privacy-page"/);
+
+  assert.match(status, /createEditorialPageJsonLd/);
+  assert.match(status, /Status dos dados e integrações/);
+  assert.match(status, /Histórico de incidentes de dados/);
+  assert.match(status, /Uma fonte offline não significa que todo o portal parou/);
+
+  assert.match(regionalHub, /Tempo na Região Sul do RS: previsão por cidade/);
+  assert.match(regionalHub, /Previsão do tempo por cidade no sul do RS/);
+  assert.match(regionalHub, /Mapa meteorológico regional/);
+  assert.match(regionalHub, /PUBLIC_REGIONAL_CITIES/);
 });
 
 test("cluster hidrológico conecta operação atual e memória histórica preservando referências", () => {
