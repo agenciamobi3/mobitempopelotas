@@ -1,4 +1,4 @@
-import { fetchInmetSatellite } from "@/lib/weather/inmet-satellite.server";
+import { fetchInmetSatellite } from "../weather/inmet-satellite.server";
 import { fetchRedemetSatellite } from "./redemet.server";
 import type { RedemetImageLayerResponse, RedemetSatelliteType } from "./redemet.types";
 
