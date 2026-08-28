@@ -29,15 +29,26 @@ function unavailable(error: string): InmetForecast {
   };
 }
 
-function requestHeaders() {
+function requestHeaders(includeOrigin: boolean) {
   return {
     Accept: "application/json, text/plain, */*",
     "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.7",
-    Origin: "https://previsao.inmet.gov.br",
+    ...(includeOrigin ? { Origin: "https://previsao.inmet.gov.br" } : {}),
     Referer: `${INMET_FORECAST_APP_URL}/`,
     "User-Agent":
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
   };
+}
+
+async function requestForecast(
+  attempt: EndpointAttempt,
+  signal: AbortSignal,
+  includeOrigin: boolean,
+) {
+  return fetch(attempt.url, {
+    headers: requestHeaders(includeOrigin),
+    signal,
+  });
 }
 
 async function fetchForecastEndpoint(
@@ -46,10 +57,14 @@ async function fetchForecastEndpoint(
 ): Promise<InmetForecast> {
   const timeoutSignal = AbortSignal.timeout(attempt.timeoutMs);
   const combinedSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
-  const response = await fetch(attempt.url, {
-    headers: requestHeaders(),
-    signal: combinedSignal,
-  });
+  let response = await requestForecast(attempt, combinedSignal, true);
+
+  // Um 403 pode ser política do gateway para aquela forma da requisição, não
+  // indisponibilidade do produto. Fazemos uma única repetição sem Origin,
+  // mantendo Referer, timeout total e todas as demais validações.
+  if (response.status === 403) {
+    response = await requestForecast(attempt, combinedSignal, false);
+  }
 
   if (!response.ok) {
     throw new Error(`a integração pela rota ${attempt.label} recebeu HTTP ${response.status}`);
