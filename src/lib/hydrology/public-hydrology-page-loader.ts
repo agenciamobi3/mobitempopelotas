@@ -1,0 +1,188 @@
+import { getDefesaCivilHydroData } from "./defesa-civil-rs.functions";
+import type { DefesaCivilHydroData } from "./defesa-civil-rs.server";
+import { getGuaibaObservation } from "./guaiba.functions";
+import type { GuaibaObservationData } from "./guaiba.server";
+import { getLagoonMonitoringNetwork } from "./lagoon-network.functions";
+import type { LagoonMonitoringNetworkData } from "./lagoon-network.server";
+import { getLaranjalLevelData } from "./laranjal-level.functions";
+import type { LaranjalLevelData } from "./laranjal-level.server";
+import { getSaceGuaibaData } from "./sace-guaiba.functions";
+import type { SaceGuaibaData } from "./sace-guaiba.server";
+import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
+import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+
+export function createUnavailableLaranjalLevelData(): LaranjalLevelData {
+  return {
+    status: "unavailable",
+    currentLevel: null,
+    updatedAt: null,
+    ageMinutes: null,
+    trendCmPerHour: null,
+    change1hCm: null,
+    change6hCm: null,
+    change24hCm: null,
+    periodAverage: null,
+    periodMinimum: null,
+    periodMaximum: null,
+    series: [],
+    source: {
+      name: "LabHidroSens / UFPel",
+      station: "Estação Laranjal",
+      location: "Praia do Laranjal, Pelotas / RS",
+      url: "https://tb.labhidrosens.com/dashboard/97ec9a60-d9e1-11f0-ac7c-456d9a25fe9a?publicId=0a869e80-d9e8-11f0-ac7c-456d9a25fe9a",
+      fetchedAt: new Date().toISOString(),
+    },
+    error: "A consulta da Estação Laranjal não respondeu nesta atualização.",
+  };
+}
+
+export function createUnavailableGuaibaObservationData(): GuaibaObservationData {
+  return {
+    status: "unavailable",
+    currentLevel: null,
+    updatedAt: null,
+    ageMinutes: null,
+    trendCmPerHour: null,
+    variation24hCm: null,
+    periodAverage: null,
+    periodMinimum: null,
+    periodMaximum: null,
+    distanceToFloodReference: null,
+    floodReference: 3,
+    station: "Régua do Cais Mauá",
+    location: "Porto Alegre / RS",
+    series: [],
+    source: {
+      name: "MetSul / TideSat Global",
+      url: "https://metsul.com/nivel-do-guaiba/",
+      methodologyUrl: "https://www.tidesatglobal.com/",
+      originalInstitutions: "TideSat Global",
+      fetchedAt: new Date().toISOString(),
+    },
+    error: "A consulta do nível do Guaíba não respondeu nesta atualização.",
+  };
+}
+
+export function createUnavailableLagoonMonitoringNetworkData(): LagoonMonitoringNetworkData {
+  return {
+    status: "unavailable",
+    available: 0,
+    total: 5,
+    latestUpdatedAt: null,
+    observations: [],
+    source: {
+      name: "Rede de Monitoramento do Nível da Lagoa dos Patos",
+      organizations: "FURG & Portos RS",
+      url: "https://monitoramentolagoadospatos.com.br/",
+      apiUrl: "https://api-medidas-porto-7bni.onrender.com",
+      reference: "Referencial vertical brasileiro — Marégrafo de Imbituba/SC",
+      fetchedAt: new Date().toISOString(),
+    },
+    error: "A rede regional da Lagoa dos Patos não respondeu nesta atualização.",
+  };
+}
+
+export function createUnavailableSaceGuaibaData(): SaceGuaibaData {
+  return {
+    status: "unavailable",
+    stations: [],
+    highlightedStations: [],
+    legend: [],
+    bounds: null,
+    layers: [],
+    counts: {
+      total: 0,
+      transmitting: 0,
+      normal: 0,
+      aboveNormal: 0,
+      withoutTransmission: 0,
+    },
+    systems: [],
+    source: {
+      name: "SACE Guaíba / Serviço Geológico do Brasil",
+      url: "https://sace.sgb.gov.br/guaiba/",
+      fetchedAt: new Date().toISOString(),
+      endpoints: [],
+    },
+    error: "A consulta do SACE Guaíba não respondeu nesta atualização.",
+  };
+}
+
+export function createUnavailableDefesaCivilHydroData(): DefesaCivilHydroData {
+  return {
+    status: "unavailable",
+    stations: [],
+    statewideStationCount: 0,
+    regionalStationCount: 0,
+    recentStationCount: 0,
+    latestObservationAt: null,
+    inventory: { HYDROLOGY: 0, METEOROLOGY: 0, BOTH: 0, UNKNOWN: 0 },
+    source: {
+      name: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
+      endpoint: "https://redehidrometeorologica.defesacivil.rs.gov.br/graphql",
+      mapUrl: "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa",
+      documentationUrl: "https://sistemas.defesacivil.rs.gov.br/api-redehidrometeorologica",
+      fetchedAt: new Date().toISOString(),
+    },
+    publication: {
+      enabled: true,
+      note: "A integração pública está habilitada, mas a consulta não respondeu nesta atualização.",
+    },
+    error: "A Rede de Monitoramento Hidrometeorológico da Defesa Civil RS não respondeu nesta atualização.",
+  };
+}
+
+export async function loadLaranjalHydrologyPageData() {
+  const [weatherResult, levelResult] = await Promise.allSettled([
+    getWeatherIntelligence(),
+    getLaranjalLevelData(),
+  ]);
+
+  return {
+    weather:
+      weatherResult.status === "fulfilled"
+        ? weatherResult.value
+        : createUnavailableWeatherIntelligence(),
+    level:
+      levelResult.status === "fulfilled"
+        ? levelResult.value
+        : createUnavailableLaranjalLevelData(),
+  };
+}
+
+export async function loadHydrologyOverviewPageData() {
+  const [weatherResult, levelResult, guaibaResult, lagoonResult, saceResult, defesaCivilResult] =
+    await Promise.allSettled([
+      getWeatherIntelligence(),
+      getLaranjalLevelData(),
+      getGuaibaObservation(),
+      getLagoonMonitoringNetwork(),
+      getSaceGuaibaData(),
+      getDefesaCivilHydroData(),
+    ]);
+
+  return {
+    weather:
+      weatherResult.status === "fulfilled"
+        ? weatherResult.value
+        : createUnavailableWeatherIntelligence(),
+    level:
+      levelResult.status === "fulfilled"
+        ? levelResult.value
+        : createUnavailableLaranjalLevelData(),
+    guaiba:
+      guaibaResult.status === "fulfilled"
+        ? guaibaResult.value
+        : createUnavailableGuaibaObservationData(),
+    lagoon:
+      lagoonResult.status === "fulfilled"
+        ? lagoonResult.value
+        : createUnavailableLagoonMonitoringNetworkData(),
+    sace:
+      saceResult.status === "fulfilled" ? saceResult.value : createUnavailableSaceGuaibaData(),
+    defesaCivil:
+      defesaCivilResult.status === "fulfilled"
+        ? defesaCivilResult.value
+        : createUnavailableDefesaCivilHydroData(),
+  };
+}
