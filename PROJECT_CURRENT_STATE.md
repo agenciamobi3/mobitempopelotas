@@ -154,6 +154,8 @@ O princípio permanece: não criar URL quase duplicada apenas para trocar palavr
 
 A fase atual é de refinamento das 48 URLs existentes. Páginas permanentes de sexta/sábado continuam bloqueadas até existir evidência suficiente de Search Console; o conector continua indisponível por assinatura. O cluster hidrológico liga Laranjal ↔ Situação das Águas ↔ Guaíba ↔ 1941 ↔ 2024. O diretório global também expõe 15 dias e páginas hidrológicas/históricas.
 
+Em 27/08/2026 o header principal foi alinhado ao inventário já publicado, sem criar novas URLs: o menu `Previsão` passa a expor diretamente `/previsao-15-dias-pelotas`, e o menu `Águas` passa a expor `/nivel-do-guaiba` e `/enchente-1941-pelotas` além do Laranjal, situação hidrológica e enchente de 2024. Os mesmos itens alimentam a navegação móvel e entram nos `activePaths` correspondentes, reforçando descoberta, contexto e ligação interna entre os ativos existentes.
+
 ## 12. Conta, Free e PRO
 
 Fundação existente: Google Identity Services + Supabase Auth por ID Token, sessão SSR, `/conta`, `/painel` autenticado/noindex, preferências/consentimentos, exportação/exclusão, `account_access` e entitlements centralizados.
@@ -240,11 +242,11 @@ Contratos relevantes versionados:
 - `tests/standalone-route-shell.test.ts`: evita shells duplicados;
 - `tests/seo-content-accessibility.test.ts` e `tests/seo-editorial-enrichment.test.ts`: contratos de intenção, semântica e links;
 - `tests/regional-city-editorial.test.ts`: gate anti-template;
-- `tests/header-keyboard-accessibility.test.ts`: ARIA/foco de menus;
+- `tests/header-keyboard-accessibility.test.ts`: ARIA/foco de menus e presença no header das rotas de 15 dias, Guaíba, Enchente de 1941 e Enchente de 2024;
 - `tests/source-resilience-regressions.test.ts`: contratos INMET/REDEMET;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-O workflow `Qualidade` deveria executar contratos, `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
+O workflow `Qualidade` executa `tests/header-keyboard-accessibility.test.ts` em etapa própria, além de `tests/public-route-resilience.test.ts`, contratos rápidos e demais gates especializados. Depois seguem `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
 
 ## 18. Deploy e Supabase
 
