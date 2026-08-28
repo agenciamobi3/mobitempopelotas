@@ -38,7 +38,7 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | Enchentes 1941 / 2024 | Ativo | Páginas históricas com fontes institucionais e limites semânticos |
 | Câmeras | Ativo com dependência externa | Câmera e meteorologia degradam independentemente; live/replay preservados |
 | Central Regional | Ativo | Pelotas + 23 páginas municipais; fallback mantém diretório navegável e as 23 páginas municipais indexáveis possuem perfil editorial próprio |
-| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, links internos e cobertura editorial regional completa |
+| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, links internos, BreadcrumbList regional e cobertura editorial municipal completa |
 | Conta / Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -168,6 +168,8 @@ As **23 páginas municipais indexáveis** possuem perfil editorial específico. 
 
 Cada perfil possui meta description, descrição do hero, título editorial, introdução e pelo menos quatro fatos/orientações próprios. O conteúdo usa contexto geográfico já cadastrado no projeto e mantém previsão por coordenadas separada de observação local. FAQ genérico em massa e FAQPage parametrizado continuam proibidos pelo gate anti-template.
 
+As páginas municipais também emitem `BreadcrumbList` JSON-LD com a sequência **Tempo Pelotas → Tempo na Região Sul → Tempo em <município>**, usando `createBreadcrumbListJsonLd` e `serializeJsonLd`. O `WebPage` com `Place`/`GeoCoordinates` existente foi preservado; nenhum FAQ/schema artificial foi adicionado.
+
 ## 11. SEO e pesquisa de intenção
 
 Arquitetura por horizonte:
@@ -283,7 +285,7 @@ Contratos relevantes versionados:
 - `tests/standalone-route-shell.test.ts`: evita shells duplicados;
 - `tests/seo-content-accessibility.test.ts` e `tests/seo-editorial-enrichment.test.ts`: intenção, semântica e links;
 - `tests/regional-city-editorial.test.ts`: gate anti-template e contrato visual/editorial regional;
-- `tests/regional-city-editorial-completeness.test.ts`: exige perfil específico nas 23 páginas municipais indexáveis, conteúdo mínimo útil e ausência de repetição estrutural/FAQ massificado;
+- `tests/regional-city-editorial-completeness.test.ts`: exige perfil específico nas 23 páginas municipais indexáveis, conteúdo mínimo útil, introduções/títulos distintos, ausência de FAQ massificado e BreadcrumbList Home → Região → Município;
 - `tests/header-keyboard-accessibility.test.ts`: ARIA/foco e inventário do header;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
@@ -293,7 +295,7 @@ O novo contrato regional foi incluído em `test:contracts`. Os gates estão vers
 
 `main` é a branch operacional e sincroniza com Lovable. Supabase é externo ao Lovable. Migration versionada só é considerada aplicada após validação no ambiente oficial; publicação de código não prova alteração de banco.
 
-A rodada SEO regional de 28/08 altera somente conteúdo editorial e contratos de teste das páginas municipais existentes. Não cria rota, migration, Edge Function, secret ou variável de ambiente; não muda sitemap, canonical, coordenadas, código IBGE, fonte meteorológica, cota hidrológica, regra de alerta ou autenticação.
+A rodada SEO regional de 28/08 altera conteúdo editorial, BreadcrumbList JSON-LD e contratos de teste das páginas municipais existentes. Não cria rota, migration, Edge Function, secret ou variável de ambiente; não muda sitemap, canonical, coordenadas, código IBGE, fonte meteorológica, cota hidrológica, regra de alerta ou autenticação.
 
 ## 19. Qualidade de navegador
 
@@ -308,7 +310,7 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 ## 21. Pendências prioritárias
 
 1. Confirmar a publicação da rodada de 28/08 no domínio canônico e retestar especificamente: previsão municipal INMET, GOES/INMET, satélite REDEMET Realçado/IR/Visível, Radar e STSC. Diferenciar resposta da integração de disponibilidade do portal oficial.
-2. Validar amostra das páginas municipais enriquecidas em desktop/mobile/anônimo, com atenção a title, description, hero, bloco editorial e links de cidades próximas.
+2. Validar amostra das páginas municipais enriquecidas em desktop/mobile/anônimo, com atenção a title, description, hero, bloco editorial, BreadcrumbList e links de cidades próximas.
 3. Recapturar Search Console para priorizar CTR/refinamentos das 48 URLs existentes; a cobertura editorial municipal já está completa e não justifica novas cidades sem evidência.
 4. Validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
 5. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
@@ -341,7 +343,7 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 | `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md` | Arquitetura de intenção SEO |
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
 | `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento das URLs existentes |
-| `docs/SEO_REGIONAL_EDITORIAL_COMPLETION_2026-08-28.md` | Conclusão da cobertura editorial das 23 páginas municipais indexáveis |
+| `docs/SEO_REGIONAL_EDITORIAL_COMPLETION_2026-08-28.md` | Conclusão da cobertura editorial e BreadcrumbList das 23 páginas municipais indexáveis |
 | `docs/QUALITY_A11Y_CWV_2026-08-27.md` | Acessibilidade, responsividade e métricas de laboratório |
 | `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Previsão de 15 dias |
 | `docs/EMBRAPA_GEOINFO_DATASET_SURVEY_2026-08-26.md` | GeoInfo Embrapa |
