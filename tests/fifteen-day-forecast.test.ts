@@ -43,11 +43,14 @@ test("função pública da previsão estendida possui cache próprio", () => {
   assert.match(extendedFunctions, /createUnavailableExtendedForecast/);
 });
 
-test("loader público de 15 dias degrada as duas consultas de forma independente", () => {
+test("loader público de 15 dias degrada as duas consultas de forma independente e limita a espera SSR", () => {
+  assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_000/);
+  assert.match(extendedPageLoader, /settlePageDependency/);
+  assert.match(extendedPageLoader, /Promise\.race/);
   assert.match(extendedPageLoader, /Promise\.allSettled/);
   assert.match(extendedPageLoader, /getWeatherIntelligence\(\)/);
   assert.match(extendedPageLoader, /getPelotasExtendedForecast\(\)/);
-  assert.match(extendedPageLoader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(extendedPageLoader, /createUnavailableWeatherIntelligence/);
   assert.match(extendedPageLoader, /status:\s*"unavailable"/);
   assert.match(extendedPageLoader, /days:\s*\[\]/);
   assert.match(extendedPageLoader, /requestedDays:\s*15/);

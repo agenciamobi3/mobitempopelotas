@@ -25,12 +25,12 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | --- | --- | --- |
 | Portal público | Ativo | Produção em `tempopelotas.com.br` |
 | Home / Hoje / Amanhã / 7 dias | Ativo | Rotas dedicadas com fallback final contra rejeição de transporte da inteligência meteorológica |
-| Previsão de 15 dias | Ativo | Open-Meteo diário dedicado, separado do contrato de 7 dias e com degradação independente das chamadas públicas |
+| Previsão de 15 dias | Ativo | Open-Meteo diário dedicado, separado do contrato de 7 dias, degradação independente e budget local de página de 4 s por dependência |
 | Chuva / vento / meteograma | Ativo | Contratos resilientes e estados degradados explícitos |
 | Alertas | Ativo | INMET, preservando validade/abrangência e com fallback final da rota |
 | Previsão municipal INMET | Hardening em validação | Timeouts ampliados e chamadas alinhadas ao contexto do portal; falha da integração não é rotulada como INMET globalmente fora |
 | Embrapa Clima Temperado | Ativo | Observação, saúde do coletor e histórico de 24 h degradam independentemente |
-| REDEMET / DECEA | Hardening em validação | Radar, satélite e STSC usam contratos resilientes; satélite foi alinhado à autenticação `api_key` usada pelos produtos oficiais |
+| REDEMET / DECEA | Hardening em validação | Radar, satélite e STSC usam contratos resilientes; página de Radar possui budget local de 4 s sem reduzir os deadlines internos das fontes |
 | Satélite GOES / INMET | Hardening em validação | Adapter aceita resposta JSON/base64, headers de contexto do portal e distingue HTTP 403 da integração de indisponibilidade pública |
 | Hidrologia | Ativo | Laranjal, Guaíba, Lagoa, SACE e Defesa Civil degradam independentemente nas páginas públicas |
 | Defesa Civil RS | Ativo | Hidrometeorologia regional com kill switch server-side |
@@ -46,7 +46,7 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | Navegação pública entre deploys | Hardening ativo | Links públicos usam documento completo; recuperação fresca e boundary não fatal |
 | Service worker / offline PWA | Temporariamente aposentado | Manifest e conectividade permanecem; `/sw.js` não é mais registrado |
 | Web Push | Suspenso | Código preservado, manager fora do root |
-| Qualidade / CI | Gates versionados, execução pendente | GitHub Actions continua sem evidência de execução normal dos steps |
+| Qualidade / CI | Gates versionados, runner não executa steps | Runs recentes criam job e falham antes de qualquer step; não há evidência de teste/build executado |
 
 ## 3. Stack e operação
 
@@ -102,7 +102,7 @@ A previsão municipal INMET preserva duas rotas conhecidas: a atual `/api/foreca
 
 `/previsao-15-dias-pelotas` usa chamada independente, somente com campos diários, timeout próprio e estados `live|partial|unavailable`. Dias 1–7 e 8–15 são separados visualmente; a página atende também a intenção de 10 dias sem criar URL redundante. Não existe previsão diária artificial de 30 dias: dias 16–30 só serão publicados quando houver contrato de tendência adequado.
 
-O loader público de 15 dias não exige sucesso conjunto de `getWeatherIntelligence()` e `getPelotasExtendedForecast()`. `src/lib/weather/extended-forecast-page-loader.ts` usa `Promise.allSettled` e degrada cada domínio para seu contrato `unavailable`: falha na inteligência compartilhada não elimina a série estendida e falha da previsão estendida não derruba o shell meteorológico.
+O loader público de 15 dias não exige sucesso conjunto de `getWeatherIntelligence()` e `getPelotasExtendedForecast()`. `src/lib/weather/extended-forecast-page-loader.ts` usa `Promise.allSettled` e degrada cada domínio para seu contrato `unavailable`: falha na inteligência compartilhada não elimina a série estendida e falha da previsão estendida não derruba o shell meteorológico. Em 28/08 foi acrescentado um **budget local de página de 4 s por dependência**, menor que o teto global de 5 s, para liberar o SSR antes de uma integração lenta reter a rota. Esse budget não reduz os timeouts internos das fontes.
 
 ## 6. Observação e fontes oficiais
 
@@ -126,7 +126,7 @@ A rodada de 28/08/2026 corrigiu uma assimetria entre produtos: Radar e STSC já 
 
 `src/lib/redemet/redemet.functions.ts` deixou de usar diretamente o cliente genérico antigo para o satélite realçado. O overview consulta REDEMET e INMET separadamente, com last-good por fonte, orçamento de 4,5 s e seleção posterior por `selectOfficialSatelliteResult()`. Realçado/IR podem usar GOES/INMET como contingência oficial; Visível continua sem fallback infravermelho.
 
-`src/lib/redemet/radar-page-loader.ts` usa `Promise.allSettled`, e `src/lib/redemet/redemet-fallback.ts` mantém radar, satélites e STSC como indisponíveis/sem frames quando a server function falha, sem criar imagem simulada nem eliminar o contexto meteorológico restante.
+`src/lib/redemet/radar-page-loader.ts` usa `Promise.allSettled`, e `src/lib/redemet/redemet-fallback.ts` mantém radar, satélites e STSC como indisponíveis/sem frames quando a server function falha, sem criar imagem simulada nem eliminar o contexto meteorológico restante. O loader público ganhou em 28/08 um **budget local de 4 s por dependência**: o overview REDEMET mantém seu budget interno de 4,5 s e a inteligência meteorológica mantém 5 s, mas a renderização pública não precisa aguardar todo esse teto para degradar o domínio atrasado.
 
 CPPMet/UFPel é contexto regional complementar. SIMAGRO RS permanece como visualização de modelo em meteograma, sem OCR de imagens.
 
@@ -271,11 +271,11 @@ Contratos relevantes versionados:
 
 - `tests/public-route-resilience.test.ts`: recuperação com cache-buster, navegação pública por documento, boundary não fatal, isolamento do mapa, loaders Vento/Chuva, fallback final de Hoje/Amanhã/7 dias/Alertas e budgets atuais da inteligência meteorológica;
 - `tests/home-deferred-hydrology.test.ts`: hidrologia diferida, degradação local do bloco de águas e fallback final da Home;
-- `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada e degradação independente;
+- `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada, degradação independente e budget local de 4 s do loader;
 - `tests/hydrology-overview-page.test.ts`: seis domínios da situação hidrológica com `Promise.allSettled`, preservando referências e Defesa Civil;
 - `tests/seo-guaiba-page.test.ts`: semântica das réguas e fallback de transporte da página do Guaíba;
 - `tests/radar-satellite-retail.test.ts`: REDEMET e meteorologia desacoplados;
-- `tests/redemet-performance.test.ts`: janelas compactas, autenticação operacional de radar, STSC e novo overview de satélite;
+- `tests/redemet-performance.test.ts`: janelas compactas, autenticação operacional de radar/STSC, overview de satélite e budget local de 4 s da página pública de Radar;
 - `tests/source-resilience-regressions.test.ts`: timeout da previsão INMET, contexto HTTP, distinção do 403, proxy JSON/base64 do GOES, autenticação `api_key` do satélite REDEMET e seleção de contingência;
 - `tests/embrapa-station-page.test.ts`: observação, saúde e histórico da Embrapa desacoplados;
 - `tests/frost-monitoring-page.test.ts`: geada observada e meteorologia desacopladas;
@@ -289,13 +289,15 @@ Contratos relevantes versionados:
 - `tests/header-keyboard-accessibility.test.ts`: ARIA/foco e inventário do header;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-O novo contrato regional foi incluído em `test:contracts`. Os gates estão versionados, mas os runs recentes do GitHub Actions continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build, typecheck ou testes aprovados sem execução real.**
+O contrato regional está incluído em `test:contracts`. Em 28/08/2026 a inspeção do run **Qualidade `33150035842`** encontrou o job criado com `conclusion=failure`, porém `steps=[]`; o run agendado **Weather AI snapshots `33176033843`** exibiu o mesmo padrão de job sem steps. O log do job de Qualidade não estava disponível como blob. A evidência é compatível com falha **antes da execução normal do runner**, e não com um teste, build ou typecheck que tenha iniciado e falhado. **Não declarar CI, build, typecheck ou testes aprovados/reprovados sem execução real.** A causa de conta/runner precisa ser resolvida no GitHub antes de a suíte voltar a produzir evidência útil.
 
 ## 18. Deploy e Supabase
 
 `main` é a branch operacional e sincroniza com Lovable. Supabase é externo ao Lovable. Migration versionada só é considerada aplicada após validação no ambiente oficial; publicação de código não prova alteração de banco.
 
 A rodada SEO regional de 28/08 altera conteúdo editorial, BreadcrumbList JSON-LD e contratos de teste das páginas municipais existentes. Não cria rota, migration, Edge Function, secret ou variável de ambiente; não muda sitemap, canonical, coordenadas, código IBGE, fonte meteorológica, cota hidrológica, regra de alerta ou autenticação.
+
+O hardening adicional de latência de 28/08 altera somente os loaders públicos de 15 dias e Radar, seus contratos de teste e a documentação de resiliência. Não altera fonte, autenticação, sitemap, migration, secret ou payload meteorológico; limita a espera do SSR a 4 s por dependência e mantém os budgets internos já calibrados.
 
 ## 19. Qualidade de navegador
 
@@ -315,7 +317,7 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 4. Validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
 5. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
 6. Confirmar no navegador que `/sw.js` não permanece registrado e que caches `tempo-pelotas-*` antigos são removidos.
-7. Restaurar os runners do GitHub Actions e executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
+7. Resolver a falha de provisionamento/execução do GitHub Actions que cria jobs sem steps e então executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
 8. Validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio, inclusive mobile, canonical e sitemap.
 9. Concluir E2E de autenticação com duas contas descartáveis.
 10. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS.
@@ -330,7 +332,7 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 | --- | --- |
 | `MIGRATION_MATRIX.md` | Migração, paridade e pendências históricas |
 | `WEATHER_PAGE_IDENTITY.md` | Identidade das páginas meteorológicas |
-| `docs/PUBLIC_ROUTE_RESILIENCE.md` | Fallbacks e orçamento de latência |
+| `docs/PUBLIC_ROUTE_RESILIENCE.md` | Fallbacks, budgets de fonte e budgets locais de página |
 | `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` | Navegação pública, cache, recuperação, SW aposentado e isolamento de chunks |
 | `docs/REDEMET_OPERATIONS.md` | Operação REDEMET |
 | `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` | Contingências INMET/REDEMET |

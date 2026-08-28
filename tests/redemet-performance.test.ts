@@ -11,6 +11,7 @@ const stormsRoute = readFileSync("src/routes/api/redemet/storms.ts", "utf8");
 const radarServer = readFileSync("src/lib/redemet/redemet-radar.server.ts", "utf8");
 const stormsServer = readFileSync("src/lib/redemet/redemet-stsc.server.ts", "utf8");
 const redemetFunctions = readFileSync("src/lib/redemet/redemet.functions.ts", "utf8");
+const radarPageLoader = readFileSync("src/lib/redemet/radar-page-loader.ts", "utf8");
 const radarPage = readFileSync("src/routes/radar-e-satelite-pelotas.tsx", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
 const cssEntry = readFileSync("src/production/production-styles.css", "utf8");
@@ -46,6 +47,17 @@ test("REDEMET overview requests compact windows without cutting normal upstream 
   assert.match(redemetFunctions, /fetchRedemetStorms\(STORM_FRAME_WINDOW\)/);
   assert.match(redemetFunctions, /selectOfficialSatelliteResult/);
   assert.doesNotMatch(redemetFunctions, /storms:20/);
+});
+
+test("página pública de radar limita a espera SSR sem reduzir o budget interno das fontes", () => {
+  assert.match(radarPageLoader, /PUBLIC_RADAR_PAGE_DEADLINE_MS = 4_000/);
+  assert.match(radarPageLoader, /settlePageDependency/);
+  assert.match(radarPageLoader, /Promise\.race/);
+  assert.match(radarPageLoader, /Promise\.allSettled/);
+  assert.match(radarPageLoader, /getRedemetOverview\(\)/);
+  assert.match(radarPageLoader, /getWeatherIntelligence\(\)/);
+  assert.match(radarPageLoader, /createUnavailableRedemetOverview/);
+  assert.match(radarPageLoader, /createUnavailableWeatherIntelligence/);
 });
 
 test("radar parser keeps only the requested station from the official response shape", () => {
