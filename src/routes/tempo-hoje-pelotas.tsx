@@ -7,7 +7,7 @@ import { TodayRetailHero } from "@/components/weather/TodayRetailHero";
 import { TODAY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
+import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 
 const PAGE_TITLE = "Tempo hoje em Pelotas: temperatura e previsão por hora";
 const PAGE_DESCRIPTION =
@@ -117,7 +117,9 @@ export const Route = createFileRoute("/tempo-hoje-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, TODAY_PAGE_CONTENT.faqs),
     ]),
-  loader: () => loadPublicWeatherPage(),
+  // O documento público abre sem esperar por server functions ou fontes externas.
+  // Após a hidratação, os componentes recuperam a previsão real no navegador.
+  loader: () => createUnavailableWeatherIntelligence(),
   staleTime: 5 * 60 * 1_000,
   component: TempoHojePage,
 });
