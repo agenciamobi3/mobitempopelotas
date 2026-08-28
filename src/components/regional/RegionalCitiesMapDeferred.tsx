@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import {
+  Component,
+  useEffect,
+  useRef,
+  useState,
+  type ErrorInfo,
+  type ReactNode,
+} from "react";
 
 import type { RegionalCityOverviewItem } from "@/lib/weather/regional-cities-overview.types";
 
+import { RegionalCitiesMap } from "./RegionalCitiesMap";
 import "./RegionalCitiesMapDeferred.css";
 import "./RegionalCitiesMapFallback.css";
 
@@ -11,12 +19,18 @@ type RegionalCitiesMapDeferredProps = {
   items: RegionalCityOverviewItem[];
 };
 
-type RegionalMapComponent = ComponentType<RegionalCitiesMapDeferredProps>;
-
 type NavigatorWithConnection = Navigator & {
   connection?: {
     saveData?: boolean;
   };
+};
+
+type RegionalMapErrorBoundaryProps = {
+  children: ReactNode;
+};
+
+type RegionalMapErrorBoundaryState = {
+  failed: boolean;
 };
 
 function observerMargin() {
@@ -25,48 +39,81 @@ function observerMargin() {
   return window.matchMedia("(max-width: 760px)").matches ? "80px 0px" : "180px 0px";
 }
 
+function RegionalMapFallback() {
+  return (
+    <section
+      className="regional-map-deferred__placeholder"
+      aria-label="Mapa regional temporariamente indisponível"
+      role="status"
+    >
+      <div>
+        <span>Mapa regional</span>
+        <strong>A lista de cidades continua disponível.</strong>
+        <small>
+          O mapa interativo não pôde ser aberto neste navegador agora. Use a lista logo abaixo para
+          consultar as mesmas cidades sem interromper a página.
+        </small>
+      </div>
+    </section>
+  );
+}
+
+class RegionalMapErrorBoundary extends Component<
+  RegionalMapErrorBoundaryProps,
+  RegionalMapErrorBoundaryState
+> {
+  state: RegionalMapErrorBoundaryState = { failed: false };
+
+  static getDerivedStateFromError(): RegionalMapErrorBoundaryState {
+    return { failed: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.warn("Mapa regional isolado após falha local:", error, info.componentStack);
+  }
+
+  render() {
+    return this.state.failed ? <RegionalMapFallback /> : this.props.children;
+  }
+}
+
 export function RegionalCitiesMapDeferred({ items }: RegionalCitiesMapDeferredProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [MapComponent, setMapComponent] = useState<RegionalMapComponent | null>(null);
+  const [shouldRenderMap, setShouldRenderMap] = useState(false);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || MapComponent) return;
+    if (!sentinel || shouldRenderMap) return;
 
-    let cancelled = false;
     let observer: IntersectionObserver | null = null;
 
-    const loadMap = () => {
-      if (cancelled || MapComponent) return;
+    const showMap = () => {
       observer?.disconnect();
       observer = null;
-      void import("./RegionalCitiesMap").then((module) => {
-        if (!cancelled) setMapComponent(() => module.RegionalCitiesMap);
-      });
+      setShouldRenderMap(true);
     };
 
     if (typeof IntersectionObserver === "undefined") {
-      loadMap();
+      showMap();
     } else {
       observer = new IntersectionObserver(
         (entries) => {
-          if (entries.some((entry) => entry.isIntersecting)) loadMap();
+          if (entries.some((entry) => entry.isIntersecting)) showMap();
         },
         { rootMargin: observerMargin() },
       );
       observer.observe(sentinel);
     }
 
-    return () => {
-      cancelled = true;
-      observer?.disconnect();
-    };
-  }, [MapComponent]);
+    return () => observer?.disconnect();
+  }, [shouldRenderMap]);
 
   return (
     <div ref={sentinelRef} className="regional-map-deferred">
-      {MapComponent ? (
-        <MapComponent items={items} />
+      {shouldRenderMap ? (
+        <RegionalMapErrorBoundary>
+          <RegionalCitiesMap items={items} />
+        </RegionalMapErrorBoundary>
       ) : (
         <section
           className="regional-map-deferred__placeholder"
