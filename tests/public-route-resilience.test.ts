@@ -78,7 +78,7 @@ test("fontes oficiais possuem budgets individuais abaixo da barreira global", ()
   assert.match(sourcePolicy, /cppmet: 2_800/);
 });
 
-test("open meteo publico prioriza origem direta validada e curta antes da edge", () => {
+test("open meteo publico prioriza origem direta validada e curta antes da contingencia", () => {
   assert.match(openMeteoDirect, /REQUEST_TIMEOUT_MS = 1_800/);
   assert.match(openMeteoDirect, /openMeteoResponseSchema\.safeParse\(payload\)/);
   assert.match(openMeteoDirect, /controller\.abort\(\)/);
@@ -87,17 +87,20 @@ test("open meteo publico prioriza origem direta validada e curta antes da edge",
     openMeteoResilient.indexOf("export async function fetchPelotasWeather"),
   );
   const directIndex = publicFlow.indexOf("fetchOpenMeteoDirect()");
-  const edgeIndex = publicFlow.indexOf("fetchOpenMeteoPayloadViaEdge()");
-  assert.ok(directIndex >= 0 && edgeIndex > directIndex);
+  const fallbackIndex = publicFlow.indexOf("fetchOpenMeteoPayloadViaEdge()");
+  assert.ok(directIndex >= 0 && fallbackIndex > directIndex);
   assert.match(publicFlow, /if \(direct\.status !== "unavailable"\) return direct/);
   assert.match(publicFlow, /return direct;/);
 });
 
-test("contingencia edge possui budget unico realista incluindo consulta ao supabase", () => {
-  assert.match(openMeteoEdge, /REQUEST_TIMEOUT_MS = 1_600/);
-  assert.match(openMeteoEdge, /const signal = AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
-  assert.match(openMeteoEdge, /\.abortSignal\(signal\)/);
-  assert.match(openMeteoEdge, /signal,/);
+test("contingencia Open-Meteo lê cache persistido antes de configuração e Edge", () => {
+  assert.match(openMeteoEdge, /CACHE_READ_TIMEOUT_MS = 1_200/);
+  assert.match(openMeteoEdge, /SETTINGS_READ_TIMEOUT_MS = 1_200/);
+  assert.match(openMeteoEdge, /EDGE_REQUEST_TIMEOUT_MS = 1_600/);
+  assert.match(openMeteoEdge, /weather_provider_payload_cache/);
+  assert.match(openMeteoEdge, /readPersistedPayload/);
+  assert.match(openMeteoEdge, /forecastPayloadSchema\.safeParse\(data\.payload\)/);
+  assert.match(openMeteoEdge, /if \(persisted\) return persisted/);
   assert.doesNotMatch(openMeteoEdge, /REQUEST_TIMEOUT_MS = 35_000/);
 });
 
