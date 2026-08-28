@@ -14,7 +14,9 @@ type MegaMenuId = "forecast" | "monitoring" | "water" | "region" | "explore";
 type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
+  | "/enchente-1941-pelotas"
   | "/enchente-2024-pelotas-laranjal"
+  | "/previsao-15-dias-pelotas"
   | "/status-dos-dados"
   | "/tempo-na-regiao-sul-rs";
 
@@ -50,11 +52,12 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
   {
     id: "forecast",
     label: "Previsão",
-    summary: "Planejamento do dia, da semana e leitura hora a hora.",
+    summary: "Planejamento do dia, da semana e do horizonte estendido.",
     activePaths: [
       "/tempo-hoje-pelotas",
       "/tempo-amanha-pelotas",
       "/previsao-7-dias-pelotas",
+      "/previsao-15-dias-pelotas",
       "/chuva-em-pelotas",
       "/vento-em-pelotas",
       "/meteograma-pelotas",
@@ -78,6 +81,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             label: "Próximos 7 dias",
             to: "/previsao-7-dias-pelotas",
             description: "Tendência completa da semana em Pelotas.",
+          },
+          {
+            label: "Próximos 15 dias",
+            to: "/previsao-15-dias-pelotas",
+            description: "Tendência estendida, com incerteza crescente no horizonte.",
           },
           {
             label: "Meteograma",
@@ -155,10 +163,12 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
   {
     id: "water",
     label: "Águas",
-    summary: "Lagoa dos Patos, rede regional e memória das cheias.",
+    summary: "Lagoa dos Patos, Guaíba, rede regional e memória das cheias.",
     activePaths: [
       "/situacao-hidrologica-pelotas",
       "/nivel-da-lagoa-dos-patos-laranjal",
+      "/nivel-do-guaiba",
+      "/enchente-1941-pelotas",
       "/enchente-2024-pelotas-laranjal",
     ],
     featured: {
@@ -177,6 +187,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             description: "Leitura local, tendência e contexto da Lagoa dos Patos.",
           },
           {
+            label: "Nível do Guaíba",
+            to: "/nivel-do-guaiba",
+            description: "Leitura regional do Guaíba com referência própria das estações.",
+          },
+          {
             label: "Situação das águas",
             to: "/situacao-hidrologica-pelotas",
             description: "Visão integrada da rede hidrológica regional.",
@@ -186,6 +201,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       {
         title: "Memória e contexto",
         links: [
+          {
+            label: "Enchente de 1941",
+            to: "/enchente-1941-pelotas",
+            description: "Registro documental da cheia histórica em Pelotas e no São Gonçalo.",
+          },
           {
             label: "Enchente de 2024",
             to: "/enchente-2024-pelotas-laranjal",
