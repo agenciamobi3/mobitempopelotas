@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   HeadContent,
-  Link,
   Outlet,
   Scripts,
   createRootRouteWithContext,
@@ -13,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ViewportScrollRoot } from "@/components/layout/ViewportScrollRoot";
 import { MobiTicketWidgetLoader } from "@/components/mobi-ticket/MobiTicketWidgetLoader";
+import { PublicDocumentNavigationGuard } from "@/components/navigation/PublicDocumentNavigationGuard";
 import { RouteLoadingOverlay } from "@/components/navigation/RouteLoadingOverlay";
 import { PwaAppExperience } from "@/components/pwa/PwaAppExperience";
 import { PwaManager } from "@/components/pwa/PwaManager";
@@ -107,9 +107,9 @@ function NotFoundComponent() {
         <p className="status-kicker">Erro 404</p>
         <h1 id="not-found-title">Página não encontrada</h1>
         <p>O endereço acessado não existe ou foi alterado.</p>
-        <Link className="primary-link" to="/">
+        <a className="primary-link" href="/">
           Voltar para o início
-        </Link>
+        </a>
       </section>
     </SiteLayout>
   );
@@ -125,21 +125,35 @@ function ErrorComponent({ error }: { error: Error; reset: () => void }) {
 
   return (
     <SiteLayout forceShell>
-      <section className="status-page" aria-labelledby="error-title">
-        <p className="status-kicker">Erro inesperado</p>
-        <h1 id="error-title">Não foi possível carregar esta página</h1>
-        <p>Ocorreu um erro inesperado. Tente novamente ou retorne para a página inicial.</p>
+      <section className="status-page" aria-labelledby="recovery-title" role="status">
+        <p className="status-kicker">Atualização de conteúdo</p>
+        <h1 id="recovery-title">Carregando a versão mais recente do Tempo Pelotas</h1>
+        <p>
+          O portal está sincronizando esta navegação com a versão publicada. Se a atualização
+          automática não concluir, os atalhos abaixo continuam disponíveis por carregamento direto.
+        </p>
         <div className="status-actions">
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => window.location.reload()}
-          >
-            Tentar novamente
-          </button>
-          <Link className="secondary-link" to="/">
-            Voltar para o início
-          </Link>
+          <a className="primary-link" href="/">
+            Tempo agora
+          </a>
+          <a className="secondary-link" href="/tempo-hoje-pelotas">
+            Tempo hoje
+          </a>
+          <a className="secondary-link" href="/previsao-7-dias-pelotas">
+            7 dias
+          </a>
+          <a className="secondary-link" href="/chuva-em-pelotas">
+            Chuva
+          </a>
+          <a className="secondary-link" href="/radar-e-satelite-pelotas">
+            Radar
+          </a>
+          <a className="secondary-link" href="/situacao-hidrologica-pelotas">
+            Situação das águas
+          </a>
+          <a className="secondary-link" href="/tempo-na-regiao-sul-rs">
+            Região Sul do RS
+          </a>
         </div>
       </section>
     </SiteLayout>
@@ -240,6 +254,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <PublicDocumentNavigationGuard />
       <GoogleAnalyticsLoader />
       <GoogleAnalyticsPageviews />
       <WeatherMinuteRefresh />
