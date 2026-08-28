@@ -1,37 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { HOME_EDITORIAL_CONTENT } from "@/lib/editorial-content";
-import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
-import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
-import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import { ProductionHome, type HomeHydrologyResult } from "@/production/ProductionHome";
 
 const PAGE_TITLE = "Tempo agora em Pelotas: temperatura, chuva e previsão";
 const PAGE_DESCRIPTION =
   "Veja o tempo agora em Pelotas com temperatura atual, sensação térmica, próximas horas, chuva, vento, previsão para 7 e 15 dias, radar, alertas do INMET e situação das águas.";
 const PAGE_PATH = "/";
-const HOME_WEATHER_DEADLINE_MS = 2_500;
-const HOME_HYDROLOGY_DEADLINE_MS = 3_500;
 
-async function settleWithin<T>(promise: Promise<T>, fallback: () => T, timeoutMs: number) {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
+function createInitialHomeData() {
+  const hydrology: Promise<HomeHydrologyResult> = Promise.resolve({
+    status: "unavailable" as const,
+  });
 
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((resolve) => {
-        timeout = setTimeout(() => resolve(fallback()), timeoutMs);
-      }),
-    ]);
-  } catch {
-    return fallback();
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
+  return {
+    weather: createUnavailableWeatherIntelligence(),
+    hydrology,
+  };
 }
 
 export const Route = createFileRoute("/")({
@@ -62,30 +50,10 @@ export const Route = createFileRoute("/")({
       }),
       createFaqPageJsonLd(PAGE_PATH, HOME_EDITORIAL_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const hydrology: Promise<HomeHydrologyResult> = settleWithin(
-      Promise.all([
-        getLaranjalLevelData(),
-        getGuaibaObservation(),
-        getLagoonMonitoringNetwork(),
-      ]).then(([laranjal, guaiba, lagoon]) => ({
-        status: "ready" as const,
-        laranjal,
-        guaiba,
-        lagoon,
-      })),
-      () => ({ status: "unavailable" as const }),
-      HOME_HYDROLOGY_DEADLINE_MS,
-    );
-
-    const weather = await settleWithin(
-      getWeatherIntelligence(),
-      createUnavailableWeatherIntelligence,
-      HOME_WEATHER_DEADLINE_MS,
-    );
-
-    return { weather, hydrology };
-  },
+  // P0 de estabilidade: o primeiro documento nunca consulta fonte externa.
+  // A Home hidrata com contrato auditável e a recuperação meteorológica do
+  // navegador preenche a previsão depois que o HTML já existe.
+  loader: () => createInitialHomeData(),
   staleTime: 60 * 1_000,
   component: HomePage,
 });
