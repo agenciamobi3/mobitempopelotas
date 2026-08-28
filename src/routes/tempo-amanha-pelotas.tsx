@@ -6,7 +6,7 @@ import { TomorrowForecastPageV3 } from "@/components/weather/TomorrowForecastPag
 import { TomorrowRetailHero } from "@/components/weather/TomorrowRetailHero";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
+import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 
 const PAGE_TITLE = "Tempo amanhã em Pelotas: temperatura, chuva e vento";
 const PAGE_DESCRIPTION =
@@ -99,7 +99,9 @@ export const Route = createFileRoute("/tempo-amanha-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, TOMORROW_PAGE_CONTENT.faqs),
     ]),
-  loader: () => loadPublicWeatherPage(),
+  // O primeiro HTML é independente das integrações; a previsão é recuperada no
+  // navegador depois que a rota já está disponível para o visitante.
+  loader: () => createUnavailableWeatherIntelligence(),
   staleTime: 5 * 60 * 1_000,
   component: TempoAmanhaPage,
 });
