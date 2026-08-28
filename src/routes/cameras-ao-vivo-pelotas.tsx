@@ -4,10 +4,12 @@ import { CameraPageHero, CameraPageV2 } from "@/components/cameras/CameraPageV2"
 import "@/components/cameras/CameraPageHomeContract.css";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
+import { createUnavailableWeatherCameras } from "@/lib/cameras/cameras-fallback";
 import { getWeatherCameras } from "@/lib/cameras/cameras.functions";
 import { CAMERAS_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Câmeras do Laranjal e de Pelotas";
@@ -105,11 +107,21 @@ export const Route = createFileRoute("/cameras-ao-vivo-pelotas")({
       createFaqPageJsonLd(PAGE_PATH, CAMERAS_PAGE_CONTENT.faqs),
     ]),
   loader: async () => {
-    const [cameraData, weather] = await Promise.all([
+    const [cameraResult, weatherResult] = await Promise.allSettled([
       getWeatherCameras(),
       getWeatherIntelligence(),
     ]);
-    return { cameraData, weather };
+
+    return {
+      cameraData:
+        cameraResult.status === "fulfilled"
+          ? cameraResult.value
+          : createUnavailableWeatherCameras(),
+      weather:
+        weatherResult.status === "fulfilled"
+          ? weatherResult.value
+          : createUnavailableWeatherIntelligence(),
+    };
   },
   staleTime: 3 * 60 * 1_000,
   component: CamerasPage,
