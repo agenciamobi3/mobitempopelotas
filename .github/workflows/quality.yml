@@ -44,6 +44,9 @@ jobs:
       - name: Contratos rápidos
         run: npm run test:contracts
 
+      - name: Histórico do status de dados
+        run: node --test tests/data-status-history.test.ts
+
       - name: Resiliência das rotas públicas
         run: node --test tests/public-route-resilience.test.ts
 

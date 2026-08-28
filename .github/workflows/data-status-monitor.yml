@@ -2,7 +2,6 @@ name: Data source status monitor
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
     # 07:30 em America/Sao_Paulo: smoke diário de segurança em produção.
     - cron: "30 10 * * *"
   workflow_dispatch:
@@ -19,6 +18,7 @@ on:
       - src/lib/status/**
       - src/routes/api/cron/data-status.ts
       - supabase/migrations/*data_source_status_history.sql
+      - supabase/migrations/*data_status_supabase_scheduler.sql
       - supabase/migrations/*security_rate_limits.sql
 
 permissions:
@@ -32,6 +32,7 @@ concurrency:
 jobs:
   collect:
     name: Collect and persist source status
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

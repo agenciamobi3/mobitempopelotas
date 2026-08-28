@@ -10,12 +10,14 @@ import {
 } from "@/lib/access-observability.server";
 import { hasBearerSecret, pushJsonResponse } from "@/lib/push/push-http.server";
 import { probeDistributedSecurityRateLimiter } from "@/lib/security/request-firewall.server";
+import { authorizeDataStatusCollectorToken } from "@/lib/status/data-status-collector-auth.server";
 import { collectDataStatus } from "@/lib/status/data-status.server";
 import { recordDataStatusOverview } from "@/lib/status/data-status-storage.server";
 
 async function isAuthorized(request: Request) {
   const cronSecret = process.env.CRON_SECRET?.trim();
   if (hasBearerSecret(request, cronSecret)) return true;
+  if (await authorizeDataStatusCollectorToken(request)) return true;
 
   const oidcVerification = await verifyDataStatusGithubActionsRequest(request);
   if (oidcVerification.valid) return true;
