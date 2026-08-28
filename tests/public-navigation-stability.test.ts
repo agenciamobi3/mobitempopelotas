@@ -18,6 +18,7 @@ const navigationGuard = readFileSync(
   "src/components/navigation/PublicDocumentNavigationGuard.tsx",
   "utf8",
 );
+const router = readFileSync("src/router.tsx", "utf8");
 
 test("portal público não invalida a árvore inteira a cada minuto", () => {
   assert.doesNotMatch(minuteRefresh, /router\.invalidate\(/);
@@ -27,6 +28,12 @@ test("portal público não invalida a árvore inteira a cada minuto", () => {
 test("navegação pública preserva carregamento de documento completo", () => {
   assert.match(navigationGuard, /window\.location\.assign\(destination\.href\)/);
   assert.match(navigationGuard, /document\.addEventListener\("click", handleClick, true\)/);
+});
+
+test("router não dispara loader público por hover ou foco antes do clique", () => {
+  assert.match(router, /defaultPreload:\s*false/);
+  assert.doesNotMatch(router, /defaultPreload:\s*"intent"/);
+  assert.doesNotMatch(router, /defaultPreloadDelay/);
 });
 
 test("loaders meteorológicos e hidrológicos possuem teto curto de documento", () => {
