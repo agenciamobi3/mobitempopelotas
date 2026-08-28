@@ -6,6 +6,10 @@ const routeSource = readFileSync(
   new URL("../src/routes/nivel-do-guaiba.tsx", import.meta.url),
   "utf8",
 );
+const loaderSource = readFileSync(
+  new URL("../src/lib/hydrology/public-hydrology-page-loader.ts", import.meta.url),
+  "utf8",
+);
 const pageSource = readFileSync(
   new URL("../src/components/hydrology/GuaibaLevelPage.tsx", import.meta.url),
   "utf8",
@@ -21,6 +25,16 @@ test("publica uma única URL canônica para a intenção nível do Guaíba", () 
   assert.match(publicRoutesSource, /path: "\/nivel-do-guaiba"/);
   assert.doesNotMatch(publicRoutesSource, /nivel-do-guaiba-hoje/);
   assert.doesNotMatch(publicRoutesSource, /nivel-guaiba-porto-alegre/);
+});
+
+test("protege a página contra rejeição de transporte da server function", () => {
+  assert.match(routeSource, /loadGuaibaPageData/);
+  assert.match(routeSource, /loader: \(\) => loadGuaibaPageData\(\)/);
+  assert.match(loaderSource, /export async function loadGuaibaPageData/);
+  assert.match(loaderSource, /await getGuaibaObservation\(\)/);
+  assert.match(loaderSource, /createUnavailableGuaibaObservationData\(\)/);
+  assert.match(loaderSource, /status: "unavailable"/);
+  assert.match(loaderSource, /currentLevel: null/);
 });
 
 test("separa Cais Mauá e Gasômetro como referências próprias", () => {
