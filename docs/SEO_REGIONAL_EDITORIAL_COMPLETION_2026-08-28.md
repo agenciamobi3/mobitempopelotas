@@ -83,6 +83,16 @@ Para evitar inflar ainda mais o catálogo inicial, os 12 novos perfis foram orga
 
 O helper existente `src/lib/regional-city-editorial.ts` combina o catálogo anterior com essa expansão. A interface pública para title, description e perfil editorial permanece a mesma para os componentes regionais.
 
+## Dados estruturados e breadcrumb
+
+As páginas municipais já expunham `WebPage` com entidade `Place` e `GeoCoordinates`. Nesta rodada foi acrescentado também um `BreadcrumbList` coerente com a navegação pública:
+
+`Tempo Pelotas → Tempo na Região Sul → Tempo em <município>`
+
+O breadcrumb usa o helper compartilhado `createBreadcrumbListJsonLd` e serialização por `serializeJsonLd`, evitando duplicar lógica de schema e mantendo a trilha ligada às URLs canônicas já existentes.
+
+Nenhum `FAQPage` foi adicionado.
+
 ## Contrato automatizado
 
 Foi criado:
@@ -97,6 +107,8 @@ O teste verifica que:
 - hero e introdução possuem conteúdo mínimo útil;
 - cada perfil possui pelo menos quatro fatos/orientações;
 - introduções e títulos editoriais não são repetidos entre municípios;
+- o breadcrumb estruturado mantém a sequência Home → Região → Município;
+- a serialização de JSON-LD usa o helper compartilhado;
 - FAQ massificado continua ausente da página regional.
 
 O teste foi incluído em `test:contracts`.
