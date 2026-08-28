@@ -37,6 +37,17 @@ test("previsão estendida preserva ausência e diferencia janela parcial", () =>
   assert.doesNotMatch(extendedServer, /windGust:\s*.*\?\?\s*0/);
 });
 
+test("previsão estendida usa contingência Edge como janela parcial quando a consulta direta falha", () => {
+  assert.match(extendedServer, /fetchOpenMeteoPayloadViaEdge/);
+  assert.match(extendedServer, /fetchExtendedForecastEdgeFallback/);
+  assert.match(extendedServer, /edge\.payload/);
+  assert.match(extendedServer, /edge\.fetchedAt/);
+  assert.match(extendedServer, /normalizeExtendedForecast\(parsed\.data\)/);
+  assert.match(extendedServer, /consulta direta de 15 dias não respondeu/);
+  assert.match(extendedServer, /dias preservados pela contingência Open-Meteo/);
+  assert.doesNotMatch(extendedServer, /requestedDays:\s*7/);
+});
+
 test("função pública da previsão estendida possui cache próprio", () => {
   assert.match(extendedFunctions, /max-age=300, stale-while-revalidate=300/);
   assert.match(extendedFunctions, /fetchPelotasExtendedForecast/);

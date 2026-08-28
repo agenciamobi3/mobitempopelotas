@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import type { ExtendedForecastData } from "./extended-forecast.types";
+import { fetchOpenMeteoPayloadViaEdge } from "./open-meteo-edge.server";
 import type { DailyForecast, WeatherIconName } from "./types";
 
 const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
@@ -49,7 +50,7 @@ function weatherCodeToIcon(code: number | null | undefined): WeatherIconName {
   if (code === 0) return "sun";
   if (code === 1 || code === 2) return "partly-cloudy";
   if (code === 3 || code === 45 || code === 48) return "cloud";
-  if ((code !== null && code !== undefined && code >= 51 && code <= 86)) return "rain";
+  if (code !== null && code !== undefined && code >= 51 && code <= 86) return "rain";
   if (code !== null && code !== undefined && code >= 95) return "storm";
   return "cloud";
 }
@@ -184,6 +185,46 @@ function logExtendedForecastError(error: unknown) {
   });
 }
 
+function logInvalidPayload(prefix: string, error: z.ZodError) {
+  console.error(prefix, {
+    issues: error.issues.slice(0, 10).map((issue) => ({
+      path: issue.path.join("."),
+      message: issue.message,
+    })),
+  });
+}
+
+async function fetchExtendedForecastEdgeFallback(): Promise<ExtendedForecastData | null> {
+  try {
+    const edge = await fetchOpenMeteoPayloadViaEdge();
+    const parsed = extendedForecastResponseSchema.safeParse(edge.payload);
+    if (!parsed.success) {
+      logInvalidPayload(
+        "[weather/extended-forecast] Contingência Edge sem série diária compatível",
+        parsed.error,
+      );
+      return null;
+    }
+
+    const fallback = normalizeExtendedForecast(parsed.data);
+    if (fallback.status === "unavailable") return null;
+
+    return {
+      ...fallback,
+      source: {
+        ...fallback.source,
+        fetchedAt: edge.fetchedAt ?? fallback.source.fetchedAt,
+      },
+      message: `A consulta direta de 15 dias não respondeu; exibindo ${fallback.days.length} dias preservados pela contingência Open-Meteo.`,
+    };
+  } catch (error) {
+    console.warn("[weather/extended-forecast] Contingência Edge indisponível", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
 export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastData> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
@@ -205,22 +246,29 @@ export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastDa
     const payload: unknown = await response.json();
     const parsed = extendedForecastResponseSchema.safeParse(payload);
     if (!parsed.success) {
-      console.error("[weather/extended-forecast] Resposta inválida", {
-        issues: parsed.error.issues.slice(0, 10).map((issue) => ({
-          path: issue.path.join("."),
-          message: issue.message,
-        })),
-      });
-      return createUnavailableExtendedForecast(
-        "A previsão estendida foi recebida, mas não pôde ser processada.",
+      logInvalidPayload("[weather/extended-forecast] Resposta inválida", parsed.error);
+      const fallback = await fetchExtendedForecastEdgeFallback();
+      return (
+        fallback ??
+        createUnavailableExtendedForecast(
+          "A previsão estendida foi recebida, mas não pôde ser processada.",
+        )
       );
     }
 
-    return normalizeExtendedForecast(parsed.data);
+    const direct = normalizeExtendedForecast(parsed.data);
+    if (direct.status !== "unavailable") return direct;
+
+    const fallback = await fetchExtendedForecastEdgeFallback();
+    return fallback ?? direct;
   } catch (error) {
     logExtendedForecastError(error);
-    return createUnavailableExtendedForecast(
-      "A previsão de 15 dias está temporariamente indisponível.",
+    const fallback = await fetchExtendedForecastEdgeFallback();
+    return (
+      fallback ??
+      createUnavailableExtendedForecast(
+        "A previsão de 15 dias está temporariamente indisponível.",
+      )
     );
   } finally {
     clearTimeout(timeout);

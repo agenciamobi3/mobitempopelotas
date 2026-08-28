@@ -62,18 +62,20 @@ As duas rotas continuam usando `Promise.allSettled` e preservam degradação ind
 
 Esse budget local **não reduz** os deadlines internos das fontes e não afirma que a fonte pública esteja indisponível. Ele limita apenas o quanto aquela renderização pública espera antes de usar um contrato já previsto como `unavailable`.
 
+A rota de 15 dias possui ainda uma contingência sequencial dentro desse teto. A tentativa direta diária de 15 dias usa 2,2 s; se falhar, `fetchOpenMeteoPayloadViaEdge()` pode fornecer o payload Open-Meteo compartilhado preservado em Supabase. Como a Edge atual coleta 7 dias, a rota reutiliza somente os dias reais compatíveis e publica estado `partial`, mantendo `requestedDays: 15`. Nenhum dia 8–15 é extrapolado.
+
 ### 2.2. Open-Meteo direto antes de Edge/Supabase
 
-A navegação pública não consulta mais Supabase/Edge antes da origem meteorológica principal.
+A navegação pública comum não consulta Supabase/Edge antes da origem meteorológica principal.
 
-O fluxo é:
+O fluxo compartilhado é:
 
 1. consultar Open-Meteo diretamente com timeout curto e validação de schema;
 2. se a resposta for utilizável, retornar imediatamente;
 3. somente se a origem direta estiver `unavailable`, tentar a contingência `open-meteo-forecast`;
 4. se a contingência também falhar, preservar o estado `unavailable` da origem direta.
 
-Isso retira banco e Edge Function do caminho comum de uma pageview saudável sem eliminar a contingência já existente.
+A previsão estendida segue a mesma prioridade, mas mantém contrato próprio: primeiro tenta 15 dias diretamente; somente na falha reutiliza o cache de 7 dias da Edge como janela parcial. Isso retira banco e Edge Function do caminho comum de uma pageview saudável sem eliminar a contingência já existente.
 
 ### 2.3. Embrapa cache-first no pageview
 
@@ -146,7 +148,7 @@ A recuperação de chunks antigos permanece necessária como segunda causa poss�
 
 `tests/public-route-resilience.test.ts` cobre o fallback meteorológico, a barreira global atual de 5 s, budgets das fontes, recuperação de runtime, navegação pública por documento, isolamento do mapa e loaders meteorológicos básicos.
 
-`tests/fifteen-day-forecast.test.ts` protege a consulta estendida dedicada, a degradação independente e o budget local de 4 s do loader público de 15 dias.
+`tests/fifteen-day-forecast.test.ts` protege a consulta estendida dedicada, a degradação independente, a contingência Edge como janela parcial e o budget local de 4 s do loader público de 15 dias.
 
 `tests/redemet-performance.test.ts` protege os budgets internos do overview REDEMET e o budget local de 4 s da página pública de Radar, mantendo explícita a diferença entre latência upstream e tempo máximo de espera do SSR.
 
