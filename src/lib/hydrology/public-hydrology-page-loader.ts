@@ -11,6 +11,25 @@ import type { SaceGuaibaData } from "./sace-guaiba.server";
 import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
+const PUBLIC_HYDROLOGY_PAGE_DEADLINE_MS = 2_500;
+
+async function settlePageDependency<T>(promise: Promise<T>, fallback: () => T): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeout = setTimeout(() => resolve(fallback()), PUBLIC_HYDROLOGY_PAGE_DEADLINE_MS);
+      }),
+    ]);
+  } catch {
+    return fallback();
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 export function createUnavailableLaranjalLevelData(): LaranjalLevelData {
   return {
     status: "unavailable",
@@ -133,64 +152,35 @@ export function createUnavailableDefesaCivilHydroData(): DefesaCivilHydroData {
 }
 
 export async function loadGuaibaPageData() {
-  try {
-    return { guaiba: await getGuaibaObservation() };
-  } catch {
-    return { guaiba: createUnavailableGuaibaObservationData() };
-  }
+  return {
+    guaiba: await settlePageDependency(
+      getGuaibaObservation(),
+      createUnavailableGuaibaObservationData,
+    ),
+  };
 }
 
 export async function loadLaranjalHydrologyPageData() {
-  const [weatherResult, levelResult] = await Promise.allSettled([
-    getWeatherIntelligence(),
-    getLaranjalLevelData(),
+  const [weather, level] = await Promise.all([
+    settlePageDependency(getWeatherIntelligence(), createUnavailableWeatherIntelligence),
+    settlePageDependency(getLaranjalLevelData(), createUnavailableLaranjalLevelData),
   ]);
 
-  return {
-    weather:
-      weatherResult.status === "fulfilled"
-        ? weatherResult.value
-        : createUnavailableWeatherIntelligence(),
-    level:
-      levelResult.status === "fulfilled"
-        ? levelResult.value
-        : createUnavailableLaranjalLevelData(),
-  };
+  return { weather, level };
 }
 
 export async function loadHydrologyOverviewPageData() {
-  const [weatherResult, levelResult, guaibaResult, lagoonResult, saceResult, defesaCivilResult] =
-    await Promise.allSettled([
-      getWeatherIntelligence(),
-      getLaranjalLevelData(),
-      getGuaibaObservation(),
+  const [weather, level, guaiba, lagoon, sace, defesaCivil] = await Promise.all([
+    settlePageDependency(getWeatherIntelligence(), createUnavailableWeatherIntelligence),
+    settlePageDependency(getLaranjalLevelData(), createUnavailableLaranjalLevelData),
+    settlePageDependency(getGuaibaObservation(), createUnavailableGuaibaObservationData),
+    settlePageDependency(
       getLagoonMonitoringNetwork(),
-      getSaceGuaibaData(),
-      getDefesaCivilHydroData(),
-    ]);
+      createUnavailableLagoonMonitoringNetworkData,
+    ),
+    settlePageDependency(getSaceGuaibaData(), createUnavailableSaceGuaibaData),
+    settlePageDependency(getDefesaCivilHydroData(), createUnavailableDefesaCivilHydroData),
+  ]);
 
-  return {
-    weather:
-      weatherResult.status === "fulfilled"
-        ? weatherResult.value
-        : createUnavailableWeatherIntelligence(),
-    level:
-      levelResult.status === "fulfilled"
-        ? levelResult.value
-        : createUnavailableLaranjalLevelData(),
-    guaiba:
-      guaibaResult.status === "fulfilled"
-        ? guaibaResult.value
-        : createUnavailableGuaibaObservationData(),
-    lagoon:
-      lagoonResult.status === "fulfilled"
-        ? lagoonResult.value
-        : createUnavailableLagoonMonitoringNetworkData(),
-    sace:
-      saceResult.status === "fulfilled" ? saceResult.value : createUnavailableSaceGuaibaData(),
-    defesaCivil:
-      defesaCivilResult.status === "fulfilled"
-        ? defesaCivilResult.value
-        : createUnavailableDefesaCivilHydroData(),
-  };
+  return { weather, level, guaiba, lagoon, sace, defesaCivil };
 }
