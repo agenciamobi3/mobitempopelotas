@@ -11,14 +11,9 @@ import {
 import "@/components/hydrology/HydrologyOverviewHomeContract.css";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { HYDROLOGY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
-import { getDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.functions";
-import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
-import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
-import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
-import { getSaceGuaibaData } from "@/lib/hydrology/sace-guaiba.functions";
+import { loadHydrologyOverviewPageData } from "@/lib/hydrology/public-hydrology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Enchente em Pelotas hoje? Situação das águas e níveis";
 const PAGE_DESCRIPTION =
@@ -157,17 +152,7 @@ export const Route = createFileRoute("/situacao-hidrologica-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, HYDROLOGY_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [weather, level, guaiba, lagoon, sace, defesaCivil] = await Promise.all([
-      getWeatherIntelligence(),
-      getLaranjalLevelData(),
-      getGuaibaObservation(),
-      getLagoonMonitoringNetwork(),
-      getSaceGuaibaData(),
-      getDefesaCivilHydroData(),
-    ]);
-    return { weather, level, guaiba, lagoon, sace, defesaCivil };
-  },
+  loader: () => loadHydrologyOverviewPageData(),
   staleTime: 60 * 1_000,
   component: SituacaoHidrologicaPage,
 });
@@ -181,18 +166,10 @@ function SituacaoHidrologicaPage() {
       pageClassName="internal-weather-shell--hydrology"
       showOfficialAlerts={false}
       hero={() => (
-        <HydrologyOverviewHero
-          level={data.level}
-          lagoon={data.lagoon}
-          sace={data.sace}
-        />
+        <HydrologyOverviewHero level={data.level} lagoon={data.lagoon} sace={data.sace} />
       )}
     >
-      <HydrologyCurrentSituationAnswer
-        level={data.level}
-        lagoon={data.lagoon}
-        sace={data.sace}
-      />
+      <HydrologyCurrentSituationAnswer level={data.level} lagoon={data.lagoon} sace={data.sace} />
       <HydrologyOverviewV2
         weather={data.weather}
         level={data.level}
