@@ -1,6 +1,7 @@
 "use client";
 
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
+import type { AnchorHTMLAttributes } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { AuthAccountAction } from "@/components/auth/AuthAccountAction";
@@ -47,6 +48,27 @@ type HeaderMenuDefinition = {
     links: readonly HeaderMenuLink[];
   }[];
 };
+
+type PublicHeaderLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
+  to: string;
+  params?: Record<string, string>;
+};
+
+/**
+ * O menu principal do portal público usa navegação nativa de documento.
+ * Mantemos a assinatura `to`/`params` localmente para que o inventário editorial
+ * continue tipado, sem envolver o TanStack Link, preload ou transição SPA.
+ */
+function Link({ to, params, ...props }: PublicHeaderLinkProps) {
+  const href = params
+    ? Object.entries(params).reduce(
+        (resolved, [key, value]) => resolved.replace(`$${key}`, encodeURIComponent(value)),
+        to,
+      )
+    : to;
+
+  return <a {...props} href={href} />;
+}
 
 const megaMenus: readonly HeaderMenuDefinition[] = [
   {
