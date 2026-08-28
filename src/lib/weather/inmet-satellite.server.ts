@@ -8,7 +8,7 @@ const OFFICIAL_URL = "https://satelite.inmet.gov.br/";
 const SATELLITE = "GOES";
 const AREA = "S";
 const PRODUCT = "IV";
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 6_000;
 const IMAGE_PROXY_PATH = "/api/redemet/image";
 const SOUTH_BOUNDS = { west: -58.8, south: -35.2, east: -47.0, north: -22.0 };
 
@@ -79,15 +79,43 @@ function imageProxyUrl(date: string, hour: string) {
   return `${IMAGE_PROXY_PATH}?${params.toString()}`;
 }
 
-async function fetchJson(path: string) {
-  const response = await fetch(new URL(path.replace(/^\//, ""), API_ROOT), {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "TEMPO-Pelotas/2.0 (+https://tempopelotas.com.br)",
-    },
+function browserHeaders(includeOrigin = true) {
+  return {
+    Accept: "application/json, text/plain, */*",
+    "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.7",
+    ...(includeOrigin ? { Origin: "https://satelite.inmet.gov.br" } : {}),
+    Referer: OFFICIAL_URL,
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+  };
+}
+
+async function requestJson(url: URL, includeOrigin: boolean) {
+  return fetch(url, {
+    headers: browserHeaders(includeOrigin),
+    redirect: "follow",
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
-  if (!response.ok) throw new Error(`INMET Satélite respondeu com HTTP ${response.status}.`);
+}
+
+async function fetchJson(path: string) {
+  const url = new URL(path.replace(/^\//, ""), API_ROOT);
+  let response = await requestJson(url, true);
+
+  // Alguns gateways públicos variam a política de CORS/WAF para chamadas server-side.
+  // Em 403 tentamos uma vez sem Origin, preservando Referer e perfil de navegador.
+  if (response.status === 403) {
+    response = await requestJson(url, false);
+  }
+
+  if (!response.ok) {
+    const suffix =
+      response.status === 403
+        ? " O endpoint recusou a integração server-side; isso não confirma indisponibilidade do portal público do INMET."
+        : "";
+    throw new Error(`A integração de satélite do INMET recebeu HTTP ${response.status}.${suffix}`);
+  }
+
   return (await response.json()) as unknown;
 }
 
@@ -119,7 +147,9 @@ export async function fetchInmetSatellite(frameCount = 10): Promise<RedemetImage
       .filter((date, index, all) => all.findIndex((item) => item.raw === date.raw) === index)
       .sort((first, second) => first.iso.localeCompare(second.iso));
     const latestDate = dates.at(-1);
-    if (!latestDate) throw new Error("O INMET não informou datas disponíveis para o satélite GOES.");
+    if (!latestDate) {
+      throw new Error("A integração recebeu resposta do INMET, mas não reconheceu datas de satélite GOES.");
+    }
 
     const hoursPayload = await fetchJson(
       `horas/${SATELLITE}/${AREA}/${PRODUCT}/${encodeURIComponent(latestDate.raw)}`,
@@ -132,7 +162,9 @@ export async function fetchInmetSatellite(frameCount = 10): Promise<RedemetImage
       .filter((hour, index, all) => all.findIndex((item) => item.raw === hour.raw) === index)
       .sort((first, second) => first.hour * 60 + first.minute - (second.hour * 60 + second.minute))
       .slice(-requested);
-    if (!hours.length) throw new Error("O INMET não informou horários disponíveis para o satélite GOES.");
+    if (!hours.length) {
+      throw new Error("A integração recebeu resposta do INMET, mas não reconheceu horários de satélite GOES.");
+    }
 
     const frames = hours.map<RedemetImageFrame>((hour, index) => ({
       id: `${latestDate.raw}-${hour.raw}-${index}`,
@@ -156,7 +188,9 @@ export async function fetchInmetSatellite(frameCount = 10): Promise<RedemetImage
     };
   } catch (error) {
     return unavailable(
-      error instanceof Error ? error.message : "Falha desconhecida ao consultar o satélite do INMET.",
+      error instanceof Error
+        ? error.message
+        : "Falha desconhecida na integração de satélite do INMET.",
     );
   }
 }
