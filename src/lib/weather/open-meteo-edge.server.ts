@@ -7,8 +7,12 @@ import {
 } from "@/lib/supabase/server-client.server";
 
 const LOCATION_SLUG = "pelotas-rs";
+const PROVIDER_KEY = "open-meteo";
 const EDGE_FUNCTION_NAME = "open-meteo-forecast";
-const REQUEST_TIMEOUT_MS = 1_600;
+const CACHE_READ_TIMEOUT_MS = 1_200;
+const SETTINGS_READ_TIMEOUT_MS = 1_200;
+const EDGE_REQUEST_TIMEOUT_MS = 1_600;
+const CACHE_FRESH_MS = 4 * 60 * 1_000;
 
 type OpenMeteoSettingsDatabase = {
   public: {
@@ -40,6 +44,24 @@ type OpenMeteoSettingsDatabase = {
         };
         Relationships: [];
       };
+      weather_provider_payload_cache: {
+        Row: {
+          provider_key: string;
+          status: "live" | "stale" | "unavailable";
+          payload: unknown;
+          fetched_at: string | null;
+          last_attempt_at: string | null;
+          last_success_at: string | null;
+          error: string | null;
+          refresh_started_at: string | null;
+          refresh_lease_token: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -47,6 +69,14 @@ type OpenMeteoSettingsDatabase = {
     CompositeTypes: { [_ in never]: never };
   };
 };
+
+const forecastPayloadSchema = z
+  .object({
+    current: z.record(z.unknown()),
+    hourly: z.object({ time: z.array(z.string()).min(1) }).passthrough(),
+    daily: z.object({ time: z.array(z.string()).min(1) }).passthrough(),
+  })
+  .passthrough();
 
 const edgeResponseSchema = z.object({
   success: z.literal(true),
@@ -64,26 +94,62 @@ export type OpenMeteoEdgePayload = {
   warning: string | null;
 };
 
-export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePayload> {
-  const config = getSupabaseServerConfig();
-  if (!config.isAdminConfigured || !config.url) {
-    throw new Error("Supabase administrativo não configurado para a previsão Open-Meteo.");
-  }
+function ageMs(value: string | null | undefined) {
+  if (!value) return Number.POSITIVE_INFINITY;
+  const time = new Date(value).getTime();
+  if (!Number.isFinite(time)) return Number.POSITIVE_INFINITY;
+  return Math.max(0, Date.now() - time);
+}
 
-  const signal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
-  const admin = createSupabaseAdminClient() as unknown as SupabaseClient<OpenMeteoSettingsDatabase>;
+async function readPersistedPayload(
+  admin: SupabaseClient<OpenMeteoSettingsDatabase>,
+): Promise<OpenMeteoEdgePayload | null> {
+  try {
+    const signal = AbortSignal.timeout(CACHE_READ_TIMEOUT_MS);
+    const { data, error } = await admin
+      .from("weather_provider_payload_cache")
+      .select("status,payload,fetched_at,last_success_at,error")
+      .eq("provider_key", PROVIDER_KEY)
+      .abortSignal(signal)
+      .maybeSingle();
+
+    if (error || !data || data.status === "unavailable") return null;
+    const parsed = forecastPayloadSchema.safeParse(data.payload);
+    if (!parsed.success) return null;
+
+    const referenceTime = data.last_success_at ?? data.fetched_at;
+    const fresh = data.status === "live" && ageMs(referenceTime) <= CACHE_FRESH_MS;
+    return {
+      payload: parsed.data,
+      fetchedAt: data.fetched_at,
+      cacheStatus: fresh ? "fresh" : "stale",
+      warning: fresh ? null : data.error ?? "Usando a última previsão válida persistida do Open-Meteo.",
+    };
+  } catch (error) {
+    console.warn("[weather/open-meteo-edge] Cache persistido não respondeu dentro do budget", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
+async function fetchViaEdge(
+  admin: SupabaseClient<OpenMeteoSettingsDatabase>,
+  configUrl: string,
+): Promise<OpenMeteoEdgePayload> {
+  const settingsSignal = AbortSignal.timeout(SETTINGS_READ_TIMEOUT_MS);
   const { data: settings, error: settingsError } = await admin
     .from("weather_forecast_accuracy_settings")
     .select("collector_token,enabled")
     .eq("location_slug", LOCATION_SLUG)
-    .abortSignal(signal)
+    .abortSignal(settingsSignal)
     .maybeSingle();
 
   if (settingsError || !settings?.enabled) {
     throw new Error(settingsError?.message ?? "Coletor meteorológico desativado.");
   }
 
-  const response = await fetch(`${config.url}/functions/v1/${EDGE_FUNCTION_NAME}`, {
+  const response = await fetch(`${configUrl}/functions/v1/${EDGE_FUNCTION_NAME}`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -91,7 +157,7 @@ export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePaylo
       "X-Collector-Token": settings.collector_token,
     },
     body: "{}",
-    signal,
+    signal: AbortSignal.timeout(EDGE_REQUEST_TIMEOUT_MS),
   });
 
   const body: unknown = await response.json().catch(() => null);
@@ -114,4 +180,17 @@ export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePaylo
     cacheStatus: parsed.data.cacheStatus,
     warning: parsed.data.warning ?? null,
   };
+}
+
+export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePayload> {
+  const config = getSupabaseServerConfig();
+  if (!config.isAdminConfigured || !config.url) {
+    throw new Error("Supabase administrativo não configurado para a previsão Open-Meteo.");
+  }
+
+  const admin = createSupabaseAdminClient() as unknown as SupabaseClient<OpenMeteoSettingsDatabase>;
+  const persisted = await readPersistedPayload(admin);
+  if (persisted) return persisted;
+
+  return fetchViaEdge(admin, config.url);
 }
