@@ -33,6 +33,7 @@ const publicWeatherPageLoader = readFileSync(
 );
 const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
 const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
+const homeRoute = readFileSync("src/routes/index.tsx", "utf8");
 const todayRoute = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
 const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
@@ -114,9 +115,10 @@ test("embrapa no pageview apenas le cache central e nunca dispara refresh persis
   assert.match(embrapaCentral, /\.abortSignal\(querySignal\)/);
   assert.match(embrapaCentral, /export async function refreshCentralEmbrapaObservation/);
 
-  const publicGetter = embrapaCentral
-    .split("export async function getCentralEmbrapaObservation")[1]
-    ?.split("function safeTokenEqual")[0] ?? "";
+  const publicGetter =
+    embrapaCentral
+      .split("export async function getCentralEmbrapaObservation")[1]
+      ?.split("function safeTokenEqual")[0] ?? "";
   assert.match(publicGetter, /readCurrentRow\(AbortSignal\.timeout\(PUBLIC_READ_TIMEOUT_MS\)\)/);
   assert.doesNotMatch(publicGetter, /refreshCentralEmbrapaObservation/);
 });
@@ -189,27 +191,35 @@ test("mapa regional e opcional e nao pode derrubar a rota", () => {
 });
 
 test("vento e chuva degradam chamadas secundarias sem abrir o boundary global", () => {
-  assert.match(publicWeatherPageLoader, /Promise\.allSettled/);
-  assert.match(publicWeatherPageLoader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(publicWeatherPageLoader, /settlePageDependency/);
+  assert.match(publicWeatherPageLoader, /createUnavailableWeatherIntelligence/);
   assert.match(publicWeatherPageLoader, /status:\s*"unavailable"/);
   assert.match(publicWeatherPageLoader, /hours:\s*\[\]/);
+  assert.match(publicWeatherPageLoader, /Promise\.all\(/);
 
   for (const routeSource of [windRoute, rainRoute]) {
     assert.match(routeSource, /loadPublicWeatherWithMeteogram/);
-    assert.doesNotMatch(routeSource, /Promise\.all\(/);
     assert.doesNotMatch(routeSource, /getPelotasMeteogram/);
     assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
   }
 });
 
-test("rotas meteorologicas basicas possuem fallback final para falha da server function", () => {
-  assert.match(publicWeatherPageLoader, /export async function loadPublicWeatherPage/);
-  assert.match(publicWeatherPageLoader, /return await getWeatherIntelligence\(\)/);
-  assert.match(publicWeatherPageLoader, /return createUnavailableWeatherIntelligence\(\)/);
+test("home, hoje, amanhã e 7 dias não dependem de server function para entregar o primeiro documento", () => {
+  assert.match(homeRoute, /loader: \(\) => createInitialHomeData\(\)/);
+  assert.match(homeRoute, /weather: createUnavailableWeatherIntelligence\(\)/);
+  assert.doesNotMatch(homeRoute, /getWeatherIntelligence/);
 
-  for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute, alertsRoute]) {
-    assert.match(routeSource, /loadPublicWeatherPage/);
-    assert.match(routeSource, /loader: \(\) => loadPublicWeatherPage\(\)/);
+  for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute]) {
+    assert.match(routeSource, /loader: \(\) => createUnavailableWeatherIntelligence\(\)/);
+    assert.doesNotMatch(routeSource, /loadPublicWeatherPage/);
     assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
   }
+});
+
+test("alertas e rotas secundárias ainda preservam a barreira compartilhada de server function", () => {
+  assert.match(publicWeatherPageLoader, /export async function loadPublicWeatherPage/);
+  assert.match(publicWeatherPageLoader, /settlePageDependency\(getWeatherIntelligence\(\)/);
+  assert.match(alertsRoute, /loadPublicWeatherPage/);
+  assert.match(alertsRoute, /loader: \(\) => loadPublicWeatherPage\(\)/);
+  assert.doesNotMatch(alertsRoute, /getWeatherIntelligence/);
 });
