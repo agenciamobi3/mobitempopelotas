@@ -24,7 +24,7 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | --- | --- | --- |
 | Portal público | Ativo | Produção em `tempopelotas.com.br` |
 | Home / Hoje / Amanhã / 7 dias | Ativo | Rotas públicas dedicadas |
-| Previsão de 15 dias | Ativo | Open-Meteo diário dedicado, separado do contrato de 7 dias |
+| Previsão de 15 dias | Ativo | Open-Meteo diário dedicado, separado do contrato de 7 dias e com degradação independente das chamadas públicas |
 | Chuva / vento / meteograma | Ativo | Contratos resilientes e estados degradados explícitos |
 | Alertas | Ativo | INMET, preservando validade, abrangência e instruções |
 | Embrapa Clima Temperado | Ativo | Observação local, extremos e acumulados |
@@ -92,6 +92,8 @@ Municípios aprovados: Capão do Leão, Canguçu, Morro Redondo, Turuçu, Arroio
 O contrato compartilhado usa Open-Meteo para previsão detalhada e MET Norway como contingência quando aplicável. Home, Hoje, Amanhã e 7 dias preservam o horizonte e a semântica do contrato consolidado.
 
 `/previsao-15-dias-pelotas` usa chamada independente, somente com campos diários, timeout próprio e estados `live|partial|unavailable`. Dias 1–7 e 8–15 são separados visualmente; a página atende também a intenção de 10 dias sem criar URL redundante. Não existe previsão diária artificial de 30 dias: dias 16–30 só serão publicados quando houver contrato de tendência adequado.
+
+Em 27/08/2026 o loader público de 15 dias deixou de exigir sucesso conjunto de `getWeatherIntelligence()` e `getPelotasExtendedForecast()`. `src/lib/weather/extended-forecast-page-loader.ts` usa `Promise.allSettled` e degrada cada domínio para seu contrato `unavailable`: uma falha de transporte na inteligência compartilhada não elimina a série estendida, e uma falha da server function estendida não derruba o shell meteorológico. Nenhuma falha é convertida em zero ou previsão fictícia.
 
 ## 6. Observação e fontes oficiais
 
@@ -237,6 +239,7 @@ Web Push continua suspenso. `PushNotificationsManager` não é montado no root.
 Contratos relevantes versionados:
 
 - `tests/public-route-resilience.test.ts`: recuperação com cache-buster, trava de 60 s, tentativa `runtime`, navegação pública por documento, preservação das áreas autenticadas, boundary não fatal, isolamento do mapa e loaders Vento/Chuva;
+- `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada, estados `live|partial|unavailable`, ligação 7→15 dias e degradação independente entre inteligência meteorológica e previsão estendida;
 - `tests/pwa-app-refinement.test.ts`: ausência de novo registro de SW, cleanup restrito ao Tempo Pelotas, manifest e conectividade preservados;
 - `tests/service-worker-static-cache.test.ts`: documenta o contrato do arquivo v9 preservado/dormente;
 - `tests/standalone-route-shell.test.ts`: evita shells duplicados;
@@ -246,7 +249,7 @@ Contratos relevantes versionados:
 - `tests/source-resilience-regressions.test.ts`: contratos INMET/REDEMET;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-O workflow `Qualidade` executa `tests/header-keyboard-accessibility.test.ts` em etapa própria, além de `tests/public-route-resilience.test.ts`, contratos rápidos e demais gates especializados. Depois seguem `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
+O workflow `Qualidade` executa `tests/header-keyboard-accessibility.test.ts` em etapa própria, além de `tests/public-route-resilience.test.ts`, contratos rápidos e demais gates especializados. `tests/fifteen-day-forecast.test.ts` permanece dentro de `test:contracts`. Depois seguem `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
 
 ## 18. Deploy e Supabase
 
