@@ -7,14 +7,20 @@ const page = readFileSync("src/components/cameras/CameraPageV2.tsx", "utf8");
 const styles = readFileSync("src/components/cameras/CameraPageV2.css", "utf8");
 const cameraServer = readFileSync("src/lib/cameras/cameras.server.ts", "utf8");
 const youtubeServer = readFileSync("src/lib/cameras/youtube.server.ts", "utf8");
+const cameraFallback = readFileSync("src/lib/cameras/cameras-fallback.ts", "utf8");
 
 const cameraSource = `${route}\n${page}`;
 
-test("camera route uses the shared shell and parallel real data loaders", () => {
+test("camera route keeps camera and weather failures independent", () => {
   assert.match(route, /createFileRoute\("\/cameras-ao-vivo-pelotas"\)/);
   assert.match(route, /getWeatherCameras\(\)/);
   assert.match(route, /getWeatherIntelligence\(\)/);
-  assert.match(route, /Promise\.all/);
+  assert.match(route, /Promise\.allSettled/);
+  assert.doesNotMatch(route, /Promise\.all\(/);
+  assert.match(route, /createUnavailableWeatherCameras\(\)/);
+  assert.match(route, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(cameraFallback, /cameras:\s*\[\]/);
+  assert.match(cameraFallback, /warning/);
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /CameraPageHero/);
   assert.match(route, /CameraPageV2/);
