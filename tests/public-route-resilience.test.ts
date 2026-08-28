@@ -19,6 +19,14 @@ const metNorway = readFileSync("src/lib/weather/met-norway.server.ts", "utf8");
 const embrapaCentral = readFileSync("src/lib/weather/embrapa-central.server.ts", "utf8");
 const inmetStable = readFileSync("src/lib/weather/inmet-stable.server.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
+const publicNavigationGuard = readFileSync(
+  "src/components/navigation/PublicDocumentNavigationGuard.tsx",
+  "utf8",
+);
+const regionalMapDeferred = readFileSync(
+  "src/components/regional/RegionalCitiesMapDeferred.tsx",
+  "utf8",
+);
 const publicWeatherPageLoader = readFileSync(
   "src/lib/weather/public-weather-page-loader.ts",
   "utf8",
@@ -116,29 +124,60 @@ test("inmet limita, prioriza e aborta enriquecimento rss dentro do deadline", ()
   assert.doesNotMatch(inmetStable, /MAX_RSS_DETAIL_REQUESTS = 48/);
 });
 
-test("cliente recupera uma unica vez bundles antigos depois de deploy", () => {
+test("cliente recupera bundles antigos com documento fresco e cache buster", () => {
   assert.match(staleClientRecovery, /vite:preloadError/);
   assert.match(staleClientRecovery, /failed to fetch dynamically imported module/i);
   assert.match(staleClientRecovery, /chunkloaderror/i);
+  assert.match(staleClientRecovery, /RECOVERY_PARAM = "__tp_recover"/);
   assert.match(staleClientRecovery, /sessionStorage/);
   assert.match(staleClientRecovery, /RECOVERY_WINDOW_MS = 60_000/);
-  assert.match(staleClientRecovery, /window\.location\.reload\(\)/);
+  assert.match(staleClientRecovery, /window\.location\.replace\(recoveryUrl\(\)\)/);
+  assert.match(staleClientRecovery, /window\.history\.replaceState/);
+  assert.doesNotMatch(staleClientRecovery, /window\.location\.reload\(\)/);
 
   assert.match(rootRoute, /installVitePreloadRecovery/);
   assert.match(rootRoute, /markClientRuntimeReady\(\)/);
   assert.match(rootRoute, /recoverClientNavigationFailure\(error\)/);
 });
 
-test("falha transitoria de server fn durante navegacao recebe hard reload protegido", () => {
+test("qualquer falha de runtime hidratado recebe no maximo uma tentativa fresca", () => {
   assert.match(staleClientRecovery, /TRANSIENT_NAVIGATION_PATTERNS/);
   assert.match(staleClientRecovery, /server function/i);
   assert.match(staleClientRecovery, /serverfn/i);
   assert.match(staleClientRecovery, /failed to fetch/i);
-  assert.match(staleClientRecovery, /\[404, 408, 410, 425, 429, 500, 502, 503, 504\]/);
   assert.match(staleClientRecovery, /clientRuntimeReady/);
   assert.match(staleClientRecovery, /navigator\.onLine === false/);
-  assert.match(staleClientRecovery, /reason: "asset" \| "navigation"/);
+  assert.match(staleClientRecovery, /"asset" \| "navigation" \| "runtime"/);
+  assert.match(staleClientRecovery, /navigateToFreshDocument/);
   assert.doesNotMatch(staleClientRecovery, /while\s*\(/);
+});
+
+test("navegacao publica usa documento completo e preserva areas autenticadas", () => {
+  assert.match(rootRoute, /<PublicDocumentNavigationGuard \/>/);
+  assert.match(publicNavigationGuard, /document\.addEventListener\("click", handleClick, true\)/);
+  assert.match(publicNavigationGuard, /window\.location\.assign\(destination\.href\)/);
+  assert.match(publicNavigationGuard, /destination\.origin !== window\.location\.origin/);
+  assert.match(publicNavigationGuard, /SPA_ALLOWED_PREFIXES/);
+  assert.match(publicNavigationGuard, /"\/conta"/);
+  assert.match(publicNavigationGuard, /"\/painel"/);
+  assert.match(publicNavigationGuard, /data-spa-navigation/);
+});
+
+test("boundary global nao exibe mais a tela fatal ao publico", () => {
+  assert.doesNotMatch(rootRoute, /Não foi possível carregar esta página/);
+  assert.doesNotMatch(rootRoute, /Erro inesperado/);
+  assert.match(rootRoute, /Carregando a versão mais recente do Tempo Pelotas/);
+  assert.match(rootRoute, /href="\/tempo-na-regiao-sul-rs"/);
+  assert.match(rootRoute, /href="\/situacao-hidrologica-pelotas"/);
+  assert.match(rootRoute, /reportLovableError/);
+});
+
+test("mapa regional e opcional e nao pode derrubar a rota", () => {
+  assert.match(regionalMapDeferred, /import \{ RegionalCitiesMap \} from "\.\/RegionalCitiesMap"/);
+  assert.doesNotMatch(regionalMapDeferred, /import\("\.\/RegionalCitiesMap"\)/);
+  assert.match(regionalMapDeferred, /class RegionalMapErrorBoundary extends Component/);
+  assert.match(regionalMapDeferred, /getDerivedStateFromError/);
+  assert.match(regionalMapDeferred, /A lista de cidades continua disponível/);
 });
 
 test("vento e chuva degradam chamadas secundarias sem abrir o boundary global", () => {
