@@ -3,7 +3,7 @@ import type { ExtendedForecastData } from "./extended-forecast.types";
 import { createUnavailableWeatherIntelligence } from "./weather-intelligence-fallback";
 import { getWeatherIntelligence } from "./weather-intelligence.functions";
 
-const PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_000;
+const PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800;
 
 function unavailableExtendedForecast(message: string): ExtendedForecastData {
   return {
@@ -45,13 +45,10 @@ async function settlePageDependency<T>(
 }
 
 /**
- * Carrega a inteligência meteorológica compartilhada e a janela estendida sem
- * exigir que as duas server functions atravessem o transporte com sucesso.
- *
- * Cada domínio degrada para o próprio contrato indisponível. O orçamento local
- * da página é menor que o teto da inteligência meteorológica compartilhada para
- * que uma dependência lenta não segure o SSR até o limite externo da navegação.
- * Os budgets internos das fontes permanecem inalterados.
+ * O documento público recebe um teto local curto e degrada cada domínio sem
+ * depender do sucesso das integrações. Os budgets internos continuam maiores e
+ * podem ser usados pelos coletores/caches; a navegação do visitante não espera
+ * por eles até o limite do runtime.
  */
 export async function loadPublicExtendedForecastPage() {
   const unavailableForecast = () =>
@@ -59,7 +56,7 @@ export async function loadPublicExtendedForecastPage() {
       "A previsão de 15 dias está temporariamente indisponível.",
     );
 
-  const [weatherResult, extendedForecastResult] = await Promise.allSettled([
+  const [weather, extendedForecast] = await Promise.all([
     settlePageDependency(
       getWeatherIntelligence(),
       createUnavailableWeatherIntelligence,
@@ -67,14 +64,5 @@ export async function loadPublicExtendedForecastPage() {
     settlePageDependency(getPelotasExtendedForecast(), unavailableForecast),
   ]);
 
-  return {
-    weather:
-      weatherResult.status === "fulfilled"
-        ? weatherResult.value
-        : createUnavailableWeatherIntelligence(),
-    extendedForecast:
-      extendedForecastResult.status === "fulfilled"
-        ? extendedForecastResult.value
-        : unavailableForecast(),
-  };
+  return { weather, extendedForecast };
 }
