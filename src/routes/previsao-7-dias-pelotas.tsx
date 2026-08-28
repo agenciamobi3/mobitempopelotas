@@ -8,7 +8,7 @@ import { SevenDayRetailHero } from "@/components/weather/SevenDayRetailHero";
 import { SEVEN_DAY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Previsão do tempo em Pelotas: 7 dias e semana";
 const PAGE_DESCRIPTION =
@@ -107,7 +107,7 @@ export const Route = createFileRoute("/previsao-7-dias-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, SEVEN_DAY_PAGE_CONTENT.faqs),
     ]),
-  loader: () => getWeatherIntelligence(),
+  loader: () => loadPublicWeatherPage(),
   staleTime: 5 * 60 * 1_000,
   component: PrevisaoSeteDiasPage,
 });
