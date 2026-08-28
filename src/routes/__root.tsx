@@ -37,6 +37,7 @@ import appCss from "../styles.css?url";
 const GOOGLE_ANALYTICS_MEASUREMENT_ID = "G-97YX7HPD90";
 const GOOGLE_ANALYTICS_IDLE_TIMEOUT_MS = 3_000;
 const GOOGLE_ANALYTICS_FALLBACK_DELAY_MS = 1_500;
+const PUBLIC_RUNTIME_RELEASE = "2026-08-28-p0-shell-first-v1";
 
 type AnalyticsWindow = Window & {
   dataLayer?: unknown[][];
@@ -254,6 +255,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <a
+        className="visually-hidden"
+        href="/api/runtime-version"
+        aria-hidden="true"
+        tabIndex={-1}
+        data-tempo-pelotas-runtime-release={PUBLIC_RUNTIME_RELEASE}
+      >
+        Tempo Pelotas runtime {PUBLIC_RUNTIME_RELEASE}
+      </a>
       <PublicDocumentNavigationGuard />
       <GoogleAnalyticsLoader />
       <GoogleAnalyticsPageviews />
