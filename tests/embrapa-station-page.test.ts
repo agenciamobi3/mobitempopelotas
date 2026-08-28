@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const route = readFileSync("src/routes/estacao-embrapa-pelotas.tsx", "utf8");
+const loader = readFileSync("src/lib/weather/embrapa-station-page-loader.ts", "utf8");
 const page = readFileSync("src/components/embrapa/EmbrapaStationPageV2.tsx", "utf8");
 const styles = readFileSync("src/components/embrapa/EmbrapaStationPageV2.css", "utf8");
 const refinement = readFileSync(
@@ -16,9 +17,20 @@ const homeContract = readFileSync(
 
 const stationSource = `${route}\n${page}`;
 
-test("Embrapa route uses the shared shell and source-aware page", () => {
+test("Embrapa route uses the shared shell and a failure-isolated source loader", () => {
   assert.match(route, /createFileRoute\("\/estacao-embrapa-pelotas"\)/);
-  assert.match(route, /getWeatherIntelligence\(\)/);
+  assert.match(route, /loadEmbrapaStationPageData/);
+  assert.match(route, /loader: \(\) => loadEmbrapaStationPageData\(\)/);
+  assert.match(loader, /getWeatherIntelligence\(\)/);
+  assert.match(loader, /getEmbrapaHealthSnapshot\(\)/);
+  assert.match(loader, /getEmbrapaHistory24h\(\)/);
+  assert.match(loader, /Promise\.allSettled/);
+  assert.doesNotMatch(loader, /await Promise\.all\(/);
+  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(loader, /createUnavailableEmbrapaHealthSnapshot\(\)/);
+  assert.match(loader, /createUnavailableEmbrapaHistorySnapshot\(\)/);
+  assert.match(loader, /status: "unavailable"/);
+  assert.match(loader, /points: \[\]/);
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /EmbrapaStationHero/);
   assert.match(route, /EmbrapaStationPageV2/);
