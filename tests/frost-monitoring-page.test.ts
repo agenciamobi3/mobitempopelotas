@@ -3,17 +3,26 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const route = readFileSync("src/routes/mapa-de-geadas-rio-grande-do-sul.tsx", "utf8");
+const loader = readFileSync("src/lib/inmet/frost-page-loader.ts", "utf8");
 const page = readFileSync("src/components/inmet/FrostMapPageV2.tsx", "utf8");
 const styles = readFileSync("src/components/inmet/FrostMapPageV2.css", "utf8");
 const homeContract = readFileSync("src/components/inmet/FrostMapHomeContract.css", "utf8");
 
 const frostSource = `${route}\n${page}`;
 
-test("frost route uses shared shell and parallel official data loaders", () => {
+test("frost route uses shared shell and failure-isolated official data loaders", () => {
   assert.match(route, /createFileRoute\("\/mapa-de-geadas-rio-grande-do-sul"\)/);
-  assert.match(route, /getInmetFrostOverview\(\)/);
-  assert.match(route, /getWeatherIntelligence\(\)/);
-  assert.match(route, /Promise\.all/);
+  assert.match(route, /loadFrostPageData/);
+  assert.match(route, /loader: \(\) => loadFrostPageData\(\)/);
+  assert.match(loader, /getInmetFrostOverview\(\)/);
+  assert.match(loader, /getWeatherIntelligence\(\)/);
+  assert.match(loader, /Promise\.allSettled/);
+  assert.doesNotMatch(loader, /await Promise\.all\(/);
+  assert.match(loader, /createUnavailableFrostMap\(\)/);
+  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(loader, /status: "unavailable"/);
+  assert.match(loader, /stations: \[\]/);
+  assert.match(loader, /lowestTemperature: null/);
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /FrostMapHero/);
   assert.match(route, /FrostMapPageV2/);
