@@ -15,6 +15,7 @@ Regras permanentes:
 - observação, previsão, alerta oficial, reanálise e dado derivado permanecem semanticamente separados;
 - indisponibilidade nunca vira valor zero, situação normal ou diagnóstico automático;
 - falha, timeout, HTTP 403 ou parsing da integração não devem ser apresentados como prova de indisponibilidade global da fonte pública;
+- superfícies que afirmam mostrar condição, nível ou status **agora** não podem servir uma resposta HTTP antiga por `max-age`/`stale-while-revalidate`; em falha de coleta, a última amostra real persistida pode permanecer visível somente com seu horário/idade originais e estado stale/degradado explícito;
 - `main` é a branch operacional; não reescrever histórico publicado.
 
 ## 2. Visão executiva
@@ -30,9 +31,11 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | Alertas | Ativo | INMET, preservando validade/abrangência e com fallback final da rota |
 | Previsão municipal INMET | Hardening em validação | Timeouts ampliados e chamadas alinhadas ao contexto do portal; falha da integração não é rotulada como INMET globalmente fora |
 | Embrapa Clima Temperado | Ativo | Observação, saúde do coletor e histórico de 24 h degradam independentemente |
+| Dados correntes / “Agora” | Hardening em publicação | `main` aplica `no-store/no-cache` nas respostas correntes de meteorologia consolidada, Embrapa, Laranjal, Guaíba, rede da Lagoa e status; persistência interna/última amostra válida permanece permitida com timestamp real |
 | REDEMET / DECEA | Hardening em validação | Radar, satélite e STSC usam contratos resilientes; página de Radar possui budget local de 4 s sem reduzir os deadlines internos das fontes |
 | Satélite GOES / INMET | Hardening em validação | Adapter aceita resposta JSON/base64, headers de contexto do portal e distingue HTTP 403 da integração de indisponibilidade pública |
 | Hidrologia | Ativo | Laranjal, Guaíba, Lagoa, SACE e Defesa Civil degradam independentemente nas páginas públicas |
+| Monitor de status | Ativo via Supabase | `pg_cron` + `pg_net` executam coleta a cada 10 min no Supabase oficial; histórico stale é bloqueado após 30 min sem nova amostra |
 | Defesa Civil RS | Ativo | Hidrometeorologia regional com kill switch server-side |
 | Histórico climático | Ativo | Histórico recente e Historical Data Layer em expansão; falha de transporte gera estado indisponível |
 | Enchentes 1941 / 2024 | Ativo | Páginas históricas com fontes institucionais e limites semânticos |
@@ -55,6 +58,8 @@ Stack principal: React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro,
 Scripts principais: `npm run build`, `npm test`, `npm run test:contracts`, `npm run test:routes`, `npm run routes:check`, `npm run typecheck`, `npm run lint`, `npm run quality:browser`, `npm run quality:assets`, `npm run runtime:check` e `npm run cutover:smoke`.
 
 Rotas que renderizam `InternalWeatherPageShell` ou `ContentPageShell` são standalone em `SiteLayout`, evitando header/footer/main duplicados. O contrato possui teste automático.
+
+A política de cache diferencia **resposta pública corrente** de **cache/persistência de fonte**. `src/lib/current-data-cache.ts` define `Cache-Control: no-store, no-cache, must-revalidate`, `CDN-Cache-Control: no-store`, `Pragma: no-cache` e `Expires: 0` para superfícies de “Agora”. Coletores, snapshots, last-known e caches internos continuam permitidos para não transformar visita de usuário em coleta obrigatória e para preservar a última amostra real quando a fonte falha.
 
 ## 4. Rotas públicas indexáveis
 
@@ -104,11 +109,15 @@ A previsão municipal INMET preserva duas rotas conhecidas: a atual `/api/foreca
 
 O loader público de 15 dias não exige sucesso conjunto de `getWeatherIntelligence()` e `getPelotasExtendedForecast()`. `src/lib/weather/extended-forecast-page-loader.ts` usa `Promise.allSettled` e degrada cada domínio para seu contrato `unavailable`: falha na inteligência compartilhada não elimina a série estendida e falha da previsão estendida não derruba o shell meteorológico. Em 28/08 foi acrescentado um **budget local de página de 4 s por dependência**, menor que o teto global de 5 s, para liberar o SSR antes de uma integração lenta reter a rota. Esse budget não reduz os timeouts internos das fontes.
 
-A consulta estendida direta mantém timeout de **2,2 s**. Se ela falha, recebe payload incompatível ou normaliza zero dias utilizáveis, `src/lib/weather/extended-forecast.server.ts` tenta `fetchOpenMeteoPayloadViaEdge()`. A Edge Function existente continua com o contrato compartilhado de **7 dias**; os dias reais compatíveis do cache podem ser publicados como `partial`, com `requestedDays: 15` e `returnedDays` igual à quantidade realmente recebida. Nenhum dia 8–15 é criado, repetido ou extrapolado. O fallback Edge possui orçamento de 900 ms e só entra depois da tentativa direta.
+A consulta estendida direta mantém timeout de **2,2 s**. Se ela falha, recebe payload incompatível ou normaliza zero dias utilizáveis, `src/lib/weather/extended-forecast.server.ts` tenta `fetchOpenMeteoPayloadViaEdge()`. A Edge Function existente continua com o contrato compartilhado de **7 dias**; os dias reais compatíveis do cache podem ser publicados como `partial`, com `requestedDays: 15` e `returnedDays` igual à quantidade realmente recebida. Nenhum dia 8–15 é criado, repetido ou extrapolado. O fallback Edge possui orçamento de **1,6 s** e só entra depois da tentativa direta.
+
+Esse budget foi ampliado em 28/08 depois de evidência operacional: logs reais da Edge `open-meteo-forecast` mostraram respostas HTTP 200 chegando a **1,125 s**. Como o mesmo budget do cliente cobre leitura da configuração no Supabase, transporte e chamada da Edge, o teto anterior de 900 ms podia cancelar uma contingência válida e produzir falso `unavailable`. O fluxo continua **origem Open-Meteo direta primeiro → Edge/Supabase apenas como contingência**; os tetos de página/global permanecem 4 s/5 s.
 
 ## 6. Observação e fontes oficiais
 
 Embrapa Clima Temperado é a referência principal de observação local quando utilizável. Modelo numérico não substitui silenciosamente observação ausente. A página dedicada usa `src/lib/weather/embrapa-station-page-loader.ts`: meteorologia consolidada, saúde do coletor e histórico de 24 horas são resolvidos com `Promise.allSettled`, cada um com estado indisponível próprio.
+
+A resposta pública corrente da meteorologia consolidada e `/api/weather/embrapa` usa a política `no-store`. Isso não remove a centralização da Embrapa: `getCentralEmbrapaObservation()` continua lendo a amostra persistida e pode devolver a última leitura válida quando a coleta corrente falha. O horário/idade da própria observação prevalece; uma amostra antiga não ganha um timestamp novo só porque a página foi aberta agora.
 
 INMET é usado para avisos oficiais, previsão complementar, estação/referências e produtos específicos como geadas. Falha de consulta não equivale a ausência de risco. `/mapa-de-geadas-rio-grande-do-sul` usa `src/lib/inmet/frost-page-loader.ts`, separando a disponibilidade dos registros observados do INMET da disponibilidade da inteligência meteorológica usada no shell.
 
@@ -145,6 +154,8 @@ Clima e Histórico recente usam fallback histórico explícito. Câmeras usam fa
 ## 8. Hidrologia
 
 A Estação Laranjal é referência operacional local apresentada para Pelotas. Nível, horário, idade, tendência e variações são preservados sem transformar leitura atrasada em valor atual.
+
+As respostas correntes de `getLaranjalLevelData()`, `getGuaibaObservation()` e `getLagoonMonitoringNetwork()` usam a política `no-store/no-cache`: CDN/browser/server-function não devem reapresentar uma resposta velha como nível “agora”. O cache/persistência pertencente às próprias fontes continua separado. Se uma integração não conseguir nova leitura, a última amostra conhecida pode continuar disponível somente com horário/idade originais e estado stale/degradado explícito.
 
 `src/lib/hydrology/public-hydrology-page-loader.ts` centraliza os contratos indisponíveis e a composição das páginas. `/nivel-da-lagoa-dos-patos-laranjal` isola meteorologia e Estação Laranjal; `/situacao-hidrologica-pelotas` resolve meteorologia, Laranjal, Guaíba, rede da Lagoa, SACE e Defesa Civil RS com `Promise.allSettled`; `/nivel-do-guaiba` possui uma barreira final contra rejeição da server function. Uma fonte que falha fica `unavailable` sem zerar leitura e sem impedir as demais.
 
@@ -227,6 +238,8 @@ Relatos reais de usuários em 27/08/2026 mostraram o boundary global durante nav
 
 Documentos HTML públicos fora de embeds recebem `no-store/no-cache`, `CDN-Cache-Control: no-store`, `Pragma: no-cache` e `Expires: 0`, para que HTML de um deploy não continue apontando para runtime de outro.
 
+Essa regra de documento é complementada pela regra de **dados correntes**: mesmo quando uma server function é chamada separadamente, condição meteorológica observada, nível hidrológico e status operacional corrente usam os mesmos princípios de `no-store`. Previsões, séries históricas e conteúdo editorial continuam com caches próprios quando adequados.
+
 ### 15.2. Navegação pública por documento completo
 
 `src/components/navigation/PublicDocumentNavigationGuard.tsx` é montado no root. Depois da hidratação, links internos públicos same-origin são capturados antes do TanStack Router e passam por `window.location.assign()`. Cada troca pública obtém um novo documento e o runtime atual do deploy.
@@ -272,6 +285,7 @@ Web Push continua suspenso. `PushNotificationsManager` não é montado no root.
 Contratos relevantes versionados:
 
 - `tests/public-route-resilience.test.ts`: recuperação com cache-buster, navegação pública por documento, boundary não fatal, isolamento do mapa, loaders Vento/Chuva, fallback final de Hoje/Amanhã/7 dias/Alertas e budgets atuais da inteligência meteorológica;
+- `tests/current-data-cache-policy.test.ts`: política `no-store` das superfícies correntes e preservação da leitura central da Embrapa como origem/fallback real;
 - `tests/home-deferred-hydrology.test.ts`: hidrologia diferida, degradação local do bloco de águas e fallback final da Home;
 - `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada, degradação independente, contingência Edge/Supabase como janela parcial e budget local de 4 s do loader;
 - `tests/hydrology-overview-page.test.ts`: seis domínios da situação hidrológica com `Promise.allSettled`, preservando referências e Defesa Civil;
@@ -291,7 +305,7 @@ Contratos relevantes versionados:
 - `tests/header-keyboard-accessibility.test.ts`: ARIA/foco e inventário do header;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-O contrato regional está incluído em `test:contracts`. Em 28/08/2026 a inspeção do run **Qualidade `33150035842`** encontrou o job criado com `conclusion=failure`, porém `steps=[]`; o run agendado **Weather AI snapshots `33176033843`** exibiu o mesmo padrão de job sem steps. O log do job de Qualidade não estava disponível como blob. A evidência é compatível com falha **antes da execução normal do runner**, e não com um teste, build ou typecheck que tenha iniciado e falhado. **Não declarar CI, build, typecheck ou testes aprovados/reprovados sem execução real.** O novo run `Qualidade 33187566952`, disparado pelo hardening de latência, repetiu o mesmo padrão com job criado e `steps=null`, reforçando que o bloqueio antecede os comandos do workflow. A causa de conta/runner precisa ser resolvida no GitHub antes de a suíte voltar a produzir evidência útil.
+O contrato regional está incluído em `test:contracts`. Em 28/08/2026 a inspeção do run **Qualidade `33150035842`** encontrou o job criado com `conclusion=failure`, porém `steps=[]`; o run agendado **Weather AI snapshots `33176033843`** exibiu o mesmo padrão de job sem steps. O log do job de Qualidade não estava disponível como blob. A evidência é compatível com falha **antes da execução normal do runner**, e não com um teste, build ou typecheck que tenha iniciado e falhado. **Não declarar CI, build, typecheck ou testes aprovados/reprovados sem execução real.** O run `Qualidade 33187566952`, disparado pelo hardening de latência, repetiu o mesmo padrão com job criado e `steps=null`. Depois, o run **Data source status monitor `33193023493`**, já na rodada do scheduler, criou os jobs de coleta e segurança com `steps=null` e sem logs. Isso reforça que o bloqueio antecede os comandos do workflow e também explica por que o monitor histórico deixou de persistir quando dependia exclusivamente do Actions.
 
 ## 18. Deploy e Supabase
 
@@ -301,7 +315,15 @@ A rodada SEO regional de 28/08 altera conteúdo editorial, BreadcrumbList JSON-L
 
 O hardening adicional de latência de 28/08 altera somente os loaders públicos de 15 dias e Radar, seus contratos de teste e a documentação de resiliência. Não altera fonte, autenticação, sitemap, migration, secret ou payload meteorológico; limita a espera do SSR a 4 s por dependência e mantém os budgets internos já calibrados.
 
-A contingência adicional da previsão estendida reutiliza apenas o payload Open-Meteo de 7 dias já preservado pela Edge/Supabase quando a chamada direta de 15 dias falha. Ela não altera a Edge Function, não muda `forecast_days=7` do contrato compartilhado, não cria migration/secret e não inventa a segunda semana; apenas degrada a rota de zero dias para uma janela parcial quando houver cache real compatível.
+A contingência adicional da previsão estendida reutiliza apenas o payload Open-Meteo de 7 dias já preservado pela Edge/Supabase quando a chamada direta de 15 dias falha. Ela não altera a Edge Function, não muda `forecast_days=7` do contrato compartilhado, não cria migration/secret e não inventa a segunda semana; apenas degrada a rota de zero dias para uma janela parcial quando houver cache real compatível. Em 28/08 o budget desse caminho Edge/Supabase foi recalibrado de 900 ms para 1,6 s com base em latência HTTP 200 observada em produção.
+
+O monitor persistido de `/status-dos-dados` havia parado após **23/08/2026 17:52 UTC** porque seu agendamento periódico dependia exclusivamente do GitHub Actions. A migration `20260828170000_data_status_supabase_scheduler.sql` foi **aplicada no Supabase oficial em 28/08/2026**. O agendamento primário agora usa `pg_cron` + `pg_net` a cada 10 minutos e autenticação por token privado armazenado no próprio banco. `CRON_SECRET` e GitHub OIDC permanecem como caminhos operacionais secundários/manual.
+
+A aplicação foi validada no ambiente oficial: o job `tempo-pelotas-data-status-monitor` ficou ativo, um smoke retornou HTTP 200 e persistiu nova amostra, e o cron executou automaticamente sem GitHub às **17:10 UTC**. O histórico possui ainda uma barreira de freshness de 30 minutos; se a última amostra persistida envelhecer além desse limite, os percentuais/incidentes deixam de ser apresentados como histórico corrente até uma nova coleta.
+
+A lacuna 23–28/08 não foi convertida em vários dias fictícios de indisponibilidade. Incidentes que permaneciam abertos antes da retomada foram encerrados no respectivo `last_seen_at`; se a fonte continua degradada após o retorno do monitor, nasce um novo incidente a partir do timestamp efetivamente observado agora.
+
+A política de dados correntes adicionada em `main` não remove snapshots nem last-known. Ela altera a resposta pública de meteorologia consolidada, Embrapa, Laranjal, Guaíba, rede da Lagoa e status para `no-store/no-cache`, preservando o timestamp original da amostra que a camada de fonte devolver.
 
 ## 19. Qualidade de navegador
 
@@ -315,20 +337,22 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 
 ## 21. Pendências prioritárias
 
-1. Confirmar a publicação da rodada de 28/08 no domínio canônico e retestar especificamente: previsão municipal INMET, GOES/INMET, satélite REDEMET Realçado/IR/Visível, Radar e STSC. Diferenciar resposta da integração de disponibilidade do portal oficial.
-2. Validar amostra das páginas municipais enriquecidas em desktop/mobile/anônimo, com atenção a title, description, hero, bloco editorial, BreadcrumbList e links de cidades próximas.
-3. Recapturar Search Console para priorizar CTR/refinamentos das 48 URLs existentes; a cobertura editorial municipal já está completa e não justifica novas cidades sem evidência. O GSC Wizard continua bloqueado por assinatura enquanto não houver plano ativo.
-4. Validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
-5. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
-6. Confirmar no navegador que `/sw.js` não permanece registrado e que caches `tempo-pelotas-*` antigos são removidos.
-7. Resolver a falha de provisionamento/execução do GitHub Actions que cria jobs sem steps e então executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
-8. Validar `/previsao-15-dias-pelotas` após publicação da contingência, confirmando janela direta de 15 dias quando disponível e janela parcial real quando a consulta direta falhar; validar também `/nivel-do-guaiba` e `/enchente-1941-pelotas` em mobile, canonical e sitemap.
-9. Concluir E2E de autenticação com duas contas descartáveis.
-10. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS.
-11. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
-12. Manter Web Push suspenso e service worker público aposentado até estabilidade comprovada.
-13. Só publicar 30 dias quando existir contrato de tendência adequado para dias 16–30.
-14. Manter GeoInfo e CPTEC/SIGMA fora do runtime até seus gates próprios.
+1. Confirmar a publicação da rodada de 28/08 no domínio canônico e retestar especificamente: contingência Open-Meteo de 1,6 s, previsão municipal INMET, GOES/INMET, satélite REDEMET Realçado/IR/Visível, Radar e STSC. Diferenciar resposta da integração de disponibilidade do portal oficial.
+2. Validar no domínio canônico a política de “Agora”: meteorologia observada, `/api/weather/embrapa`, Laranjal, Guaíba, rede da Lagoa e `/status-dos-dados` devem responder sem `max-age`/`stale-while-revalidate`; em falha de fonte, a última amostra válida deve manter timestamp/idade reais e rótulo stale/degradado.
+3. Usar o monitor recém-restaurado para separar falso `offline` de falha real em Embrapa e na oscilação Radar/STSC; não recalibrar novos timeouts sem evidência de amostras sucessivas.
+4. Validar amostra das páginas municipais enriquecidas em desktop/mobile/anônimo, com atenção a title, description, hero, bloco editorial, BreadcrumbList e links de cidades próximas.
+5. Recapturar Search Console para priorizar CTR/refinamentos das 48 URLs existentes; a cobertura editorial municipal já está completa e não justifica novas cidades sem evidência. O GSC Wizard continua bloqueado por assinatura enquanto não houver plano ativo.
+6. Validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
+7. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
+8. Confirmar no navegador que `/sw.js` não permanece registrado e que caches `tempo-pelotas-*` antigos são removidos.
+9. Resolver a falha de provisionamento/execução do GitHub Actions que cria jobs sem steps e então executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
+10. Validar `/previsao-15-dias-pelotas` após publicação da contingência, confirmando janela direta de 15 dias quando disponível e janela parcial real quando a consulta direta falhar; validar também `/nivel-do-guaiba` e `/enchente-1941-pelotas` em mobile, canonical e sitemap.
+11. Concluir E2E de autenticação com duas contas descartáveis.
+12. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS.
+13. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
+14. Manter Web Push suspenso e service worker público aposentado até estabilidade comprovada.
+15. Só publicar 30 dias quando existir contrato de tendência adequado para dias 16–30.
+16. Manter GeoInfo e CPTEC/SIGMA fora do runtime até seus gates próprios.
 
 ## 22. Documentos especializados principais
 
@@ -338,6 +362,7 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 | `WEATHER_PAGE_IDENTITY.md` | Identidade das páginas meteorológicas |
 | `docs/PUBLIC_ROUTE_RESILIENCE.md` | Fallbacks, budgets de fonte e budgets locais de página |
 | `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` | Navegação pública, cache, recuperação, SW aposentado e isolamento de chunks |
+| `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` | Recuperação do monitor histórico, scheduler Supabase, lacuna e freshness |
 | `docs/REDEMET_OPERATIONS.md` | Operação REDEMET |
 | `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` | Contingências INMET/REDEMET |
 | `docs/INMET_SATELLITE_PRODUCTS_2026-08-23.md` | Produtos GOES/INMET e diagnóstico da integração server-side |
