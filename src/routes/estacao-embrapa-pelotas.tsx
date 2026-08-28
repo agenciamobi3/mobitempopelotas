@@ -13,9 +13,7 @@ import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPag
 import { EMBRAPA_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getEmbrapaHealthSnapshot } from "@/lib/weather/embrapa-health.functions";
-import { getEmbrapaHistory24h } from "@/lib/weather/embrapa-history.functions";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadEmbrapaStationPageData } from "@/lib/weather/embrapa-station-page-loader";
 
 const PAGE_TITLE = "Estação meteorológica da Embrapa em Pelotas";
 const PAGE_DESCRIPTION =
@@ -121,14 +119,7 @@ export const Route = createFileRoute("/estacao-embrapa-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, EMBRAPA_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [data, health, history] = await Promise.all([
-      getWeatherIntelligence(),
-      getEmbrapaHealthSnapshot(),
-      getEmbrapaHistory24h(),
-    ]);
-    return { data, health, history };
-  },
+  loader: () => loadEmbrapaStationPageData(),
   staleTime: 60 * 1_000,
   component: EstacaoEmbrapaPage,
 });
