@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const route = readFileSync("src/routes/radar-e-satelite-pelotas.tsx", "utf8");
+const loader = readFileSync("src/lib/redemet/radar-page-loader.ts", "utf8");
+const fallback = readFileSync("src/lib/redemet/redemet-fallback.ts", "utf8");
 const page = readFileSync("src/components/redemet/RedemetOverview.tsx", "utf8");
 const context = readFileSync("src/components/redemet/RadarForecastContext.tsx", "utf8");
 const contextStyles = readFileSync("src/components/redemet/RadarForecastContext.css", "utf8");
@@ -23,12 +25,13 @@ const remValues = [...styles.matchAll(/font-size:\s*(0\.\d+)rem/g)].map((match) 
 );
 
 test("radar route uses direct SEO copy and page-specific editorial content", () => {
-  assert.match(route, /Radar e satélite em Pelotas/);
-  assert.match(route, /horário, sequência, janela temporal, cadência observada/);
+  assert.match(route, /Radar de chuva e satélite em Pelotas: imagens recentes/);
+  assert.match(route, /janela temporal/);
+  assert.match(route, /cadência/);
   assert.match(route, /RADAR_PAGE_CONTENT/);
   assert.match(route, /Acompanhe chuva, nuvens e trovoadas na região de Pelotas/);
   assert.match(route, /Como usar a reprodução automática das imagens/);
-  assert.match(route, /imagens mostram o passado recente/);
+  assert.match(route, /passado recente|registros passados e recentes/);
   assert.match(route, /Por que as imagens podem mostrar horários diferentes/);
   assert.match(route, /Os valores ao lado do radar foram medidos pela imagem/);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, RADAR_PAGE_CONTENT\.faqs\)/);
@@ -109,9 +112,17 @@ test("radar, satellite and storms remain explicitly distinct", () => {
   assert.match(page, /As imagens ajudam a acompanhar o tempo, mas não definem o risco sozinhas/);
 });
 
-test("latest radar image is compared with the nearest forecast hour", () => {
-  assert.match(route, /getWeatherIntelligence/);
-  assert.match(route, /Promise\.all/);
+test("latest radar image is compared with the nearest forecast hour without coupled failures", () => {
+  assert.match(route, /loadRadarPageData/);
+  assert.match(loader, /getRedemetOverview\(\)/);
+  assert.match(loader, /getWeatherIntelligence\(\)/);
+  assert.match(loader, /Promise\.allSettled/);
+  assert.doesNotMatch(loader, /await Promise\.all\(/);
+  assert.match(loader, /createUnavailableRedemetOverview\(\)/);
+  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(fallback, /available: false/);
+  assert.match(fallback, /frames: \[\]/);
+  assert.match(fallback, /STSC — ocorrências de trovoada/);
   assert.match(route, /<RadarForecastContext radar=\{data\.redemet\.radar\} weather=\{data\.weather\}/);
   assert.match(context, /nearestForecastHour/);
   assert.match(context, /hour\.timestamp/);
