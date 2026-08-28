@@ -1,389 +1,64 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 
-import "./pwa-manager.css";
+const TEMPO_CACHE_PREFIX = "tempo-pelotas-";
+const TEMPO_SERVICE_WORKER_PATH = "/sw.js";
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
-};
-
-type NavigatorWithStandalone = Navigator & {
-  standalone?: boolean;
-};
-
-type IdleWindow = Window & {
-  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
-const PWA_REGISTRATION_IDLE_TIMEOUT_MS = 3_000;
-const PWA_REGISTRATION_FALLBACK_DELAY_MS = 1_500;
-
-const FOCUSABLE_SELECTOR = [
-  "a[href]",
-  "button:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
-  '[tabindex]:not([tabindex="-1"])',
-].join(",");
-
-function InstallIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3v12M7 10l5 5 5-5" />
-      <path d="M4 18v2h16v-2" />
-    </svg>
+function isTempoPelotasRegistration(registration: ServiceWorkerRegistration) {
+  const workers = [registration.active, registration.waiting, registration.installing].filter(
+    (worker): worker is ServiceWorker => Boolean(worker),
   );
-}
 
-function UpdateIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 11a8 8 0 1 0-2.3 5.7" />
-      <path d="M20 4v7h-7" />
-    </svg>
-  );
-}
-
-function isStandaloneMode() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.matchMedia("(display-mode: fullscreen)").matches ||
-    Boolean((navigator as NavigatorWithStandalone).standalone)
-  );
-}
-
-function focusableElements(container: HTMLElement) {
-  return Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
-    (element) => !element.hasAttribute("hidden") && element.getAttribute("aria-hidden") !== "true",
-  );
-}
-
-export function PwaManager() {
-  const launcherRef = useRef<HTMLButtonElement>(null);
-  const dialogRef = useRef<HTMLElement>(null);
-  const refreshingRef = useRef(false);
-  const updateRequestedRef = useRef(false);
-  const [isReady, setIsReady] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isIos, setIsIos] = useState(false);
-  const [isBusy, setIsBusy] = useState(false);
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const hasUpdate = Boolean(waitingWorker);
-  const canInstall = Boolean(installPrompt) || isIos;
-
-  useEffect(() => {
-    const standaloneQuery = window.matchMedia("(display-mode: standalone)");
-    const fullscreenQuery = window.matchMedia("(display-mode: fullscreen)");
-    const idleWindow = window as IdleWindow;
-    const updateInstalledState = () => setIsInstalled(isStandaloneMode());
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isTouchEnabledMac = userAgent.includes("macintosh") && navigator.maxTouchPoints > 1;
-
-    setIsIos(/iphone|ipad|ipod/.test(userAgent) || isTouchEnabledMac);
-    updateInstalledState();
-    standaloneQuery.addEventListener("change", updateInstalledState);
-    fullscreenQuery.addEventListener("change", updateInstalledState);
-
-    const handleInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as BeforeInstallPromptEvent);
-    };
-
-    const handleInstalled = () => {
-      setIsOpen(false);
-      setIsInstalled(true);
-      setInstallPrompt(null);
-    };
-
-    const handleControllerChange = () => {
-      setWaitingWorker(null);
-      setIsBusy(false);
-      setIsOpen(false);
-
-      if (!updateRequestedRef.current || refreshingRef.current) return;
-      refreshingRef.current = true;
-      window.location.reload();
-    };
-
-    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
-    window.addEventListener("appinstalled", handleInstalled);
-    navigator.serviceWorker?.addEventListener("controllerchange", handleControllerChange);
-
-    let updateTimer: number | undefined;
-    let registration: ServiceWorkerRegistration | null = null;
-    let idleHandle: number | null = null;
-    let fallbackTimer: number | null = null;
-    let loadListenerAttached = false;
-    let cancelled = false;
-
-    const handleUpdateFound = () => {
-      const installingWorker = registration?.installing;
-      if (!installingWorker) return;
-
-      installingWorker.addEventListener("statechange", () => {
-        if (
-          !cancelled &&
-          installingWorker.state === "installed" &&
-          navigator.serviceWorker.controller
-        ) {
-          setWaitingWorker(registration?.waiting ?? installingWorker);
-        }
-      });
-    };
-
-    const initialize = async () => {
-      try {
-        if ("serviceWorker" in navigator) {
-          registration = await navigator.serviceWorker.register("/sw.js", {
-            scope: "/",
-            updateViaCache: "none",
-          });
-
-          if (cancelled) return;
-          if (registration.waiting) setWaitingWorker(registration.waiting);
-          registration.addEventListener("updatefound", handleUpdateFound);
-
-          updateTimer = window.setInterval(
-            () => {
-              void registration?.update();
-            },
-            60 * 60 * 1000,
-          );
-        }
-      } catch (error) {
-        console.error("Não foi possível iniciar o aplicativo do Tempo Pelotas:", error);
-      } finally {
-        if (!cancelled) setIsReady(true);
-      }
-    };
-
-    const startInitialize = () => {
-      idleHandle = null;
-      fallbackTimer = null;
-      void initialize();
-    };
-
-    const scheduleInitialize = () => {
-      loadListenerAttached = false;
-      if (cancelled || idleHandle !== null || fallbackTimer !== null) return;
-
-      if (idleWindow.requestIdleCallback) {
-        idleHandle = idleWindow.requestIdleCallback(startInitialize, {
-          timeout: PWA_REGISTRATION_IDLE_TIMEOUT_MS,
-        });
-      } else {
-        fallbackTimer = window.setTimeout(
-          startInitialize,
-          PWA_REGISTRATION_FALLBACK_DELAY_MS,
-        );
-      }
-    };
-
-    if (document.readyState === "complete") {
-      scheduleInitialize();
-    } else {
-      loadListenerAttached = true;
-      window.addEventListener("load", scheduleInitialize, { once: true });
+  return workers.some((worker) => {
+    try {
+      const scriptUrl = new URL(worker.scriptURL);
+      return (
+        scriptUrl.origin === window.location.origin &&
+        scriptUrl.pathname === TEMPO_SERVICE_WORKER_PATH
+      );
+    } catch {
+      return false;
     }
+  });
+}
 
-    return () => {
-      cancelled = true;
-      standaloneQuery.removeEventListener("change", updateInstalledState);
-      fullscreenQuery.removeEventListener("change", updateInstalledState);
-      window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
-      window.removeEventListener("appinstalled", handleInstalled);
-      navigator.serviceWorker?.removeEventListener("controllerchange", handleControllerChange);
-      if (loadListenerAttached) window.removeEventListener("load", scheduleInitialize);
-      if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
-      if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
-      registration?.removeEventListener("updatefound", handleUpdateFound);
-      if (updateTimer) window.clearInterval(updateTimer);
-    };
+async function retireTempoPelotasServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.allSettled(
+        registrations
+          .filter(isTempoPelotasRegistration)
+          .map((registration) => registration.unregister()),
+      );
+    } catch (error) {
+      console.warn("Não foi possível concluir a retirada do service worker do Tempo Pelotas:", error);
+    }
+  }
+
+  if ("caches" in window) {
+    try {
+      const cacheNames = await window.caches.keys();
+      await Promise.allSettled(
+        cacheNames
+          .filter((cacheName) => cacheName.startsWith(TEMPO_CACHE_PREFIX))
+          .map((cacheName) => window.caches.delete(cacheName)),
+      );
+    } catch (error) {
+      console.warn("Não foi possível limpar os caches antigos do Tempo Pelotas:", error);
+    }
+  }
+}
+
+/**
+ * O service worker foi temporariamente retirado do caminho crítico do portal.
+ * O manifest e a experiência de conectividade permanecem, mas nenhuma nova
+ * registration é criada. Esta limpeza remove somente registrations do /sw.js
+ * do próprio origin e caches prefixados pelo Tempo Pelotas.
+ */
+export function PwaManager() {
+  useEffect(() => {
+    void retireTempoPelotasServiceWorker();
   }, []);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previousElement = document.activeElement as HTMLElement | null;
-    const launcherElement = launcherRef.current;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        setIsOpen(false);
-        return;
-      }
-
-      if (event.key !== "Tab" || !dialogRef.current) return;
-
-      const elements = focusableElements(dialogRef.current);
-      if (elements.length === 0) {
-        event.preventDefault();
-        dialogRef.current.focus();
-        return;
-      }
-
-      const first = elements[0];
-      const last = elements.at(-1) ?? first;
-      const active = document.activeElement;
-
-      if (event.shiftKey && (active === first || active === dialogRef.current)) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.requestAnimationFrame(() => dialogRef.current?.focus());
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.requestAnimationFrame(() => (previousElement ?? launcherElement)?.focus());
-    };
-  }, [isOpen]);
-
-  async function installApp() {
-    setMessage(null);
-
-    if (!installPrompt) {
-      setMessage(
-        isIos
-          ? "No iPhone ou iPad, toque em Compartilhar e depois em Adicionar à Tela de Início."
-          : "Este navegador não oferece instalação direta do aplicativo.",
-      );
-      return;
-    }
-
-    setIsBusy(true);
-    try {
-      await installPrompt.prompt();
-      const choice = await installPrompt.userChoice;
-      setInstallPrompt(null);
-
-      if (choice.outcome === "accepted") {
-        setIsOpen(false);
-        setIsInstalled(true);
-      } else {
-        setIsOpen(false);
-        setMessage(
-          "A instalação foi cancelada. O navegador poderá oferecer a opção novamente mais tarde.",
-        );
-      }
-    } catch (error) {
-      console.error("Não foi possível abrir a instalação do Tempo Pelotas:", error);
-      setInstallPrompt(null);
-      setIsOpen(false);
-      setMessage("Não foi possível abrir a instalação neste navegador agora.");
-    } finally {
-      setIsBusy(false);
-    }
-  }
-
-  function applyUpdate() {
-    if (!waitingWorker) return;
-    updateRequestedRef.current = true;
-    setIsBusy(true);
-    setMessage("Atualizando o portal com a versão mais recente...");
-    waitingWorker.postMessage({ type: "SKIP_WAITING" });
-  }
-
-  if (!isReady || (isInstalled && !hasUpdate) || (!hasUpdate && !canInstall)) {
-    return null;
-  }
-
-  const launcherLabel = hasUpdate ? "Atualizar portal" : "Instalar app";
-
-  return (
-    <>
-      <button
-        ref={launcherRef}
-        className={`pwa-launcher${hasUpdate ? " is-update" : ""}`}
-        type="button"
-        onClick={() => setIsOpen(true)}
-        aria-haspopup="dialog"
-        aria-expanded={isOpen}
-      >
-        <span>{hasUpdate ? <UpdateIcon /> : <InstallIcon />}</span>
-        {launcherLabel}
-      </button>
-
-      {isOpen ? (
-        <div
-          className="pwa-dialog-backdrop"
-          role="presentation"
-          onPointerDown={() => setIsOpen(false)}
-        >
-          <section
-            ref={dialogRef}
-            className="pwa-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="pwa-dialog-title"
-            aria-describedby="pwa-dialog-description"
-            tabIndex={-1}
-            onPointerDown={(event) => event.stopPropagation()}
-          >
-            <button
-              className="pwa-dialog-close"
-              type="button"
-              onClick={() => setIsOpen(false)}
-              aria-label="Fechar"
-            >
-              ×
-            </button>
-
-            <span className="pwa-dialog-eyebrow">Aplicativo Tempo Pelotas</span>
-            <h2 id="pwa-dialog-title">
-              {hasUpdate ? "Há uma nova versão disponível" : "Tempo Pelotas na tela inicial"}
-            </h2>
-            <p className="pwa-dialog-intro" id="pwa-dialog-description">
-              {hasUpdate
-                ? "Atualize para receber as correções mais recentes. A página será recarregada quando a nova versão assumir o controle."
-                : "Instale o portal para abrir com mais rapidez e manter uma tela de orientação disponível quando a conexão cair."}
-            </p>
-
-            <div className="pwa-option-card">
-              <span className="pwa-option-icon">
-                {hasUpdate ? <UpdateIcon /> : <InstallIcon />}
-              </span>
-              <div>
-                <strong>{hasUpdate ? "Atualização pronta" : "Instalar neste aparelho"}</strong>
-                <p>
-                  {hasUpdate
-                    ? "A atualização troca apenas os arquivos do aplicativo; os dados meteorológicos continuam vindo das fontes identificadas pelo portal."
-                    : "A instalação não libera notificações automaticamente e não transforma previsão antiga em dado offline atual."}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={hasUpdate ? applyUpdate : installApp}
-                disabled={isBusy}
-              >
-                {isBusy ? "Aguarde" : hasUpdate ? "Atualizar" : "Instalar"}
-              </button>
-            </div>
-
-            {message ? (
-              <p className="pwa-feedback" role="status">
-                {message}
-              </p>
-            ) : null}
-
-            <small className="pwa-disclaimer">
-              A tela offline é apenas informativa. Previsão, avisos, radar e níveis das águas precisam
-              de conexão para receber novas leituras.
-            </small>
-          </section>
-        </div>
-      ) : null}
-    </>
-  );
+  return null;
 }
