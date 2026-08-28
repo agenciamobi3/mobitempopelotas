@@ -37,8 +37,8 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | Histórico climático | Ativo | Histórico recente e Historical Data Layer em expansão; falha de transporte gera estado indisponível |
 | Enchentes 1941 / 2024 | Ativo | Páginas históricas com fontes institucionais e limites semânticos |
 | Câmeras | Ativo com dependência externa | Câmera e meteorologia degradam independentemente; live/replay preservados |
-| Central Regional | Ativo | Pelotas + 23 páginas municipais; fallback mantém diretório navegável |
-| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e links internos |
+| Central Regional | Ativo | Pelotas + 23 páginas municipais; fallback mantém diretório navegável e as 23 páginas municipais indexáveis possuem perfil editorial próprio |
+| SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, links internos e cobertura editorial regional completa |
 | Conta / Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
 | Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
@@ -164,7 +164,9 @@ O Historical Data Layer mantém separação entre `observation`, `forecast`, `re
 
 A Central Regional também mantém isolamento do mapa: `RegionalCitiesMap` é renderizado de forma adiada, `maplibre-gl` fica na camada dinâmica interna e `RegionalMapErrorBoundary` impede que erro do mapa alcance o boundary global. Se o mapa falha, lista, busca, filtros e links das cidades permanecem disponíveis.
 
-Perfis editoriais municipais específicos só são mantidos quando existe contexto factual próprio. FAQ genérico em massa permanece proibido pelo gate anti-template.
+As **23 páginas municipais indexáveis** possuem perfil editorial específico. Os 12 perfis que ainda dependiam do texto-base — Morro Redondo, Turuçu, Arroio do Padre, Pedro Osório, Cerrito, Cristal, Arroio Grande, Herval, Pinheiro Machado, Pedras Altas, Candiota e Aceguá — foram enriquecidos em 28/08/2026. O catálogo adicional fica em `src/lib/regional-city-editorial-expansion.ts` e é consumido pelo helper editorial existente.
+
+Cada perfil possui meta description, descrição do hero, título editorial, introdução e pelo menos quatro fatos/orientações próprios. O conteúdo usa contexto geográfico já cadastrado no projeto e mantém previsão por coordenadas separada de observação local. FAQ genérico em massa e FAQPage parametrizado continuam proibidos pelo gate anti-template.
 
 ## 11. SEO e pesquisa de intenção
 
@@ -180,6 +182,8 @@ Arquitetura por horizonte:
 O princípio permanece: não criar URL quase duplicada apenas para trocar palavra-chave, número ou dia. Cada URL precisa de utilidade e contrato próprios.
 
 A fase atual é de refinamento das 48 URLs existentes. Páginas permanentes de sexta/sábado continuam bloqueadas até existir evidência suficiente de Search Console; o conector continua indisponível por assinatura. O cluster hidrológico liga Laranjal ↔ Situação das Águas ↔ Guaíba ↔ 1941 ↔ 2024. O diretório global também expõe 15 dias e páginas hidrológicas/históricas.
+
+A cobertura editorial regional está completa nas 23 URLs municipais indexáveis. A próxima expansão regional deve ser guiada por consultas/impressões/CTR reais e pelo publication gate, não por geração automática de texto ou abertura de novas cidades apenas para ampliar o sitemap.
 
 O header principal está alinhado ao inventário publicado: `Previsão` expõe `/previsao-15-dias-pelotas`, e `Águas` expõe `/nivel-do-guaiba` e `/enchente-1941-pelotas` além de Laranjal, situação hidrológica e enchente de 2024. O mesmo inventário alimenta a navegação móvel.
 
@@ -278,17 +282,18 @@ Contratos relevantes versionados:
 - `tests/pwa-app-refinement.test.ts`: ausência de novo registro de SW e cleanup restrito;
 - `tests/standalone-route-shell.test.ts`: evita shells duplicados;
 - `tests/seo-content-accessibility.test.ts` e `tests/seo-editorial-enrichment.test.ts`: intenção, semântica e links;
-- `tests/regional-city-editorial.test.ts`: gate anti-template;
+- `tests/regional-city-editorial.test.ts`: gate anti-template e contrato visual/editorial regional;
+- `tests/regional-city-editorial-completeness.test.ts`: exige perfil específico nas 23 páginas municipais indexáveis, conteúdo mínimo útil e ausência de repetição estrutural/FAQ massificado;
 - `tests/header-keyboard-accessibility.test.ts`: ARIA/foco e inventário do header;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-Os gates estão versionados, mas os runs recentes do GitHub Actions continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build, typecheck ou testes aprovados sem execução real.**
+O novo contrato regional foi incluído em `test:contracts`. Os gates estão versionados, mas os runs recentes do GitHub Actions continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build, typecheck ou testes aprovados sem execução real.**
 
 ## 18. Deploy e Supabase
 
 `main` é a branch operacional e sincroniza com Lovable. Supabase é externo ao Lovable. Migration versionada só é considerada aplicada após validação no ambiente oficial; publicação de código não prova alteração de banco.
 
-O hardening de 28/08/2026 altera apenas adaptadores server-side, budgets de chamadas externas, tratamento de payload e mensagens de diagnóstico. Não cria migration, Edge Function, secret ou variável de ambiente; não muda cota hidrológica, regra de alerta, sitemap, canonical, autenticação nem a origem institucional dos dados.
+A rodada SEO regional de 28/08 altera somente conteúdo editorial e contratos de teste das páginas municipais existentes. Não cria rota, migration, Edge Function, secret ou variável de ambiente; não muda sitemap, canonical, coordenadas, código IBGE, fonte meteorológica, cota hidrológica, regra de alerta ou autenticação.
 
 ## 19. Qualidade de navegador
 
@@ -303,18 +308,19 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 ## 21. Pendências prioritárias
 
 1. Confirmar a publicação da rodada de 28/08 no domínio canônico e retestar especificamente: previsão municipal INMET, GOES/INMET, satélite REDEMET Realçado/IR/Visível, Radar e STSC. Diferenciar resposta da integração de disponibilidade do portal oficial.
-2. Validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
-3. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
-4. Confirmar no navegador que `/sw.js` não permanece registrado e que caches `tempo-pelotas-*` antigos são removidos.
-5. Restaurar os runners do GitHub Actions e executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
-6. Validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio, inclusive mobile, canonical e sitemap.
-7. Recapturar Search Console para priorizar CTR/refinamentos e decidir sexta/sábado.
-8. Concluir E2E de autenticação com duas contas descartáveis.
-9. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS.
-10. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
-11. Manter Web Push suspenso e service worker público aposentado até estabilidade comprovada.
-12. Só publicar 30 dias quando existir contrato de tendência adequado para dias 16–30.
-13. Manter GeoInfo e CPTEC/SIGMA fora do runtime até seus gates próprios.
+2. Validar amostra das páginas municipais enriquecidas em desktop/mobile/anônimo, com atenção a title, description, hero, bloco editorial e links de cidades próximas.
+3. Recapturar Search Console para priorizar CTR/refinamentos das 48 URLs existentes; a cobertura editorial municipal já está completa e não justifica novas cidades sem evidência.
+4. Validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
+5. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
+6. Confirmar no navegador que `/sw.js` não permanece registrado e que caches `tempo-pelotas-*` antigos são removidos.
+7. Restaurar os runners do GitHub Actions e executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
+8. Validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio, inclusive mobile, canonical e sitemap.
+9. Concluir E2E de autenticação com duas contas descartáveis.
+10. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS.
+11. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
+12. Manter Web Push suspenso e service worker público aposentado até estabilidade comprovada.
+13. Só publicar 30 dias quando existir contrato de tendência adequado para dias 16–30.
+14. Manter GeoInfo e CPTEC/SIGMA fora do runtime até seus gates próprios.
 
 ## 22. Documentos especializados principais
 
@@ -335,6 +341,7 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 | `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md` | Arquitetura de intenção SEO |
 | `docs/SEO_TRENDS_EVIDENCE_2026-08-26.md` | Evidência sanitizada do Trends |
 | `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento das URLs existentes |
+| `docs/SEO_REGIONAL_EDITORIAL_COMPLETION_2026-08-28.md` | Conclusão da cobertura editorial das 23 páginas municipais indexáveis |
 | `docs/QUALITY_A11Y_CWV_2026-08-27.md` | Acessibilidade, responsividade e métricas de laboratório |
 | `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Previsão de 15 dias |
 | `docs/EMBRAPA_GEOINFO_DATASET_SURVEY_2026-08-26.md` | GeoInfo Embrapa |
