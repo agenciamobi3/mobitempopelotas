@@ -23,7 +23,7 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | Domínio | Estado | Observação |
 | --- | --- | --- |
 | Portal público | Ativo | Produção em `tempopelotas.com.br` |
-| Home / Hoje / Amanhã / 7 dias | Ativo | Rotas públicas dedicadas |
+| Home / Hoje / Amanhã / 7 dias | Ativo | Rotas públicas dedicadas; Home possui fallback final contra falha de transporte da inteligência meteorológica |
 | Previsão de 15 dias | Ativo | Open-Meteo diário dedicado, separado do contrato de 7 dias e com degradação independente das chamadas públicas |
 | Chuva / vento / meteograma | Ativo | Contratos resilientes e estados degradados explícitos |
 | Alertas | Ativo | INMET, preservando validade, abrangência e instruções |
@@ -110,6 +110,8 @@ REDEMET/DECEA fornece radar, satélite e STSC/trovoadas. Imagem recente não é 
 `/chuva-em-pelotas` separa chuva observada, prevista, acumulados regionais e aviso oficial. Observado e previsto não são somados automaticamente.
 
 Vento e Chuva usam `src/lib/weather/public-weather-page-loader.ts` com `Promise.allSettled`: falha de inteligência meteorológica ou meteograma degrada somente aquela camada para contrato `unavailable`, sem inventar valores nem derrubar a rota inteira.
+
+A Home mantém a hidrologia diferida e isolada em sua própria Promise, mas agora também protege o caminho meteorológico crítico: uma rejeição de transporte de `getWeatherIntelligence()` é convertida em `createUnavailableWeatherIntelligence()`. O portal continua renderizando o shell público com estado indisponível explícito em vez de abrir o boundary global.
 
 ## 8. Hidrologia
 
@@ -239,6 +241,7 @@ Web Push continua suspenso. `PushNotificationsManager` não é montado no root.
 Contratos relevantes versionados:
 
 - `tests/public-route-resilience.test.ts`: recuperação com cache-buster, trava de 60 s, tentativa `runtime`, navegação pública por documento, preservação das áreas autenticadas, boundary não fatal, isolamento do mapa e loaders Vento/Chuva;
+- `tests/home-deferred-hydrology.test.ts`: hidrologia diferida, degradação local do bloco de águas e fallback final da inteligência meteorológica da Home;
 - `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada, estados `live|partial|unavailable`, ligação 7→15 dias e degradação independente entre inteligência meteorológica e previsão estendida;
 - `tests/pwa-app-refinement.test.ts`: ausência de novo registro de SW, cleanup restrito ao Tempo Pelotas, manifest e conectividade preservados;
 - `tests/service-worker-static-cache.test.ts`: documenta o contrato do arquivo v9 preservado/dormente;
@@ -249,7 +252,7 @@ Contratos relevantes versionados:
 - `tests/source-resilience-regressions.test.ts`: contratos INMET/REDEMET;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-O workflow `Qualidade` executa `tests/header-keyboard-accessibility.test.ts` em etapa própria, além de `tests/public-route-resilience.test.ts`, contratos rápidos e demais gates especializados. `tests/fifteen-day-forecast.test.ts` permanece dentro de `test:contracts`. Depois seguem `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
+O workflow `Qualidade` executa `tests/header-keyboard-accessibility.test.ts` em etapa própria, além de `tests/public-route-resilience.test.ts`, contratos rápidos e demais gates especializados. `tests/fifteen-day-forecast.test.ts` e `tests/home-deferred-hydrology.test.ts` permanecem dentro de `test:contracts`. Depois seguem `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
 
 ## 18. Deploy e Supabase
 
