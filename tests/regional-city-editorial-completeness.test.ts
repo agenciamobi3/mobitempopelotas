@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { regionalCityEditorialProfile } from "../src/lib/regional-city-editorial.ts";
@@ -6,6 +7,11 @@ import {
   INDEXABLE_REGIONAL_CITIES,
   isRegionalHomeCity,
 } from "../src/lib/regional-cities.ts";
+
+const regionalPageSource = readFileSync(
+  "src/components/regional/RegionalCityWeatherPage.tsx",
+  "utf8",
+);
 
 test("todas as páginas municipais indexáveis possuem perfil editorial específico", () => {
   const municipalCities = INDEXABLE_REGIONAL_CITIES.filter((city) => !isRegionalHomeCity(city));
@@ -34,10 +40,21 @@ test("perfis municipais não repetem a mesma introdução ou título editorial",
   assert.equal(new Set(sectionTitles).size, profiles.length);
 });
 
-test("enriquecimento regional continua sem FAQ massificado", async () => {
-  const source = await import("node:fs").then(({ readFileSync }) =>
-    readFileSync("src/components/regional/RegionalCityWeatherPage.tsx", "utf8"),
+test("páginas municipais expõem breadcrumb estruturado Home, Região e Município", () => {
+  assert.match(regionalPageSource, /createBreadcrumbListJsonLd/);
+  assert.match(regionalPageSource, /serializeJsonLd/);
+  assert.match(regionalPageSource, /name: "Tempo Pelotas", path: "\/"/);
+  assert.match(
+    regionalPageSource,
+    /name: "Tempo na Região Sul", path: "\/tempo-na-regiao-sul-rs"/,
   );
+  assert.match(regionalPageSource, /name: `Tempo em \$\{city\.name\}`, path/);
+  assert.match(
+    regionalPageSource,
+    /dangerouslySetInnerHTML=\{\{ __html: serializeJsonLd\(breadcrumbs\) \}\}/,
+  );
+});
 
-  assert.doesNotMatch(source, /FAQPage|createFaqPageJsonLd|regionalCityFaqs/);
+test("enriquecimento regional continua sem FAQ massificado", () => {
+  assert.doesNotMatch(regionalPageSource, /FAQPage|createFaqPageJsonLd|regionalCityFaqs/);
 });
