@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
 
+import { CURRENT_DATA_NO_STORE_HEADERS } from "@/lib/current-data-cache";
 import {
   getDataStatusHistoryFreshness,
   staleHistoryMessage,
@@ -9,12 +10,7 @@ import { collectDataStatus } from "./data-status.server";
 import { getDataStatusHistory } from "./data-status-storage.server";
 
 export const getDataStatusPageData = createServerFn({ method: "GET" }).handler(async () => {
-  setResponseHeaders(
-    new Headers({
-      "Cache-Control": "public, max-age=60, stale-while-revalidate=60",
-      "CDN-Cache-Control": "max-age=60, stale-while-revalidate=120",
-    }),
-  );
+  setResponseHeaders(new Headers(CURRENT_DATA_NO_STORE_HEADERS));
 
   const [overview, history, freshness] = await Promise.all([
     collectDataStatus(),

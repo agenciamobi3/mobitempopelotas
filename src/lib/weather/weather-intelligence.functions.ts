@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseHeaders } from "@tanstack/react-start/server";
 
+import { CURRENT_DATA_NO_STORE_HEADERS } from "@/lib/current-data-cache";
 import { createUnavailableWeatherIntelligence } from "./weather-intelligence-fallback";
 import { fetchWeatherIntelligence } from "./weather-intelligence.server";
 import type { WeatherIntelligenceData } from "./weather-intelligence.types";
@@ -28,12 +29,7 @@ async function fetchWeatherIntelligenceWithinDeadline(): Promise<WeatherIntellig
 }
 
 export const getWeatherIntelligence = createServerFn({ method: "GET" }).handler(async () => {
-  setResponseHeaders(
-    new Headers({
-      "Cache-Control": "public, max-age=45, stale-while-revalidate=15",
-      "CDN-Cache-Control": "max-age=45, stale-while-revalidate=15",
-    }),
-  );
+  setResponseHeaders(new Headers(CURRENT_DATA_NO_STORE_HEADERS));
 
   try {
     return await fetchWeatherIntelligenceWithinDeadline();

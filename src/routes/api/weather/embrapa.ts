@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { CURRENT_DATA_NO_STORE_HEADERS } from "@/lib/current-data-cache";
 import { getCentralEmbrapaObservation } from "@/lib/weather/embrapa-central.server";
 
 const RESPONSE_HEADERS = {
-  "Cache-Control": "public, max-age=30, stale-while-revalidate=30",
-  "CDN-Cache-Control": "max-age=30, stale-while-revalidate=30",
+  ...CURRENT_DATA_NO_STORE_HEADERS,
   "Content-Type": "application/json; charset=utf-8",
   "X-Content-Type-Options": "nosniff",
   "X-Robots-Tag": "noindex, follow",
