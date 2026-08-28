@@ -1,18 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
+import { DataExperiencePageShell } from "@/components/layout/DataExperiencePageShell";
 import { ForecastAccuracyPanel } from "@/components/methodology/ForecastAccuracyPanel";
 import { MethodologyPage } from "@/components/methodology/MethodologyPage";
-import { DataExperiencePageShell } from "@/components/layout/DataExperiencePageShell";
 import "@/components/methodology/MethodologyHomeContract.css";
-import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
-import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
-import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
+import { loadMethodologyPageData } from "@/lib/methodology/methodology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
-import { getRedemetOverview } from "@/lib/redemet/redemet.functions";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
-import { getForecastAccuracySummary } from "@/lib/weather/forecast-accuracy.functions";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Como os dados do Tempo Pelotas funcionam";
 const PAGE_DESCRIPTION =
@@ -20,30 +15,20 @@ const PAGE_DESCRIPTION =
 const PAGE_PATH = "/metodologia";
 
 export const Route = createFileRoute("/metodologia")({
-  head: () => createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
-    createEditorialPageJsonLd({
-      name: PAGE_TITLE,
-      description: PAGE_DESCRIPTION,
-      path: PAGE_PATH,
-      breadcrumbs: [
-        { name: "Início", path: "/" },
-        { name: "Como os dados funcionam", path: PAGE_PATH },
-      ],
-      about: ["Metodologia meteorológica", "Fontes de dados meteorológicos em Pelotas"],
-    }),
-  ]),
-  loader: async () => {
-    const [weather, level, redemet, guaiba, lagoon, accuracy] = await Promise.all([
-      getWeatherIntelligence(),
-      getLaranjalLevelData(),
-      getRedemetOverview(),
-      getGuaibaObservation(),
-      getLagoonMonitoringNetwork(),
-      getForecastAccuracySummary(),
-    ]);
-
-    return { weather, level, redemet, guaiba, lagoon, accuracy };
-  },
+  head: () =>
+    createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
+      createEditorialPageJsonLd({
+        name: PAGE_TITLE,
+        description: PAGE_DESCRIPTION,
+        path: PAGE_PATH,
+        breadcrumbs: [
+          { name: "Início", path: "/" },
+          { name: "Como os dados funcionam", path: PAGE_PATH },
+        ],
+        about: ["Metodologia meteorológica", "Fontes de dados meteorológicos em Pelotas"],
+      }),
+    ]),
+  loader: () => loadMethodologyPageData(),
   staleTime: 60 * 1_000,
   component: MetodologiaPage,
 });
