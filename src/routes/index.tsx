@@ -6,6 +6,7 @@ import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.funct
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import { ProductionHome, type HomeHydrologyResult } from "@/production/ProductionHome";
 
@@ -56,7 +57,9 @@ export const Route = createFileRoute("/")({
       }))
       .catch(() => ({ status: "unavailable" as const }));
 
-    const weather = await getWeatherIntelligence();
+    const weather = await getWeatherIntelligence().catch(() =>
+      createUnavailableWeatherIntelligence(),
+    );
     return { weather, hydrology };
   },
   staleTime: 60 * 1_000,
