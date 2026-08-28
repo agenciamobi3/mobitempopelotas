@@ -3,7 +3,9 @@ import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { getRedemetOverview } from "@/lib/redemet/redemet.functions";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { getEmbrapaHealthSnapshotServer } from "@/lib/weather/embrapa-health.server";
+import { fetchOfficialWeatherSources } from "@/lib/weather/official-sources.server";
+import { fetchPelotasWeather } from "@/lib/weather/weather-baseline.server";
 
 import { getActiveMaintenanceWindows } from "./data-status-storage.server";
 import type {
@@ -12,39 +14,6 @@ import type {
   ServiceState,
   ServiceStatus,
 } from "./data-status.types";
-
-const weatherSourceMeta = [
-  {
-    key: "embrapa",
-    name: "Observação meteorológica local",
-    provider: "Embrapa Clima Temperado",
-    category: "Meteorologia e avisos" as const,
-  },
-  {
-    key: "inmet",
-    name: "Avisos meteorológicos oficiais",
-    provider: "INMET",
-    category: "Meteorologia e avisos" as const,
-  },
-  {
-    key: "cppmet",
-    name: "Previsão e contexto regional",
-    provider: "CPPMet / UFPel",
-    category: "Meteorologia e avisos" as const,
-  },
-  {
-    key: "open-meteo",
-    name: "Previsão numérica principal",
-    provider: "Open-Meteo",
-    category: "Meteorologia e avisos" as const,
-  },
-  {
-    key: "met-norway",
-    name: "Previsão numérica complementar",
-    provider: "MET Norway",
-    category: "Meteorologia e avisos" as const,
-  },
-] as const;
 
 export function detailForState(state: ServiceState) {
   if (state === "operational") return "A fonte respondeu normalmente na última verificação.";
@@ -56,12 +25,6 @@ export function detailForState(state: ServiceState) {
     return "Acesso concedido; integração pública ainda em implantação e validação.";
   }
   return "Não foi possível obter dados desta fonte na última verificação.";
-}
-
-function stateFromHealth(status: "live" | "partial" | "unavailable" | "stale", usable: boolean): ServiceState {
-  if (status === "unavailable" || !usable) return "offline";
-  if (status === "partial" || status === "stale") return "partial";
-  return "operational";
 }
 
 function stateFromHydrology(status: "live" | "stale" | "unavailable"): ServiceState {
@@ -88,28 +51,88 @@ function stateFromLayer(configured: boolean, available: boolean): ServiceState {
   return configured && available ? "operational" : "offline";
 }
 
-export function overallState(services: ServiceStatus[]): DataStatusOverview["overall"] {
-  const runtimeServices = services.filter(
-    (service) => service.state !== "implementation" && service.state !== "maintenance",
-  );
-  const offline = runtimeServices.filter((service) => service.state === "offline").length;
-  const partial = runtimeServices.filter((service) => service.state === "partial").length;
-
-  if (runtimeServices.length > 0 && offline === runtimeServices.length) return "offline";
-  if (offline > 0 || partial > 0) return "partial";
+function stateFromEmbrapaHealth(
+  health: Awaited<ReturnType<typeof getEmbrapaHealthSnapshotServer>>,
+): ServiceState {
+  if (!health.collector.enabled || health.level === "unavailable" || health.data.status === "unavailable") {
+    return "offline";
+  }
+  if (
+    health.level === "degraded" ||
+    health.level === "critical" ||
+    health.data.status === "partial"
+  ) {
+    return "partial";
+  }
   return "operational";
 }
 
-function unavailableWeatherServices(checkedAt: string): ServiceStatus[] {
-  return weatherSourceMeta.map((meta) => ({
-    id: `weather-${meta.key}`,
-    name: meta.name,
-    provider: meta.provider,
-    category: meta.category,
-    state: "offline",
-    detail: detailForState("offline"),
+function latestCheckedAt(values: Array<string | null | undefined>, fallback: string) {
+  const valid = values
+    .filter((value): value is string => Boolean(value))
+    .map((value) => ({ value, time: new Date(value).getTime() }))
+    .filter((item) => Number.isFinite(item.time))
+    .sort((a, b) => b.time - a.time);
+  return valid[0]?.value ?? fallback;
+}
+
+function weatherService(
+  id: string,
+  name: string,
+  provider: string,
+  state: ServiceState,
+  checkedAt: string,
+  detail = detailForState(state),
+): ServiceStatus {
+  return {
+    id,
+    name,
+    provider,
+    category: "Meteorologia e avisos",
+    state,
+    detail,
     checkedAt,
-  }));
+  };
+}
+
+function unavailableWeatherServices(checkedAt: string): ServiceStatus[] {
+  return [
+    weatherService(
+      "weather-embrapa",
+      "Observação meteorológica local",
+      "Embrapa Clima Temperado",
+      "offline",
+      checkedAt,
+    ),
+    weatherService(
+      "weather-inmet",
+      "Avisos meteorológicos oficiais",
+      "INMET",
+      "offline",
+      checkedAt,
+    ),
+    weatherService(
+      "weather-cppmet",
+      "Previsão e contexto regional",
+      "CPPMet / UFPel",
+      "offline",
+      checkedAt,
+    ),
+    weatherService(
+      "weather-open-meteo",
+      "Previsão numérica principal",
+      "Open-Meteo",
+      "offline",
+      checkedAt,
+    ),
+    weatherService(
+      "weather-met-norway",
+      "Previsão numérica complementar",
+      "MET Norway",
+      "offline",
+      checkedAt,
+    ),
+  ];
 }
 
 function unavailableRedemetServices(checkedAt: string): ServiceStatus[] {
@@ -129,7 +152,10 @@ function unavailableRedemetServices(checkedAt: string): ServiceStatus[] {
   }));
 }
 
-function applyMaintenanceWindows(services: ServiceStatus[], maintenance: Awaited<ReturnType<typeof getActiveMaintenanceWindows>>) {
+function applyMaintenanceWindows(
+  services: ServiceStatus[],
+  maintenance: Awaited<ReturnType<typeof getActiveMaintenanceWindows>>,
+) {
   if (maintenance.length === 0) return services;
   const byService = new Map(maintenance.map((window) => [window.serviceId, window]));
 
@@ -144,36 +170,174 @@ function applyMaintenanceWindows(services: ServiceStatus[], maintenance: Awaited
   });
 }
 
+export function overallState(services: ServiceStatus[]): DataStatusOverview["overall"] {
+  const runtimeServices = services.filter(
+    (service) => service.state !== "implementation" && service.state !== "maintenance",
+  );
+  const offline = runtimeServices.filter((service) => service.state === "offline").length;
+  const partial = runtimeServices.filter((service) => service.state === "partial").length;
+
+  if (runtimeServices.length > 0 && offline === runtimeServices.length) return "offline";
+  if (offline > 0 || partial > 0) return "partial";
+  return "operational";
+}
+
 export async function collectDataStatus(): Promise<DataStatusOverview> {
   const checkedAt = new Date().toISOString();
-  const [weatherResult, redemetResult, laranjalResult, guaibaResult, lagoonResult, defesaCivilResult] =
-    await Promise.allSettled([
-      getWeatherIntelligence(),
-      getRedemetOverview(),
-      getLaranjalLevelData(),
-      getGuaibaObservation(),
-      getLagoonMonitoringNetwork(),
-      fetchDefesaCivilHydroData(),
-    ]);
+  const [
+    baselineResult,
+    officialResult,
+    embrapaHealthResult,
+    redemetResult,
+    laranjalResult,
+    guaibaResult,
+    lagoonResult,
+    defesaCivilResult,
+  ] = await Promise.allSettled([
+    fetchPelotasWeather(),
+    fetchOfficialWeatherSources(),
+    getEmbrapaHealthSnapshotServer(),
+    getRedemetOverview(),
+    getLaranjalLevelData(),
+    getGuaibaObservation(),
+    getLagoonMonitoringNetwork(),
+    fetchDefesaCivilHydroData(),
+  ]);
 
   const services: ServiceStatus[] = [];
 
-  if (weatherResult.status === "fulfilled") {
-    for (const meta of weatherSourceMeta) {
-      const health = weatherResult.value.weather.sources[meta.key];
-      const state = stateFromHealth(health.status, health.usable);
-      services.push({
-        id: `weather-${meta.key}`,
-        name: meta.name,
-        provider: meta.provider,
-        category: meta.category,
-        state,
-        detail: detailForState(state),
-        checkedAt: health.fetchedAt || checkedAt,
-      });
-    }
+  if (baselineResult.status === "fulfilled") {
+    const openMeteo = baselineResult.value.providers["open-meteo"];
+    const metNorway = baselineResult.value.providers["met-norway"];
+
+    services.push(
+      weatherService(
+        "weather-open-meteo",
+        "Previsão numérica principal",
+        "Open-Meteo",
+        openMeteo.status === "live" ? "operational" : "offline",
+        openMeteo.source.fetchedAt || checkedAt,
+        openMeteo.message || detailForState(openMeteo.status === "live" ? "operational" : "offline"),
+      ),
+      weatherService(
+        "weather-met-norway",
+        "Previsão numérica complementar",
+        "MET Norway",
+        metNorway.status === "live" ? "operational" : "offline",
+        metNorway.source.fetchedAt || checkedAt,
+        metNorway.message || detailForState(metNorway.status === "live" ? "operational" : "offline"),
+      ),
+    );
   } else {
-    services.push(...unavailableWeatherServices(checkedAt));
+    services.push(
+      weatherService(
+        "weather-open-meteo",
+        "Previsão numérica principal",
+        "Open-Meteo",
+        "offline",
+        checkedAt,
+      ),
+      weatherService(
+        "weather-met-norway",
+        "Previsão numérica complementar",
+        "MET Norway",
+        "offline",
+        checkedAt,
+      ),
+    );
+  }
+
+  if (embrapaHealthResult.status === "fulfilled") {
+    const health = embrapaHealthResult.value;
+    const state = stateFromEmbrapaHealth(health);
+    const checked = latestCheckedAt(
+      [health.data.fetchedAt, health.collector.lastSuccessAt, health.collector.lastAttemptAt, health.generatedAt],
+      checkedAt,
+    );
+    const detail =
+      state === "operational"
+        ? "O centralizador da Embrapa possui leitura recente e coleta saudável."
+        : state === "partial"
+          ? `O centralizador possui dados, mas a saúde da coleta está ${health.level}.`
+          : "O centralizador da Embrapa não possui leitura operacional utilizável nesta verificação.";
+    services.push(
+      weatherService(
+        "weather-embrapa",
+        "Observação meteorológica local",
+        "Embrapa Clima Temperado",
+        state,
+        checked,
+        detail,
+      ),
+    );
+  } else {
+    services.push(
+      weatherService(
+        "weather-embrapa",
+        "Observação meteorológica local",
+        "Embrapa Clima Temperado",
+        "offline",
+        checkedAt,
+      ),
+    );
+  }
+
+  if (officialResult.status === "fulfilled") {
+    const official = officialResult.value;
+    const inmetSources = [official.inmet, official.inmetForecast, official.inmetStation];
+    const inmetLiveCount = inmetSources.filter((source) => source.status === "live").length;
+    const inmetState: ServiceState =
+      inmetLiveCount === inmetSources.length
+        ? "operational"
+        : inmetLiveCount > 0
+          ? "partial"
+          : "offline";
+    services.push(
+      weatherService(
+        "weather-inmet",
+        "Avisos meteorológicos oficiais",
+        "INMET",
+        inmetState,
+        latestCheckedAt(inmetSources.map((source) => source.source.fetchedAt), checkedAt),
+        inmetState === "partial"
+          ? `${inmetLiveCount} de ${inmetSources.length} integrações meteorológicas do INMET responderam nesta verificação.`
+          : detailForState(inmetState),
+      ),
+    );
+
+    const cppmetState: ServiceState =
+      official.cppmet.status === "live" && official.cppmet.items.length > 0
+        ? "operational"
+        : official.cppmet.status === "live"
+          ? "partial"
+          : "offline";
+    services.push(
+      weatherService(
+        "weather-cppmet",
+        "Previsão e contexto regional",
+        "CPPMet / UFPel",
+        cppmetState,
+        official.cppmet.source.fetchedAt || checkedAt,
+        official.cppmet.error || detailForState(cppmetState),
+      ),
+    );
+  } else {
+    services.push(
+      weatherService(
+        "weather-inmet",
+        "Avisos meteorológicos oficiais",
+        "INMET",
+        "offline",
+        checkedAt,
+      ),
+      weatherService(
+        "weather-cppmet",
+        "Previsão e contexto regional",
+        "CPPMet / UFPel",
+        "offline",
+        checkedAt,
+      ),
+    );
   }
 
   if (redemetResult.status === "fulfilled") {
