@@ -8,7 +8,7 @@ import {
 
 const LOCATION_SLUG = "pelotas-rs";
 const EDGE_FUNCTION_NAME = "open-meteo-forecast";
-const REQUEST_TIMEOUT_MS = 900;
+const REQUEST_TIMEOUT_MS = 1_600;
 
 type OpenMeteoSettingsDatabase = {
   public: {

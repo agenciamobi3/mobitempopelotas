@@ -42,10 +42,12 @@ O contrato atual prioriza disponibilidade da página sem transformar uma fonte p
 - `getWeatherIntelligence()` possui prazo máximo de **5 segundos** para a consolidação completa;
 - Open-Meteo direto usa timeout de **1,8 segundo** e mantém a validação estrutural canônica antes da normalização;
 - MET Norway usa timeout de **1,8 segundo**;
-- a contingência Open-Meteo via Supabase/Edge só é consultada quando a origem direta estiver indisponível e possui orçamento total de **900 ms**, compartilhado entre leitura de configuração e chamada da Edge Function;
+- a contingência Open-Meteo via Supabase/Edge só é consultada quando a origem direta estiver indisponível e possui orçamento total de **1,6 segundo**, compartilhado entre leitura de configuração e chamada da Edge Function;
 - `WEATHER_SOURCE_REQUEST_TIMEOUT_MS` define requests de **2,2 s para Embrapa**, **3,2 s para INMET** e **2,4 s para CPPMet**;
 - `OFFICIAL_SOURCE_DEADLINE_MS` preserva tetos de **2,6 s para Embrapa**, **3,6 s para INMET**, **4 s para previsão municipal INMET** e **2,8 s para CPPMet**;
 - ao atingir o prazo global, a página recebe o contrato `unavailable` seguro em vez de aguardar indefinidamente ou cair no error boundary.
+
+Em 28/08/2026, logs reais da Edge `open-meteo-forecast` mostraram respostas HTTP 200 com execução chegando a **1,125 s**. Como o budget do cliente também cobre a consulta de configuração ao Supabase e a latência de transporte, o teto anterior de 900 ms podia abortar uma contingência saudável. O novo teto de 1,6 s continua abaixo dos budgets externos das páginas e não altera o timeout upstream da própria Edge Function.
 
 Esses limites não convertem uma fonte lenta em dado válido. Eles encerram trabalho de rede sempre que possível e permitem que a interface assuma seu estado de indisponibilidade.
 
@@ -62,7 +64,7 @@ As duas rotas continuam usando `Promise.allSettled` e preservam degradação ind
 
 Esse budget local **não reduz** os deadlines internos das fontes e não afirma que a fonte pública esteja indisponível. Ele limita apenas o quanto aquela renderização pública espera antes de usar um contrato já previsto como `unavailable`.
 
-A rota de 15 dias possui ainda uma contingência sequencial dentro desse teto. A tentativa direta diária de 15 dias usa 2,2 s; se falhar, `fetchOpenMeteoPayloadViaEdge()` pode fornecer o payload Open-Meteo compartilhado preservado em Supabase. Como a Edge atual coleta 7 dias, a rota reutiliza somente os dias reais compatíveis e publica estado `partial`, mantendo `requestedDays: 15`. Nenhum dia 8–15 é extrapolado.
+A rota de 15 dias possui ainda uma contingência sequencial dentro desse teto. A tentativa direta diária de 15 dias usa 2,2 s; se falhar, `fetchOpenMeteoPayloadViaEdge()` pode fornecer o payload Open-Meteo compartilhado preservado em Supabase dentro de até 1,6 s. Como a Edge atual coleta 7 dias, a rota reutiliza somente os dias reais compatíveis e publica estado `partial`, mantendo `requestedDays: 15`. Nenhum dia 8–15 é extrapolado. A barreira local de 4 s continua sendo a contenção final da página se o custo sequencial se aproximar desse limite.
 
 ### 2.2. Open-Meteo direto antes de Edge/Supabase
 
@@ -147,6 +149,8 @@ A recuperação de chunks antigos permanece necessária como segunda causa poss�
 ## 7. Testes
 
 `tests/public-route-resilience.test.ts` cobre o fallback meteorológico, a barreira global atual de 5 s, budgets das fontes, recuperação de runtime, navegação pública por documento, isolamento do mapa e loaders meteorológicos básicos.
+
+`tests/open-meteo-edge.test.ts` protege o cache privado, o token server-only, o budget Edge de 1,6 s e a prioridade da origem direta antes da contingência Supabase/Edge.
 
 `tests/fifteen-day-forecast.test.ts` protege a consulta estendida dedicada, a degradação independente, a contingência Edge como janela parcial e o budget local de 4 s do loader público de 15 dias.
 

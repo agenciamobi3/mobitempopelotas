@@ -93,8 +93,8 @@ test("open meteo publico prioriza origem direta validada e curta antes da edge",
   assert.match(publicFlow, /return direct;/);
 });
 
-test("contingencia edge possui um unico budget incluindo consulta ao supabase", () => {
-  assert.match(openMeteoEdge, /REQUEST_TIMEOUT_MS = 900/);
+test("contingencia edge possui budget unico realista incluindo consulta ao supabase", () => {
+  assert.match(openMeteoEdge, /REQUEST_TIMEOUT_MS = 1_600/);
   assert.match(openMeteoEdge, /const signal = AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
   assert.match(openMeteoEdge, /\.abortSignal\(signal\)/);
   assert.match(openMeteoEdge, /signal,/);

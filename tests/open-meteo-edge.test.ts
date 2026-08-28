@@ -50,22 +50,29 @@ test("Edge Function exige token e preserva último payload válido", () => {
 });
 
 
-test("cliente server-only chama a Edge Function sem expor o token", () => {
+test("cliente server-only chama a Edge Function sem expor o token e com budget compatível com a latência observada", () => {
   assert.match(edgeClient, /createSupabaseAdminClient/);
   assert.match(edgeClient, /weather_forecast_accuracy_settings/);
   assert.match(edgeClient, /\/functions\/v1\/\$\{EDGE_FUNCTION_NAME\}/);
   assert.match(edgeClient, /"X-Collector-Token": settings\.collector_token/);
+  assert.match(edgeClient, /REQUEST_TIMEOUT_MS = 1_600/);
   assert.match(edgeClient, /AbortSignal\.timeout/);
   assert.doesNotMatch(edgeClient, /VITE_/);
   assert.doesNotMatch(edgeClient, /export const collectorToken/);
 });
 
 
-test("agregação usa Edge Function e mantém consulta direta apenas como contingência", () => {
-  assert.match(resilient, /fetchOpenMeteoPayloadViaEdge/);
-  assert.match(resilient, /normalizeOpenMeteoWeather/);
-  assert.match(resilient, /return fetchOpenMeteoDirect\(\)/);
-  assert.match(resilient, /edge\.cacheStatus === "stale"/);
+test("agregação prioriza origem direta e usa Edge somente como contingência", () => {
+  const publicFlow = resilient.slice(
+    resilient.indexOf("export async function fetchPelotasWeather"),
+  );
+  const directIndex = publicFlow.indexOf("fetchOpenMeteoDirect()");
+  const edgeIndex = publicFlow.indexOf("fetchOpenMeteoPayloadViaEdge()");
+
+  assert.ok(directIndex >= 0 && edgeIndex > directIndex);
+  assert.match(publicFlow, /if \(direct\.status !== "unavailable"\) return direct/);
+  assert.match(publicFlow, /edge\.cacheStatus === "stale"/);
+  assert.match(publicFlow, /return direct;/);
   assert.match(
     baseline,
     /from "\.\/open-meteo-resilient\.server"/,

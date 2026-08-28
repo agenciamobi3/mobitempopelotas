@@ -69,7 +69,7 @@ Regras da contingência:
 - se a consulta direta e a contingência falharem, o estado permanece `unavailable`;
 - o fluxo direto de 15 dias continua prioritário; a Edge é somente contingência.
 
-O orçamento sequencial esperado permanece dentro do budget da página: até 2,2 s na tentativa direta e até 900 ms no caminho Edge/Supabase, antes da barreira local de 4 s.
+O orçamento sequencial nominal permanece contido pela barreira local da página: até 2,2 s na tentativa direta e até 1,6 s no caminho Edge/Supabase. Em logs reais de 28/08, a própria Edge `open-meteo-forecast` chegou a 1,125 s com HTTP 200; por isso o antigo teto de 900 ms foi ampliado. Se o custo combinado se aproximar de 4 s, o loader público continua autorizado a degradar aquela dependência antes de reter o SSR além do budget da página.
 
 Ausência de um campo obrigatório do dia não vira zero. O dia incompleto é descartado e a resposta pode se tornar `partial`.
 
@@ -150,6 +150,8 @@ O visual reutiliza `WeatherSplitHero` e a identidade das páginas meteorológica
 - comunicação de incerteza;
 - link 7 -> 15;
 - entrada no sitemap.
+
+`tests/public-route-resilience.test.ts` protege também o budget de 1,6 s da contingência Edge. `tests/open-meteo-edge.test.ts` confirma a prioridade da chamada direta antes do fallback e evita que o contrato histórico “Edge primeiro” volte à suíte.
 
 O teste está incluído em `npm run test:contracts`. `tests/public-routes.test.ts` também trata a rota como página essencial.
 
