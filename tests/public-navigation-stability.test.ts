@@ -18,6 +18,10 @@ const navigationGuard = readFileSync(
   "src/components/navigation/PublicDocumentNavigationGuard.tsx",
   "utf8",
 );
+const publicHeader = readFileSync(
+  "src/production/components/home-editorial-header.tsx",
+  "utf8",
+);
 const router = readFileSync("src/router.tsx", "utf8");
 
 test("portal público não invalida a árvore inteira a cada minuto", () => {
@@ -28,6 +32,12 @@ test("portal público não invalida a árvore inteira a cada minuto", () => {
 test("navegação pública preserva carregamento de documento completo", () => {
   assert.match(navigationGuard, /window\.location\.assign\(destination\.href\)/);
   assert.match(navigationGuard, /document\.addEventListener\("click", handleClick, true\)/);
+});
+
+test("menu principal usa anchors nativas e não TanStack Link", () => {
+  assert.doesNotMatch(publicHeader, /import\s*\{[^}]*\bLink\b[^}]*\}\s*from\s*["']@tanstack\/react-router["']/);
+  assert.match(publicHeader, /function Link\(\{ to, params, \.\.\.props \}: PublicHeaderLinkProps\)/);
+  assert.match(publicHeader, /return <a \{\.\.\.props\} href=\{href\} \/>/);
 });
 
 test("router não dispara loader público por hover ou foco antes do clique", () => {
