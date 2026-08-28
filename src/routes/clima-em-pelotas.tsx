@@ -6,7 +6,9 @@ import { EditorialContentSection } from "@/components/content/EditorialContentSe
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import { createUnavailableWeatherHistory } from "@/lib/weather/history-fallback";
 import { getPelotasWeatherHistory } from "@/lib/weather/history.functions";
+import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Clima de Pelotas: estações do ano e climatologia";
@@ -118,11 +120,23 @@ export const Route = createFileRoute("/clima-em-pelotas")({
       createFaqPageJsonLd(PAGE_PATH, CLIMATE_CONTENT.faqs),
     ]),
   loader: async () => {
-    const [weather, history] = await Promise.all([
+    const [weatherResult, historyResult] = await Promise.allSettled([
       getWeatherIntelligence(),
       getPelotasWeatherHistory(),
     ]);
-    return { weather, history };
+
+    return {
+      weather:
+        weatherResult.status === "fulfilled"
+          ? weatherResult.value
+          : createUnavailableWeatherIntelligence(),
+      history:
+        historyResult.status === "fulfilled"
+          ? historyResult.value
+          : createUnavailableWeatherHistory(
+              "O histórico recente está temporariamente indisponível nesta página.",
+            ),
+    };
   },
   staleTime: 30 * 60 * 1_000,
   component: ClimaEmPelotasPage,
