@@ -36,13 +36,15 @@ test("REDEMET limits animation payloads", () => {
   assert.match(stormsServer, /const MAX_FRAMES = 12;/);
 });
 
-test("REDEMET overview requests the same compact windows used by public contracts", () => {
+test("REDEMET overview requests compact windows without cutting normal upstream latency", () => {
   assert.match(redemetFunctions, /const IMAGE_FRAME_WINDOW = 8;/);
   assert.match(redemetFunctions, /const STORM_FRAME_WINDOW = 12;/);
+  assert.match(redemetFunctions, /const OVERVIEW_LAYER_DEADLINE_MS = 4_500;/);
   assert.match(redemetFunctions, /fetchRedemetRadarResilient\(IMAGE_FRAME_WINDOW\)/);
-  assert.match(redemetFunctions, /fetchRedemetSatellite\("realcada", IMAGE_FRAME_WINDOW\)/);
+  assert.match(redemetFunctions, /fetchOfficialRedemetSatellite\("realcada", IMAGE_FRAME_WINDOW\)/);
   assert.match(redemetFunctions, /fetchInmetSatellite\(IMAGE_FRAME_WINDOW\)/);
   assert.match(redemetFunctions, /fetchRedemetStorms\(STORM_FRAME_WINDOW\)/);
+  assert.match(redemetFunctions, /selectOfficialSatelliteResult/);
   assert.doesNotMatch(redemetFunctions, /storms:20/);
 });
 
