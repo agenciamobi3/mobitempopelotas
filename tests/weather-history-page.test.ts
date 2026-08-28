@@ -10,18 +10,18 @@ const homeContract = readFileSync("src/components/history/WeatherHistoryHomeCont
 
 const historySource = `${route}\n${page}\n${chart}`;
 
-test("weather history route uses the shared shell and real history data", () => {
+test("weather history route uses the dedicated content shell and degrades transport failure", () => {
   assert.match(route, /createFileRoute\("\/historico-climatico-pelotas"\)/);
-  assert.match(route, /getWeatherIntelligence\(\)/);
-  assert.match(route, /getPelotasWeatherHistory\(\)/);
-  assert.match(route, /Promise\.all/);
-  assert.match(route, /InternalWeatherPageShell/);
+  assert.match(route, /getPelotasWeatherHistory\(\)\.catch/);
+  assert.match(route, /createUnavailableWeatherHistory\(\)/);
+  assert.doesNotMatch(route, /getWeatherIntelligence\(\)/);
+  assert.doesNotMatch(route, /Promise\.all\(/);
+  assert.match(route, /ContentPageShell/);
   assert.match(route, /WeatherHistoryHero/);
   assert.match(route, /WeatherHistoryPage/);
   assert.match(route, /WeatherHistoryHomeContract\.css/);
-  assert.match(route, /showOfficialAlerts=\{false\}/);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, HISTORY_PAGE_CONTENT\.faqs\)/);
-  assert.match(route, /Histórico de 30 dias em Pelotas/);
+  assert.match(route, /Histórico meteorológico de 30 dias em Pelotas/);
 });
 
 test("recent profile distinguishes rain, dry days and missing fields", () => {
