@@ -17,6 +17,7 @@ Regras permanentes:
 - falha, timeout, HTTP 403 ou parsing da integração não devem ser apresentados como prova de indisponibilidade global da fonte pública;
 - superfícies que afirmam mostrar condição, nível ou status **agora** não podem servir uma resposta HTTP antiga por `max-age`/`stale-while-revalidate`; em falha de coleta, a última amostra real persistida pode permanecer visível somente com seu horário/idade originais e estado stale/degradado explícito;
 - **navegabilidade pública prevalece sobre a disponibilidade de uma camada externa**: um loader lento deve degradar seu domínio, não reter ou derrubar o documento inteiro;
+- nas rotas públicas críticas, o primeiro documento deve ser independente de integrações externas sempre que existir recuperação progressiva segura no navegador;
 - `main` é a branch operacional; não reescrever histórico publicado.
 
 ## 2. Visão executiva
@@ -25,17 +26,18 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 
 | Domínio | Estado | Observação |
 | --- | --- | --- |
-| Portal público | **P0 de estabilidade em publicação** | Prioridade atual é navegação previsível; documento deve abrir antes de integrações lentas |
-| Home / Hoje / Amanhã / 7 dias | Ativo com hardening P0 | Home limita meteorologia a 2,5 s; loaders meteorológicos públicos compartilhados limitam cada dependência a 2,5 s |
-| Previsão de 15 dias | Ativo | Open-Meteo diário dedicado; contingência pode reutilizar até 7 dias reais como janela parcial; budget local de página de 2,8 s por dependência |
+| Portal público | **P0 de estabilidade em publicação/validação** | Prioridade atual é navegação previsível; documento deve existir antes de integrações lentas |
+| Home / Hoje / Amanhã / 7 dias | **Shell-first na `main`** | Primeiro loader não consulta fonte externa; entrega contrato local imediatamente e recupera previsão/observação depois da hidratação |
+| Recuperação meteorológica no navegador | Ativa em hardening | Open-Meteo recupera previsão; `/api/weather/embrapa` recupera a observação real centralizada sem transformar modelo em observação |
+| Previsão de 15 dias | Ativo | Open-Meteo diário dedicado; contingência pode reutilizar até 7 dias reais preservados como janela parcial; budget local de página de 2,8 s por dependência |
 | Chuva / vento / meteograma | Ativo | Domínios independentes com teto público de 2,5 s e fallback explícito |
 | Alertas | Ativo | INMET, preservando validade/abrangência e com fallback final da rota |
 | Previsão municipal INMET | Hardening em validação | Timeouts ampliados e chamadas alinhadas ao contexto do portal; falha da integração não é rotulada como INMET globalmente fora |
-| Embrapa Clima Temperado | Ativo | Observação, saúde do coletor e histórico de 24 h degradam independentemente |
+| Embrapa Clima Temperado | Ativo | Centralizador read-only no pageview; observação pode ser recuperada após hidratação nas rotas shell-first |
 | Dados correntes / “Agora” | Hardening ativo | Respostas correntes usam `no-store/no-cache`; última amostra real persistida continua permitida com timestamp/idade originais |
 | REDEMET / DECEA | Hardening em validação | Radar, satélite e STSC usam contratos resilientes; página de Radar possui budget local de 2,8 s |
 | Satélite GOES / INMET | Hardening em validação | Adapter aceita JSON/base64, contexto HTTP do portal e distingue erro da integração de indisponibilidade pública |
-| Hidrologia | Ativo com hardening P0 | Laranjal, Guaíba, Lagoa, SACE e Defesa Civil degradam independentemente; loaders públicos têm teto de 2,5 s por dependência |
+| Hidrologia | Ativo com hardening P0 | Páginas hidrológicas degradam por domínio com teto de 2,5 s; a Home não bloqueia mais seu primeiro documento por hidrologia |
 | Monitor de status | Ativo via Supabase | `pg_cron` + `pg_net` executam coleta a cada 10 min; histórico stale é bloqueado após 30 min sem nova amostra |
 | Defesa Civil RS | Ativo | Hidrometeorologia regional com kill switch server-side |
 | Histórico climático | Ativo | Histórico recente e Historical Data Layer em expansão; falha de transporte gera estado indisponível |
@@ -45,9 +47,10 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org, links internos, BreadcrumbList regional e cobertura editorial municipal completa |
 | Conta / Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
-| Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico |
+| Weather AI | Ativo controlado | Snapshot server-side, orçamento e fallback determinístico; não é requisito do primeiro documento público shell-first |
 | Gate geográfico / CSP / rate limit | Ativo | Segurança em camada de aplicação; smokes reais ainda precisam ser confirmados |
-| Navegação pública | **Hotfix P0 na `main`** | Links públicos usam documento completo; invalidação global por minuto foi retirada; boundary global é contenção excepcional |
+| Navegação pública | **Hotfix P0 na `main`** | Menu principal usa anchors nativas; preload SPA global e invalidação periódica foram retirados; links públicos restantes usam documento completo |
+| Diagnóstico de release | Ativo | `/api/runtime-version` responde release estática, `no-store` e `noindex`, sem depender de fonte externa |
 | Service worker / offline PWA | Temporariamente aposentado | Manifest e conectividade permanecem; `/sw.js` não é mais registrado |
 | Web Push | Suspenso | Código preservado, manager fora do root |
 | Qualidade / CI | Gates versionados, runner não executa steps | Runs recentes criam job e falham antes de qualquer step; não há evidência de teste/build executado |
@@ -62,7 +65,7 @@ Rotas que renderizam `InternalWeatherPageShell` ou `ContentPageShell` são stand
 
 A política de cache diferencia **resposta pública corrente** de **cache/persistência de fonte**. `src/lib/current-data-cache.ts` define `Cache-Control: no-store, no-cache, must-revalidate`, `CDN-Cache-Control: no-store`, `Pragma: no-cache` e `Expires: 0` para superfícies de “Agora”. Coletores, snapshots, last-known e caches internos continuam permitidos para preservar a última amostra real sem transformar uma visita em coleta obrigatória.
 
-A política de latência também diferencia **budget de fonte** de **budget de documento público**. Fontes podem usar budgets internos maiores; a navegação pública usa limites menores e devolve fallback quando eles são atingidos.
+A política de latência diferencia **budget de fonte**, **budget de página** e, nas rotas críticas, **independência do primeiro documento**. Home, Hoje, Amanhã e 7 dias não aguardam nenhuma server function meteorológica/hidrológica no loader inicial. Rotas secundárias que ainda precisam de SSR com dados usam budgets locais menores que os budgets internos das fontes.
 
 ## 4. Rotas públicas indexáveis
 
@@ -100,35 +103,51 @@ Municípios aprovados: Capão do Leão, Canguçu, Morro Redondo, Turuçu, Arroio
 
 ## 5. Previsão meteorológica
 
-O contrato compartilhado usa Open-Meteo para previsão detalhada e MET Norway como contingência quando aplicável. Home, Hoje, Amanhã e 7 dias preservam o horizonte e a semântica do contrato consolidado.
+O contrato de dados continua usando Open-Meteo para previsão detalhada e MET Norway como contingência quando aplicável. O que mudou no P0 é **onde a espera acontece**.
 
-`src/lib/weather/public-weather-page-loader.ts` é a barreira final das páginas meteorológicas públicas. Depois do hotfix P0 de 28/08, `loadPublicWeatherPage()` e cada domínio de `loadPublicWeatherWithMeteogram()` possuem **budget local de 2,5 s**. Uma server function lenta ou rejeitada recebe `createUnavailableWeatherIntelligence()`/fallback de meteograma em vez de alcançar o boundary global.
+### 5.1. Home, Hoje, Amanhã e 7 dias: shell-first
 
-A barreira interna da inteligência meteorológica continua em **5 s**. Esse teto interno é deliberadamente maior que o teto de documento público: ele atende composição e outras camadas, mas não obriga o visitante a esperar os 5 s.
+As quatro rotas mais acessadas não chamam mais `getWeatherIntelligence()` nem `loadPublicWeatherPage()` no loader inicial:
 
-Os budgets das fontes oficiais permanecem calibrados separadamente: previsão municipal INMET até 4 s, requests atual/histórico em torno de 3,2 s e 2,8 s, e fontes auxiliares com seus próprios limites. Um timeout é descrito como falha daquela integração, não como indisponibilidade global da fonte.
+- `/` devolve `createInitialHomeData()`, com `createUnavailableWeatherIntelligence()` e hidrologia localmente indisponível;
+- `/tempo-hoje-pelotas` devolve `createUnavailableWeatherIntelligence()`;
+- `/tempo-amanha-pelotas` devolve `createUnavailableWeatherIntelligence()`;
+- `/previsao-7-dias-pelotas` devolve `createUnavailableWeatherIntelligence()`.
 
-### 5.1. Home
+Isso garante que o primeiro HTML não dependa de Open-Meteo, Embrapa, INMET, CPPMet, Supabase meteorológico, Laranjal, Guaíba ou rede da Lagoa.
 
-A Home possui contrato próprio para impedir que o caminho principal fique retido por dependências:
+Depois da hidratação, `useOpenMeteoIntelligenceRecovery()` opera como reforço progressivo. O hook mantém o nome histórico, mas agora recupera duas camadas independentes:
 
-- meteorologia principal: **2,5 s**;
-- bloco hidrológico: continua diferido e recebe **3,5 s**;
-- câmera continua como aprimoramento progressivo após carregamento.
+1. previsão de 7 dias diretamente do Open-Meteo;
+2. observação atual por `/api/weather/embrapa`, que lê o centralizador da Embrapa e preserva o timestamp real.
 
-Se uma camada não responder, a Home abre com seu estado indisponível sem inventar valor.
+As duas respostas são fundidas com atualização funcional de estado; a que chegar por último não apaga a anterior. Falha de qualquer recuperação permanece local e não pode derrubar o documento já renderizado.
 
-### 5.2. Previsão de 15 dias
+Modelo numérico não vira observação: a temperatura/umidade/pressão/vento atuais só recebem proveniência `embrapa` quando o endpoint central entrega uma observação utilizável. Condição, rajada e visibilidade não são inventadas quando a estação não fornece esses campos.
+
+A hidrologia resumida da Home foi retirada do caminho crítico do primeiro documento. Enquanto o reforço específico da Home não estiver reintroduzido de forma client-side/isolada, o bloco pode degradar para indisponível e direcionar o visitante às páginas hidrológicas dedicadas. Isso é preferível a reter a Home inteira.
+
+### 5.2. Rotas meteorológicas secundárias
+
+`src/lib/weather/public-weather-page-loader.ts` continua sendo a barreira final para rotas que ainda fazem composição server-side. `loadPublicWeatherPage()` e cada domínio de `loadPublicWeatherWithMeteogram()` usam **budget local de 2,5 s** e devolvem contrato indisponível em falha/timeout.
+
+Chuva, Vento e Meteograma preservam degradação independente. Alertas continua usando `loadPublicWeatherPage()` para o shell meteorológico, mantendo a semântica oficial dos avisos separada.
+
+A barreira interna da inteligência meteorológica continua em **5 s**. Esse teto interno atende composição, caches e outras camadas; não define mais o tempo do primeiro documento das quatro rotas shell-first.
+
+Os budgets das fontes oficiais permanecem calibrados separadamente: previsão municipal INMET até 4 s, requests atual/histórico em torno de 3,2 s e 2,8 s e fontes auxiliares com seus próprios limites. Um timeout descreve falha daquela integração, não indisponibilidade global da fonte.
+
+### 5.3. Previsão de 15 dias
 
 `/previsao-15-dias-pelotas` usa chamada independente, somente com campos diários, timeout próprio e estados `live|partial|unavailable`. Dias 1–7 e 8–15 são separados visualmente. Não existe previsão diária artificial de 30 dias.
 
-`src/lib/weather/extended-forecast-page-loader.ts` executa meteorologia compartilhada e janela estendida através de dependências já protegidas e usa **budget local de 2,8 s por domínio**. A página degrada cada domínio independentemente.
+`src/lib/weather/extended-forecast-page-loader.ts` executa meteorologia compartilhada e janela estendida através de dependências protegidas e usa **budget local de 2,8 s por domínio**. A página degrada cada domínio independentemente.
 
 A consulta estendida direta mantém timeout de **2,2 s**. Se falhar, tiver payload incompatível ou zero dias utilizáveis, pode reutilizar o cache Open-Meteo preservado. Como o contrato compartilhado preserva 7 dias, a rota publica somente os dias reais disponíveis como `partial`, mantendo `requestedDays: 15`; dias 8–15 nunca são criados ou repetidos.
 
-### 5.3. Contingência Open-Meteo
+### 5.4. Contingência Open-Meteo
 
-O fluxo atual é:
+No servidor, o fluxo compartilhado continua:
 
 1. origem Open-Meteo direta;
 2. se utilizável, retornar;
@@ -136,15 +155,17 @@ O fluxo atual é:
 4. somente quando o cache não puder atender, consultar configuração/token e chamar a Edge Function;
 5. se nada puder atender, preservar `unavailable`.
 
-O cache preserva o timestamp real. O fallback Edge possui budget próprio de 1,6 s. O monitor já confirmou em produção que a leitura cache-first entrou no runtime e que Open-Meteo voltou a ser classificado como operacional em amostras reais.
+O cache preserva o timestamp real. O fallback Edge possui budget próprio de 1,6 s. Nas rotas shell-first, esse fluxo server-side não participa do primeiro documento; a previsão pública é reforçada diretamente no navegador depois da hidratação.
 
 ## 6. Observação e fontes oficiais
 
 Embrapa Clima Temperado é a referência principal de observação local quando utilizável. Modelo numérico não substitui silenciosamente observação ausente.
 
-A resposta pública corrente da meteorologia consolidada e `/api/weather/embrapa` usa `no-store`. `getCentralEmbrapaObservation()` continua lendo a amostra persistida e pode devolver a última leitura válida quando a coleta corrente falha. O horário/idade da observação prevalece; uma leitura antiga não recebe timestamp novo por causa de uma nova visita.
+A resposta pública `/api/weather/embrapa` usa `no-store` e chama `getCentralEmbrapaObservation()`, que apenas lê o centralizador persistido no pageview. O endpoint não dispara coleta nem lease. A última leitura válida conserva horário/idade originais.
 
-O monitor operacional foi desacoplado da composição completa do Weather AI. A saúde da Embrapa é medida pelo próprio centralizador persistido; após o ajuste, amostras reais passaram a classificá-la como operacional de forma consistente.
+No shell-first, a observação Embrapa é solicitada **depois da hidratação**, com timeout client-side próprio de 3 s. Quando utilizável, a recuperação preenche `current`, `currentProvenance`, `observation`, `sources.embrapa`, `quality.currentSource` e idade da observação. Campos não fornecidos pela estação permanecem nulos; nenhum valor de Open-Meteo é promovido silenciosamente a observação atual.
+
+O monitor operacional permanece desacoplado da composição completa do Weather AI. A saúde da Embrapa é medida pelo próprio centralizador persistido.
 
 INMET permanece usado para avisos oficiais, previsão complementar, estação/referências e produtos específicos como geadas. Falha de consulta não equivale a ausência de risco.
 
@@ -178,7 +199,9 @@ A Estação Laranjal é referência operacional local apresentada para Pelotas. 
 
 As respostas correntes de Laranjal, Guaíba e rede da Lagoa usam `no-store/no-cache`. Cache/persistência da fonte continua separado; se não houver nova coleta, a última amostra válida só pode aparecer com horário/idade originais e estado stale/degradado.
 
-`src/lib/hydrology/public-hydrology-page-loader.ts` centraliza os fallbacks. No hotfix P0, todas as dependências públicas receberam **budget local de 2,5 s**: meteorologia, Laranjal, Guaíba, Lagoa, SACE e Defesa Civil. A composição usa dependências protegidas; falha ou atraso de uma não alcança o boundary global.
+`src/lib/hydrology/public-hydrology-page-loader.ts` centraliza os fallbacks. As dependências públicas usam **budget local de 2,5 s**: meteorologia, Laranjal, Guaíba, Lagoa, SACE e Defesa Civil. A composição usa dependências protegidas; falha ou atraso de uma não alcança o boundary global.
+
+A Home não consulta mais essas fontes no loader inicial. A decisão é deliberada durante o P0: indisponibilidade temporária do resumo de águas é preferível a bloquear o documento principal. As páginas hidrológicas dedicadas continuam sendo a referência para leitura completa enquanto o reforço isolado da Home não for reintroduzido.
 
 `/nivel-do-guaiba` mantém Cais Mauá e Gasômetro como referências independentes. Nível do Guaíba não é convertido automaticamente em diagnóstico para Pelotas nem cotas são transferidas entre réguas.
 
@@ -213,6 +236,8 @@ Arquitetura por horizonte:
 
 A fase atual é de refinamento das 48 URLs existentes. A cobertura editorial municipal está completa; expansão deve ser guiada por Search Console/publication gate. O GSC Wizard segue bloqueado por assinatura enquanto não houver plano ativo.
 
+O shell-first não remove conteúdo editorial, `head()`, canonical, JSON-LD, FAQ editorial aprovada ou links internos das rotas críticas. O primeiro documento continua semanticamente indexável mesmo quando os valores meteorológicos dinâmicos entram progressivamente depois da hidratação.
+
 ## 12. Conta, Free e PRO
 
 Fundação existente: Google Identity Services + Supabase Auth por ID Token, sessão SSR, `/conta`, `/painel` autenticado/noindex, preferências/consentimentos, exportação/exclusão, `account_access` e entitlements centralizados.
@@ -239,6 +264,8 @@ Ativo:
 
 WAF gerenciado de edge/provedor não está configurado e não deve ser confundido com firewall de aplicação.
 
+`/api/runtime-version` é um endpoint operacional estático, sem secret e sem dependência externa. Responde `no-store` e `X-Robots-Tag: noindex, nofollow`; serve apenas para confirmar qual corte de runtime atingiu a publicação.
+
 ## 15. Navegação pública e coerência entre deploys
 
 Relatos reais de navegação em 27–28/08/2026 mostraram o boundary global durante troca de páginas. Em 28/08 o problema voltou a ser reproduzido em produção com a tela **“Carregando a versão mais recente do Tempo Pelotas”** aparecendo como se fosse parte da navegação. Isso foi classificado como **P0 de produto**, porque impede uso normal do portal.
@@ -255,34 +282,54 @@ Dados correntes de observação, nível e status seguem a mesma semântica de `n
 
 `src/components/navigation/PublicDocumentNavigationGuard.tsx` captura links internos públicos same-origin antes do TanStack Router e usa `window.location.assign()`. Cada troca pública busca novo documento/runtime.
 
-Exceções: áreas autenticadas (`/conta`, `/painel`, `/auth`, `/login`, `/admin`), links externos, downloads, target externo, cliques modificados, navegação por hash e opt-out `data-spa-navigation="true"`.
+O menu editorial principal desktop/mobile foi ainda mais endurecido: `src/production/components/home-editorial-header.tsx` não importa mais `Link` do TanStack. Seus destinos públicos são anchors nativas `<a href>`, preservando classes, `aria-current`, parâmetros regionais e estado visual sem passar pelo router cliente.
 
-### 15.3. Invalidação global periódica aposentada
+Exceções do guard: áreas autenticadas (`/conta`, `/painel`, `/auth`, `/login`, `/admin`), links externos, downloads, target externo, cliques modificados, navegação por hash e opt-out `data-spa-navigation="true"`.
 
-`WeatherMinuteRefresh` **não executa mais `router.invalidate()`**, `setInterval()` nem refresh global em foco/visibilidade/online.
+### 15.3. Preload e invalidação global aposentados
 
-A invalidação de toda a árvore a cada 60 s contradizia a navegação pública por documento completo: uma página já saudável podia reabrir loaders via SPA e cair no boundary por uma oscilação transitória sem qualquer ação do visitante.
+`src/router.tsx` usa `defaultPreload: false`. O antigo `defaultPreload: "intent"` com delay zero permitia que hover/foco disparasse loaders SPA antes do clique; isso contrariava a política de documento completo e podia abrir o caminho do boundary sem o visitante ter navegado.
+
+`WeatherMinuteRefresh` **não executa mais `router.invalidate()`**, `setInterval()` nem refresh global em foco/visibilidade/online. Uma página saudável não deve reabrir toda a árvore de loaders automaticamente depois de 60 s.
 
 Atualizações em segundo plano futuras devem ser específicas do componente/domínio. Coletores e cron continuam atualizando caches centrais sem invalidar a rota inteira.
 
-### 15.4. Budgets P0 do documento
+### 15.4. Shell-first e budgets P0
 
-Para evitar que dependências externas retenham o SSR público:
+A política atual possui dois níveis:
 
-- Home meteorologia: 2,5 s;
-- Home hidrologia diferida: 3,5 s;
+**Sem dependência externa no primeiro loader:**
+
+- Home;
+- Tempo hoje;
+- Tempo amanhã;
+- Previsão de 7 dias.
+
+Essas páginas entregam fallback local imediato e recuperam dados reais depois da hidratação. Portanto o primeiro documento não possui budget de 2,5/3,5/5 s de fonte: ele não espera pela fonte.
+
+**SSR ainda composto, com teto local:**
+
 - loaders meteorológicos públicos compartilhados: 2,5 s por dependência;
 - loaders hidrológicos públicos: 2,5 s por dependência;
 - Radar: 2,8 s por domínio;
 - previsão de 15 dias: 2,8 s por domínio.
 
-Ao atingir o teto, o domínio degrada para fallback `unavailable` já previsto. Isso não reduz o budget interno da fonte nem prova indisponibilidade do serviço oficial.
+Ao atingir o teto, o domínio degrada para fallback `unavailable`. Isso não reduz o budget interno da fonte nem prova indisponibilidade do serviço oficial.
 
-### 15.5. Recuperação automática fresca
+### 15.5. Recuperação progressiva de dados
+
+Nas quatro rotas shell-first, a recuperação meteorológica acontece em `useEffect`, depois que o documento já foi entregue:
+
+- Open-Meteo: previsão horária/7 dias;
+- Embrapa: `/api/weather/embrapa`, observação centralizada read-only.
+
+Os requests possuem cancelamento/timeout e falham silenciosamente do ponto de vista da navegação. A UI mantém o contrato indisponível quando não há resposta utilizável. Estado de previsão e observação é combinado funcionalmente para evitar corrida em que uma resposta apague a outra.
+
+### 15.6. Recuperação automática fresca
 
 `src/lib/stale-client-recovery.ts` usa `__tp_recover=<timestamp>` e `location.replace()` para no máximo uma tentativa por URL lógica em 60 s. O parâmetro é removido depois da hidratação bem-sucedida.
 
-### 15.6. Boundary global
+### 15.7. Boundary global
 
 O root continua registrando telemetria e oferecendo contenção segura, mas a tela **“Carregando a versão mais recente do Tempo Pelotas” é excepcional**. Ela não é loading screen, não é passo esperado de navegação e sua aparição em uso normal é regressão P0.
 
@@ -298,19 +345,20 @@ O service worker permanece temporariamente aposentado. `PwaManager` não registr
 
 Contratos relevantes versionados:
 
-- `tests/public-navigation-stability.test.ts`: ausência de invalidação global por minuto, navegação por documento, budgets P0 de meteorologia/hidrologia/Radar/15 dias e Home;
-- `tests/public-route-resilience.test.ts`: fallback meteorológico, recuperação de runtime e navegação pública;
+- `tests/public-navigation-stability.test.ts`: ausência de invalidação global, anchors nativas no menu, `defaultPreload: false`, shell-first da Home/Hoje/Amanhã/7 dias e budgets das rotas secundárias;
+- `tests/public-route-resilience.test.ts`: fallback meteorológico, recuperação de runtime, navegação por documento e separação entre rotas shell-first e rotas ainda protegidas pelo loader compartilhado;
+- `tests/home-deferred-hydrology.test.ts`: Home sem meteorologia/hidrologia externa no primeiro loader e degradação local do bloco de águas;
+- `tests/open-meteo-browser-recovery.test.ts`: recuperação de previsão no navegador, preservação de observação existente e recuperação da observação real da Embrapa sem criar campos não fornecidos;
 - `tests/current-data-cache-policy.test.ts`: política `no-store` das superfícies correntes;
-- `tests/home-deferred-hydrology.test.ts`: hidrologia diferida e degradação local da Home;
 - `tests/fifteen-day-forecast.test.ts`: consulta estendida e contingência real/parcial;
 - `tests/hydrology-overview-page.test.ts`: composição hidrológica e fallbacks;
 - `tests/radar-satellite-retail.test.ts` e `tests/redemet-performance.test.ts`: contratos REDEMET;
 - `tests/source-resilience-regressions.test.ts`: INMET/REDEMET/GOES;
 - contratos regionais/SEO e demais testes especializados permanecem versionados.
 
-`tests/public-navigation-stability.test.ts` foi incluído no script explícito `test:contracts` além de já ser coberto pelo glob de `npm test`.
+`tests/public-navigation-stability.test.ts` está incluído no script explícito `test:contracts`; `tests/open-meteo-browser-recovery.test.ts` também já pertence ao gate explícito existente.
 
-O GitHub Actions segue bloqueado antes da execução normal do runner. Runs recentes criam jobs com `steps=null`/sem logs. **Não declarar CI, build, typecheck ou testes aprovados/reprovados sem execução real.**
+O GitHub Actions segue bloqueado antes da execução normal do runner. Runs recentes criam jobs com `steps=null`/sem logs. **Não declarar CI, build, typecheck ou testes aprovados/reprovados sem execução real.** A reconstrução de preview pelo Lovable comprova sincronização/build do ambiente de preview, mas não substitui a suíte local/CI completa.
 
 ## 18. Deploy e Supabase
 
@@ -318,23 +366,32 @@ O GitHub Actions segue bloqueado antes da execução normal do runner. Runs rece
 
 A migration `20260828170000_data_status_supabase_scheduler.sql` foi aplicada no Supabase oficial. O monitor de `/status-dos-dados` usa `pg_cron` + `pg_net` a cada 10 minutos. O histórico possui freshness de 30 minutos e a lacuna anterior não foi convertida em indisponibilidade fictícia.
 
-O hotfix P0 de 28/08 altera runtime público, loaders, teste e documentação; não altera fonte meteorológica, secret, migration, sitemap, canonical ou regra de alerta. Seu objetivo é impedir que latência/transporte de uma camada externa derrube o documento público.
+O hotfix P0 de 28/08 altera runtime público, loaders, recuperação client-side, testes e documentação; não altera secret, migration, sitemap, canonical ou regra de alerta. Seu objetivo é impedir que latência/transporte de uma camada externa derrube ou retenha o documento público.
 
-Commits funcionais principais desta rodada:
+Commits funcionais principais desta rodada incluem:
 
 - `dde771e5` — retirar invalidação global das páginas públicas;
 - `0c917e77` — limitar loaders meteorológicos públicos a 2,5 s;
 - `9eb42a88` — limitar loaders hidrológicos públicos a 2,5 s;
 - `32fbaad5` — Radar público a 2,8 s;
 - `c9122b5b` — previsão estendida pública a 2,8 s;
-- `c3fad5d6` — Home com 2,5 s para meteorologia e 3,5 s para hidrologia diferida;
-- `3c897c8b` — contrato de regressão da navegação pública.
+- `2ceaa2d7` — desativar preload SPA global por intenção;
+- `00e1d0f0` — usar anchors nativas no menu público principal;
+- `4ea282b8` — retirar fontes externas do loader inicial da Home;
+- `9bc21962` — tornar Hoje shell-first;
+- `e4fe13ac` — tornar Amanhã shell-first;
+- `d0796a0d` — tornar 7 dias shell-first;
+- `0a4d1cb8` — endpoint estático de versão do runtime;
+- `960b6ff5` — recuperar observação Embrapa depois do shell público;
+- `d0d1798c` — proteger a recuperação client-side da Embrapa em contrato de teste.
+
+A publicação do corte shell-first segue em validação no domínio canônico. O endpoint `/api/runtime-version` identifica este corte como `2026-08-28-p0-shell-first-v1`; só considerar a produção alinhada quando esse release estiver acessível no domínio e as rotas críticas forem retestadas.
 
 ## 19. Qualidade de navegador
 
 `scripts/browser-quality-smoke.mjs` usa Chrome/Chromium via CDP e cobre rotas representativas em mobile/tablet/desktop. TTFB/FCP/LCP/CLS são métricas de laboratório, não CrUX.
 
-A validação P0 deve incluir navegação repetida pelos menus principais e permanência em aba aberta durante deploy, além de acesso direto às rotas críticas.
+A validação P0 deve incluir navegação repetida pelos menus principais e permanência em aba aberta durante deploy, além de acesso direto às rotas críticas. O teste deve observar primeiro se o documento abre; disponibilidade de uma fonte específica é uma dimensão separada.
 
 ## 20. Pesquisa futura
 
@@ -342,19 +399,21 @@ GeoInfo Embrapa e CPTEC/SIGMA permanecem fora do runtime público até seus gate
 
 ## 21. Pendências prioritárias
 
-1. **Publicar e validar o hotfix P0 de navegação no domínio canônico.** Repetir navegação por Agora → Hoje → 7 dias → Radar → Situação das Águas → Região, em desktop/mobile e com aba mantida aberta. A tela global de atualização não pode aparecer em fluxo normal.
-2. Confirmar tempos de resposta/fallback de Home, Hoje, Amanhã, 7 dias, Radar, 15 dias, Laranjal, Guaíba e Situação das Águas; uma fonte lenta deve degradar antes de derrubar o documento.
-3. Confirmar no navegador que não ocorre mais invalidação automática da página depois de 60 s de permanência.
-4. Confirmar política de “Agora”: observação, níveis e status sem cache de resposta; última amostra válida conserva horário/idade reais.
-5. Só depois da estabilidade de navegação, retomar probes independentes de Radar/STSC/satélites e investigação dos dois satélites ainda degradados.
-6. Validar páginas municipais enriquecidas em desktop/mobile/anônimo.
-7. Recapturar Search Console quando o conector estiver disponível; não abrir novas cidades sem evidência.
-8. Resolver provisionamento/execução do GitHub Actions e então executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
-9. Concluir E2E de autenticação com duas contas descartáveis.
-10. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS após o P0.
-11. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
-12. Manter Web Push suspenso e service worker aposentado até estabilidade comprovada.
-13. Só publicar 30 dias quando existir contrato de tendência adequado para dias 16–30.
+1. **Confirmar a publicação do release `2026-08-28-p0-shell-first-v1` e validar a navegação no domínio canônico.** Repetir Agora → Hoje → Amanhã → 7 dias → Radar → Situação das Águas → Região → Agora em desktop/mobile e com aba mantida aberta. A tela global de atualização não pode aparecer em fluxo normal.
+2. Confirmar que Home, Hoje, Amanhã e 7 dias entregam o documento antes das recuperações Open-Meteo/Embrapa e que falha dessas recuperações não altera a navegabilidade.
+3. Validar no navegador que a recuperação Embrapa mantém timestamp real e que previsão Open-Meteo não é apresentada como observação medida.
+4. Reintroduzir o resumo hidrológico da Home somente como recuperação isolada/client-side; não recolocá-lo no loader crítico.
+5. Confirmar no navegador que não ocorre preload por hover/foco nem invalidação automática depois de 60 s de permanência.
+6. Confirmar política de “Agora”: observação, níveis e status sem cache de resposta; última amostra válida conserva horário/idade reais.
+7. Só depois da estabilidade de navegação, retomar probes independentes de Radar/STSC/satélites e investigação dos dois satélites ainda degradados.
+8. Validar páginas municipais enriquecidas em desktop/mobile/anônimo.
+9. Recapturar Search Console quando o conector estiver disponível; não abrir novas cidades sem evidência.
+10. Resolver provisionamento/execução do GitHub Actions e então executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
+11. Concluir E2E de autenticação com duas contas descartáveis.
+12. Continuar Historical Data Layer, ANA/RHN e semântica da Defesa Civil RS após o P0.
+13. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
+14. Manter Web Push suspenso e service worker aposentado até estabilidade comprovada.
+15. Só publicar 30 dias quando existir contrato de tendência adequado para dias 16–30.
 
 ## 22. Documentos especializados principais
 
@@ -362,7 +421,7 @@ GeoInfo Embrapa e CPTEC/SIGMA permanecem fora do runtime público até seus gate
 | --- | --- |
 | `MIGRATION_MATRIX.md` | Migração, paridade e pendências históricas |
 | `WEATHER_PAGE_IDENTITY.md` | Identidade das páginas meteorológicas |
-| `docs/PUBLIC_ROUTE_RESILIENCE.md` | Fallbacks, budgets de fonte e budgets locais de página |
+| `docs/PUBLIC_ROUTE_RESILIENCE.md` | Shell-first, fallbacks, budgets de fonte e budgets locais de página |
 | `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` | Navegação pública, recuperação, SW aposentado e isolamento de chunks |
 | `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` | Monitor histórico, scheduler Supabase, lacuna e freshness |
 | `docs/REDEMET_OPERATIONS.md` | Operação REDEMET |
