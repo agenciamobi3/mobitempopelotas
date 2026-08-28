@@ -15,6 +15,12 @@ test("home starts hydrology in parallel without awaiting it before critical weat
   assert.match(route, /return \{ weather, hydrology \}/);
 });
 
+test("falha de transporte da inteligencia meteorologica degrada sem derrubar a home", () => {
+  assert.match(route, /getWeatherIntelligence\(\)\.catch/);
+  assert.match(route, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(route, /import \{ createUnavailableWeatherIntelligence \}/);
+});
+
 test("home resolves deferred hydrology only at the water section", () => {
   assert.match(home, /import \{ Await, Link \} from "@tanstack\/react-router"/);
   assert.match(home, /<Suspense fallback=\{<HomeWaterLoading \/>\}>/);
