@@ -2,170 +2,150 @@
 
 ## Objetivo
 
-Evitar que páginas públicas do Tempo Pelotas sejam substituídas pelo `errorComponent` global por falhas transitórias que podem ser degradadas com segurança.
+Evitar que páginas públicas do Tempo Pelotas sejam substituídas pelo `errorComponent` global por falhas transitórias, integrações lentas ou estados antigos de cliente que podem ser degradados com segurança.
 
-A estratégia cobre três classes diferentes de falha:
+A prioridade operacional é explícita: **o documento público precisa abrir antes de qualquer dependência externa lenta**. Dados meteorológicos, hidrológicos, radar, satélite e séries auxiliares podem degradar; a navegação não pode degradar junto.
 
-1. falha de dados no servidor, especialmente na consolidação meteorológica compartilhada;
-2. dependência externa lenta o bastante para estourar o orçamento de uma navegação pública;
-3. cliente desatualizado após deploy, quando o navegador tenta carregar um chunk/module que já não existe na versão publicada.
+A estratégia cobre quatro classes diferentes de falha:
 
-O `errorComponent` global continua existindo como última barreira para erros de programação ou falhas que não possam ser recuperadas com segurança.
+1. falha de dados no servidor;
+2. dependência externa lenta o bastante para reter o SSR público;
+3. invalidação SPA desnecessária de uma página pública já saudável;
+4. cliente desatualizado após deploy, quando o navegador tenta carregar um chunk/module antigo.
+
+O `errorComponent` global continua existindo como última barreira para erros de programação ou falhas que não possam ser recuperadas com segurança. Ele não é uma tela normal de carregamento e não deve aparecer durante navegação saudável.
 
 ## 1. Falha de dados meteorológicos
 
 Grande parte das páginas meteorológicas públicas consome `getWeatherIntelligence()`.
 
-A camada interna já possui timeouts e estados `unavailable` para várias fontes, mas uma exceção inesperada acima desses adapters ainda podia rejeitar a server function e derrubar a rota inteira.
+A camada interna possui timeouts e estados `unavailable` para várias fontes, mas uma exceção inesperada acima desses adapters ainda pode rejeitar a server function. `src/lib/weather/weather-intelligence.functions.ts` contém a última barreira de exceção: quando `fetchWeatherIntelligence()` falha de forma inesperada, a server function devolve `createUnavailableWeatherIntelligence()` em vez de propagar a exceção para o router.
 
-`src/lib/weather/weather-intelligence.functions.ts` contém a última barreira de exceção. Quando `fetchWeatherIntelligence()` falha de forma inesperada, a server function devolve `createUnavailableWeatherIntelligence()` em vez de propagar a exceção para o router.
-
-O fallback está em `src/lib/weather/weather-intelligence-fallback.ts` e segue estas regras:
+O fallback preserva estas regras:
 
 - `status: unavailable`;
 - `current: null`;
 - séries horária e diária vazias;
 - alertas, previsões oficiais e contextos auxiliares vazios;
-- todas as fontes marcadas como indisponíveis e não utilizáveis;
+- fontes marcadas como indisponíveis e não utilizáveis;
 - score de qualidade zero e confiança baixa;
 - brief determinístico, sem chamada de IA;
 - nenhum valor meteorológico demonstrativo ou inventado.
 
-A interface pública já possui estados vazios/indisponíveis e deve continuar navegável mesmo sem dados utilizáveis.
+A interface pública deve continuar navegável mesmo sem dados utilizáveis.
 
-## 2. Orçamento de latência
+## 2. Budget de fonte e budget de página são contratos diferentes
 
-A auditoria identificou uma causa sistêmica importante: o caminho compartilhado de previsão continha dependências capazes de permanecer ativas por dezenas de segundos. Como várias páginas públicas dependem de `getWeatherIntelligence()`, uma fonte lenta podia afetar diversas rotas ao mesmo tempo.
+O pipeline meteorológico compartilhado mantém budgets internos realistas para não declarar uma fonte fora cedo demais. A consolidação completa de `getWeatherIntelligence()` pode usar até **5 segundos**, e integrações individuais possuem seus próprios limites.
 
-O contrato atual prioriza disponibilidade da página sem transformar uma fonte pública apenas mais lenta em falsa indisponibilidade:
+Isso não significa que uma página pública deva aguardar os mesmos 5 segundos.
 
-- `getWeatherIntelligence()` possui prazo máximo de **5 segundos** para a consolidação completa;
-- Open-Meteo direto usa timeout de **1,8 segundo** e mantém a validação estrutural canônica antes da normalização;
-- MET Norway usa timeout de **1,8 segundo**;
-- a contingência Open-Meteo via Supabase/Edge só é consultada quando a origem direta estiver indisponível e possui orçamento total de **1,6 segundo**, compartilhado entre leitura de configuração e chamada da Edge Function;
-- `WEATHER_SOURCE_REQUEST_TIMEOUT_MS` define requests de **2,2 s para Embrapa**, **3,2 s para INMET** e **2,4 s para CPPMet**;
-- `OFFICIAL_SOURCE_DEADLINE_MS` preserva tetos de **2,6 s para Embrapa**, **3,6 s para INMET**, **4 s para previsão municipal INMET** e **2,8 s para CPPMet**;
-- ao atingir o prazo global, a página recebe o contrato `unavailable` seguro em vez de aguardar indefinidamente ou cair no error boundary.
+Em 28/08/2026 foi aplicado um hotfix de navegação após reprodução do portal caindo na tela global “Carregando a versão mais recente do Tempo Pelotas” durante uso normal. A política atual passou a ser:
 
-Em 28/08/2026, logs reais da Edge `open-meteo-forecast` mostraram respostas HTTP 200 com execução chegando a **1,125 s**. Como o budget do cliente também cobre a consulta de configuração ao Supabase e a latência de transporte, o teto anterior de 900 ms podia abortar uma contingência saudável. O novo teto de 1,6 s continua abaixo dos budgets externos das páginas e não altera o timeout upstream da própria Edge Function.
+- Home: meteorologia principal com teto local de **2,5 s**;
+- Home: bloco hidrológico continua diferido e recebe teto de **3,5 s**, sem bloquear a página principal;
+- Hoje, Amanhã, 7 dias, Alertas e demais páginas que usam `loadPublicWeatherPage()`: teto local de **2,5 s**;
+- Chuva, Vento e páginas compostas com meteograma: cada domínio recebe teto local de **2,5 s** e degrada independentemente;
+- páginas hidrológicas públicas compartilhadas: cada dependência recebe teto local de **2,5 s**;
+- Radar e Satélite: teto de página de **2,8 s** por domínio;
+- Previsão de 15 dias: teto de página de **2,8 s** por domínio.
 
-Esses limites não convertem uma fonte lenta em dado válido. Eles encerram trabalho de rede sempre que possível e permitem que a interface assuma seu estado de indisponibilidade.
+Ao atingir o teto da página, o loader retorna o contrato `unavailable` daquele domínio. Isso **não** afirma que a fonte oficial está fora; significa somente que aquela renderização pública não aguardará mais.
 
-### 2.1. Budget de página separado do budget de fonte
+Os budgets internos das fontes permanecem separados e podem ser maiores porque também atendem coletores, caches, monitoramento e tentativas de recuperação fora do caminho crítico da navegação.
 
-Algumas rotas agregam mais de uma server function independente. Nelas, o teto interno de cada fonte não deve se transformar automaticamente no tempo máximo do SSR público.
+### 2.1. Open-Meteo
 
-Em 28/08/2026 foram adicionadas barreiras locais de **4 segundos por dependência** em:
+O fluxo compartilhado permanece:
 
-- `src/lib/weather/extended-forecast-page-loader.ts`, usado por `/previsao-15-dias-pelotas`;
-- `src/lib/redemet/radar-page-loader.ts`, usado por `/radar-e-satelite-pelotas`.
+1. origem Open-Meteo direta primeiro;
+2. se a origem direta for utilizável, retornar imediatamente;
+3. se estiver indisponível, tentar o último payload validado persistido no cache privado do Supabase;
+4. somente quando o cache não puder atender, consultar configuração/token e chamar a Edge Function;
+5. se nenhuma camada puder atender, preservar `unavailable`.
 
-As duas rotas continuam usando `Promise.allSettled` e preservam degradação independente. A diferença é que a página pode devolver o fallback daquele domínio antes do teto de 5 s da inteligência meteorológica compartilhada ou do teto de 4,5 s do overview REDEMET.
+O cache privado não inventa previsão: ele reutiliza o último payload completo validado e preserva o horário real da captura.
 
-Esse budget local **não reduz** os deadlines internos das fontes e não afirma que a fonte pública esteja indisponível. Ele limita apenas o quanto aquela renderização pública espera antes de usar um contrato já previsto como `unavailable`.
+A previsão estendida segue a mesma prioridade, mas com contrato próprio: primeiro tenta 15 dias diretamente; em falha pode reutilizar até 7 dias reais preservados como janela `partial`, sem extrapolar dias 8–15.
 
-A rota de 15 dias possui ainda uma contingência sequencial dentro desse teto. A tentativa direta diária de 15 dias usa 2,2 s; se falhar, `fetchOpenMeteoPayloadViaEdge()` pode fornecer o payload Open-Meteo compartilhado preservado em Supabase dentro de até 1,6 s. Como a Edge atual coleta 7 dias, a rota reutiliza somente os dias reais compatíveis e publica estado `partial`, mantendo `requestedDays: 15`. Nenhum dia 8–15 é extrapolado. A barreira local de 4 s continua sendo a contenção final da página se o custo sequencial se aproximar desse limite.
+### 2.2. Embrapa
 
-### 2.2. Open-Meteo direto antes de Edge/Supabase
+`getCentralEmbrapaObservation()` é cache-first/read-only no caminho público. A visita à página não deve reivindicar lease nem disparar coleta persistente. A última observação real pode ser exibida quando a coleta corrente falha, sempre com horário/idade originais e sem se passar por observação nova.
 
-A navegação pública comum não consulta Supabase/Edge antes da origem meteorológica principal.
+### 2.3. Hidrologia
 
-O fluxo compartilhado é:
+Laranjal, Guaíba, rede da Lagoa dos Patos, SACE e Defesa Civil degradam separadamente. `src/lib/hydrology/public-hydrology-page-loader.ts` contém agora a barreira local de 2,5 s por dependência. Nenhuma delas pode impedir a rota inteira de abrir.
 
-1. consultar Open-Meteo diretamente com timeout curto e validação de schema;
-2. se a resposta for utilizável, retornar imediatamente;
-3. somente se a origem direta estiver `unavailable`, tentar a contingência `open-meteo-forecast`;
-4. se a contingência também falhar, preservar o estado `unavailable` da origem direta.
+## 3. Invalidação global por minuto retirada do público
 
-A previsão estendida segue a mesma prioridade, mas mantém contrato próprio: primeiro tenta 15 dias diretamente; somente na falha reutiliza o cache de 7 dias da Edge como janela parcial. Isso retira banco e Edge Function do caminho comum de uma pageview saudável sem eliminar a contingência já existente.
+`WeatherMinuteRefresh` deixou de executar `router.invalidate()` a cada 60 segundos.
 
-### 2.3. Embrapa cache-first no pageview
+Esse mecanismo era incompatível com a estratégia atual de navegação pública por documento completo: uma página já carregada e saudável podia, um minuto depois, reabrir todos os loaders via SPA. Uma oscilação transitória de rede, server function, fonte ou deploy podia então promover a rota inteira ao boundary global sem o visitante ter feito nada.
 
-`getCentralEmbrapaObservation()` é leitura cache-first/read-only no caminho público:
+A regra atual é:
 
-- a leitura da linha central do Supabase possui timeout de **800 ms**;
-- se existir observação armazenada, ela é devolvida mesmo quando antiga;
-- a camada de agregação continua responsável por calcular a idade e não usa uma leitura stale como condição atual;
-- o pageview não chama `refreshCentralEmbrapaObservation()` e não reivindica lease nem escreve histórico;
-- atualização, lease e persistência continuam pertencendo ao coletor/cron existente;
-- se não houver linha central ou a leitura do banco falhar, a fonte direta da Embrapa continua disponível como contingência dentro do timeout oficial.
+- nenhum `router.invalidate()` periódico global nas páginas públicas;
+- coletores, cron e caches centrais continuam atualizando as fontes;
+- uma nova navegação pública obtém um documento novo;
+- componentes que realmente precisarem de atualização em segundo plano devem atualizar somente seu próprio domínio, sem invalidar a árvore de rotas inteira.
 
-Assim, visitar uma página não dispara trabalho de coleta persistente.
+## 4. Navegação pública por documento completo
 
-### 2.4. INMET sem fan-out excessivo
+`src/components/navigation/PublicDocumentNavigationGuard.tsx` intercepta links públicos same-origin e usa `window.location.assign(destination.href)`.
 
-O enriquecimento RSS/CAP do INMET deixou de abrir dezenas de requisições de detalhe durante uma pageview.
+Áreas autenticadas como `/conta`, `/painel`, `/auth`, `/login` e `/admin` continuam autorizadas a usar SPA. Um link específico também pode optar por SPA com `data-spa-navigation="true"`.
 
-O limite permanece em **8** detalhes por tentativa, com deadline de enriquecimento de **1,8 segundo**. Os identificadores já encontrados no feed/base municipal são priorizados; somente vagas restantes são preenchidas pelos primeiros detalhes válidos do RSS, sem duplicação.
+O objetivo é evitar que uma aba antiga dependa de route chunks mantidos em memória depois de um deploy.
 
-Falha ou lentidão no enriquecimento não invalida os avisos obtidos pelo feed base.
+## 5. Cliente desatualizado após deploy
 
-## 3. Cliente desatualizado após deploy
+`src/lib/stale-client-recovery.ts` reconhece assinaturas de chunk/module antigo, como `Failed to fetch dynamically imported module`, `ChunkLoadError` e falha de preload.
 
-O portal usa Vite/TanStack e possui chunks versionados. Quando uma aba permanece aberta durante um deploy, ela pode continuar com o shell antigo e, ao navegar para outra rota, solicitar um chunk que foi substituído. Erros típicos incluem:
+Quando a assinatura é recuperável, o navegador pode solicitar um documento fresco com `__tp_recover=<timestamp>`. A tentativa é limitada por `sessionStorage` por URL lógica dentro de uma janela de 60 segundos para impedir loop.
 
-- `Failed to fetch dynamically imported module`;
-- `Error loading dynamically imported module`;
-- `ChunkLoadError`;
-- falhas de preload de módulo/CSS.
+Essa recuperação é uma contenção excepcional. A tela global de atualização não deve ser usada como parte normal da navegação.
 
-`src/lib/stale-client-recovery.ts` trata assinaturas conhecidas desse cenário e também uma tentativa fresca controlada para falhas transitórias de navegação/runtime depois da hidratação.
+## 6. Radar, STSC e satélites
 
-A recuperação possui entradas no evento `vite:preloadError` e no `errorComponent` global. Quando a assinatura é compatível com cliente desatualizado ou falha transitória recuperável, o navegador navega para um documento fresco com `__tp_recover=<timestamp>`.
+A disponibilidade de Radar/STSC/satélite é independente da disponibilidade do documento público. A página deve abrir mesmo que a REDEMET ou o INMET não respondam dentro do budget de página.
 
-Para impedir loop, a tentativa é registrada em `sessionStorage` por URL lógica e só pode ocorrer automaticamente uma vez dentro de uma janela de 60 segundos. Depois de hidratação bem-sucedida, o parâmetro de recuperação é removido com `history.replaceState`.
+O monitor operacional também deve distinguir resposta da integração, timeout e payload não utilizável. Um timeout do adapter não deve ser apresentado como prova de indisponibilidade global do serviço oficial.
 
-## 4. Central Regional
+## 7. O que não fazer
 
-`/tempo-na-regiao-sul-rs` possui ainda uma barreira própria porque seu contrato deve preservar o diretório das 24 cidades mesmo quando todas as fontes da visão resumida falharem.
+- Não transformar erro de programação em dado meteorológico válido.
+- Não inserir temperatura, chuva, vento, nível, alerta ou timestamp fictício.
+- Não restaurar invalidação global periódica de toda a rota pública.
+- Não criar loop de recuperação automática.
+- Não fazer uma fonte externa reter o documento público até o timeout da hospedagem.
+- Não disparar coleta, lease ou persistência apenas porque um visitante abriu uma página.
+- Não confundir budget de SSR com budget da fonte oficial.
+- Não remover o `errorComponent` global; ele permanece como contenção final, não como experiência normal.
 
-Esse fallback cria itens `unavailable` para todo `PUBLIC_REGIONAL_CITIES`, com métricas nulas e links municipais preservados. O mapa também possui boundary próprio e não pode derrubar lista, busca, filtros ou links. A estratégia detalhada do provedor/snapshot continua em `docs/REGIONAL_WEATHER_FALLBACK.md`.
+## 8. Testes
 
-## 5. Evolução dos budgets
+`tests/public-navigation-stability.test.ts` protege especificamente o hotfix de navegação:
 
-No incidente de 25/08/2026, páginas que dependiam do pipeline meteorológico compartilhado atingiram timeout enquanto rotas menos dependentes continuaram respondendo. A investigação encontrou uma combinação de contingência Open-Meteo muito longa, budgets extensos em fontes auxiliares, refresh da Embrapa no pageview e fan-out do RSS do INMET.
+- ausência de `router.invalidate()`/`setInterval()` no refresh global público;
+- preservação da navegação por documento completo;
+- teto de 2,5 s nos loaders meteorológicos e hidrológicos públicos;
+- teto de 2,8 s em Radar e previsão estendida;
+- deadlines próprios da Home e hidrologia diferida.
 
-A primeira resposta operacional reduziu agressivamente a barreira compartilhada até **3 segundos**. Em 28/08/2026, após evidência de falsos estados `unavailable` causados por respostas oficiais apenas mais lentas, o teto da inteligência meteorológica foi recalibrado para **5 segundos** e os budgets individuais das fontes oficiais foram ampliados de forma controlada.
+`tests/public-route-resilience.test.ts` continua cobrindo fallback meteorológico, barreira global, budgets de fontes, recuperação de runtime e navegação pública.
 
-A proteção de latência passou então a existir em duas camadas:
+`tests/open-meteo-edge.test.ts`, `tests/fifteen-day-forecast.test.ts` e `tests/redemet-performance.test.ts` preservam os contratos especializados.
 
-1. budgets internos suficientemente realistas para não declarar uma fonte fora cedo demais;
-2. budgets locais de página em agregadores sensíveis, como 15 dias e Radar, que liberam o SSR em até 4 s por dependência e degradam somente o domínio atrasado.
+Os runners do GitHub Actions continuam precisando de execução real antes de qualquer afirmação de suíte aprovada. Job criado sem steps não comprova build/teste.
 
-Isso evita voltar ao erro original de esperar dezenas de segundos sem reintroduzir o efeito colateral de classificar latência normal como indisponibilidade pública.
+## 9. Operação e diagnóstico
 
-A recuperação de chunks antigos permanece necessária como segunda causa possível, especialmente em abas mantidas abertas durante deploys frequentes.
+Quando uma página pública voltar a cair no boundary global, classificar primeiro:
 
-## 6. O que não fazer
+- **loader lento:** confirmar se a barreira local devolveu fallback dentro de 2,5–2,8 s;
+- **dados:** verificar fonte externa e fallback correspondente;
+- **asset/chunk:** verificar se ocorreu após deploy e corresponde a módulo/preload antigo;
+- **programação/render:** tratar como bug real, sem mascarar com valor fictício;
+- **infra/runtime:** verificar publicação, logs e disponibilidade da aplicação.
 
-- Não transformar erro de programação arbitrário em dado meteorológico válido.
-- Não inserir temperatura, chuva, vento, nível, alerta ou timestamp fictício para preencher a interface.
-- Não aplicar recarga automática indiscriminada ou criar loop de recuperação.
-- Não criar uma chamada externa por página quando a camada compartilhada já possui fallback.
-- Não reduzir ou aumentar timeouts de fontes oficiais sem evidência operacional; budget de fonte e budget de SSR são contratos diferentes.
-- Não disparar coleta, lease ou persistência apenas porque um visitante abriu uma página pública.
-- Não remover o `errorComponent` global: ele continua necessário como contenção final e telemetria.
-
-## 7. Testes
-
-`tests/public-route-resilience.test.ts` cobre o fallback meteorológico, a barreira global atual de 5 s, budgets das fontes, recuperação de runtime, navegação pública por documento, isolamento do mapa e loaders meteorológicos básicos.
-
-`tests/open-meteo-edge.test.ts` protege o cache privado, o token server-only, o budget Edge de 1,6 s e a prioridade da origem direta antes da contingência Supabase/Edge.
-
-`tests/fifteen-day-forecast.test.ts` protege a consulta estendida dedicada, a degradação independente, a contingência Edge como janela parcial e o budget local de 4 s do loader público de 15 dias.
-
-`tests/redemet-performance.test.ts` protege os budgets internos do overview REDEMET e o budget local de 4 s da página pública de Radar, mantendo explícita a diferença entre latência upstream e tempo máximo de espera do SSR.
-
-O workflow `quality.yml` executa `test:contracts`, que inclui os contratos de 15 dias e REDEMET, além da etapa dedicada de resiliência pública. A aprovação continua condicionada a execução real dos runners; um workflow criado sem steps não prova build ou testes aprovados nem reprovados.
-
-## 8. Operação e diagnóstico
-
-Quando uma página pública voltar a cair no erro global ou exceder o tempo esperado, classificar primeiro a falha:
-
-- **dados:** conferir server function, fonte externa e fallback correspondente;
-- **latência:** conferir se uma dependência ultrapassou o budget interno ou o budget local da página e se o fallback entrou antes do timeout da hospedagem/crawler;
-- **asset/chunk:** conferir se ocorreu logo após deploy e se o erro corresponde a módulo dinâmico/preload;
-- **programação/render:** tratar como bug real, sem mascarar com fallback genérico;
-- **infra/runtime:** conferir deploy, logs e disponibilidade da aplicação.
-
-A resiliência deve manter o portal navegável quando a informação externa estiver indisponível, mas sem esconder defeitos reais de código ou afirmar indisponibilidade global de uma fonte a partir de uma única integração.
+A prioridade é manter o portal navegável. A ausência temporária de uma camada de dados é preferível a uma página pública inteira inacessível.
