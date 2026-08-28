@@ -9,7 +9,7 @@ import "@/components/weather/WeatherAlertsHomeContract.css";
 import "@/components/weather/WeatherAlertsAccentContract.css";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Alertas do INMET em Pelotas e região";
 const PAGE_DESCRIPTION =
@@ -125,7 +125,7 @@ export const Route = createFileRoute("/alertas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, ALERTS_PAGE_CONTENT.faqs),
     ]),
-  loader: () => getWeatherIntelligence(),
+  loader: () => loadPublicWeatherPage(),
   staleTime: 5 * 60 * 1_000,
   component: AlertasPage,
 });
