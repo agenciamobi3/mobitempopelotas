@@ -4,10 +4,9 @@ import { EditorialContentSection } from "@/components/content/EditorialContentSe
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { FifteenDayForecastHero } from "@/components/weather/FifteenDayForecastHero";
 import { FifteenDayForecastPage } from "@/components/weather/FifteenDayForecastPage";
-import { getPelotasExtendedForecast } from "@/lib/weather/extended-forecast.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadPublicExtendedForecastPage } from "@/lib/weather/extended-forecast-page-loader";
 
 const PAGE_TITLE = "Previsão do tempo em Pelotas: 10 e 15 dias";
 const PAGE_DESCRIPTION =
@@ -106,13 +105,7 @@ export const Route = createFileRoute("/previsao-15-dias-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, FIFTEEN_DAY_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [weather, extendedForecast] = await Promise.all([
-      getWeatherIntelligence(),
-      getPelotasExtendedForecast(),
-    ]);
-    return { weather, extendedForecast };
-  },
+  loader: () => loadPublicExtendedForecastPage(),
   staleTime: 5 * 60 * 1_000,
   component: PrevisaoQuinzeDiasPage,
 });
