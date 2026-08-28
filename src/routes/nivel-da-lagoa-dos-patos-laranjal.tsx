@@ -9,10 +9,9 @@ import "@/components/hydrology/HydrologyEditorialRoute.css";
 import { LaranjalLevelPage } from "@/components/hydrology/HydrologyPages";
 import "@/components/hydrology/HydrologyDetailHomeContract.css";
 import { LARANJAL_LEVEL_EDITORIAL_CONTENT } from "@/lib/editorial-content";
-import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
+import { loadLaranjalHydrologyPageData } from "@/lib/hydrology/public-hydrology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Nível da Lagoa dos Patos hoje no Laranjal, Pelotas";
 const PAGE_DESCRIPTION =
@@ -132,10 +131,7 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
       }),
       createFaqPageJsonLd(PAGE_PATH, LARANJAL_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [weather, level] = await Promise.all([getWeatherIntelligence(), getLaranjalLevelData()]);
-    return { weather, level };
-  },
+  loader: () => loadLaranjalHydrologyPageData(),
   staleTime: 60 * 1_000,
   component: NivelLagoaPage,
 });
