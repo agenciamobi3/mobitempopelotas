@@ -4,6 +4,11 @@ import test from "node:test";
 
 const route = readFileSync("src/routes/metodologia.tsx", "utf8");
 const loader = readFileSync("src/lib/methodology/methodology-page-loader.ts", "utf8");
+const hydrologyFallbacks = readFileSync(
+  "src/lib/hydrology/public-hydrology-page-loader.ts",
+  "utf8",
+);
+const redemetFallback = readFileSync("src/lib/redemet/redemet-fallback.ts", "utf8");
 const component = readFileSync("src/components/methodology/MethodologyPage.tsx", "utf8");
 const refinement = readFileSync(
   "src/components/methodology/MethodologyPageRefinement.css",
@@ -31,14 +36,15 @@ test("falha isolada de fonte não promove a metodologia ao boundary global", () 
   assert.match(loader, /Promise\.allSettled/);
   assert.doesNotMatch(loader, /await Promise\.all\(/);
   assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
-  assert.match(loader, /createUnavailableLaranjal\(\)/);
-  assert.match(loader, /createUnavailableRedemet\(\)/);
-  assert.match(loader, /createUnavailableGuaiba\(\)/);
-  assert.match(loader, /createUnavailableLagoonNetwork\(\)/);
+  assert.match(loader, /createUnavailableLaranjalLevelData\(\)/);
+  assert.match(loader, /createUnavailableRedemetOverview\(\)/);
+  assert.match(loader, /createUnavailableGuaibaObservationData\(\)/);
+  assert.match(loader, /createUnavailableLagoonMonitoringNetworkData\(\)/);
   assert.match(loader, /createUnavailableAccuracy\(\)/);
-  assert.match(loader, /status: "unavailable"/);
-  assert.match(loader, /currentLevel: null/);
-  assert.match(loader, /frames: \[\]/);
+  assert.match(hydrologyFallbacks, /status: "unavailable"/);
+  assert.match(hydrologyFallbacks, /currentLevel: null/);
+  assert.match(redemetFallback, /available: false/);
+  assert.match(redemetFallback, /frames: \[\]/);
   assert.match(loader, /providers: \[\]/);
 });
 
