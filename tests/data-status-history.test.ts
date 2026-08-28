@@ -55,6 +55,17 @@ test("a página de status mostra disponibilidade e histórico de incidentes", ()
   assert.match(publicRoutes, /path: "\/status-dos-dados"/);
 });
 
+test("probes meteorológicos medem as integrações sem depender da composição Weather AI", () => {
+  assert.match(statusServer, /fetchPelotasWeather/);
+  assert.match(statusServer, /fetchOfficialWeatherSources/);
+  assert.match(statusServer, /getEmbrapaHealthSnapshotServer/);
+  assert.match(statusServer, /baselineResult\.value\.providers\["open-meteo"\]/);
+  assert.match(statusServer, /baselineResult\.value\.providers\["met-norway"\]/);
+  assert.match(statusServer, /stateFromEmbrapaHealth/);
+  assert.match(statusServer, /health\.collector\.lastSuccessAt/);
+  assert.doesNotMatch(statusServer, /getWeatherIntelligence/);
+});
+
 test("a Defesa Civil RS entra no monitoramento operacional como fonte pública real", () => {
   assert.match(statusServer, /fetchDefesaCivilHydroData/);
   assert.match(statusServer, /defesaCivilResult/);
