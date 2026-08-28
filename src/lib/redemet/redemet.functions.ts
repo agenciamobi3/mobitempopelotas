@@ -4,7 +4,10 @@ import { setResponseHeaders } from "@tanstack/react-start/server";
 import { fetchInmetSatellite } from "@/lib/weather/inmet-satellite.server";
 import { withRedemetLastGood } from "./redemet-last-good.server";
 import { fetchRedemetRadarResilient } from "./redemet-radar.server";
-import { fetchRedemetSatellite } from "./redemet.server";
+import {
+  fetchOfficialRedemetSatellite,
+  selectOfficialSatelliteResult,
+} from "./redemet-satellite-resilient.server";
 import { fetchRedemetStorms } from "./redemet-stsc.server";
 import type {
   RedemetImageLayerResponse,
@@ -14,7 +17,7 @@ import type {
 
 const IMAGE_FRAME_WINDOW = 8;
 const STORM_FRAME_WINDOW = 12;
-const OVERVIEW_LAYER_DEADLINE_MS = 2_600;
+const OVERVIEW_LAYER_DEADLINE_MS = 4_500;
 
 function unavailableImageLayer(
   provider: RedemetImageLayerResponse["provider"],
@@ -77,7 +80,7 @@ export const getRedemetOverview = createServerFn({ method: "GET" }).handler(
       }),
     );
 
-    const [radar, satellite, inmetSatellite, storms] = await Promise.all([
+    const [radar, redemetSatellite, inmetSatellite, storms] = await Promise.all([
       settleWithin(
         withRedemetLastGood(`radar:${IMAGE_FRAME_WINDOW}`, () =>
           fetchRedemetRadarResilient(IMAGE_FRAME_WINDOW),
@@ -87,20 +90,21 @@ export const getRedemetOverview = createServerFn({ method: "GET" }).handler(
             "REDEMET / DECEA",
             "Radar meteorológico",
             "Radar REDEMET",
-            "O radar excedeu o orçamento de carregamento da página.",
+            "A integração do radar excedeu o orçamento de carregamento da página.",
             "https://redemet.decea.mil.br/radar/",
           ),
       ),
       settleWithin(
         withRedemetLastGood(`satellite:realcada:${IMAGE_FRAME_WINDOW}`, () =>
-          fetchRedemetSatellite("realcada", IMAGE_FRAME_WINDOW),
+          fetchOfficialRedemetSatellite("realcada", IMAGE_FRAME_WINDOW),
         ),
         () =>
           unavailableImageLayer(
             "REDEMET / DECEA",
             "Satélite infravermelho realçado",
             "Satélite REDEMET",
-            "O satélite REDEMET excedeu o orçamento de carregamento da página.",
+            "A integração do satélite REDEMET excedeu o orçamento de carregamento da página.",
+            "https://redemet.decea.mil.br/",
           ),
       ),
       settleWithin(
@@ -112,7 +116,7 @@ export const getRedemetOverview = createServerFn({ method: "GET" }).handler(
             "INMET",
             "GOES — infravermelho",
             "GOES / Região Sul / canal infravermelho",
-            "O satélite do INMET excedeu o orçamento de carregamento da página.",
+            "A integração de satélite do INMET excedeu o orçamento de carregamento da página.",
             "https://satelite.inmet.gov.br/",
           ),
       ),
@@ -120,9 +124,18 @@ export const getRedemetOverview = createServerFn({ method: "GET" }).handler(
         withRedemetLastGood(`storms:${STORM_FRAME_WINDOW}`, () =>
           fetchRedemetStorms(STORM_FRAME_WINDOW),
         ),
-        () => unavailableStormLayer("O STSC excedeu o orçamento de carregamento da página."),
+        () =>
+          unavailableStormLayer(
+            "A integração STSC excedeu o orçamento de carregamento da página.",
+          ),
       ),
     ]);
+
+    const satellite = selectOfficialSatelliteResult(
+      "realcada",
+      redemetSatellite,
+      inmetSatellite,
+    );
 
     return { radar, satellite, inmetSatellite, storms };
   },
