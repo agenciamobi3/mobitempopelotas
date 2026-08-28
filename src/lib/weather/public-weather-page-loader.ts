@@ -22,6 +22,19 @@ function unavailableMeteogram(message: string): MeteogramData {
 }
 
 /**
+ * Barreira final para páginas públicas que dependem somente da inteligência
+ * meteorológica consolidada. As fontes já degradam no servidor; este catch cobre
+ * também uma rejeição da própria server function no transporte.
+ */
+export async function loadPublicWeatherPage() {
+  try {
+    return await getWeatherIntelligence();
+  } catch {
+    return createUnavailableWeatherIntelligence();
+  }
+}
+
+/**
  * Loader compartilhado para páginas públicas que combinam a inteligência
  * meteorológica principal com a série horária detalhada do meteograma.
  *
