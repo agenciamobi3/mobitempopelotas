@@ -14,6 +14,25 @@ const PAGE_TITLE = "Tempo agora em Pelotas: temperatura, chuva e previsão";
 const PAGE_DESCRIPTION =
   "Veja o tempo agora em Pelotas com temperatura atual, sensação térmica, próximas horas, chuva, vento, previsão para 7 e 15 dias, radar, alertas do INMET e situação das águas.";
 const PAGE_PATH = "/";
+const HOME_WEATHER_DEADLINE_MS = 2_500;
+const HOME_HYDROLOGY_DEADLINE_MS = 3_500;
+
+async function settleWithin<T>(promise: Promise<T>, fallback: () => T, timeoutMs: number) {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((resolve) => {
+        timeout = setTimeout(() => resolve(fallback()), timeoutMs);
+      }),
+    ]);
+  } catch {
+    return fallback();
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
 
 export const Route = createFileRoute("/")({
   head: () =>
@@ -44,22 +63,27 @@ export const Route = createFileRoute("/")({
       createFaqPageJsonLd(PAGE_PATH, HOME_EDITORIAL_CONTENT.faqs),
     ]),
   loader: async () => {
-    const hydrology: Promise<HomeHydrologyResult> = Promise.all([
-      getLaranjalLevelData(),
-      getGuaibaObservation(),
-      getLagoonMonitoringNetwork(),
-    ])
-      .then(([laranjal, guaiba, lagoon]) => ({
+    const hydrology: Promise<HomeHydrologyResult> = settleWithin(
+      Promise.all([
+        getLaranjalLevelData(),
+        getGuaibaObservation(),
+        getLagoonMonitoringNetwork(),
+      ]).then(([laranjal, guaiba, lagoon]) => ({
         status: "ready" as const,
         laranjal,
         guaiba,
         lagoon,
-      }))
-      .catch(() => ({ status: "unavailable" as const }));
-
-    const weather = await getWeatherIntelligence().catch(() =>
-      createUnavailableWeatherIntelligence(),
+      })),
+      () => ({ status: "unavailable" as const }),
+      HOME_HYDROLOGY_DEADLINE_MS,
     );
+
+    const weather = await settleWithin(
+      getWeatherIntelligence(),
+      createUnavailableWeatherIntelligence,
+      HOME_WEATHER_DEADLINE_MS,
+    );
+
     return { weather, hydrology };
   },
   staleTime: 60 * 1_000,
