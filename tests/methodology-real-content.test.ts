@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const route = readFileSync("src/routes/metodologia.tsx", "utf8");
+const loader = readFileSync("src/lib/methodology/methodology-page-loader.ts", "utf8");
 const component = readFileSync("src/components/methodology/MethodologyPage.tsx", "utf8");
 const refinement = readFileSync(
   "src/components/methodology/MethodologyPageRefinement.css",
@@ -13,14 +14,32 @@ const homeContract = readFileSync(
   "utf8",
 );
 
-test("a rota de metodologia consulta todas as integrações meteorológicas e hidrológicas ativas", () => {
-  assert.match(route, /getWeatherIntelligence\(\)/);
-  assert.match(route, /getLaranjalLevelData\(\)/);
-  assert.match(route, /getRedemetOverview\(\)/);
-  assert.match(route, /getGuaibaObservation\(\)/);
-  assert.match(route, /getLagoonMonitoringNetwork\(\)/);
+test("a rota de metodologia usa um loader único para todas as integrações ativas", () => {
+  assert.match(route, /loadMethodologyPageData/);
+  assert.match(route, /loader: \(\) => loadMethodologyPageData\(\)/);
+  assert.match(loader, /getWeatherIntelligence\(\)/);
+  assert.match(loader, /getLaranjalLevelData\(\)/);
+  assert.match(loader, /getRedemetOverview\(\)/);
+  assert.match(loader, /getGuaibaObservation\(\)/);
+  assert.match(loader, /getLagoonMonitoringNetwork\(\)/);
+  assert.match(loader, /getForecastAccuracySummary\(\)/);
   assert.match(route, /guaiba=\{data\.guaiba\}/);
   assert.match(route, /lagoon=\{data\.lagoon\}/);
+});
+
+test("falha isolada de fonte não promove a metodologia ao boundary global", () => {
+  assert.match(loader, /Promise\.allSettled/);
+  assert.doesNotMatch(loader, /await Promise\.all\(/);
+  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(loader, /createUnavailableLaranjal\(\)/);
+  assert.match(loader, /createUnavailableRedemet\(\)/);
+  assert.match(loader, /createUnavailableGuaiba\(\)/);
+  assert.match(loader, /createUnavailableLagoonNetwork\(\)/);
+  assert.match(loader, /createUnavailableAccuracy\(\)/);
+  assert.match(loader, /status: "unavailable"/);
+  assert.match(loader, /currentLevel: null/);
+  assert.match(loader, /frames: \[\]/);
+  assert.match(loader, /providers: \[\]/);
 });
 
 test("o inventário apresenta cinco integrações meteorológicas e três hidrológicas", () => {
@@ -71,7 +90,7 @@ test("links externos e capítulos permanecem acessíveis", () => {
   assert.match(component, /href="#tipos-informacao"/);
   assert.match(component, /href="#limites-uso"/);
   assert.match(component, /rel="noopener noreferrer"/);
-  assert.match(component, /aria-label=\{`Consultar \$\{source\.organization\} em nova aba`\}/);
+  assert.match(component, /aria-label=\{`Abrir página de \$\{source\.organization\} em nova aba`\}/);
 });
 
 test("a camada visual remove blur e segue a composição editorial responsiva", () => {
