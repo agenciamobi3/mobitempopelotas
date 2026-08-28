@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { createUnavailableWeatherIntelligence } from "../src/lib/weather/weather-intelligence-fallback.ts";
+import type { EmbrapaObservation } from "../src/lib/weather/official-sources.types.ts";
+import type { WeatherIntelligenceData } from "../src/lib/weather/weather-intelligence.types.ts";
 import {
   needsOpenMeteoRecovery,
   recoverWeatherDataFromOpenMeteo,
+  recoverWeatherIntelligenceFromEmbrapa,
   recoverWeatherIntelligenceFromOpenMeteo,
 } from "../src/production/lib/open-meteo-browser-recovery.ts";
-import type { WeatherIntelligenceData } from "../src/lib/weather/weather-intelligence.types.ts";
 import { fallbackWeatherData } from "../src/production/lib/weather-data.ts";
 
 const hours = Array.from({ length: 8 }, (_, index) => `2026-07-24T${String(17 + index).padStart(2, "0")}:00`);
@@ -48,6 +51,37 @@ function payload() {
   };
 }
 
+function embrapaObservation() {
+  return {
+    status: "live",
+    current: {
+      temperature: 17.2,
+      humidity: 88,
+      feelsLike: 17,
+      dewPoint: 15.1,
+      pressure: 1018,
+      pressureTrend: null,
+      windDirection: "L",
+      windSpeed: 7,
+      sunrise: "06:52",
+      sunset: "18:15",
+    },
+    extremes: {},
+    accumulated: {},
+    source: {
+      name: "Embrapa Clima Temperado",
+      station: "Posto Meteorológico da Sede",
+      url: "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm",
+      latitude: -31.7,
+      longitude: -52.4,
+      altitude: 57,
+      fetchedAt: "2026-07-24T21:05:00.000Z",
+      observationTime: "2026-07-24T21:00:00.000Z",
+    },
+    error: null,
+  } as unknown as EmbrapaObservation;
+}
+
 test("recupera previsão completa no navegador sem substituir a observação atual", () => {
   const observedWeather = {
     ...fallbackWeatherData,
@@ -87,6 +121,25 @@ test("recupera previsão completa no navegador sem substituir a observação atu
 
 test("rejeita resposta parcial sem apagar o fallback auditável", () => {
   assert.equal(recoverWeatherDataFromOpenMeteo(fallbackWeatherData, { hourly: {} }), null);
+});
+
+test("recupera a observação real da Embrapa sem criar previsão ou valores auxiliares", () => {
+  const baseline = createUnavailableWeatherIntelligence();
+  const recovered = recoverWeatherIntelligenceFromEmbrapa(baseline, embrapaObservation());
+
+  assert.equal(recovered.weather.current?.temperature, 17.2);
+  assert.equal(recovered.weather.current?.humidity, 88);
+  assert.equal(recovered.weather.current?.windSpeed, 7);
+  assert.equal(recovered.weather.current?.condition, null);
+  assert.equal(recovered.weather.current?.windGust, null);
+  assert.equal(recovered.weather.current?.visibilityKm, null);
+  assert.equal(recovered.weather.quality.currentSource, "embrapa");
+  assert.equal(recovered.weather.sources.embrapa.usable, true);
+  assert.ok(!recovered.weather.quality.degradedSources.includes("embrapa"));
+  assert.deepEqual(recovered.weather.hourly, []);
+  assert.deepEqual(recovered.weather.daily, []);
+  assert.equal(recovered.weather.status, "degraded");
+  assert.match(recovered.brief.headline, /17 °C em Pelotas/);
 });
 
 test("propaga a recuperação rica para o agregado e corrige sua rastreabilidade", () => {
