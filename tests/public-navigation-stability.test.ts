@@ -17,6 +17,8 @@ const homeRoute = readFileSync("src/routes/index.tsx", "utf8");
 const todayRoute = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
 const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
+const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
+const runtimeVersionRoute = readFileSync("src/routes/api/runtime-version.ts", "utf8");
 const navigationGuard = readFileSync(
   "src/components/navigation/PublicDocumentNavigationGuard.tsx",
   "utf8",
@@ -26,6 +28,8 @@ const publicHeader = readFileSync(
   "utf8",
 );
 const router = readFileSync("src/router.tsx", "utf8");
+
+const P0_RELEASE = "2026-08-28-p0-shell-first-v1";
 
 test("portal público não invalida a árvore inteira a cada minuto", () => {
   assert.doesNotMatch(minuteRefresh, /router\.invalidate\(/);
@@ -69,6 +73,17 @@ test("home, hoje, amanhã e 7 dias entregam shell sem fonte externa no loader in
     assert.doesNotMatch(routeSource, /loadPublicWeatherPage/);
     assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
   }
+});
+
+test("release publicado pode ser identificado sem depender de integração externa", () => {
+  assert.match(rootRoute, new RegExp(P0_RELEASE));
+  assert.match(rootRoute, /href="\/api\/runtime-version"/);
+  assert.match(rootRoute, /data-tempo-pelotas-runtime-release=\{PUBLIC_RUNTIME_RELEASE\}/);
+
+  assert.match(runtimeVersionRoute, new RegExp(P0_RELEASE));
+  assert.match(runtimeVersionRoute, /Cache-Control": "no-store, no-cache, must-revalidate"/);
+  assert.match(runtimeVersionRoute, /X-Robots-Tag": "noindex, nofollow"/);
+  assert.doesNotMatch(runtimeVersionRoute, /fetch\(/);
 });
 
 test("demais loaders resilientes continuam com teto curto de documento", () => {
