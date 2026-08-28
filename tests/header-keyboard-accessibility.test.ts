@@ -27,3 +27,18 @@ test("Escape devolve foco ao controle que abriu painel ocultado", () => {
   assert.match(siteHeader, /focus\(\{ preventScroll: true \}\)/);
   assert.match(siteHeader, /addEventListener\("keydown", restoreFocus, true\)/);
 });
+
+test("header principal expõe horizontes e águas já publicados", () => {
+  for (const route of [
+    "/previsao-15-dias-pelotas",
+    "/nivel-do-guaiba",
+    "/enchente-1941-pelotas",
+    "/enchente-2024-pelotas-laranjal",
+  ]) {
+    assert.match(editorialHeader, new RegExp(route.replaceAll("/", "\\/")));
+  }
+
+  assert.match(editorialHeader, /Próximos 15 dias/);
+  assert.match(editorialHeader, /Nível do Guaíba/);
+  assert.match(editorialHeader, /Enchente de 1941/);
+});
