@@ -9,9 +9,8 @@ import "@/components/redemet/RedemetHomeContract.css";
 import "@/components/redemet/RedemetEmptyStatePolish.css";
 import { RADAR_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
-import { getRedemetOverview } from "@/lib/redemet/redemet.functions";
+import { loadRadarPageData } from "@/lib/redemet/radar-page-loader";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Radar de chuva e satélite em Pelotas: imagens recentes";
 const PAGE_DESCRIPTION =
@@ -145,13 +144,7 @@ export const Route = createFileRoute("/radar-e-satelite-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, RADAR_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => {
-    const [redemet, weather] = await Promise.all([
-      getRedemetOverview(),
-      getWeatherIntelligence(),
-    ]);
-    return { redemet, weather };
-  },
+  loader: () => loadRadarPageData(),
   staleTime: 60 * 1_000,
   component: RedemetPage,
 });
