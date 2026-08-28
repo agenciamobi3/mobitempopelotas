@@ -132,6 +132,14 @@ export function createUnavailableDefesaCivilHydroData(): DefesaCivilHydroData {
   };
 }
 
+export async function loadGuaibaPageData() {
+  try {
+    return { guaiba: await getGuaibaObservation() };
+  } catch {
+    return { guaiba: createUnavailableGuaibaObservationData() };
+  }
+}
+
 export async function loadLaranjalHydrologyPageData() {
   const [weatherResult, levelResult] = await Promise.allSettled([
     getWeatherIntelligence(),
