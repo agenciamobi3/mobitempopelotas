@@ -4,123 +4,163 @@ Data: 27/08/2026
 
 ## Problema observado
 
-Usuários reportaram ocorrências recorrentes do boundary global `Não foi possível carregar esta página` e mensagens de conteúdo não encontrado durante a troca entre páginas públicas, inclusive em `/vento-em-pelotas`.
+Usuários reportaram ocorrências recorrentes do boundary global durante a troca entre páginas públicas. Em 27/08/2026 houve novo registro em `/tempo-na-regiao-sul-rs`, com a tela `Não foi possível carregar esta página` aparecendo mesmo depois da primeira rodada de mitigação.
 
-O padrão é compatível com incoerência de versão durante navegação SPA: uma aba pode permanecer aberta durante um novo deploy e continuar executando JavaScript da publicação anterior. Ao abrir uma rota ainda não visitada, esse runtime antigo pode solicitar um chunk ou uma server function que já não existe no deploy atual.
+O padrão continua compatível com incoerência de versão em abas mantidas abertas durante deploys: o documento pode permanecer com JavaScript da publicação anterior e uma navegação SPA posterior pode solicitar route chunks, preloads ou server functions que pertencem a outro deploy.
 
-A investigação também identificou um risco concreto no service worker: a geração anterior de cache era removida integralmente quando um worker novo ativava. Para uma aplicação com chunks de rota carregados sob demanda, isso reduz a janela de compatibilidade de abas antigas justamente durante a troca de versão.
+A primeira rodada melhorou a política de HTML/cache e a recuperação de chunks, mas o novo caso mostrou que apenas tornar o service worker mais tolerante não era suficiente. A decisão operacional passou a ser mais conservadora: **no portal público, robustez de navegação tem prioridade sobre manter SPA/PWA no caminho crítico**.
 
-A página de Vento não foi tratada como causa isolada. A correção foi aplicada em três camadas: coerência de HTML/cache, recuperação global do runtime e degradação local das rotas com múltiplas consultas.
+## 1. HTML público continua sem cache entre deploys
 
-## 1. HTML e cache não podem misturar deploys
-
-`src/server-brazil.ts` passou a identificar respostas de documento HTML fora dos embeds e aplicar:
+`src/server-brazil.ts` mantém para documentos HTML públicos fora de embeds:
 
 - `Cache-Control: no-store, no-cache, max-age=0, must-revalidate`;
 - `CDN-Cache-Control: no-store`;
 - `Pragma: no-cache`;
 - `Expires: 0`.
 
-A regra é deliberadamente diferente da política dos assets com hash. O HTML SSR contém referências ao runtime da publicação corrente e não deve sobreviver no cache entre deploys. Já os arquivos em `/assets/` continuam podendo usar cache porque a URL versionada por hash identifica o próprio conteúdo.
+O HTML SSR referencia o runtime da publicação corrente e não deve sobreviver no cache entre deploys. Assets versionados por hash continuam semanticamente diferentes de HTML e podem ser cacheáveis pelo host/navegador conforme sua própria política.
 
-O service worker também faz navegações de documento com `cache: "no-store"`. O navigation preload foi desativado nessa camada para não competir com a requisição fresca que existe justamente para recuperar coerência de versão.
+APIs sensíveis e embeds continuam com contratos próprios.
 
-Embeds preservam suas políticas próprias de cache e APIs sensíveis continuam com `private, no-store`.
+## 2. Navegação pública passa a usar documento completo
 
-## 2. Service worker com transição segura de geração
+Foi criado `src/components/navigation/PublicDocumentNavigationGuard.tsx` e montado no root.
 
-`public/sw.js` passou para a geração `tempo-pelotas-v9` e mudou o contrato de atualização:
+Depois da hidratação, o guard captura cliques em links internos públicos same-origin antes da navegação do TanStack Router e realiza `window.location.assign()` para o destino. Assim, cada troca de página pública recebe um novo documento HTML e o runtime da versão publicada atual, em vez de depender de route chunks mantidos em memória por uma aba antiga.
 
-- o worker novo usa `skipWaiting()` depois de instalar o shell atual;
-- na ativação, assume os clientes com `clients.claim()`;
-- quando detecta uma geração anterior do Tempo Pelotas, mantém a geração atual e uma geração anterior como janela curta de compatibilidade;
-- somente caches com prefixo do próprio Tempo Pelotas entram na limpeza; caches de outros componentes do navegador não são removidos;
-- abas abertas durante uma troca de geração são recarregadas uma vez para alinhar HTML, JavaScript e server functions;
-- `/assets/` usa cache-first através das gerações preservadas, o que é seguro porque esses arquivos têm nome com hash;
-- `/brand/`, que não possui a mesma garantia de hash, continua com revalidação de rede;
-- se uma aba antiga solicitar um asset versionado que não está em cache e o host responder `404` ou `410`, o worker força uma navegação fresca do próprio cliente;
-- existe trava em memória por `clientId` para o worker não provocar repetidas navegações de recuperação na mesma execução.
+O guard preserva:
 
-Essa política atende dois cenários diferentes: uma atualização explícita do service worker e um deploy futuro em que uma aba antiga encontre um chunk removido mesmo sem mudança adicional no arquivo do worker.
+- links externos;
+- downloads;
+- targets diferentes de `_self`;
+- clique com Ctrl/Cmd/Shift/Alt ou botão diferente do principal;
+- navegação somente por hash dentro do mesmo documento;
+- áreas autenticadas/operacionais (`/conta`, `/painel`, `/auth`, `/login`, `/admin`) como SPA;
+- opt-out explícito por `data-spa-navigation="true"` quando necessário.
 
-## 3. Recuperação global de navegação no React/TanStack
+A mudança não altera URLs, canonicals, conteúdo, fontes meteorológicas ou contratos de dados.
 
-`src/lib/stale-client-recovery.ts` distingue:
+## 3. Service worker temporariamente aposentado do portal público
 
-- erro de asset/chunk/preload;
-- erro transitório de navegação ou server function.
+`PwaManager` não registra mais `/sw.js`.
 
-Além dos padrões de bundle, a recuperação reconhece falhas de `fetch`, rede, server function e respostas transitórias como 404, 408, 410, 425, 429, 500, 502, 503 e 504.
+Na hidratação ele executa somente uma limpeza controlada e idempotente:
 
-A recuperação genérica só é habilitada depois que o runtime cliente hidratou com sucesso. Dessa forma, um erro determinístico no carregamento inicial não dispara recargas em ciclo.
+- consulta registrations existentes;
+- desregistra apenas workers do mesmo origin cujo script seja `/sw.js` do Tempo Pelotas;
+- remove somente caches cujo nome começa com `tempo-pelotas-`;
+- usa `Promise.allSettled` para que falha de cleanup nunca derrube a aplicação;
+- não força reload apenas por realizar a limpeza.
 
-Quando uma falha transitória alcança o boundary durante uma navegação:
+O arquivo `public/sw.js` permanece versionado como artefato dormente para permitir reavaliação futura, mas não pertence mais ao runtime ativo do portal.
 
-1. o erro continua sendo reportado à telemetria disponível;
-2. o navegador registra em `sessionStorage` a URL e o instante da tentativa;
-3. é feita uma única recarga completa da própria URL;
-4. HTML e runtime passam a pertencer à mesma versão publicada;
-5. nova tentativa automática na mesma URL fica bloqueada por 60 segundos.
+O manifest, metadados móveis e `PwaAppExperience` permanecem disponíveis. A experiência de conectividade continua funcionando mesmo quando `getRegistration("/")` não retorna worker.
 
-Se o navegador estiver offline, a recuperação genérica não força reload. O listener `vite:preloadError` permanece ativo para falhas de preload detectadas antes do boundary.
+A decisão é temporária e deliberada: a instalação/offline via service worker só deve voltar ao caminho crítico depois que a navegação pública estiver estável em produção por uma janela suficiente e houver um modelo de atualização que não reintroduza incompatibilidade de versão.
 
-## 4. Vento e Chuva não dependem mais de sucesso conjunto
+## 4. Recuperação global usa documento realmente fresco
 
-Antes desta correção, `/vento-em-pelotas` e `/chuva-em-pelotas` combinavam:
+`src/lib/stale-client-recovery.ts` mantém o listener `vite:preloadError` e a classificação de falhas de asset, rede e server function, mas a recuperação foi endurecida.
 
-- `getWeatherIntelligence()`;
-- `getPelotasMeteogram()`;
+Em vez de `location.reload()`, a tentativa automática usa navegação de documento com `location.replace()` e o parâmetro interno `__tp_recover=<timestamp>`.
 
-em `Promise.all`.
+Regras:
 
-Mesmo com fallbacks server-side, uma falha no transporte da própria server function podia rejeitar a Promise no navegador e derrubar toda a rota.
+1. a URL lógica usada para a trava ignora `__tp_recover`;
+2. existe no máximo uma tentativa automática por URL lógica em uma janela de 60 segundos;
+3. erro de chunk/preload usa razão `asset`;
+4. falha transitória reconhecida usa razão `navigation`;
+5. qualquer outro erro que alcance o boundary depois de uma hidratação bem-sucedida recebe uma única tentativa controlada com razão `runtime`;
+6. o navegador offline nunca é forçado a navegar;
+7. depois que o novo runtime hidrata, `markClientRuntimeReady()` remove `__tp_recover` com `history.replaceState`, sem nova navegação.
 
-`src/lib/weather/public-weather-page-loader.ts` usa `Promise.allSettled` e trata cada domínio separadamente:
+Essa estratégia também contorna cache HTTP intermediário que ignore uma recarga comum, porque a requisição de recuperação possui URL distinta apenas durante o bootstrap.
 
-- se a inteligência meteorológica não chegar, usa `createUnavailableWeatherIntelligence()`;
-- se o meteograma não chegar, entrega `MeteogramData` com `status: unavailable` e série vazia;
-- nenhuma falha é convertida em valor zero, observação falsa ou previsão fictícia;
-- componentes dependentes do detalhamento ausente deixam de renderizar apenas aquela camada;
-- o restante da página continua navegável.
+## 5. O boundary global deixou de ser uma tela fatal
 
-## 5. Contratos automatizados
+`src/routes/__root.tsx` continua reportando o erro para a telemetria e chama `recoverClientNavigationFailure(error)`.
 
-`tests/public-route-resilience.test.ts` protege a recuperação do runtime e os loaders resilientes de Vento/Chuva.
+Porém o usuário não recebe mais as mensagens:
 
-`tests/service-worker-static-cache.test.ts` protege agora:
+- `Erro inesperado`;
+- `Não foi possível carregar esta página`.
 
-- geração v9;
-- `skipWaiting()`;
-- preservação de uma geração anterior;
-- limpeza restrita aos caches do Tempo Pelotas;
-- cache-first de assets com hash entre gerações;
-- recuperação de chunk ausente em 404/410;
-- navegação de documento com `cache: no-store`;
-- recarga de clientes antigos após upgrade;
-- headers `no-store` do HTML SSR;
-- coalescência de requests simultâneos.
+O fallback agora é neutro e orientado a recuperação: `Carregando a versão mais recente do Tempo Pelotas`.
 
-`tests/pwa-app-refinement.test.ts` foi alinhado ao novo contrato de produção e não espera mais uma geração antiga do service worker.
+Se a tentativa automática estiver bloqueada pela trava de loop, se o navegador estiver offline ou se um erro determinístico persistir, a pessoa continua com navegação útil por âncoras nativas para:
 
-O workflow `Qualidade` executa explicitamente `tests/public-route-resilience.test.ts` e `tests/service-worker-static-cache.test.ts`. A execução do runner continua sendo tratada separadamente da existência dos contratos.
+- Tempo agora;
+- Tempo hoje;
+- 7 dias;
+- Chuva;
+- Radar;
+- Situação das águas;
+- Região Sul do RS.
 
-## 6. Validação pós-deploy
+Esses atalhos fazem carregamento de documento completo e não dependem do router cliente quebrado.
 
-Após publicação, validar em sessão normal, janela anônima e uma aba mantida aberta durante uma publicação:
+## 6. O mapa regional não pode derrubar a Central Regional
 
-1. abrir Home e manter a aba aberta;
-2. publicar uma nova versão de teste sem alterar a URL das páginas;
-3. navegar para uma rota ainda não visitada pela aba antiga;
-4. confirmar que a aba é atualizada ou recuperada sem exibir `conteúdo não encontrado`;
-5. navegar repetidamente entre Home, Hoje, Chuva, Vento, 7 dias, Radar e Águas;
-6. confirmar ausência de ciclos de reload;
-7. confirmar que documentos HTML respondem com política `no-store` no ambiente publicado;
-8. confirmar que assets com hash continuam cacheáveis;
-9. validar offline: a tela informativa continua disponível e não é apresentada como dado meteorológico atual;
-10. repetir em desktop e mobile.
+`src/components/regional/RegionalCitiesMapDeferred.tsx` perdeu o `import("./RegionalCitiesMap")` assíncrono, removendo um route-adjacent chunk adicional dessa página.
 
-## 7. Limites
+`RegionalCitiesMap` passa a ser importado estaticamente, enquanto a renderização continua postergada pelo `IntersectionObserver`. O próprio `maplibre-gl` continua sendo carregado dinamicamente dentro do componente de mapa, onde já existe `try/catch`.
 
-A solução não mascara um bug determinístico recorrente e não converte indisponibilidade em dado normal. Ela também não depende de cache para fornecer previsão, observação, alertas ou níveis das águas.
+Além disso, foi adicionado um `RegionalMapErrorBoundary` local. Qualquer erro do subtree do mapa passa a renderizar apenas o fallback do mapa com a mensagem de que a lista de cidades continua disponível. A lista, busca, filtros e links municipais não são promovidos ao boundary global por uma falha do mapa.
 
-Uma aba que já estava aberta antes da primeira publicação desta correção ainda pode executar o JavaScript e o service worker antigos até o navegador verificar a nova versão. Uma recarga manual dessa aba acelera a migração inicial. Depois que a geração v9 assumir, o próprio worker e o runtime passam a tratar as próximas transições de deploy automaticamente.
+## 7. Vento e Chuva continuam degradando consultas secundárias
+
+`src/lib/weather/public-weather-page-loader.ts` continua usando `Promise.allSettled` para separar `getWeatherIntelligence()` e `getPelotasMeteogram()`.
+
+Falha de uma consulta entrega o contrato `unavailable` correspondente sem inventar valor e sem derrubar a rota inteira.
+
+## 8. Contratos automatizados
+
+`tests/public-route-resilience.test.ts` passou a proteger:
+
+- `__tp_recover` + `location.replace()`;
+- remoção do parâmetro depois da hidratação;
+- trava de 60 segundos por URL lógica;
+- tentativa única também para erro genérico de runtime hidratado;
+- navegação pública por documento completo;
+- preservação das áreas autenticadas como SPA;
+- ausência da antiga mensagem fatal no root;
+- fallback global com anchors nativas;
+- import estático do mapa regional;
+- boundary local do mapa;
+- loaders resilientes de Vento/Chuva.
+
+`tests/pwa-app-refinement.test.ts` passou a proteger:
+
+- ausência de novo `serviceWorker.register()`;
+- cleanup de registrations do `/sw.js` do próprio origin;
+- cleanup restrito aos caches `tempo-pelotas-*`;
+- ausência de reload causado somente pela limpeza;
+- permanência do manifest e da camada de conectividade.
+
+`tests/service-worker-static-cache.test.ts` ainda documenta o contrato do arquivo v9 preservado no repositório, embora o worker esteja dormente no runtime atual.
+
+Os contratos estão versionados. A aprovação executável continua dependente de runner funcional; não se deve declarar a suíte verde enquanto o GitHub Actions não executar os steps normalmente.
+
+## 9. Validação pós-deploy
+
+Após publicação desta segunda rodada:
+
+1. abrir Home em sessão normal;
+2. navegar repetidamente pelos menus públicos entre Agora, Hoje, Amanhã, 7/15 dias, Chuva, Vento, Radar, Águas e Região;
+3. confirmar no DevTools que os cliques públicos geram requisições de documento, não somente navegação SPA;
+4. confirmar que não há registration ativo de `/sw.js` depois da hidratação da nova versão;
+5. confirmar que caches `tempo-pelotas-*` antigos são removidos;
+6. manter uma aba aberta durante um deploy e depois navegar para uma rota ainda não visitada;
+7. confirmar que a troca recebe HTML/runtime atual e não exibe a antiga tela fatal;
+8. validar `/tempo-na-regiao-sul-rs` com mapa normal, mapa indisponível e falha simulada do subtree do mapa;
+9. repetir em desktop, mobile e janela anônima;
+10. observar telemetria para distinguir falhas residuais determinísticas de problemas de versão já eliminados do fluxo público.
+
+## 10. Limites e decisão operacional
+
+Nenhum sistema web pode prometer ausência absoluta de falhas. O objetivo desta rodada é retirar do caminho crítico público as duas fontes de fragilidade mais compatíveis com os relatos: navegação SPA entre deploys e service worker controlando versões do portal.
+
+Depois que esta versão chegar ao navegador, os menus públicos deixam de depender do runtime antigo para trocar de página, e o service worker deixa de controlar novas sessões. Um usuário que ainda esteja com uma aba aberta anterior à publicação pode precisar de uma última recarga/navegação de documento para receber o hardening; a partir daí a navegação pública passa pelo novo contrato.
+
+Critério para reintroduzir SPA agressiva ou service worker: evidência de estabilidade em produção, testes de aba antiga durante deploy e ausência de regressão de versão. Até lá, **robustez > SPA/PWA**.
