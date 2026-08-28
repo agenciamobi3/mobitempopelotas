@@ -33,6 +33,10 @@ const publicWeatherPageLoader = readFileSync(
 );
 const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
 const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
+const todayRoute = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
+const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
+const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
+const alertsRoute = readFileSync("src/routes/alertas.tsx", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 
 test("fallback meteorologico final preserva o contrato sem inventar valores", () => {
@@ -190,6 +194,18 @@ test("vento e chuva degradam chamadas secundarias sem abrir o boundary global", 
     assert.match(routeSource, /loadPublicWeatherWithMeteogram/);
     assert.doesNotMatch(routeSource, /Promise\.all\(/);
     assert.doesNotMatch(routeSource, /getPelotasMeteogram/);
+    assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
+  }
+});
+
+test("rotas meteorologicas basicas possuem fallback final para falha da server function", () => {
+  assert.match(publicWeatherPageLoader, /export async function loadPublicWeatherPage/);
+  assert.match(publicWeatherPageLoader, /return await getWeatherIntelligence\(\)/);
+  assert.match(publicWeatherPageLoader, /return createUnavailableWeatherIntelligence\(\)/);
+
+  for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute, alertsRoute]) {
+    assert.match(routeSource, /loadPublicWeatherPage/);
+    assert.match(routeSource, /loader: \(\) => loadPublicWeatherPage\(\)/);
     assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
   }
 });
