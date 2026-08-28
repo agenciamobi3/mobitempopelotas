@@ -1,3 +1,4 @@
+import { REGIONAL_CITY_EDITORIAL_EXPANSION } from "./regional-city-editorial-expansion";
 import type { RegionalCity } from "./regional-cities";
 
 export type RegionalCityEditorialProfile = {
@@ -101,7 +102,7 @@ const PRIORITY_REGIONAL_EDITORIAL: Readonly<Record<string, RegionalCityEditorial
   },
   "bage-rs": {
     metaDescription:
-      "Veja o tempo em Bagé hoje e a previsão para as próximas horas e 7 dias, com temperatura, chuva, vento, rajadas e avisos oficiais do INMET.",
+      "Veja o tempo em Bagé hoje e a previsão para as próximas horas e 7 dias, com temperatura, chuva, vento, rajadas e avisos do INMET.",
     heroDescription:
       "Veja o tempo em Bagé agora e acompanhe temperatura, chuva, vento e rajadas previstas no principal centro urbano da Campanha gaúcha.",
     sectionTitle: "Como acompanhar a previsão do tempo em Bagé",
@@ -183,10 +184,15 @@ export function regionalCityPageTitle(city: RegionalCity) {
 export function regionalCityMetaDescription(city: RegionalCity) {
   return (
     PRIORITY_REGIONAL_EDITORIAL[city.slug]?.metaDescription ??
+    REGIONAL_CITY_EDITORIAL_EXPANSION[city.slug]?.metaDescription ??
     `Veja o tempo em ${city.name} hoje e a previsão para as próximas horas e 7 dias, com temperatura, chuva, vento e avisos oficiais do INMET.`
   );
 }
 
 export function regionalCityEditorialProfile(city: RegionalCity) {
-  return PRIORITY_REGIONAL_EDITORIAL[city.slug] ?? null;
+  return (
+    PRIORITY_REGIONAL_EDITORIAL[city.slug] ??
+    REGIONAL_CITY_EDITORIAL_EXPANSION[city.slug] ??
+    null
+  );
 }
