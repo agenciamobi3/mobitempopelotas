@@ -14,11 +14,14 @@ const header = readFileSync("src/components/layout/Header.tsx", "utf8");
 
 const climateSource = `${route}\n${page}`;
 
-test("climate route is a real editorial page instead of the former redirect", () => {
+test("climate route is a real editorial page with independent degraded states", () => {
   assert.match(route, /createFileRoute\("\/clima-em-pelotas"\)/);
   assert.match(route, /getWeatherIntelligence\(\)/);
   assert.match(route, /getPelotasWeatherHistory\(\)/);
-  assert.match(route, /Promise\.all/);
+  assert.match(route, /Promise\.allSettled/);
+  assert.doesNotMatch(route, /Promise\.all\(/);
+  assert.match(route, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(route, /createUnavailableWeatherHistory\(/);
   assert.match(route, /ClimatePelotasHero/);
   assert.match(route, /ClimatePelotasPage/);
   assert.match(route, /EditorialContentSection/);
