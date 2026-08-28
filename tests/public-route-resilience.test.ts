@@ -60,21 +60,22 @@ test("fallback meteorologico final preserva o contrato sem inventar valores", ()
   }
 });
 
-test("server fn meteorologica possui ultima barreira e prazo maximo", () => {
-  assert.match(weatherFunctions, /WEATHER_INTELLIGENCE_DEADLINE_MS = 3_000/);
+test("server fn meteorologica possui ultima barreira sem confundir latencia normal com indisponibilidade", () => {
+  assert.match(weatherFunctions, /WEATHER_INTELLIGENCE_DEADLINE_MS = 5_000/);
   assert.match(weatherFunctions, /Promise\.race/);
   assert.match(weatherFunctions, /fetchWeatherIntelligence\(\)/);
   assert.match(weatherFunctions, /createUnavailableWeatherIntelligence\(\)/);
   assert.match(weatherFunctions, /catch \(error\)/);
 });
 
-test("fontes oficiais ficam abaixo do budget global da rota", () => {
-  assert.match(sourcePolicy, /embrapa: 1_600/);
-  assert.match(sourcePolicy, /inmet: 1_600/);
-  assert.match(sourcePolicy, /cppmet: 1_500/);
-  assert.match(sourcePolicy, /embrapa: 1_900/);
-  assert.match(sourcePolicy, /inmet: 1_900/);
-  assert.match(sourcePolicy, /cppmet: 1_800/);
+test("fontes oficiais possuem budgets individuais abaixo da barreira global", () => {
+  assert.match(sourcePolicy, /embrapa: 2_200/);
+  assert.match(sourcePolicy, /inmet: 3_200/);
+  assert.match(sourcePolicy, /cppmet: 2_400/);
+  assert.match(sourcePolicy, /embrapa: 2_600/);
+  assert.match(sourcePolicy, /inmet: 3_600/);
+  assert.match(sourcePolicy, /inmetForecast: 4_000/);
+  assert.match(sourcePolicy, /cppmet: 2_800/);
 });
 
 test("open meteo publico prioriza origem direta validada e curta antes da edge", () => {
