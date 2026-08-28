@@ -15,6 +15,10 @@ import {
   type RegionalCity,
 } from "@/lib/regional-cities";
 import {
+  createBreadcrumbListJsonLd,
+  serializeJsonLd,
+} from "@/lib/structured-data";
+import {
   hasVerifiedRegionalAlertSemantics,
   regionalAlertPeriod,
   selectPriorityRegionalAlert,
@@ -92,17 +96,23 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
   const related = nearestRegionalCities(city, 5);
   const title = regionalCityPageTitle(city);
   const description = regionalCityMetaDescription(city);
+  const path = regionalCityPath(city);
   const forecastStory = toRegionalForecastStory(data);
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: title,
     description,
-    url: `https://tempopelotas.com.br${regionalCityPath(city)}`,
+    url: `https://tempopelotas.com.br${path}`,
     dateModified: data.source.fetchedAt,
     about: { "@type": "Place", name: `${city.name}, Rio Grande do Sul`, geo: { "@type": "GeoCoordinates", latitude: city.latitude, longitude: city.longitude } },
     isPartOf: { "@type": "WebSite", name: "Tempo Pelotas", url: "https://tempopelotas.com.br" },
   };
+  const breadcrumbs = createBreadcrumbListJsonLd([
+    { name: "Tempo Pelotas", path: "/" },
+    { name: "Tempo na Região Sul", path: "/tempo-na-regiao-sul-rs" },
+    { name: `Tempo em ${city.name}`, path },
+  ]);
 
   const contextFacts = editorial?.facts ?? [
     "Agora: estimativa horária do modelo para as coordenadas municipais.",
@@ -113,7 +123,8 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
 
   return (
     <div className={`${styles.page} regional-city-page`}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs) }} />
       <RegionalCityHero data={data} />
       <RegionalOfficialAlertPanel data={data} />
       <InternalPageChapters items={regionalSections} label={`Navegação da previsão para ${city.name}`} />
