@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const route = readFileSync("src/routes/situacao-hidrologica-pelotas.tsx", "utf8");
+const loader = readFileSync("src/lib/hydrology/public-hydrology-page-loader.ts", "utf8");
 const page = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx", "utf8");
 const styles = readFileSync("src/components/hydrology/HydrologyOverviewV2.css", "utf8");
 const homeContract = readFileSync(
@@ -25,15 +26,24 @@ const envExample = readFileSync(".env.example", "utf8");
 const hydrologySource = `${route}\n${page}`;
 const defesaCivilSource = `${defesaCivilServer}\n${defesaCivilFunction}\n${defesaCivilArea}\n${defesaCivilMap}`;
 
-test("hydrology route loads six independent sources in the shared shell", () => {
+test("hydrology route loads six independent sources through the resilient shared loader", () => {
   assert.match(route, /createFileRoute\("\/situacao-hidrologica-pelotas"\)/);
-  assert.match(route, /getWeatherIntelligence\(\)/);
-  assert.match(route, /getLaranjalLevelData\(\)/);
-  assert.match(route, /getGuaibaObservation\(\)/);
-  assert.match(route, /getLagoonMonitoringNetwork\(\)/);
-  assert.match(route, /getSaceGuaibaData\(\)/);
-  assert.match(route, /getDefesaCivilHydroData\(\)/);
-  assert.match(route, /Promise\.all/);
+  assert.match(route, /loadHydrologyOverviewPageData/);
+  assert.match(route, /loader: \(\) => loadHydrologyOverviewPageData\(\)/);
+  assert.match(loader, /getWeatherIntelligence\(\)/);
+  assert.match(loader, /getLaranjalLevelData\(\)/);
+  assert.match(loader, /getGuaibaObservation\(\)/);
+  assert.match(loader, /getLagoonMonitoringNetwork\(\)/);
+  assert.match(loader, /getSaceGuaibaData\(\)/);
+  assert.match(loader, /getDefesaCivilHydroData\(\)/);
+  assert.match(loader, /Promise\.allSettled/);
+  assert.doesNotMatch(loader, /await Promise\.all\(/);
+  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(loader, /createUnavailableLaranjalLevelData\(\)/);
+  assert.match(loader, /createUnavailableGuaibaObservationData\(\)/);
+  assert.match(loader, /createUnavailableLagoonMonitoringNetworkData\(\)/);
+  assert.match(loader, /createUnavailableSaceGuaibaData\(\)/);
+  assert.match(loader, /createUnavailableDefesaCivilHydroData\(\)/);
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /HydrologyOverviewHero/);
   assert.match(route, /HydrologyOverviewV2/);
