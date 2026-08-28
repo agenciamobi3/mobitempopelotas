@@ -23,18 +23,18 @@ Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e
 | Domínio | Estado | Observação |
 | --- | --- | --- |
 | Portal público | Ativo | Produção em `tempopelotas.com.br` |
-| Home / Hoje / Amanhã / 7 dias | Ativo | Rotas públicas dedicadas; Home possui fallback final contra falha de transporte da inteligência meteorológica |
+| Home / Hoje / Amanhã / 7 dias | Ativo | Rotas dedicadas com fallback final contra rejeição de transporte da inteligência meteorológica |
 | Previsão de 15 dias | Ativo | Open-Meteo diário dedicado, separado do contrato de 7 dias e com degradação independente das chamadas públicas |
 | Chuva / vento / meteograma | Ativo | Contratos resilientes e estados degradados explícitos |
-| Alertas | Ativo | INMET, preservando validade, abrangência e instruções |
-| Embrapa Clima Temperado | Ativo | Observação local, extremos e acumulados |
-| REDEMET / DECEA | Ativo com dependência externa | Radar, satélite e trovoadas; contingência oficial quando prevista pelo contrato |
-| Hidrologia | Ativo | Laranjal, Lagoa dos Patos, Guaíba, SACE e rede regional |
+| Alertas | Ativo | INMET, preservando validade/abrangência e com fallback final da rota |
+| Embrapa Clima Temperado | Ativo | Observação, saúde do coletor e histórico de 24 h degradam independentemente |
+| REDEMET / DECEA | Ativo com dependência externa | Radar/satélite/trovoadas degradam sem derrubar o contexto meteorológico da página |
+| Hidrologia | Ativo | Laranjal, Guaíba, Lagoa, SACE e Defesa Civil degradam independentemente nas páginas públicas |
 | Defesa Civil RS | Ativo | Hidrometeorologia regional com kill switch server-side |
-| Histórico climático | Ativo | Histórico recente e Historical Data Layer em expansão |
+| Histórico climático | Ativo | Histórico recente e Historical Data Layer em expansão; falha de transporte gera estado indisponível |
 | Enchentes 1941 / 2024 | Ativo | Páginas históricas com fontes institucionais e limites semânticos |
-| Câmeras | Ativo com dependência externa | Live/replay com degradação explícita |
-| Central Regional | Ativo | Pelotas + 23 páginas municipais aprovadas |
+| Câmeras | Ativo com dependência externa | Câmera e meteorologia degradam independentemente; live/replay preservados |
+| Central Regional | Ativo | Pelotas + 23 páginas municipais; fallback mantém diretório navegável |
 | SEO técnico | Ativo | Canonical, sitemap, robots, OG/Twitter, Schema.org e links internos |
 | Conta / Google | Parcial operacional | Fundação implementada; E2E real com duas contas ainda pendente |
 | Free / PRO | Fundação pronta | Entitlements existem; billing comercial ainda não existe |
@@ -91,19 +91,21 @@ Municípios aprovados: Capão do Leão, Canguçu, Morro Redondo, Turuçu, Arroio
 
 O contrato compartilhado usa Open-Meteo para previsão detalhada e MET Norway como contingência quando aplicável. Home, Hoje, Amanhã e 7 dias preservam o horizonte e a semântica do contrato consolidado.
 
+`src/lib/weather/public-weather-page-loader.ts` fornece a barreira final das páginas meteorológicas públicas. Hoje, Amanhã, 7 dias e Alertas usam `loadPublicWeatherPage()`: se a própria server function rejeitar no transporte, a rota recebe `createUnavailableWeatherIntelligence()` em vez de alcançar o boundary global. Vento, Chuva e Meteograma preservam o loader composto com degradação independente das séries secundárias.
+
 `/previsao-15-dias-pelotas` usa chamada independente, somente com campos diários, timeout próprio e estados `live|partial|unavailable`. Dias 1–7 e 8–15 são separados visualmente; a página atende também a intenção de 10 dias sem criar URL redundante. Não existe previsão diária artificial de 30 dias: dias 16–30 só serão publicados quando houver contrato de tendência adequado.
 
-Em 27/08/2026 o loader público de 15 dias deixou de exigir sucesso conjunto de `getWeatherIntelligence()` e `getPelotasExtendedForecast()`. `src/lib/weather/extended-forecast-page-loader.ts` usa `Promise.allSettled` e degrada cada domínio para seu contrato `unavailable`: uma falha de transporte na inteligência compartilhada não elimina a série estendida, e uma falha da server function estendida não derruba o shell meteorológico. Nenhuma falha é convertida em zero ou previsão fictícia.
+O loader público de 15 dias não exige sucesso conjunto de `getWeatherIntelligence()` e `getPelotasExtendedForecast()`. `src/lib/weather/extended-forecast-page-loader.ts` usa `Promise.allSettled` e degrada cada domínio para seu contrato `unavailable`: falha na inteligência compartilhada não elimina a série estendida e falha da previsão estendida não derruba o shell meteorológico.
 
 ## 6. Observação e fontes oficiais
 
-Embrapa Clima Temperado é a referência principal de observação local quando utilizável. Modelo numérico não substitui silenciosamente observação ausente.
+Embrapa Clima Temperado é a referência principal de observação local quando utilizável. Modelo numérico não substitui silenciosamente observação ausente. A página dedicada usa `src/lib/weather/embrapa-station-page-loader.ts`: meteorologia consolidada, saúde do coletor e histórico de 24 horas são resolvidos com `Promise.allSettled`, cada um com estado indisponível próprio.
 
-INMET é usado para avisos oficiais, previsão complementar, estação/referências e produtos específicos como geadas. Falha de consulta não equivale a ausência de risco.
+INMET é usado para avisos oficiais, previsão complementar, estação/referências e produtos específicos como geadas. Falha de consulta não equivale a ausência de risco. `/mapa-de-geadas-rio-grande-do-sul` usa `src/lib/inmet/frost-page-loader.ts`, separando a disponibilidade dos registros observados do INMET da disponibilidade da inteligência meteorológica usada no shell.
 
 CPPMet/UFPel é contexto regional complementar. SIMAGRO RS permanece como visualização de modelo em meteograma, sem OCR de imagens.
 
-REDEMET/DECEA fornece radar, satélite e STSC/trovoadas. Imagem recente não é automaticamente chamada de “tempo real”; timestamp da fonte prevalece. O canal Visível não recebe fallback infravermelho. Contingências preservam `provider`/produto/origem reais.
+REDEMET/DECEA fornece radar, satélite e STSC/trovoadas. Imagem recente não é automaticamente chamada de “tempo real”; timestamp da fonte prevalece. O canal Visível não recebe fallback infravermelho. `src/lib/redemet/radar-page-loader.ts` usa `Promise.allSettled`, e `src/lib/redemet/redemet-fallback.ts` mantém radar, satélites e STSC como indisponíveis/sem frames quando a server function falha, sem criar imagem simulada nem eliminar o contexto meteorológico restante.
 
 ## 7. Chuva, vento e estados degradados
 
@@ -111,13 +113,17 @@ REDEMET/DECEA fornece radar, satélite e STSC/trovoadas. Imagem recente não é 
 
 Vento e Chuva usam `src/lib/weather/public-weather-page-loader.ts` com `Promise.allSettled`: falha de inteligência meteorológica ou meteograma degrada somente aquela camada para contrato `unavailable`, sem inventar valores nem derrubar a rota inteira.
 
-A Home mantém a hidrologia diferida e isolada em sua própria Promise, mas agora também protege o caminho meteorológico crítico: uma rejeição de transporte de `getWeatherIntelligence()` é convertida em `createUnavailableWeatherIntelligence()`. O portal continua renderizando o shell público com estado indisponível explícito em vez de abrir o boundary global.
+A Home mantém a hidrologia diferida e isolada em sua própria Promise, mas também protege o caminho meteorológico crítico: rejeição de transporte de `getWeatherIntelligence()` é convertida em `createUnavailableWeatherIntelligence()`.
+
+Clima e Histórico recente usam fallback histórico explícito. Câmeras usam fallback próprio para o catálogo e a inteligência meteorológica, preservando ausência de player/imagem sem material demonstrativo.
 
 ## 8. Hidrologia
 
 A Estação Laranjal é referência operacional local apresentada para Pelotas. Nível, horário, idade, tendência e variações são preservados sem transformar leitura atrasada em valor atual.
 
-`/nivel-do-guaiba` reutiliza o contrato server-side já existente e mantém Cais Mauá e Gasômetro como referências independentes. Nível do Guaíba não é convertido automaticamente em diagnóstico para Pelotas nem cotas são transferidas entre réguas.
+`src/lib/hydrology/public-hydrology-page-loader.ts` centraliza os contratos indisponíveis e a composição das páginas. `/nivel-da-lagoa-dos-patos-laranjal` isola meteorologia e Estação Laranjal; `/situacao-hidrologica-pelotas` resolve meteorologia, Laranjal, Guaíba, rede da Lagoa, SACE e Defesa Civil RS com `Promise.allSettled`; `/nivel-do-guaiba` possui uma barreira final contra rejeição da server function. Uma fonte que falha fica `unavailable` sem zerar leitura e sem impedir as demais.
+
+`/nivel-do-guaiba` mantém Cais Mauá e Gasômetro como referências independentes. Nível do Guaíba não é convertido automaticamente em diagnóstico para Pelotas nem cotas são transferidas entre réguas.
 
 Defesa Civil RS permanece ativa com kill switch. ANA/RHN continua em validação; estação, parâmetro, unidade, datum/referência, timezone e governança precisam ser confirmados antes de substituir fontes existentes.
 
@@ -125,21 +131,15 @@ Defesa Civil RS permanece ativa com kill switch. ANA/RHN continua em validação
 
 O Historical Data Layer mantém separação entre `observation`, `forecast`, `reanalysis` e `derived`.
 
-`/historico-climatico-pelotas` representa histórico meteorológico recente, enquanto `/clima-em-pelotas` representa clima/climatologia. As duas intenções permanecem separadas.
+`/historico-climatico-pelotas` representa histórico meteorológico recente, enquanto `/clima-em-pelotas` representa clima/climatologia. As duas intenções permanecem separadas e seus loaders preservam estado `unavailable` em falha de transporte, sem completar lacunas com números simulados.
 
 `/enchente-1941-pelotas` usa pesquisa documental UCPel/UFPel/Prefeitura e trata 2,88 m como referência histórica contextual do Canal São Gonçalo, não como cota transferível à Estação Laranjal ou a outras réguas. A página de 2024 permanece como registro histórico. As duas páginas têm ligação recíproca.
 
 ## 10. Central Regional
 
-`/tempo-na-regiao-sul-rs` é o hub das 24 cidades aprovadas. O resumo usa consulta Open-Meteo em lote, rotulada como estimativa de modelo. Busca, filtros, lista e mapa reutilizam o mesmo dataset; avisos INMET ficam nas páginas municipais individuais.
+`/tempo-na-regiao-sul-rs` é o hub das 24 cidades aprovadas. O resumo usa consulta Open-Meteo em lote, rotulada como estimativa de modelo. O loader já possui `try/catch` próprio: se a visão regional falha, o fallback mantém as 24 cidades e seus links disponíveis, sem inventar temperatura, chuva ou vento.
 
-Em 27/08/2026 a Central Regional recebeu hardening adicional após um erro público observado nessa rota:
-
-- `RegionalCitiesMap` deixou de ser carregado por um `import()` próprio no wrapper; a renderização continua adiada por `IntersectionObserver`, mas o módulo é importado estaticamente;
-- `maplibre-gl` continua sendo a camada dinâmica interna, com tratamento local;
-- um `RegionalMapErrorBoundary` local impede que erro do mapa alcance o boundary global;
-- se o mapa falhar, a lista, busca, filtros e links das cidades permanecem disponíveis;
-- o fallback informa explicitamente que a lista continua funcional.
+A Central Regional também mantém isolamento do mapa: `RegionalCitiesMap` é renderizado de forma adiada, `maplibre-gl` fica na camada dinâmica interna e `RegionalMapErrorBoundary` impede que erro do mapa alcance o boundary global. Se o mapa falha, lista, busca, filtros e links das cidades permanecem disponíveis.
 
 Perfis editoriais municipais específicos só são mantidos quando existe contexto factual próprio. FAQ genérico em massa permanece proibido pelo gate anti-template.
 
@@ -158,7 +158,7 @@ O princípio permanece: não criar URL quase duplicada apenas para trocar palavr
 
 A fase atual é de refinamento das 48 URLs existentes. Páginas permanentes de sexta/sábado continuam bloqueadas até existir evidência suficiente de Search Console; o conector continua indisponível por assinatura. O cluster hidrológico liga Laranjal ↔ Situação das Águas ↔ Guaíba ↔ 1941 ↔ 2024. O diretório global também expõe 15 dias e páginas hidrológicas/históricas.
 
-Em 27/08/2026 o header principal foi alinhado ao inventário já publicado, sem criar novas URLs: o menu `Previsão` passa a expor diretamente `/previsao-15-dias-pelotas`, e o menu `Águas` passa a expor `/nivel-do-guaiba` e `/enchente-1941-pelotas` além do Laranjal, situação hidrológica e enchente de 2024. Os mesmos itens alimentam a navegação móvel e entram nos `activePaths` correspondentes, reforçando descoberta, contexto e ligação interna entre os ativos existentes.
+O header principal está alinhado ao inventário publicado: `Previsão` expõe `/previsao-15-dias-pelotas`, e `Águas` expõe `/nivel-do-guaiba` e `/enchente-1941-pelotas` além de Laranjal, situação hidrológica e enchente de 2024. O mesmo inventário alimenta a navegação móvel.
 
 ## 12. Conta, Free e PRO
 
@@ -240,27 +240,31 @@ Web Push continua suspenso. `PushNotificationsManager` não é montado no root.
 
 Contratos relevantes versionados:
 
-- `tests/public-route-resilience.test.ts`: recuperação com cache-buster, trava de 60 s, tentativa `runtime`, navegação pública por documento, preservação das áreas autenticadas, boundary não fatal, isolamento do mapa e loaders Vento/Chuva;
-- `tests/home-deferred-hydrology.test.ts`: hidrologia diferida, degradação local do bloco de águas e fallback final da inteligência meteorológica da Home;
-- `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada, estados `live|partial|unavailable`, ligação 7→15 dias e degradação independente entre inteligência meteorológica e previsão estendida;
-- `tests/pwa-app-refinement.test.ts`: ausência de novo registro de SW, cleanup restrito ao Tempo Pelotas, manifest e conectividade preservados;
-- `tests/service-worker-static-cache.test.ts`: documenta o contrato do arquivo v9 preservado/dormente;
+- `tests/public-route-resilience.test.ts`: recuperação com cache-buster, navegação pública por documento, boundary não fatal, isolamento do mapa, loaders Vento/Chuva e fallback final de Hoje/Amanhã/7 dias/Alertas;
+- `tests/home-deferred-hydrology.test.ts`: hidrologia diferida, degradação local do bloco de águas e fallback final da Home;
+- `tests/fifteen-day-forecast.test.ts`: consulta estendida dedicada e degradação independente;
+- `tests/hydrology-overview-page.test.ts`: seis domínios da situação hidrológica com `Promise.allSettled`, preservando referências e Defesa Civil;
+- `tests/seo-guaiba-page.test.ts`: semântica das réguas e fallback de transporte da página do Guaíba;
+- `tests/radar-satellite-retail.test.ts`: REDEMET e meteorologia desacoplados;
+- `tests/embrapa-station-page.test.ts`: observação, saúde e histórico da Embrapa desacoplados;
+- `tests/frost-monitoring-page.test.ts`: geada observada e meteorologia desacopladas;
+- `tests/weather-history-page.test.ts` e `tests/climate-page.test.ts`: histórico/clima e estados indisponíveis;
+- `tests/camera-monitoring-page.test.ts`: câmera e meteorologia com falhas independentes;
+- `tests/pwa-app-refinement.test.ts`: ausência de novo registro de SW e cleanup restrito;
 - `tests/standalone-route-shell.test.ts`: evita shells duplicados;
-- `tests/seo-content-accessibility.test.ts` e `tests/seo-editorial-enrichment.test.ts`: contratos de intenção, semântica e links;
+- `tests/seo-content-accessibility.test.ts` e `tests/seo-editorial-enrichment.test.ts`: intenção, semântica e links;
 - `tests/regional-city-editorial.test.ts`: gate anti-template;
-- `tests/header-keyboard-accessibility.test.ts`: ARIA/foco de menus e presença no header das rotas de 15 dias, Guaíba, Enchente de 1941 e Enchente de 2024;
+- `tests/header-keyboard-accessibility.test.ts`: ARIA/foco e inventário do header;
 - `tests/source-resilience-regressions.test.ts`: contratos INMET/REDEMET;
 - `tests/screenshot-layout-regressions.test.ts`: regressões visuais detectadas no domínio.
 
-O workflow `Qualidade` executa `tests/header-keyboard-accessibility.test.ts` em etapa própria, além de `tests/public-route-resilience.test.ts`, contratos rápidos e demais gates especializados. `tests/fifteen-day-forecast.test.ts` e `tests/home-deferred-hydrology.test.ts` permanecem dentro de `test:contracts`. Depois seguem `routes:check`, build, relatório de assets, rotas, TypeScript, lint, preview e Browser Quality Smoke. Os runs recentes continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build ou testes aprovados sem execução real.**
+Os gates estão versionados, mas os runs recentes do GitHub Actions continuam sem evidência de steps executados normalmente (`runner_id=0` / `steps=[]` em observações anteriores). **Não declarar CI, build, typecheck ou testes aprovados sem execução real.**
 
 ## 18. Deploy e Supabase
 
 `main` é a branch operacional e sincroniza com Lovable. Supabase é externo ao Lovable. Migration versionada só é considerada aplicada após validação no ambiente oficial; publicação de código não prova alteração de banco.
 
-As rodadas de 15 dias, Guaíba, Enchente de 1941, refinamento SEO e hardening de navegação não adicionam migration, Edge Function, secret ou variável de ambiente.
-
-O hardening atual altera somente o runtime de navegação/cliente: não muda fonte meteorológica/hidrológica, regra de alerta, sitemap, canonical, autenticação ou dados de produção.
+O hardening desta rodada altera composição de loaders e estados degradados das páginas públicas. Não cria migration, Edge Function, secret ou variável de ambiente; não muda cota hidrológica, regra de alerta, sitemap, canonical, autenticação ou origem dos dados.
 
 ## 19. Qualidade de navegador
 
@@ -274,9 +278,9 @@ GeoInfo Embrapa permanece em trilha própria de descoberta/licenciamento. CPTEC/
 
 ## 21. Pendências prioritárias
 
-1. Confirmar publicação da rodada de hardening de navegação no domínio canônico e validar repetidamente a troca entre páginas públicas em desktop/mobile/anônimo.
-2. Validar uma aba mantida aberta durante um novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
-3. Confirmar no navegador que `/sw.js` não permanece registrado após a hidratação da nova versão e que caches `tempo-pelotas-*` antigos são removidos.
+1. Confirmar publicação desta rodada de hardening no domínio canônico e validar repetidamente Hoje, Amanhã, 7 dias, Alertas, Radar, Geadas, Embrapa, Laranjal, Guaíba, Situação das Águas, Metodologia e Histórico em desktop/mobile/anônimo.
+2. Validar uma aba mantida aberta durante novo deploy e confirmar que a próxima navegação pública busca documento/runtime atual sem exibir a antiga tela fatal.
+3. Confirmar no navegador que `/sw.js` não permanece registrado e que caches `tempo-pelotas-*` antigos são removidos.
 4. Restaurar os runners do GitHub Actions e executar suíte completa, `routes:check`, build, TypeScript e Browser Quality Smoke.
 5. Validar `/previsao-15-dias-pelotas`, `/nivel-do-guaiba` e `/enchente-1941-pelotas` no domínio, inclusive mobile, canonical e sitemap.
 6. Recapturar Search Console para priorizar CTR/refinamentos e decidir sexta/sábado.
