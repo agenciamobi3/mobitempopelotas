@@ -4,7 +4,7 @@ import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.funct
 import { createUnavailableRedemetOverview } from "./redemet-fallback";
 import { getRedemetOverview } from "./redemet.functions";
 
-const PUBLIC_RADAR_PAGE_DEADLINE_MS = 4_000;
+const PUBLIC_RADAR_PAGE_DEADLINE_MS = 2_800;
 
 async function settlePageDependency<T>(
   promise: Promise<T>,
@@ -30,7 +30,7 @@ async function settlePageDependency<T>(
 }
 
 export async function loadRadarPageData() {
-  const [redemetResult, weatherResult] = await Promise.allSettled([
+  const [redemet, weather] = await Promise.all([
     settlePageDependency(getRedemetOverview(), createUnavailableRedemetOverview),
     settlePageDependency(
       getWeatherIntelligence(),
@@ -38,14 +38,5 @@ export async function loadRadarPageData() {
     ),
   ]);
 
-  return {
-    redemet:
-      redemetResult.status === "fulfilled"
-        ? redemetResult.value
-        : createUnavailableRedemetOverview(),
-    weather:
-      weatherResult.status === "fulfilled"
-        ? weatherResult.value
-        : createUnavailableWeatherIntelligence(),
-  };
+  return { redemet, weather };
 }
