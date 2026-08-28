@@ -4,11 +4,13 @@ import test from "node:test";
 
 const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 const styles = readFileSync("src/production/components/home-editorial-header.css", "utf8");
+const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 
 const requiredPublicNavigationPaths = [
   "/tempo-hoje-pelotas",
   "/tempo-amanha-pelotas",
   "/previsao-7-dias-pelotas",
+  "/previsao-15-dias-pelotas",
   "/chuva-em-pelotas",
   "/vento-em-pelotas",
   "/meteograma-pelotas",
@@ -19,6 +21,8 @@ const requiredPublicNavigationPaths = [
   "/alertas",
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
+  "/nivel-do-guaiba",
+  "/enchente-1941-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/tempo-na-regiao-sul-rs",
   "/clima-em-pelotas",
@@ -39,6 +43,16 @@ test("megamenu groups the public weather inventory into editorial areas", () => 
 
   for (const path of requiredPublicNavigationPaths) {
     assert.match(header, new RegExp(escapeRegExp(path)), `Menu deve expor ${path}`);
+  }
+});
+
+test("atalhos estaticos principais do megamenu pertencem ao inventario indexavel", () => {
+  for (const path of requiredPublicNavigationPaths) {
+    assert.match(
+      publicRoutes,
+      new RegExp(`path:\\s*"${escapeRegExp(path)}"`),
+      `${path} deve existir em PUBLIC_ROUTES antes de aparecer no header`,
+    );
   }
 });
 
