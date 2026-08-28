@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { GuaibaLevelPage } from "@/components/hydrology/GuaibaLevelPage";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
-import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
+import { loadGuaibaPageData } from "@/lib/hydrology/public-hydrology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 
@@ -106,7 +106,7 @@ export const Route = createFileRoute("/nivel-do-guaiba")({
       }),
       createFaqPageJsonLd(PAGE_PATH, GUAIBA_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => ({ guaiba: await getGuaibaObservation() }),
+  loader: () => loadGuaibaPageData(),
   staleTime: 60 * 1_000,
   component: NivelGuaibaPage,
 });
