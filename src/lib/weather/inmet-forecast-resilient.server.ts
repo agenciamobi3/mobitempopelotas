@@ -5,9 +5,10 @@ const PELOTAS_IBGE_CODE = "4314407";
 const CURRENT_FORECAST_URL = `https://apiprevmet3.inmet.gov.br/api/forecast/${PELOTAS_IBGE_CODE}`;
 const LEGACY_FORECAST_URL = `https://apiprevmet3.inmet.gov.br/previsao/${PELOTAS_IBGE_CODE}`;
 const INMET_PORTAL_URL = "https://portal.inmet.gov.br/";
-const CURRENT_ENDPOINT_TIMEOUT_MS = 1_400;
-const LEGACY_ENDPOINT_TIMEOUT_MS = 1_100;
-const LEGACY_START_DELAY_MS = 450;
+const INMET_FORECAST_APP_URL = `https://previsao.inmet.gov.br/${PELOTAS_IBGE_CODE}`;
+const CURRENT_ENDPOINT_TIMEOUT_MS = 3_200;
+const LEGACY_ENDPOINT_TIMEOUT_MS = 2_800;
+const LEGACY_START_DELAY_MS = 650;
 
 type EndpointAttempt = {
   label: "atual" | "histórica";
@@ -28,25 +29,37 @@ function unavailable(error: string): InmetForecast {
   };
 }
 
-async function fetchForecastEndpoint(attempt: EndpointAttempt, signal?: AbortSignal): Promise<InmetForecast> {
+function requestHeaders() {
+  return {
+    Accept: "application/json, text/plain, */*",
+    "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.7",
+    Origin: "https://previsao.inmet.gov.br",
+    Referer: `${INMET_FORECAST_APP_URL}/`,
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+  };
+}
+
+async function fetchForecastEndpoint(
+  attempt: EndpointAttempt,
+  signal?: AbortSignal,
+): Promise<InmetForecast> {
   const timeoutSignal = AbortSignal.timeout(attempt.timeoutMs);
   const combinedSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
   const response = await fetch(attempt.url, {
-    headers: {
-      Accept: "application/json",
-      "Accept-Language": "pt-BR,pt;q=0.9",
-      "User-Agent": "TEMPO-Pelotas/2.0 (+https://tempopelotas.com.br)",
-    },
+    headers: requestHeaders(),
     signal: combinedSignal,
   });
 
   if (!response.ok) {
-    throw new Error(`rota ${attempt.label} respondeu com HTTP ${response.status}`);
+    throw new Error(`a integração pela rota ${attempt.label} recebeu HTTP ${response.status}`);
   }
 
   const periods = parseInmetForecastPayload((await response.json()) as unknown);
   if (!periods.length) {
-    throw new Error(`rota ${attempt.label} não retornou períodos meteorológicos reconhecíveis`);
+    throw new Error(
+      `a rota ${attempt.label} respondeu, mas o payload não continha períodos meteorológicos reconhecíveis`,
+    );
   }
 
   return {
@@ -63,9 +76,10 @@ async function fetchForecastEndpoint(attempt: EndpointAttempt, signal?: AbortSig
 
 /**
  * Prioriza a rota municipal atualmente observada no ecossistema do INMET.
- * A rota histórica entra depois de um pequeno atraso e assume imediatamente
- * se a primeira falhar. Assim a contingência existe sem alongar o critical path
- * normal da Home e sem mudar a semântica da previsão municipal oficial.
+ * A rota histórica entra em paralelo após um pequeno atraso e assume se a
+ * primeira ficar lenta ou falhar. Os prazos consideram latência real de uma
+ * fonte pública externa; timeout da integração não é tratado como prova de que
+ * o serviço público do INMET esteja fora do ar.
  */
 export async function fetchResilientInmetForecast(): Promise<InmetForecast> {
   const currentController = new AbortController();
@@ -96,8 +110,8 @@ export async function fetchResilientInmetForecast(): Promise<InmetForecast> {
       resolve(
         unavailable(
           failures.length > 0
-            ? `Previsão municipal do INMET indisponível. ${failures.join(" ")}`
-            : "Previsão municipal do INMET indisponível nas rotas consultadas.",
+            ? `A integração da previsão municipal do INMET não obteve um payload utilizável nesta atualização. ${failures.join(" ")}`
+            : "A integração da previsão municipal do INMET não obteve um payload utilizável nesta atualização.",
         ),
       );
     };
@@ -119,8 +133,8 @@ export async function fetchResilientInmetForecast(): Promise<InmetForecast> {
           legacyFinished = true;
           failures.push(
             error instanceof Error
-              ? `rota histórica: ${error.message}`
-              : "rota histórica: falha desconhecida",
+              ? `Rota histórica: ${error.message}.`
+              : "Rota histórica: falha desconhecida.",
           );
           finishUnavailableIfNeeded();
         });
@@ -131,7 +145,9 @@ export async function fetchResilientInmetForecast(): Promise<InmetForecast> {
       .catch((error) => {
         currentFinished = true;
         failures.push(
-          error instanceof Error ? `rota atual: ${error.message}` : "rota atual: falha desconhecida",
+          error instanceof Error
+            ? `Rota atual: ${error.message}.`
+            : "Rota atual: falha desconhecida.",
         );
         startLegacy();
         finishUnavailableIfNeeded();
