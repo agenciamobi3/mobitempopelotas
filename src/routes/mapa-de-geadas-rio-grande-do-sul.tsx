@@ -4,10 +4,9 @@ import { EditorialContentSection } from "@/components/content/EditorialContentSe
 import { FrostMapHero, FrostMapPageV2 } from "@/components/inmet/FrostMapPageV2";
 import "@/components/inmet/FrostMapHomeContract.css";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
-import { getInmetFrostOverview } from "@/lib/inmet/frost.functions";
+import { loadFrostPageData } from "@/lib/inmet/frost-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 
 const PAGE_TITLE = "Mapa de geadas observadas no Rio Grande do Sul";
 const PAGE_DESCRIPTION =
@@ -124,13 +123,7 @@ export const Route = createFileRoute("/mapa-de-geadas-rio-grande-do-sul")({
       ],
       { geo: null },
     ),
-  loader: async () => {
-    const [frost, weather] = await Promise.all([
-      getInmetFrostOverview(),
-      getWeatherIntelligence(),
-    ]);
-    return { frost, weather };
-  },
+  loader: () => loadFrostPageData(),
   staleTime: 15 * 60 * 1_000,
   component: FrostRoutePage,
 });
