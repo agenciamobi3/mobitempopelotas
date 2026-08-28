@@ -14,6 +14,9 @@ const extendedLoader = readFileSync(
   "utf8",
 );
 const homeRoute = readFileSync("src/routes/index.tsx", "utf8");
+const todayRoute = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
+const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
+const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
 const navigationGuard = readFileSync(
   "src/components/navigation/PublicDocumentNavigationGuard.tsx",
   "utf8",
@@ -35,8 +38,14 @@ test("navegação pública preserva carregamento de documento completo", () => {
 });
 
 test("menu principal usa anchors nativas e não TanStack Link", () => {
-  assert.doesNotMatch(publicHeader, /import\s*\{[^}]*\bLink\b[^}]*\}\s*from\s*["']@tanstack\/react-router["']/);
-  assert.match(publicHeader, /function Link\(\{ to, params, \.\.\.props \}: PublicHeaderLinkProps\)/);
+  assert.doesNotMatch(
+    publicHeader,
+    /import\s*\{[^}]*\bLink\b[^}]*\}\s*from\s*["']@tanstack\/react-router["']/,
+  );
+  assert.match(
+    publicHeader,
+    /function Link\(\{ to, params, \.\.\.props \}: PublicHeaderLinkProps\)/,
+  );
   assert.match(publicHeader, /return <a \{\.\.\.props\} href=\{href\} \/>/);
 });
 
@@ -46,7 +55,23 @@ test("router não dispara loader público por hover ou foco antes do clique", ()
   assert.doesNotMatch(router, /defaultPreloadDelay/);
 });
 
-test("loaders meteorológicos e hidrológicos possuem teto curto de documento", () => {
+test("home, hoje, amanhã e 7 dias entregam shell sem fonte externa no loader inicial", () => {
+  assert.match(homeRoute, /loader: \(\) => createInitialHomeData\(\)/);
+  assert.match(homeRoute, /weather: createUnavailableWeatherIntelligence\(\)/);
+  assert.match(homeRoute, /Promise\.resolve\(\{/);
+  assert.doesNotMatch(homeRoute, /getWeatherIntelligence/);
+  assert.doesNotMatch(homeRoute, /getLaranjalLevelData/);
+  assert.doesNotMatch(homeRoute, /getGuaibaObservation/);
+  assert.doesNotMatch(homeRoute, /getLagoonMonitoringNetwork/);
+
+  for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute]) {
+    assert.match(routeSource, /loader: \(\) => createUnavailableWeatherIntelligence\(\)/);
+    assert.doesNotMatch(routeSource, /loadPublicWeatherPage/);
+    assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
+  }
+});
+
+test("demais loaders resilientes continuam com teto curto de documento", () => {
   assert.match(publicWeatherLoader, /PUBLIC_WEATHER_PAGE_DEADLINE_MS = 2_500/);
   assert.match(publicWeatherLoader, /Promise\.race/);
   assert.match(publicHydrologyLoader, /PUBLIC_HYDROLOGY_PAGE_DEADLINE_MS = 2_500/);
@@ -58,11 +83,4 @@ test("radar e previsão estendida não seguram a navegação por quatro segundos
   assert.doesNotMatch(radarLoader, /PUBLIC_RADAR_PAGE_DEADLINE_MS = 4_000/);
   assert.match(extendedLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800/);
   assert.doesNotMatch(extendedLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_000/);
-});
-
-test("home possui deadline próprio e hidrologia continua diferida", () => {
-  assert.match(homeRoute, /HOME_WEATHER_DEADLINE_MS = 2_500/);
-  assert.match(homeRoute, /HOME_HYDROLOGY_DEADLINE_MS = 3_500/);
-  assert.match(homeRoute, /hydrology: Promise<HomeHydrologyResult>/);
-  assert.match(homeRoute, /settleWithin\(/);
 });
