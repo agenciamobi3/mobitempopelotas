@@ -10,6 +10,7 @@ import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import { createUnavailableWeatherHistory } from "@/lib/weather/history-fallback";
 import { getPelotasWeatherHistory } from "@/lib/weather/history.functions";
 
 const PAGE_TITLE = "Histórico meteorológico de 30 dias em Pelotas";
@@ -111,7 +112,11 @@ export const Route = createFileRoute("/historico-climatico-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, HISTORY_PAGE_CONTENT.faqs),
     ]),
-  loader: async () => ({ history: await getPelotasWeatherHistory() }),
+  loader: async () => ({
+    history: await getPelotasWeatherHistory().catch(() =>
+      createUnavailableWeatherHistory(),
+    ),
+  }),
   staleTime: 6 * 60 * 60 * 1_000,
   component: HistoricoClimaticoPage,
 });
