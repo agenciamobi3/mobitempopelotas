@@ -201,16 +201,18 @@ Foram incluídas no contrato standalone:
 
 `tests/standalone-route-shell.test.ts` agora percorre os módulos de rota e protege esse contrato para páginas futuras.
 
-### Links internos globais
+### Links internos globais e navegação principal
 
-O rodapé passou a expor explicitamente:
+O rodapé continua expondo explicitamente:
 
 - `/previsao-15-dias-pelotas`;
 - `/nivel-do-guaiba`;
 - `/enchente-1941-pelotas`;
 - `/enchente-2024-pelotas-laranjal`.
 
-A decisão foi reforçar descoberta e rastreamento sem inflar o cabeçalho principal nem criar novas URLs.
+Após a estabilização do inventário, o header principal também passou a expor `/previsao-15-dias-pelotas` no menu `Previsão` e `/nivel-do-guaiba` + `/enchente-1941-pelotas` no menu `Águas`. O mesmo inventário alimenta desktop e mobile, e os `activePaths` desses menus foram atualizados para reconhecer as novas páginas já existentes.
+
+A mudança reforça descoberta, navegação contextual e malha interna sem criar URL, alias ou doorway page. `tests/editorial-megamenu-navigation.test.ts` cruza os atalhos estáticos principais com `PUBLIC_ROUTES`, e `tests/header-keyboard-accessibility.test.ts` protege a presença dos ativos novos mantendo os contratos de ARIA/foco.
 
 ### Árvore de rotas
 
