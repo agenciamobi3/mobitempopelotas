@@ -17,7 +17,8 @@ function isModifiedClick(event: MouseEvent) {
  * Links públicos same-origin usam navegação de documento completo para nunca
  * depender de route chunks mantidos em memória por uma aba antiga.
  *
- * Áreas autenticadas continuam liberadas para navegação SPA.
+ * Áreas autenticadas continuam liberadas para navegação SPA. Um link interno
+ * específico também pode optar por SPA com data-spa-navigation="true".
  */
 export function PublicDocumentNavigationGuard() {
   useEffect(() => {
@@ -28,7 +29,7 @@ export function PublicDocumentNavigationGuard() {
       const anchor = event.target.closest<HTMLAnchorElement>("a[href]");
       if (!anchor || anchor.hasAttribute("download")) return;
       if (anchor.target && anchor.target !== "_self") return;
-      if (anchor.dataset.spaNavigation === "true") return;
+      if (anchor.getAttribute("data-spa-navigation") === "true") return;
 
       let destination: URL;
       try {
