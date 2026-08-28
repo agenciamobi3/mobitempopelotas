@@ -4,6 +4,10 @@ import test from "node:test";
 
 const extendedServer = readFileSync("src/lib/weather/extended-forecast.server.ts", "utf8");
 const extendedFunctions = readFileSync("src/lib/weather/extended-forecast.functions.ts", "utf8");
+const extendedPageLoader = readFileSync(
+  "src/lib/weather/extended-forecast-page-loader.ts",
+  "utf8",
+);
 const standardOpenMeteo = readFileSync("src/lib/weather/open-meteo.server.ts", "utf8");
 const route = readFileSync("src/routes/previsao-15-dias-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/weather/FifteenDayForecastPage.tsx", "utf8");
@@ -39,12 +43,24 @@ test("função pública da previsão estendida possui cache próprio", () => {
   assert.match(extendedFunctions, /createUnavailableExtendedForecast/);
 });
 
-test("rota de 15 dias combina shell meteorológico existente com chamada estendida", () => {
+test("loader público de 15 dias degrada as duas consultas de forma independente", () => {
+  assert.match(extendedPageLoader, /Promise\.allSettled/);
+  assert.match(extendedPageLoader, /getWeatherIntelligence\(\)/);
+  assert.match(extendedPageLoader, /getPelotasExtendedForecast\(\)/);
+  assert.match(extendedPageLoader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(extendedPageLoader, /status:\s*"unavailable"/);
+  assert.match(extendedPageLoader, /days:\s*\[\]/);
+  assert.match(extendedPageLoader, /requestedDays:\s*15/);
+  assert.doesNotMatch(extendedPageLoader, /Promise\.all\(/);
+});
+
+test("rota de 15 dias usa loader resiliente e preserva o shell meteorológico", () => {
   assert.match(route, /createFileRoute\("\/previsao-15-dias-pelotas"\)/);
   assert.match(route, /Previsão do tempo em Pelotas para 15 dias/);
-  assert.match(route, /getWeatherIntelligence\(\)/);
-  assert.match(route, /getPelotasExtendedForecast\(\)/);
-  assert.match(route, /Promise\.all/);
+  assert.match(route, /loadPublicExtendedForecastPage\(\)/);
+  assert.doesNotMatch(route, /Promise\.all\(/);
+  assert.doesNotMatch(route, /getWeatherIntelligence\(\)/);
+  assert.doesNotMatch(route, /getPelotasExtendedForecast\(\)/);
   assert.match(route, /<InternalWeatherPageShell/);
   assert.match(route, /<FifteenDayForecastHero/);
   assert.match(route, /<FifteenDayForecastPage/);
