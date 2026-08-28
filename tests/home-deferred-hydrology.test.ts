@@ -6,38 +6,36 @@ const route = readFileSync("src/routes/index.tsx", "utf8");
 const home = readFileSync("src/production/ProductionHome.tsx", "utf8");
 const styles = readFileSync("src/production/styles/home-water-deferred.css", "utf8");
 
-test("home starts hydrology in parallel without awaiting it before critical weather", () => {
-  const hydrologyStart = route.indexOf("const hydrology: Promise<HomeHydrologyResult> = Promise.all");
-  const weatherAwait = route.indexOf("const weather = await getWeatherIntelligence()");
-  assert.ok(hydrologyStart >= 0, "Home deve iniciar o carregamento hidrológico.");
-  assert.ok(weatherAwait > hydrologyStart, "Hidrologia deve iniciar antes da espera meteorológica.");
-  assert.doesNotMatch(route, /const \[weather, laranjal, guaiba, lagoon\] = await Promise\.all/);
-  assert.match(route, /return \{ weather, hydrology \}/);
+test("home não consulta meteorologia ou hidrologia externa no loader inicial", () => {
+  assert.match(route, /loader: \(\) => createInitialHomeData\(\)/);
+  assert.match(route, /weather: createUnavailableWeatherIntelligence\(\)/);
+  assert.match(route, /Promise\.resolve\(\{/);
+  assert.match(route, /status: "unavailable" as const/);
+  assert.doesNotMatch(route, /getWeatherIntelligence/);
+  assert.doesNotMatch(route, /getLaranjalLevelData/);
+  assert.doesNotMatch(route, /getGuaibaObservation/);
+  assert.doesNotMatch(route, /getLagoonMonitoringNetwork/);
+  assert.doesNotMatch(route, /Promise\.race/);
 });
 
-test("falha de transporte da inteligencia meteorologica degrada sem derrubar a home", () => {
-  assert.match(route, /getWeatherIntelligence\(\)\.catch/);
-  assert.match(route, /createUnavailableWeatherIntelligence\(\)/);
-  assert.match(route, /import \{ createUnavailableWeatherIntelligence \}/);
+test("home mantém fallback meteorológico auditável para recuperação no navegador", () => {
+  assert.match(route, /createUnavailableWeatherIntelligence/);
+  assert.match(home, /useOpenMeteoIntelligenceRecovery\(data\)/);
+  assert.match(home, /Dados temporariamente indisponíveis/);
+  assert.match(home, /O portal continuará consultando automaticamente as fontes meteorológicas/);
 });
 
-test("home resolves deferred hydrology only at the water section", () => {
+test("home mantém a seção de águas isolada do restante da página", () => {
   assert.match(home, /import \{ Await, Link \} from "@tanstack\/react-router"/);
   assert.match(home, /<Suspense fallback=\{<HomeWaterLoading \/>\}>/);
   assert.match(home, /<Await promise=\{hydrology\}>/);
   assert.match(home, /<DeferredHomeWater hydrology=\{hydrology\} \/>/);
-  assert.match(home, /Atualizando níveis e medições\.\.\./);
-});
-
-test("unexpected hydrology rejection stays local and never replaces the weather home", () => {
-  assert.match(route, /\.catch\(\(\) => \(\{ status: "unavailable" as const \}\)\)/);
   assert.match(home, /result\.status === "ready"/);
   assert.match(home, /<HomeWaterUnavailable \/>/);
   assert.match(home, /Dados hidrológicos temporariamente indisponíveis/);
-  assert.match(home, /to="\/situacao-hidrologica-pelotas"/);
 });
 
-test("deferred water state remains accessible and motion-safe", () => {
+test("estado de águas continua acessível e motion-safe", () => {
   assert.match(home, /aria-live="polite"/);
   assert.match(home, /aria-busy="true"/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
