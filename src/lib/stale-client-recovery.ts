@@ -1,4 +1,5 @@
 const RECOVERY_STORAGE_KEY = "tempo-pelotas:stale-client-recovery";
+const RECOVERY_PARAM = "__tp_recover";
 const RECOVERY_WINDOW_MS = 60_000;
 
 const STALE_ASSET_PATTERNS = [
@@ -27,7 +28,7 @@ const TRANSIENT_NAVIGATION_PATTERNS = [
 type RecoveryRecord = {
   href: string;
   attemptedAt: number;
-  reason: "asset" | "navigation";
+  reason: "asset" | "navigation" | "runtime";
 };
 
 let clientRuntimeReady = false;
@@ -52,12 +53,27 @@ export function isTransientClientNavigationError(error: unknown) {
   return TRANSIENT_NAVIGATION_PATTERNS.some((pattern) => pattern.test(message));
 }
 
-function currentHref() {
-  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+function logicalHref() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete(RECOVERY_PARAM);
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function recoveryUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.set(RECOVERY_PARAM, String(Date.now()));
+  return url.href;
+}
+
+function stripRecoveryParam() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(RECOVERY_PARAM)) return;
+  url.searchParams.delete(RECOVERY_PARAM);
+  window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 function canAttemptRecovery(reason: RecoveryRecord["reason"]) {
-  const href = currentHref();
+  const href = logicalHref();
 
   try {
     const raw = window.sessionStorage.getItem(RECOVERY_STORAGE_KEY);
@@ -75,49 +91,51 @@ function canAttemptRecovery(reason: RecoveryRecord["reason"]) {
     );
     return true;
   } catch {
-    // Sem sessionStorage não há como garantir que uma recarga automática não entre em loop.
+    // Sem sessionStorage não há como garantir que uma navegação automática não entre em loop.
     return false;
   }
 }
 
-function hardReload(reason: RecoveryRecord["reason"]) {
+function navigateToFreshDocument(reason: RecoveryRecord["reason"]) {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) return false;
   if (!canAttemptRecovery(reason)) return false;
-  window.location.reload();
+  window.location.replace(recoveryUrl());
   return true;
 }
 
 export function markClientRuntimeReady() {
   if (typeof window === "undefined") return;
   clientRuntimeReady = true;
+  stripRecoveryParam();
 }
 
 export function recoverStaleClientAssets(error?: unknown) {
   if (typeof window === "undefined") return false;
   if (error !== undefined && !isStaleClientAssetError(error)) return false;
-  return hardReload("asset");
+  return navigateToFreshDocument("asset");
 }
 
 /**
- * Falhas de navegação cliente podem surgir quando uma aba antiga atravessa um
- * novo deploy: o bundle ainda em memória tenta carregar um chunk ou server fn
- * que já pertence à versão anterior. Nessa situação uma navegação completa da
- * própria URL atualiza HTML + runtime e normalmente resolve o problema.
- *
- * A recuperação genérica só é habilitada depois que o app hidratou com
- * sucesso. Assim, um bug determinístico no carregamento inicial não entra em
- * ciclo de reload. sessionStorage limita a uma tentativa automática por URL.
+ * Uma aba hidratada pode atravessar um deploy e manter módulos antigos em
+ * memória. Se qualquer erro alcançar o boundary global depois da hidratação,
+ * fazemos no máximo uma navegação de documento realmente fresca por URL em
+ * uma janela de 60 segundos. Erros transitórios recebem a razão navigation;
+ * outros erros de runtime recebem uma única tentativa controlada antes do
+ * fallback público do root.
  */
 export function recoverClientNavigationFailure(error: unknown) {
   if (typeof window === "undefined") return false;
-
-  if (isStaleClientAssetError(error)) {
-    return hardReload("asset");
-  }
-
-  if (!clientRuntimeReady || !isTransientClientNavigationError(error)) return false;
   if (typeof navigator !== "undefined" && navigator.onLine === false) return false;
 
-  return hardReload("navigation");
+  if (isStaleClientAssetError(error)) {
+    return navigateToFreshDocument("asset");
+  }
+
+  if (!clientRuntimeReady) return false;
+
+  return navigateToFreshDocument(
+    isTransientClientNavigationError(error) ? "navigation" : "runtime",
+  );
 }
 
 export function installVitePreloadRecovery() {
