@@ -50,19 +50,31 @@ test("Edge Function exige token e preserva último payload válido", () => {
 });
 
 
-test("cliente server-only chama a Edge Function sem expor o token e com budget compatível com a latência observada", () => {
+test("cliente server-only prioriza cache persistido antes de consultar configuração e Edge", () => {
   assert.match(edgeClient, /createSupabaseAdminClient/);
+  assert.match(edgeClient, /weather_provider_payload_cache/);
+  assert.match(edgeClient, /readPersistedPayload/);
+  assert.match(edgeClient, /forecastPayloadSchema\.safeParse\(data\.payload\)/);
+  assert.match(edgeClient, /CACHE_READ_TIMEOUT_MS = 1_200/);
+  assert.match(edgeClient, /SETTINGS_READ_TIMEOUT_MS = 1_200/);
+  assert.match(edgeClient, /EDGE_REQUEST_TIMEOUT_MS = 1_600/);
   assert.match(edgeClient, /weather_forecast_accuracy_settings/);
   assert.match(edgeClient, /\/functions\/v1\/\$\{EDGE_FUNCTION_NAME\}/);
   assert.match(edgeClient, /"X-Collector-Token": settings\.collector_token/);
-  assert.match(edgeClient, /REQUEST_TIMEOUT_MS = 1_600/);
-  assert.match(edgeClient, /AbortSignal\.timeout/);
+
+  const fallbackFlow = edgeClient.slice(
+    edgeClient.indexOf("export async function fetchOpenMeteoPayloadViaEdge"),
+  );
+  const cacheIndex = fallbackFlow.indexOf("readPersistedPayload(admin)");
+  const edgeIndex = fallbackFlow.indexOf("fetchViaEdge(admin, config.url)");
+  assert.ok(cacheIndex >= 0 && edgeIndex > cacheIndex);
+  assert.match(fallbackFlow, /if \(persisted\) return persisted/);
   assert.doesNotMatch(edgeClient, /VITE_/);
   assert.doesNotMatch(edgeClient, /export const collectorToken/);
 });
 
 
-test("agregação prioriza origem direta e usa Edge somente como contingência", () => {
+test("agregação prioriza origem direta e usa contingência persistida somente após falha", () => {
   const publicFlow = resilient.slice(
     resilient.indexOf("export async function fetchPelotasWeather"),
   );
