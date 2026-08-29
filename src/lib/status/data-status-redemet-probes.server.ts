@@ -8,7 +8,7 @@ import type {
 import { fetchInmetSatellite } from "@/lib/weather/inmet-satellite.server";
 
 import { collectDataStatus, overallState } from "./data-status.server";
-import type { DataStatusOverview, ServiceStatus } from "./data-status.types";
+import type { DataStatusOverview, ServiceState, ServiceStatus } from "./data-status.types";
 
 const PROBE_DEADLINE_MS = 5_000;
 const RADAR_FRAMES = 2;
@@ -73,12 +73,25 @@ async function settleProbe(definition: ProbeDefinition): Promise<ProbeLayer> {
   }
 }
 
+function probeState(definition: ProbeDefinition, layer: ProbeLayer): ServiceState {
+  if (layer.configured && layer.available) return "operational";
+
+  const error = layer.error ?? "";
+  const redemetAnsweredWithoutProduct =
+    definition.id === "redemet-satellite" &&
+    layer.configured &&
+    (error.startsWith("A REDEMET respondeu sem imagem utilizável") ||
+      error.startsWith("A integração recebeu resposta da REDEMET"));
+
+  return redemetAnsweredWithoutProduct ? "partial" : "offline";
+}
+
 function serviceFromProbe(
   definition: ProbeDefinition,
   layer: ProbeLayer,
   fallbackCheckedAt: string,
 ): ServiceStatus {
-  const state = layer.configured && layer.available ? "operational" : "offline";
+  const state = probeState(definition, layer);
   const frameDetail =
     layer.frames.length === 1
       ? "1 quadro utilizável"
