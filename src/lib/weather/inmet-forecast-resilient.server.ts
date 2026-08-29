@@ -2,16 +2,16 @@ import type { InmetForecast } from "./official-sources.types";
 import { parseInmetForecastPayload } from "./inmet-forecast.server";
 
 const PELOTAS_IBGE_CODE = "4314407";
-const CURRENT_FORECAST_URL = `https://apiprevmet3.inmet.gov.br/api/forecast/${PELOTAS_IBGE_CODE}`;
-const LEGACY_FORECAST_URL = `https://apiprevmet3.inmet.gov.br/previsao/${PELOTAS_IBGE_CODE}`;
+const STABLE_FORECAST_URL = `https://apiprevmet3.inmet.gov.br/previsao/${PELOTAS_IBGE_CODE}`;
+const ALTERNATE_FORECAST_URL = `https://apiprevmet3.inmet.gov.br/api/forecast/${PELOTAS_IBGE_CODE}`;
 const INMET_PORTAL_URL = "https://portal.inmet.gov.br/";
 const INMET_FORECAST_APP_URL = `https://previsao.inmet.gov.br/${PELOTAS_IBGE_CODE}`;
-const CURRENT_ENDPOINT_TIMEOUT_MS = 3_200;
-const LEGACY_ENDPOINT_TIMEOUT_MS = 2_800;
-const LEGACY_START_DELAY_MS = 650;
+const STABLE_ENDPOINT_TIMEOUT_MS = 2_800;
+const ALTERNATE_ENDPOINT_TIMEOUT_MS = 2_400;
+const ALTERNATE_START_DELAY_MS = 900;
 
 type EndpointAttempt = {
-  label: "atual" | "histórica";
+  label: "estável" | "alternativa";
   url: string;
   timeoutMs: number;
 };
@@ -90,37 +90,38 @@ async function fetchForecastEndpoint(
 }
 
 /**
- * Prioriza a rota municipal atualmente observada no ecossistema do INMET.
- * A rota histórica entra em paralelo após um pequeno atraso e assume se a
- * primeira ficar lenta ou falhar. Os prazos consideram latência real de uma
- * fonte pública externa; timeout da integração não é tratado como prova de que
- * o serviço público do INMET esteja fora do ar.
+ * A rota /previsao/{geocode} é a primária porque foi verificada com HTTP 200
+ * e payload meteorológico válido em produção. A rota /api/forecast/{geocode}
+ * permanece somente como contingência retardada: em 29/08/2026 ela respondia
+ * 404 E_ROUTE_NOT_FOUND. Não desperdiçamos o caminho crítico esperando primeiro
+ * por uma rota comprovadamente inexistente, mas também não removemos a opção de
+ * recuperação caso o INMET volte a expô-la no futuro.
  */
 export async function fetchResilientInmetForecast(): Promise<InmetForecast> {
-  const currentController = new AbortController();
-  const legacyController = new AbortController();
+  const stableController = new AbortController();
+  const alternateController = new AbortController();
   const failures: string[] = [];
-  let legacyTimer: ReturnType<typeof setTimeout> | undefined;
+  let alternateTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const currentAttempt: EndpointAttempt = {
-    label: "atual",
-    url: CURRENT_FORECAST_URL,
-    timeoutMs: CURRENT_ENDPOINT_TIMEOUT_MS,
+  const stableAttempt: EndpointAttempt = {
+    label: "estável",
+    url: STABLE_FORECAST_URL,
+    timeoutMs: STABLE_ENDPOINT_TIMEOUT_MS,
   };
-  const legacyAttempt: EndpointAttempt = {
-    label: "histórica",
-    url: LEGACY_FORECAST_URL,
-    timeoutMs: LEGACY_ENDPOINT_TIMEOUT_MS,
+  const alternateAttempt: EndpointAttempt = {
+    label: "alternativa",
+    url: ALTERNATE_FORECAST_URL,
+    timeoutMs: ALTERNATE_ENDPOINT_TIMEOUT_MS,
   };
 
   return await new Promise<InmetForecast>((resolve) => {
     let settled = false;
-    let currentFinished = false;
-    let legacyStarted = false;
-    let legacyFinished = false;
+    let stableFinished = false;
+    let alternateStarted = false;
+    let alternateFinished = false;
 
     const finishUnavailableIfNeeded = () => {
-      if (settled || !currentFinished || !legacyFinished) return;
+      if (settled || !stableFinished || !alternateFinished) return;
       settled = true;
       resolve(
         unavailable(
@@ -134,49 +135,49 @@ export async function fetchResilientInmetForecast(): Promise<InmetForecast> {
     const accept = (forecast: InmetForecast, loser: AbortController) => {
       if (settled) return;
       settled = true;
-      if (legacyTimer) clearTimeout(legacyTimer);
+      if (alternateTimer) clearTimeout(alternateTimer);
       loser.abort();
       resolve(forecast);
     };
 
-    const startLegacy = () => {
-      if (legacyStarted || settled) return;
-      legacyStarted = true;
-      void fetchForecastEndpoint(legacyAttempt, legacyController.signal)
-        .then((forecast) => accept(forecast, currentController))
+    const startAlternate = () => {
+      if (alternateStarted || settled) return;
+      alternateStarted = true;
+      void fetchForecastEndpoint(alternateAttempt, alternateController.signal)
+        .then((forecast) => accept(forecast, stableController))
         .catch((error) => {
-          legacyFinished = true;
+          alternateFinished = true;
           failures.push(
             error instanceof Error
-              ? `Rota histórica: ${error.message}.`
-              : "Rota histórica: falha desconhecida.",
+              ? `Rota alternativa: ${error.message}.`
+              : "Rota alternativa: falha desconhecida.",
           );
           finishUnavailableIfNeeded();
         });
     };
 
-    void fetchForecastEndpoint(currentAttempt, currentController.signal)
-      .then((forecast) => accept(forecast, legacyController))
+    void fetchForecastEndpoint(stableAttempt, stableController.signal)
+      .then((forecast) => accept(forecast, alternateController))
       .catch((error) => {
-        currentFinished = true;
+        stableFinished = true;
         failures.push(
           error instanceof Error
-            ? `Rota atual: ${error.message}.`
-            : "Rota atual: falha desconhecida.",
+            ? `Rota estável: ${error.message}.`
+            : "Rota estável: falha desconhecida.",
         );
-        startLegacy();
+        startAlternate();
         finishUnavailableIfNeeded();
       })
       .finally(() => {
-        currentFinished = true;
+        stableFinished = true;
         finishUnavailableIfNeeded();
       });
 
-    legacyTimer = setTimeout(startLegacy, LEGACY_START_DELAY_MS);
+    alternateTimer = setTimeout(startAlternate, ALTERNATE_START_DELAY_MS);
   });
 }
 
 export const INMET_FORECAST_ENDPOINTS = {
-  current: CURRENT_FORECAST_URL,
-  legacy: LEGACY_FORECAST_URL,
+  primary: STABLE_FORECAST_URL,
+  alternate: ALTERNATE_FORECAST_URL,
 } as const;
