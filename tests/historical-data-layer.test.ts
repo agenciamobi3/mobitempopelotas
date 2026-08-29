@@ -11,6 +11,10 @@ const embrapaExtremesMigration = readFileSync(
   "supabase/migrations/20260822072000_archive_embrapa_daily_extremes.sql",
   "utf8",
 );
+const anaRhnMigration = readFileSync(
+  "supabase/migrations/20260829034000_register_ana_rhn_historical_source.sql",
+  "utf8",
+);
 const archiveServer = readFileSync("src/lib/history/historical-archive.server.ts", "utf8");
 const snapshotRoute = readFileSync("src/routes/api/cron/weather-snapshot.ts", "utf8");
 
@@ -30,6 +34,24 @@ test("historical schema separates source governance, stations and temporal measu
   assert.match(migration, /paid_access_allowed boolean not null default false/);
   assert.match(migration, /retention_policy_status text not null default 'pending_review'/);
   assert.match(migration, /enable row level security/);
+});
+
+test("ANA RHN enters the historical catalog without enabling measurement ingestion", () => {
+  assert.match(anaRhnMigration, /'ana-rhn'/);
+  assert.match(anaRhnMigration, /'ana-rhn-laranjal-87955001'/);
+  assert.match(anaRhnMigration, /'officialStationCode', '87955001'/);
+  assert.match(anaRhnMigration, /'operator', 'UFPel'/);
+  assert.match(anaRhnMigration, /'subBasin', 'Lagoa dos Patos'/);
+  assert.match(anaRhnMigration, /'integrationStatus', 'validation'/);
+  assert.match(anaRhnMigration, /'parameterStatus', 'unconfirmed'/);
+  assert.match(anaRhnMigration, /'unitStatus', 'unconfirmed'/);
+  assert.match(anaRhnMigration, /'verticalReferenceStatus', 'unconfirmed'/);
+  assert.match(anaRhnMigration, /'timezoneStatus', 'unconfirmed'/);
+  assert.match(anaRhnMigration, /'publicMeasurementIngestionEnabled', false/);
+  assert.match(anaRhnMigration, /'crossValidationOnlyUntilContractClosed', true/);
+  assert.match(anaRhnMigration, /paid_access_allowed[\s\S]*false/);
+  assert.match(anaRhnMigration, /collection_enabled[\s\S]*false/);
+  assert.doesNotMatch(anaRhnMigration, /historical_measurements\s*\(/);
 });
 
 test("existing Embrapa observations are mirrored and backfilled into the canonical history", () => {
