@@ -6,6 +6,7 @@ import { TodayForecastPageV5 } from "@/components/weather/TodayForecastPageV5";
 import { TodayRetailHero } from "@/components/weather/TodayRetailHero";
 import { TODAY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
+import { CORE_WEATHER_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 
@@ -94,6 +95,7 @@ export const Route = createFileRoute("/tempo-hoje-pelotas")({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
         path: PAGE_PATH,
+        citations: CORE_WEATHER_CITATIONS,
         breadcrumbs: [
           { name: "Início", path: "/" },
           { name: "Tempo hoje em Pelotas", path: PAGE_PATH },
