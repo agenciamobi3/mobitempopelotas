@@ -10,6 +10,7 @@ const migration = readFileSync(
   "utf8",
 );
 const widgetFunctions = readFileSync("src/lib/widgets/widget.functions.ts", "utf8");
+const widgetBuilder = readFileSync("src/components/widgets/WidgetBuilder.tsx", "utf8");
 const renderer = readFileSync("src/routes/embed/widget.tsx", "utf8");
 const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
 const server = readFileSync("src/server.ts", "utf8");
@@ -64,6 +65,11 @@ test("operações de conta respeitam sessão, entitlement e owner", () => {
   assert.match(widgetFunctions, /access\.entitlements\.widgetsMax !== null/);
   assert.match(widgetFunctions, /\.eq\("user_id", user\.id\)/);
   assert.match(widgetFunctions, /rpc\("get_public_widget"/);
+});
+
+test("sessão expirada durante criação retorna para a rota real do gerador", () => {
+  assert.match(widgetBuilder, /window\.location\.assign\("\/conta\?next=\/widgets"\)/);
+  assert.doesNotMatch(widgetBuilder, /next=\/conta\/widgets/);
 });
 
 test("embed gerado é responsivo e aceita frame externo somente no renderer dedicado", () => {
