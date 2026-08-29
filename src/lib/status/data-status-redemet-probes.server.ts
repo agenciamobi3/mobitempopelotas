@@ -10,7 +10,7 @@ import { fetchInmetSatellite } from "@/lib/weather/inmet-satellite.server";
 import { collectDataStatus, overallState } from "./data-status.server";
 import type { DataStatusOverview, ServiceStatus } from "./data-status.types";
 
-const PROBE_DEADLINE_MS = 8_000;
+const PROBE_DEADLINE_MS = 5_000;
 const RADAR_FRAMES = 2;
 const SATELLITE_FRAMES = 2;
 const STSC_FRAMES = 2;
