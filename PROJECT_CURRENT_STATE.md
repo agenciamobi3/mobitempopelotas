@@ -4,330 +4,216 @@
 Branch operacional: `main`  
 Domínio canônico: `https://tempopelotas.com.br`
 
-## 1. Papel deste documento
+## 1. Fonte de verdade e regras permanentes
 
-Este arquivo é a fonte de verdade de alto nível do Tempo Pelotas. Detalhes técnicos e histórico permanecem nos documentos especializados em `docs/`; código ativo, migrations e runtime publicado prevalecem sobre documentação histórica.
+Este arquivo resume o estado operacional atual. Detalhes, evidências e histórico ficam em `docs/`; código ativo, migrations aplicadas e runtime publicado prevalecem sobre documentação antiga.
 
-Regras permanentes:
+Regras que não devem ser quebradas:
 
-- mudanças estruturais de página pública, fonte, SEO/indexação, runtime, banco, autenticação ou deploy atualizam este arquivo;
-- não versionar HAR bruto, cookies, tokens, secrets ou URLs autenticadas;
+- não versionar secrets, cookies, HARs, URLs autenticadas ou tokens;
 - observação, previsão, alerta oficial, reanálise e dado derivado permanecem semanticamente separados;
-- indisponibilidade nunca vira valor zero, situação normal ou diagnóstico automático;
-- timeout, HTTP 403, falha de parsing ou bloqueio da integração não provam indisponibilidade global da fonte pública;
-- superfícies de condição/status **agora** não servem resposta HTTP velha por `max-age`/`stale-while-revalidate`; last-good só pode reaparecer com timestamp/idade reais e estado stale/degradado explícito;
-- navegabilidade pública prevalece sobre disponibilidade instantânea de qualquer integração externa;
-- `main` é a branch operacional; histórico publicado não é reescrito.
+- indisponibilidade nunca vira zero, normalidade ou diagnóstico automático;
+- timeout, HTTP 403, falha de parsing ou bloqueio de integração não provam indisponibilidade global de uma fonte pública;
+- dados correntes usam resposta `no-store/no-cache`; last-good conserva timestamp e idade reais;
+- uma régua/cota não é convertida para outra referência sem metadados que sustentem a transformação;
+- navegabilidade pública prevalece sobre a disponibilidade instantânea de qualquer integração externa;
+- `main` é operacional e o histórico publicado não é reescrito.
 
 ## 2. Estado executivo
 
-Tempo Pelotas é um portal meteorológico e hidrológico regional para Pelotas e Zona Sul do Rio Grande do Sul, com previsão, observação local, chuva, vento, alertas, radar/satélite, hidrologia, histórico, câmeras, páginas municipais e conteúdo editorial/SEO.
-
 | Domínio | Estado atual |
 | --- | --- |
-| Portal público / navegação | **P0 estabilizado no domínio canônico**. Smoke externo recente confirmou 16/16 rotas principais com HTTP 200 e sem boundary global no documento |
-| Home / Hoje / Amanhã / 7 dias | **Shell-first ativo**. Primeiro documento não depende de fontes externas; previsão e observação entram progressivamente depois da hidratação |
-| Home shell-first | O estado inicial comunica **“Atualizando dados meteorológicos...”** durante o budget de recuperação; “temporariamente indisponíveis” só aparece depois de tentativa sem dado utilizável |
-| Previsão de 15 dias | Ativa; Open-Meteo diário dedicado e fallback parcial apenas com dias reais preservados; nenhum dia 8–15 é inventado |
-| Chuva / vento / meteograma | Ativos com budgets públicos e degradação independente |
-| Alertas | Ativos com semântica oficial do INMET preservada |
-| Embrapa | Ativa; observação centralizada read-only no pageview, recuperável no navegador nas rotas shell-first |
-| Radar REDEMET | **Operacional** no probe real mais recente |
-| STSC / trovoadas | **Operacional** no probe real mais recente |
-| Satélite REDEMET | **Parcial**: API responde, mas `data` veio vazio na referência atual e na hora UTC anterior; não é classificado como fonte globalmente offline |
-| GOES / INMET | **Integração server-side offline por HTTP 403**; isso não afirma indisponibilidade do portal público do INMET |
-| Hidrologia | Ativa; Laranjal, Guaíba, Lagoa e Defesa Civil degradam por domínio |
-| Defesa Civil RS | Operacional no recorte regional; kill switch preservado |
-| ANA / RHN | **Em implementação/validação**; ainda não substitui fontes existentes |
-| Monitor de status | Ativo via Supabase `pg_cron` + `pg_net`; quatro camadas Radar/Satélite são medidas por probes independentes |
-| Central Regional | Ativa: Pelotas + 23 páginas municipais indexáveis |
-| SEO técnico | Ativo: canonical, sitemap, robots, OG/Twitter, Schema.org, links internos e BreadcrumbList regional |
-| Conta / Google | Fundação parcial operacional; E2E real com duas contas segue pendente |
-| Free / PRO | Fundação de entitlement pronta; billing comercial ainda não existe |
-| Weather AI | Ativo controlado; não participa do primeiro documento das rotas shell-first |
-| Gate geográfico / CSP / rate limit | Ativos em aplicação; smokes completos ainda pendentes |
-| Service worker / Web Push | Service worker aposentado temporariamente; Web Push suspenso |
-| GitHub Actions | **Bloqueado antes dos steps**. Jobs recentes nascem sem execução normal; não declarar testes/build/typecheck aprovados ou reprovados |
-| Search Console | Recaptura bloqueada enquanto o GSC Wizard estiver sem plano ativo |
+| Portal público | **P0 de navegação estabilizado** no domínio canônico |
+| Runtime publicado | Release identificável `2026-08-29-ana-rhn-readiness-v1`; `/api/runtime-version` é estático, `no-store` e `noindex` |
+| Home / Hoje / Amanhã / 7 dias | **Shell-first**: documento inicial não aguarda fontes externas |
+| Home sem dado inicial | Mostra “Atualizando dados meteorológicos...” durante o budget de recuperação; indisponibilidade só aparece após tentativa real |
+| Open-Meteo | Previsão principal; falha degrada localmente e não bloqueia documento shell-first |
+| MET Norway | Contingência compartilhada quando aplicável |
+| Embrapa | Observação local centralizada; leitura pública read-only e recuperável após hidratação |
+| INMET meteorológico | Integrações individuais preservadas; estado parcial não equivale a INMET globalmente indisponível |
+| Radar REDEMET | Probe independente operacional em validações recentes |
+| STSC | Probe independente operacional em validações recentes |
+| Satélite REDEMET | `partial` quando a API responde sem produto utilizável; não recebe lookback arbitrário |
+| GOES / INMET | Integração server-side pode retornar HTTP 403; isso não afirma indisponibilidade do portal INMET |
+| Hidrologia local/regional | Laranjal, Guaíba, Lagoa e Defesa Civil degradam por domínio |
+| ANA / SNIRH / RHN | **Readiness ativo, ingestão bloqueada**. Estação LARANJAL `87955001`; unidade e timezone confirmados, referência vertical ainda pendente |
+| Historical Data Layer | Ativo, separando `observation`, `forecast`, `reanalysis` e `derived` |
+| Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços; histórico stale bloqueado após 30 min |
+| Central Regional | Pelotas + 23 páginas municipais indexáveis |
+| SEO técnico | 48 URLs indexáveis, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
+| Conta / Google | Fundação parcial operacional; E2E com duas contas ainda pendente |
+| Free / PRO | Entitlements existem; billing comercial ainda não existe |
+| Weather AI | Controlado e fora do caminho crítico das rotas shell-first |
+| Service worker / Web Push | SW aposentado temporariamente; Web Push suspenso |
+| GitHub Actions | **Bloqueado antes dos steps**; não declarar build/test/typecheck executados enquanto os jobs continuarem sem steps |
+| Search Console | Recaptura pendente enquanto o conector estiver sem plano ativo |
 
 ## 3. Stack e operação
 
-Stack principal: React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro, Tailwind CSS 4, Supabase JS/SSR, MapLibre GL, Recharts e Zod. Lovable sincroniza/publica a aplicação; o Supabase oficial é externo ao Lovable.
+React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro, Tailwind CSS 4, Supabase JS/SSR, MapLibre GL, Recharts e Zod. Lovable sincroniza/publica o repositório; o Supabase oficial é externo ao Lovable.
 
-Scripts principais: `npm run build`, `npm test`, `npm run test:contracts`, `npm run test:routes`, `npm run routes:check`, `npm run typecheck`, `npm run lint`, `npm run quality:browser`, `npm run quality:assets`, `npm run runtime:check` e `npm run cutover:smoke`.
+Scripts principais: `npm run build`, `npm test`, `npm run test:contracts`, `npm run test:routes`, `npm run routes:check`, `npm run typecheck`, `npm run lint`, `npm run quality:browser`, `npm run runtime:check` e `npm run cutover:smoke`.
 
-Política de cache:
+Budgets públicos atuais:
 
-- respostas correntes usam `no-store/no-cache`;
-- caches internos, snapshots e last-good podem preservar a última amostra real;
-- timestamp, idade e estado original nunca são reescritos para parecer atuais.
-
-Política de latência:
-
-- Home, Hoje, Amanhã e 7 dias não aguardam fontes externas no loader inicial;
+- Home/Hoje/Amanhã/7 dias: nenhuma fonte externa no loader inicial;
 - loaders meteorológicos secundários: 2,5 s por dependência;
 - loaders hidrológicos: 2,5 s por dependência;
-- Radar público: 2,8 s por domínio;
+- Radar: 2,8 s por domínio;
 - previsão de 15 dias: 2,8 s por domínio;
-- inteligência meteorológica compartilhada mantém budget interno próprio de 5 s.
+- inteligência meteorológica compartilhada: teto interno de 5 s.
 
 ## 4. Rotas públicas e SEO
 
-`src/lib/public-routes.ts` é a fonte programática do sitemap. Inventário atual: **48 URLs indexáveis = 25 fixas + 23 municipais**.
+`src/lib/public-routes.ts` é a fonte do sitemap. Inventário: **48 URLs indexáveis = 25 fixas + 23 municipais**.
 
-Rotas fixas:
-
-- `/`;
-- `/tempo-hoje-pelotas`;
-- `/tempo-amanha-pelotas`;
-- `/previsao-7-dias-pelotas`;
-- `/previsao-15-dias-pelotas`;
-- `/chuva-em-pelotas`;
-- `/vento-em-pelotas`;
-- `/meteograma-pelotas`;
-- `/alertas`;
-- `/radar-e-satelite-pelotas`;
-- `/mapa-de-geadas-rio-grande-do-sul`;
-- `/situacao-hidrologica-pelotas`;
-- `/nivel-da-lagoa-dos-patos-laranjal`;
-- `/nivel-do-guaiba`;
-- `/estacao-embrapa-pelotas`;
-- `/clima-em-pelotas`;
-- `/historico-climatico-pelotas`;
-- `/enchente-1941-pelotas`;
-- `/enchente-2024-pelotas-laranjal`;
-- `/cameras-ao-vivo-pelotas`;
-- `/tempo-na-regiao-sul-rs`;
-- `/blog`;
-- `/status-dos-dados`;
-- `/metodologia`;
-- `/privacidade-e-dados`.
+Rotas fixas principais incluem Home, Hoje, Amanhã, 7 dias, 15 dias, Chuva, Vento, Meteograma, Alertas, Radar/Satélite, Geadas, Situação Hidrológica, Laranjal, Guaíba, Embrapa, Clima, Histórico, Enchentes 1941/2024, Câmeras, Região Sul RS, Blog, Status dos Dados, Metodologia e Privacidade.
 
 Municípios aprovados: Capão do Leão, Canguçu, Morro Redondo, Turuçu, Arroio do Padre, Pedro Osório, Cerrito, Piratini, Rio Grande, São José do Norte, São Lourenço do Sul, Cristal, Jaguarão, Arroio Grande, Herval, Santa Vitória do Palmar, Chuí, Pinheiro Machado, Pedras Altas, Bagé, Candiota, Aceguá e Dom Pedrito.
 
-As páginas municipais possuem perfil editorial específico e BreadcrumbList Tempo Pelotas → Região → Município. Nenhuma cidade nova é indexada sem publication gate. O foco atual é qualidade das 48 URLs existentes, não expansão em massa.
+Nenhuma nova cidade entra sem publication gate. O foco permanece na qualidade das URLs existentes.
 
-## 5. Shell-first e navegação pública
+## 5. Navegação e shell-first
 
-As quatro rotas mais acessadas entregam contrato local antes de consultar fontes:
+As rotas `/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` entregam HTML independente de Open-Meteo, Embrapa, INMET, CPPMet e hidrologia no primeiro loader.
 
-- `/`;
-- `/tempo-hoje-pelotas`;
-- `/tempo-amanha-pelotas`;
-- `/previsao-7-dias-pelotas`.
+Depois da hidratação, a recuperação meteorológica reforça previsão e observação de forma independente. Modelo numérico não vira observação medida.
 
-Depois da hidratação, `useOpenMeteoIntelligenceRecovery()` recupera de forma independente:
+O menu público principal usa anchors nativas e a navegação pública é endurecida por documento completo. Preload SPA global por intenção e invalidação periódica da árvore foram retirados. O boundary “Carregando a versão mais recente do Tempo Pelotas” é contenção excepcional, não loading normal.
 
-1. previsão Open-Meteo;
-2. observação Embrapa via endpoint read-only centralizado.
+## 6. Previsão, observação e fontes oficiais
 
-Modelo numérico não vira observação. Campos não fornecidos pela estação permanecem nulos.
+### Open-Meteo / MET Norway
 
-Na Home, ausência de dado no primeiro contrato não é mais comunicada imediatamente como falha. `ProductionHome` mantém uma janela de **12,25 s** alinhada ao ciclo de recuperação e mostra “Atualizando dados meteorológicos...”. Só depois desse período, se continuar sem dado utilizável, muda para “Dados meteorológicos temporariamente indisponíveis”. Atalhos e navegação permanecem disponíveis nos dois estados.
+Open-Meteo é a previsão principal. A rota de 15 dias usa chamada diária dedicada e nunca inventa dias 8–15. Se apenas 7 dias reais estiverem preservados, o estado é `partial` e `returnedDays` representa o que existe.
 
-Validação real de 29/08/2026 no domínio canônico confirmou:
+### Embrapa
 
-- `/api/runtime-version` HTTP 200 no novo deployment;
-- Home HTTP 200;
-- primeiro HTML contém “Atualizando dados meteorológicos...”;
-- primeiro HTML não contém os títulos antigo/confirmado de indisponibilidade;
-- texto de que a página permanece navegável está presente.
+Embrapa Clima Temperado é a referência principal de observação local quando utilizável. `/api/weather/embrapa` apenas lê o centralizador no pageview. Campos não fornecidos pela estação permanecem nulos.
 
-A navegação pública continua endurecida por documento completo. Menu principal usa anchors nativas; preload SPA global e invalidação periódica foram retirados. O boundary “Carregando a versão mais recente do Tempo Pelotas” é exceção de recuperação, nunca loading normal.
+### INMET
 
-O root possui uma única tentativa de reload de documento fresco quando um erro alcança o boundary, inclusive se o runtime cliente ainda não conseguiu marcar prontidão. `sessionStorage` impede loop.
+INMET permanece usado para avisos oficiais, previsão complementar, estação e produtos específicos. Falha de uma integração é descrita como falha daquela integração.
 
-## 6. Previsão e observação
+## 7. REDEMET / radar / satélite
 
-### 6.1. Open-Meteo e MET Norway
+O monitor não usa a composição editorial da página como prova de disponibilidade. `src/lib/status/data-status-redemet-probes.server.ts` mede Radar, satélite REDEMET, STSC e GOES/INMET independentemente, com teto de 5 s.
 
-Open-Meteo é a previsão numérica principal; MET Norway é contingência compartilhada quando aplicável. Falha de uma fonte não deve destruir o documento.
+O coletor base não chama mais `getRedemetOverview()`, evitando trabalho duplicado.
 
-Na previsão de 15 dias:
+Semântica atual:
 
-- chamada direta diária: 2,2 s;
-- página: 2,8 s por domínio;
-- se a chamada de 15 dias falhar ou retornar zero dias utilizáveis, a rota pode reutilizar o payload Open-Meteo preservado;
-- somente os dias reais existentes são publicados como `partial`;
-- `requestedDays` permanece 15 e `returnedDays` representa o que realmente existe;
-- dias 8–15 nunca são extrapolados, repetidos ou inventados.
+- Radar/STSC com quadro utilizável: `operational`;
+- REDEMET Satellite respondendo sem produto: `partial`;
+- timeout/falha real de integração: `offline` da integração;
+- GOES/INMET 403: `offline` da integração server-side, sem afirmar indisponibilidade pública global.
 
-### 6.2. Embrapa
+## 8. Hidrologia e ANA/RHN
 
-Embrapa Clima Temperado é a referência principal de observação local quando utilizável. `/api/weather/embrapa` usa `no-store` e lê o centralizador persistido sem disparar coleta durante o pageview.
+### Fontes já operacionais
 
-Nas rotas shell-first, a observação é recuperada depois da hidratação. Temperatura, umidade, pressão, vento e demais campos só recebem proveniência Embrapa quando realmente fornecidos pela observação.
+Laranjal/LabHidroSens, rede da Lagoa dos Patos, Guaíba e Defesa Civil RS permanecem independentes. Cada régua conserva sua própria referência.
 
-### 6.3. INMET meteorológico
+### ANA / SNIRH / RHN — estação LARANJAL 87955001
 
-INMET continua usado para avisos oficiais, previsão complementar, estação e produtos específicos. No monitor mais recente, a família meteorológica INMET estava parcial; o estado reflete integrações individuais e não é transformado em afirmação de indisponibilidade global.
+A estação foi confirmada em serviços públicos oficiais do SNIRH/ANA:
 
-## 7. Radar e satélite
+- código: `87955001`;
+- nome: LARANJAL;
+- tipo: fluviométrica e telemétrica;
+- município: Pelotas/RS;
+- responsável e operadora: UFPel;
+- parâmetro observado no último-dado público: `Nivel`;
+- valor bruto observado em diagnóstico cruzado: `116.00`;
+- unidade confirmada para cota/nível: **cm**;
+- timezone confirmado para esta série: **`America/Sao_Paulo`**;
+- referência vertical/zero da régua: **ainda não confirmada**.
 
-A página `/radar-e-satelite-pelotas` mantém composição editorial resiliente, mas **monitoramento operacional não depende mais do loader da página**.
+A confirmação de unidade e timezone foi feita por evidência cruzada entre o ArcGIS público, o contrato oficial atual do HidroWebService e uma consulta diagnóstica ao serviço legado oficial. O serviço legado **não** é dependência de runtime.
 
-`src/lib/status/data-status-redemet-probes.server.ts` mede independentemente:
+No inventário público da estação, `Altitude=null`, `EscalaNivel=Não` e `RegistradorNivel=Não`. Portanto não existe base pública suficiente para converter `116 cm` em altitude, cota sobre o nível do mar ou referência equivalente.
 
-- Radar REDEMET;
-- satélite REDEMET `realcada`;
-- STSC/trovoadas;
-- GOES/INMET.
+Estado no Supabase oficial:
 
-Cada probe tem teto operacional de 5 s e persiste o motivo sanitizado da falha. O coletor base não chama mais `getRedemetOverview()`; isso remove a antiga coleta duplicada antes dos probes independentes.
+- `historical_data_sources.source_key = ana-rhn`;
+- estação `ana-rhn-laranjal-87955001` registrada;
+- `unitStatus=confirmed`, `unit=cm`;
+- `timezoneStatus=confirmed`, `timezone=America/Sao_Paulo`;
+- `verticalReferenceStatus=unconfirmed`;
+- `collection_enabled=false`;
+- `paid_access_allowed=false`;
+- `publicMeasurementIngestionEnabled=false`;
+- **zero medições ANA/RHN** no arquivo canônico.
 
-Último smoke real após essa otimização persistiu todos os **14 serviços** esperados e manteve:
+O probe ANA participa apenas de readiness. Seu estado permanece `implementation`, portanto não entra no cálculo de disponibilidade do runtime. A primeira medição só pode ser gravada depois de confirmar a referência vertical específica da estação ou definir formalmente que o produto será publicado exclusivamente como cota relativa de régua com essa limitação documentada.
 
-- `redemet-radar`: `operational`, com quadro utilizável;
-- `redemet-stsc`: `operational`, com dois quadros utilizáveis;
-- `redemet-satellite`: `partial`;
-- `inmet-satellite`: `offline` da integração server-side por HTTP 403.
-
-### 7.1. Satélite REDEMET
-
-A API respondeu com estrutura `status`, `message`, `data`, porém `data` veio como array vazio. O adapter registra somente diagnóstico estrutural sanitizado: existência de bounds, quantidade de imagens aceitas, hostnames candidatos e nomes de chaves; API key e URL autenticada não são registradas.
-
-Quando a referência atual retorna sucesso sem imagem utilizável, existe **uma única tentativa** usando `data=YYYYMMDDHH` para a hora UTC anterior, com budget compartilhado. Em produção, tanto a referência atual quanto a hora anterior retornaram `data: []`.
-
-Não existe lookback por várias horas. O portal não “caça” imagem velha para simular produto atual. Como a API respondeu mas não forneceu produto, o monitor classifica a integração como `partial`, não `offline` global.
-
-### 7.2. GOES / INMET
-
-Produto integrado: `GOES / S / IV` (`GOES — infravermelho`). O adapter tentou o contexto HTTP esperado e uma tentativa controlada sem `Origin`; a integração server-side retornou HTTP 403.
-
-O monitor registra explicitamente que o 403 é recusa daquela integração e **não confirma indisponibilidade do portal público do INMET**.
-
-## 8. Hidrologia e histórico
-
-Laranjal, Guaíba, rede regional da Lagoa dos Patos e Defesa Civil RS permanecem independentes. Respostas correntes são `no-store`; last-good conserva timestamp/idade real.
-
-A Home não recoloca hidrologia no loader crítico. Se o resumo for reintroduzido, deve ser recuperação isolada/client-side.
-
-`/nivel-do-guaiba` mantém Cais Mauá e Gasômetro como referências independentes. Cotas de uma régua não são transferidas automaticamente para outra nem convertidas em diagnóstico para Pelotas.
-
-Historical Data Layer separa `observation`, `forecast`, `reanalysis` e `derived`. As páginas de enchentes de 1941 e 2024 mantêm contexto histórico e limites semânticos.
-
-### 8.1. ANA / RHN
-
-ANA/RHN é a próxima frente estrutural relevante. O acesso está concedido, mas a integração pública permanece em implantação. Antes de substituir ou complementar fontes existentes é obrigatório confirmar:
-
-- estação e identificador;
-- parâmetro;
-- unidade;
-- datum/referência vertical;
-- timezone;
-- frequência e latência;
-- governança/proveniência;
-- comportamento de lacunas e last-good.
-
-Documentos-base: `docs/ANA_RHN_INTEGRATION.md`, `docs/HISTORICAL_DATA_INVENTORY.md` e `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md`.
+Documento de referência: `docs/ANA_RHN_INTEGRATION.md`.
 
 ## 9. Monitor de status
 
-A migration `20260828170000_data_status_supabase_scheduler.sql` está aplicada no Supabase oficial. `pg_cron` + `pg_net` disparam `/api/cron/data-status` a cada 10 minutos. O histórico fica stale após 30 minutos sem nova amostra.
+O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. A migration do scheduler está aplicada no Supabase oficial. Uma coleta real no runtime `2026-08-29-ana-rhn-readiness-v1` persistiu 14 serviços e manteve `ana-rhn` como `implementation`.
 
-O cron e `/status-dos-dados` usam o mesmo wrapper com probes independentes de Radar/Satélite. A coleta base cobre meteorologia, Embrapa e hidrologia; os quatro serviços Radar/Satélite entram uma única vez pelos probes próprios.
+A lacuna histórica anterior foi encerrada sem fabricar uma indisponibilidade contínua. Se nenhuma nova amostra for persistida por mais de 30 minutos, o histórico é tratado como stale.
 
-Amostra real de 29/08/2026 após remoção da duplicidade persistiu 14 serviços, incluindo ANA/RHN como `implementation`. Portanto a otimização não reduziu cobertura do monitor.
+## 10. Historical Data Layer
 
-## 10. Segurança, conta e IA
+O arquivo canônico separa:
+
+- `observation`;
+- `forecast`;
+- `reanalysis`;
+- `derived`.
+
+Fontes novas permanecem com `paid_access_allowed=false` até revisão de governança/redistribuição. A integração ANA segue essa regra.
+
+## 11. Segurança e runtime
 
 Ativo:
 
 - secrets server-side;
-- gate geográfico de visitantes em hosts de produção;
-- CSP com allowlist;
-- guards de método/tamanho;
-- rate limiting distribuído em rotas sensíveis;
-- RLS no Supabase;
-- proxies/allowlists de integração;
+- RLS;
+- gate geográfico;
+- CSP;
+- firewall de aplicação;
+- rate limiting distribuído para rotas sensíveis;
+- proxies/allowlists de fontes;
 - logs sanitizados;
-- resposta geográfica bloqueada `noindex`.
+- `/api/runtime-version` estático, `no-store` e `noindex`.
 
-WAF gerenciado de edge não deve ser confundido com firewall da aplicação.
+WAF gerenciado de edge não deve ser confundido com firewall de aplicação.
 
-Conta/Google e entitlements possuem fundação implementada, mas E2E real com duas contas e billing comercial permanecem pendentes.
+## 12. Testes e deploy
 
-Weather AI opera por snapshot server-side/fallback determinístico e nunca é requisito do primeiro documento público. IA não cria nem altera aviso oficial.
+Contratos relevantes incluem shell-first, navegação por documento, políticas de cache, Open-Meteo, Embrapa, 15 dias, hidrologia, REDEMET, status histórico e ANA/RHN.
 
-## 11. Service worker e Web Push
+GitHub Actions continua falhando antes dos steps. Portanto a existência dos testes versionados não é declaração de execução. O Lovable comprova sincronização/build de preview, não substitui CI completa.
 
-Service worker permanece temporariamente aposentado. O runtime remove registrations próprias antigas e caches `tempo-pelotas-*` de forma tolerante a falha. Manifest permanece. Web Push continua suspenso.
+## 13. Prioridades imediatas
 
-## 12. Qualidade e CI
-
-Contratos adicionados/reforçados nesta fase incluem:
-
-- `tests/public-navigation-stability.test.ts`;
-- `tests/open-meteo-browser-recovery.test.ts`;
-- `tests/home-shell-first-status.test.ts`;
-- `tests/fifteen-day-forecast.test.ts`;
-- `tests/redemet-performance.test.ts`;
-- `tests/data-status-redemet-probes.test.ts`;
-- `tests/source-resilience-regressions.test.ts`;
-- contratos hidrológicos, regionais e SEO existentes.
-
-`tests/home-shell-first-status.test.ts` e `tests/data-status-redemet-probes.test.ts` estão incluídos em `test:contracts`.
-
-O GitHub Actions continua falhando **antes da execução normal dos steps**, com jobs sem steps/logs utilizáveis. A reconstrução de preview do Lovable comprova sincronização/build daquele ambiente, mas não substitui `npm test`, build, typecheck, lint ou Browser Quality Smoke completos. Não declarar esses gates aprovados/reprovados até existir execução real.
-
-## 13. Deploy e diagnóstico de release
-
-`/api/runtime-version` responde um identificador estático, `no-store` e `noindex`, sem depender de fonte externa. Ele é usado para confirmar propagação de deployment no domínio oficial.
-
-Validações reais recentes confirmaram o release shell-first no domínio canônico e mudanças sucessivas do `x-deployment-id` após publicação. O P0 não está mais aguardando confirmação de cutover básico.
-
-Commits funcionais recentes relevantes:
-
-- `b494b202` — recovery do boundary mesmo antes do runtime pronto;
-- `bb8efa4e` — preservar previsão parcial real quando Open-Meteo 15 dias falha;
-- `8f252b42` / `5267500d` — probes independentes e persistência Radar/Satélite;
-- `99106a70` — tentativa única da hora UTC anterior no satélite REDEMET;
-- `9c162cce` — satélite REDEMET responsivo sem produto passa a `partial`;
-- `689a010a` — Home distingue atualização inicial de indisponibilidade confirmada;
-- `fa8da8d0` — remove coleta REDEMET duplicada do status base.
-
-## 14. Pendências prioritárias
-
-1. **Historical Data Layer / ANA-RHN:** validar contrato de estação/parâmetro/unidade/datum/timezone e implementar ingestão sem substituir prematuramente as fontes atuais.
-2. Validar em navegador real desktop/mobile a recuperação Embrapa/Open-Meteo nas rotas shell-first e a permanência da Home durante recuperação longa.
-3. Manter acompanhamento dos satélites: REDEMET `partial` enquanto responder sem produto; GOES/INMET como falha de integração 403 até existir rota server-side utilizável. Não ampliar lookback arbitrariamente.
-4. Reintroduzir resumo hidrológico da Home apenas como enhancement isolado, nunca no loader inicial.
-5. Validar páginas municipais enriquecidas em desktop/mobile/anônimo e BreadcrumbList via navegador/fonte renderizada.
-6. Recapturar Search Console quando o conector voltar a estar disponível; não abrir novas cidades sem evidência.
-7. Resolver o provisionamento/execução do GitHub Actions e então rodar suíte completa, `routes:check`, build, TypeScript, lint e Browser Quality Smoke.
+1. **Fechar a referência vertical da ANA/RHN LARANJAL 87955001** por evidência específica da estação/UFPel/ANA; não usar referência de estação vizinha ou código histórico diferente.
+2. Depois disso, decidir o contrato de ingestão ANA: valor bruto em cm, referência, timestamp, QC, deduplicação e janela stale.
+3. Só então habilitar coleta ANA e inserir a primeira `observation` no Historical Data Layer.
+4. Revalidar `/status-dos-dados` após publicação do detalhe atualizado: ANA deve continuar `implementation` e mencionar apenas referência vertical como gate semântico restante quando o probe responder.
+5. Continuar hardening de Open-Meteo/INMET/REDEMET sem aumentar budgets sem evidência.
+6. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
+7. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
 8. Concluir E2E de autenticação com duas contas descartáveis.
-9. Validar smokes de segurança, CSP, gate geográfico e rate limiting no ambiente real.
-10. Manter Web Push suspenso e service worker aposentado até estabilidade sustentada.
-11. Não publicar previsão de 30 dias até existir contrato específico de tendência para dias 16–30.
+9. Recapturar Search Console quando o conector estiver disponível.
+10. Manter Service Worker e Web Push suspensos até estabilidade sustentada.
 
-## 15. Documentos especializados principais
+## 14. Documentos principais
 
-| Documento | Finalidade |
-| --- | --- |
-| `MIGRATION_MATRIX.md` | Migração, paridade e pendências históricas |
-| `WEATHER_PAGE_IDENTITY.md` | Identidade das páginas meteorológicas |
-| `docs/PUBLIC_ROUTE_RESILIENCE.md` | Shell-first, fallbacks e budgets públicos |
-| `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` | Navegação, recovery e SW aposentado |
-| `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` | Monitor histórico e scheduler Supabase |
-| `docs/REDEMET_OPERATIONS.md` | Operação REDEMET |
-| `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` | Contingências INMET/REDEMET |
-| `docs/INMET_SATELLITE_PRODUCTS_2026-08-23.md` | Produtos GOES/INMET |
-| `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` | Rede Defesa Civil RS |
-| `docs/ANA_RHN_INTEGRATION.md` | ANA/RHN e gates de estação |
-| `docs/HISTORICAL_DATA_INVENTORY.md` | Histórico, governança e coletores |
-| `docs/FLOOD_1941_RESEARCH_2026-08-27.md` | Base documental da enchente de 1941 |
-| `docs/SEO_GSC_BASELINE_2026-08-16.md` | Baseline Search Console |
-| `docs/SEO_SEARCH_INTENT_PLAN_2026-08-26.md` | Arquitetura de intenção SEO |
-| `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` | Refinamento das URLs atuais |
-| `docs/SEO_REGIONAL_EDITORIAL_COMPLETION_2026-08-28.md` | Conteúdo/Breadcrumb municipal |
-| `docs/QUALITY_A11Y_CWV_2026-08-27.md` | Acessibilidade e Browser Quality |
-| `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` | Previsão de 15 dias |
-| `docs/ACCOUNT_AND_PRO_ARCHITECTURE.md` | Conta/PRO |
-| `docs/PRODUCTION_CUTOVER.md` | Runbook de produção |
-| `docs/RUNTIME_READINESS.md` | Preflight de runtime |
+- `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets públicos;
+- `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação de runtime;
+- `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e histórico do monitor;
+- `docs/ANA_RHN_INTEGRATION.md` — contrato ANA/RHN e gates semânticos;
+- `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico e governança;
+- `docs/REDEMET_OPERATIONS.md` — REDEMET;
+- `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências oficiais;
+- `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` — previsão de 15 dias;
+- `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` — SEO das URLs existentes;
+- `docs/PRODUCTION_CUTOVER.md` — runbook de produção.
 
-## 16. Regra de manutenção
+## 15. Regra de manutenção
 
-Uma pessoa deve conseguir abrir este arquivo e responder rapidamente: quais páginas existem, de onde vêm os dados, o que é observação/previsão/alerta, quais integrações estão operacionais/parciais, como o runtime público opera e qual é a próxima prioridade.
-
-Detalhe histórico fica nos documentos especializados; este arquivo deve permanecer compacto e atual.
+Este arquivo deve permitir responder rapidamente: o que está publicado, quais fontes alimentam o portal, o que está parcial/suspenso, quais contratos semânticos estão fechados e qual é o bloqueio real para o próximo passo. Histórico detalhado permanece fora deste arquivo.
