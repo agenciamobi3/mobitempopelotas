@@ -38,12 +38,14 @@ const standaloneRoutes = new Set([
   ...internalWeatherStandaloneRoutes,
   "/conta",
   "/painel",
+  "/widgets",
   "/entrar",
   "/minha-conta",
   "/privacidade-e-dados",
   "/status-dos-dados",
   "/embed/nivel-laranjal",
   "/embed/status-tempo-agora",
+  "/embed/widget",
 ]);
 
 function pageAnnouncement() {
