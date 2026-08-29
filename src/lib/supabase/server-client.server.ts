@@ -47,7 +47,6 @@ export function getSupabaseServerConfig(): SupabaseServerConfig {
     process.env.SUPABASE_MODE,
     process.env.VITE_SUPABASE_MODE,
   );
-  const mode = requestedMode === "external" ? "external" : "mock";
   const url = firstEnvironmentValue(
     process.env.MOBI_SUPABASE_URL,
     import.meta.env.VITE_SUPABASE_URL,
@@ -67,6 +66,17 @@ export function getSupabaseServerConfig(): SupabaseServerConfig {
     process.env.SUPABASE_SECRET_KEY,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
   );
+
+  // `mock` explícito continua soberano. Quando o host não fornece uma flag de
+  // modo, mas fornece a configuração pública completa do Supabase externo,
+  // inferimos `external`. Isso evita desligar RLS/read-only/last-good apenas
+  // porque uma plataforma de deploy injeta URL/chaves sem SUPABASE_MODE.
+  const mode: "mock" | "external" =
+    requestedMode === "mock"
+      ? "mock"
+      : requestedMode === "external" || (!requestedMode && Boolean(url && publishableKey))
+        ? "external"
+        : "mock";
 
   return {
     mode,
