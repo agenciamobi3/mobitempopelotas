@@ -7,6 +7,7 @@ import { SevenDayForecastPageV2 } from "@/components/weather/SevenDayForecastPag
 import { SevenDayRetailHero } from "@/components/weather/SevenDayRetailHero";
 import { SEVEN_DAY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
+import { CORE_WEATHER_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 
@@ -91,6 +92,7 @@ export const Route = createFileRoute("/previsao-7-dias-pelotas")({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
         path: PAGE_PATH,
+        citations: CORE_WEATHER_CITATIONS,
         breadcrumbs: [
           { name: "Início", path: "/" },
           { name: "Previsão de 7 dias para Pelotas", path: PAGE_PATH },
