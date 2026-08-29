@@ -6,14 +6,14 @@ import {
   getDataStatusHistoryFreshness,
   staleHistoryMessage,
 } from "./data-status-freshness.server";
-import { collectDataStatus } from "./data-status.server";
+import { collectDataStatusWithIndependentRedemet } from "./data-status-redemet-probes.server";
 import { getDataStatusHistory } from "./data-status-storage.server";
 
 export const getDataStatusPageData = createServerFn({ method: "GET" }).handler(async () => {
   setResponseHeaders(new Headers(CURRENT_DATA_NO_STORE_HEADERS));
 
   const [overview, history, freshness] = await Promise.all([
-    collectDataStatus(),
+    collectDataStatusWithIndependentRedemet(),
     getDataStatusHistory(),
     getDataStatusHistoryFreshness(),
   ]);
