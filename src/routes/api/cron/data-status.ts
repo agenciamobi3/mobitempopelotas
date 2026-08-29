@@ -11,7 +11,7 @@ import {
 import { hasBearerSecret, pushJsonResponse } from "@/lib/push/push-http.server";
 import { probeDistributedSecurityRateLimiter } from "@/lib/security/request-firewall.server";
 import { authorizeDataStatusCollectorToken } from "@/lib/status/data-status-collector-auth.server";
-import { collectDataStatus } from "@/lib/status/data-status.server";
+import { collectDataStatusWithIndependentRedemet } from "@/lib/status/data-status-redemet-probes.server";
 import { recordDataStatusOverview } from "@/lib/status/data-status-storage.server";
 
 async function isAuthorized(request: Request) {
@@ -109,7 +109,7 @@ async function collectAndPersistStatus(request: Request) {
   if (mode === "security-smoke") return runSecuritySmoke();
 
   try {
-    const overview = await collectDataStatus();
+    const overview = await collectDataStatusWithIndependentRedemet();
     const persistence = await recordDataStatusOverview(overview);
     const openStates = overview.services.filter(
       (service) =>
