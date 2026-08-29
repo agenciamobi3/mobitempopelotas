@@ -4,7 +4,8 @@ export type WidgetType =
   | "nivel-laranjal"
   | "status-tempo-agora"
   | "previsao-7-dias"
-  | "chuva-pelotas";
+  | "chuva-pelotas"
+  | "vento-pelotas";
 export type WidgetTheme = "auto" | "light" | "dark";
 
 export type WidgetDefinition = {
@@ -58,6 +59,16 @@ export const WIDGET_REGISTRY: readonly WidgetDefinition[] = [
     defaultTitle: "Chuva em Pelotas",
     detailsUrl: "/chuva-em-pelotas",
     initialHeight: 500,
+  },
+  {
+    type: "vento-pelotas",
+    label: "Vento e rajadas",
+    description: "Vento observado e tendência de velocidade e rajadas nas próximas horas em Pelotas.",
+    category: "Meteorologia",
+    requiredEntitlement: "widgetsWind",
+    defaultTitle: "Vento e rajadas em Pelotas",
+    detailsUrl: "/vento-em-pelotas",
+    initialHeight: 480,
   },
 ] as const;
 
