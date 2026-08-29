@@ -6,6 +6,7 @@ import { LaranjalLevelEmbed } from "@/components/embed/LaranjalLevelEmbed";
 import { ObsWeatherStatusWidget } from "@/components/embed/ObsWeatherStatusWidget";
 import { RainWidget } from "@/components/embed/RainWidget";
 import { SevenDayForecastWidget } from "@/components/embed/SevenDayForecastWidget";
+import { WindWidget } from "@/components/embed/WindWidget";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { getAggregatedPelotasWeather } from "@/lib/weather/aggregated-weather.functions";
 import { getObsWeatherStatus } from "@/lib/weather/obs-weather-status.functions";
@@ -56,6 +57,11 @@ export const Route = createFileRoute("/embed/widget")({
     if (definition.widgetType === "chuva-pelotas") {
       const payload = await getAggregatedPelotasWeather();
       return { definition, payload, kind: "chuva-pelotas" as const };
+    }
+
+    if (definition.widgetType === "vento-pelotas") {
+      const payload = await getAggregatedPelotasWeather();
+      return { definition, payload, kind: "vento-pelotas" as const };
     }
 
     return { definition: null, payload: null } as const;
@@ -138,6 +144,8 @@ function GeneratedWidgetRoute() {
       <SevenDayForecastWidget data={snapshot.payload} />
     ) : snapshot.kind === "chuva-pelotas" ? (
       <RainWidget data={snapshot.payload} />
+    ) : snapshot.kind === "vento-pelotas" ? (
+      <WindWidget data={snapshot.payload} />
     ) : (
       <ObsWeatherStatusWidget data={snapshot.payload} />
     );
