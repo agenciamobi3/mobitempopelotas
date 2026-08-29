@@ -23,7 +23,12 @@ const SITE_ORIGIN = "https://tempopelotas.com.br";
 const EMBED_SCRIPT_URL = `${SITE_ORIGIN}/widgets/embed.js`;
 
 // Keep this input validator aligned with WidgetType so a registered module can actually be created.
-const widgetTypeSchema = z.enum(["nivel-laranjal", "status-tempo-agora", "previsao-7-dias"]);
+const widgetTypeSchema = z.enum([
+  "nivel-laranjal",
+  "status-tempo-agora",
+  "previsao-7-dias",
+  "chuva-pelotas",
+]);
 const widgetThemeSchema = z.enum(["auto", "light", "dark"]);
 
 const createWidgetSchema = z.object({
