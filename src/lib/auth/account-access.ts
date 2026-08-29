@@ -11,6 +11,7 @@ export type AccountEntitlements = {
   widgetsLaranjal: boolean;
   widgetsCurrentWeather: boolean;
   widgetsSevenDayForecast: boolean;
+  widgetsRain: boolean;
   widgetsAdvancedThemes: boolean;
   widgetsRemoveBranding: boolean;
   historyAccessDays: number | null;
@@ -46,6 +47,7 @@ const FREE_ENTITLEMENTS: AccountEntitlements = {
   widgetsLaranjal: true,
   widgetsCurrentWeather: true,
   widgetsSevenDayForecast: true,
+  widgetsRain: true,
   widgetsAdvancedThemes: true,
   widgetsRemoveBranding: false,
   historyAccessDays: 60,
@@ -72,6 +74,7 @@ const PRO_ENTITLEMENTS: AccountEntitlements = {
   widgetsLaranjal: true,
   widgetsCurrentWeather: true,
   widgetsSevenDayForecast: true,
+  widgetsRain: true,
   widgetsAdvancedThemes: true,
   widgetsRemoveBranding: true,
   historyAccessDays: null,
