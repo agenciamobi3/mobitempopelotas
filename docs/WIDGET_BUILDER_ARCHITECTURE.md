@@ -1,7 +1,7 @@
 # Tempo Pelotas — arquitetura do gerador de widgets
 
 Última atualização: 29/08/2026  
-Estado: fundação V1 em implantação/publicação
+Estado: fundação V1 publicada; expansão meteorológica em validação
 
 ## Objetivo
 
@@ -18,17 +18,16 @@ A camada Free nasce propositalmente generosa para estimular cadastro, uso real e
 - quantidade de widgets: sem limite nesta fase (`widgetsMax=null`);
 - Nível do Laranjal: habilitado;
 - Tempo agora em Pelotas: habilitado;
+- Previsão de 7 dias: habilitada no registry e em validação de publicação;
 - marca Tempo Pelotas: mantida;
 - billing: inexistente;
 - bloqueio por plano: somente infraestrutura, ainda sem venda comercial.
 
 Uma futura mudança para PRO deve ocorrer pelos entitlements centrais, módulo por módulo, sem alterar o caráter público dos dados que já são públicos no portal.
 
-## Módulos V1
+## Módulos
 
 O `Widget Registry` em `src/lib/widgets/widget-registry.ts` é a fonte de verdade para módulos gerenciáveis.
-
-Módulos iniciais:
 
 1. `nivel-laranjal`
    - reutiliza o componente responsivo já existente do nível da Lagoa dos Patos no Laranjal;
@@ -37,6 +36,13 @@ Módulos iniciais:
 2. `status-tempo-agora`
    - reutiliza o widget compacto já existente de temperatura observada + condição;
    - entitlement: `widgetsCurrentWeather`.
+
+3. `previsao-7-dias`
+   - usa a consolidação meteorológica já existente em `getAggregatedPelotasWeather`;
+   - exibe os sete primeiros dias com mínima, máxima, chuva e rajada;
+   - possui renderer compacto próprio em `SevenDayForecastWidget`;
+   - atualiza a prévia periodicamente sem criar uma nova integração de fonte;
+   - entitlement: `widgetsSevenDayForecast`.
 
 Novos módulos entram no registry antes de aparecerem no gerador. Não há HTML/JavaScript arbitrário definido pelo usuário.
 
@@ -72,13 +78,14 @@ Validação no Supabase oficial em 29/08/2026 confirmou:
 - `anon_select=false` na tabela;
 - `authenticated_select=true`;
 - `anon` pode executar apenas a RPC pública;
-- token UUID inexistente retornou zero linhas.
+- token UUID inexistente retornou zero linhas;
+- a tabela `user_widgets` continuava com zero registros antes da expansão de 7 dias, portanto nenhuma conta real foi usada silenciosamente para validar a feature.
 
 ## Fluxo do usuário
 
 A área autenticada está em `/widgets` e é descoberta pelo módulo “Gerador de widgets” em `/painel`.
 
-Fluxo V1:
+Fluxo:
 
 1. usuário escolhe um módulo habilitado;
 2. define o nome do widget;
@@ -118,19 +125,21 @@ O renderer `/embed/widget?token=...`:
 - seleciona o módulo pelo registry;
 - reutiliza componentes controlados pelo Tempo Pelotas;
 - envia a altura com `ResizeObserver`;
-- recebe `frame-ancestors *` somente porque é uma superfície dedicada de embed.
+- recebe `frame-ancestors *` somente porque é uma superfície dedicada de embed;
+- força `Cache-Control: no-store` e `CDN-Cache-Control: no-store` no wrapper de resposta para que pausa/reativação não fique presa em cache intermediário.
 
-As páginas normais do portal não têm sua política de frame relaxada por causa desta feature.
+As páginas normais do portal não têm sua política de frame relaxada por causa desta feature. Os embeds públicos fixos continuam com a política de cache anterior.
 
 ## Entitlements preparados
 
-`AccountEntitlements` agora contém:
+`AccountEntitlements` contém:
 
 - `widgetsAccess`;
 - `widgetsCreate`;
 - `widgetsMax`;
 - `widgetsLaranjal`;
 - `widgetsCurrentWeather`;
+- `widgetsSevenDayForecast`;
 - `widgetsAdvancedThemes`;
 - `widgetsRemoveBranding`.
 
@@ -138,9 +147,8 @@ As páginas normais do portal não têm sua política de frame relaxada por caus
 
 ## Evolução planejada
 
-Candidatos naturais, sujeitos à estabilidade/licença/semântica de cada fonte:
+Próximos candidatos naturais, sujeitos à estabilidade/licença/semântica de cada fonte:
 
-- previsão de 7 dias;
 - chuva e acumulados;
 - vento e rajadas;
 - nível do Guaíba;
@@ -151,25 +159,30 @@ Candidatos naturais, sujeitos à estabilidade/licença/semântica de cada fonte:
 
 Antes de restringir qualquer módulo Free, observar uso real e definir proposta de valor do futuro plano pago.
 
-## Gates antes de ampliar módulos
+## Gates de validação
 
-1. publicar e validar `/widgets` no domínio canônico;
-2. validar `/widgets/embed.js` e `/embed/widget` com headers de frame corretos;
-3. realizar E2E autenticado com conta descartável quando o fluxo de autenticação estiver pronto para teste completo;
-4. confirmar criação, pausa e reativação no browser real;
-5. só então adicionar 7 dias/chuva/vento ao registry.
+1. `/widgets`, `/widgets/embed.js` e `/embed/widget` estão versionados e já tiveram publicação funcional observada;
+2. o renderer gerenciado está codificado como `no-store`, mas a prova externa dos headers no domínio canônico ainda deve ser repetida por um cliente HTTP que exponha cabeçalhos;
+3. o E2E autenticado completo continua pendente até existir uma conta descartável apropriada; contas reais não serão usadas silenciosamente;
+4. `previsao-7-dias` foi implementado de forma staged na `main`, reutilizando a consolidação existente e sem escrita em `user_widgets`;
+5. só depois da validação visual/publicação desse módulo avançar para chuva e, em seguida, vento.
+
+GitHub Actions não é gate operacional até 01/09/2026. Até essa data, a validação desta frente usa inspeção de código, contratos versionados, sincronização GitHub → Lovable, smoke de publicação quando disponível e verificações no Supabase que não alterem contas reais.
 
 ## Testes
 
 `tests/widget-builder-foundation.test.ts` protege:
 
 - Free aberto nesta fase;
-- módulos iniciais;
+- módulos registrados;
+- entitlement próprio da previsão de 7 dias;
 - RLS/RPC pública;
 - gates de sessão/entitlement/owner;
 - canonical do embed;
 - protocolo responsivo por `postMessage`;
 - liberação de frame apenas na rota dedicada;
+- `no-store` no renderer gerenciado;
+- reutilização da consolidação meteorológica no módulo de 7 dias;
 - descoberta pelo painel.
 
-O contrato está incluído em `test:contracts`. Enquanto GitHub Actions continuar bloqueado antes dos steps, versionar o teste não equivale a declarar sua execução.
+O contrato está incluído em `test:contracts`. Enquanto GitHub Actions estiver fora do gate até 01/09/2026, versionar o teste não equivale a declarar sua execução.
