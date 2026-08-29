@@ -7,6 +7,7 @@ import { getEmbrapaHealthSnapshotServer } from "@/lib/weather/embrapa-health.ser
 import { fetchOfficialWeatherSources } from "@/lib/weather/official-sources.server";
 import { fetchPelotasWeather } from "@/lib/weather/weather-baseline.server";
 
+import { getOpenMeteoContingencyStatus } from "./open-meteo-contingency-status.server";
 import { getActiveMaintenanceWindows } from "./data-status-storage.server";
 import type {
   DataStatusOverview,
@@ -124,6 +125,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
   const checkedAt = new Date().toISOString();
   const [
     baselineResult,
+    openMeteoContingencyResult,
     officialResult,
     embrapaHealthResult,
     laranjalResult,
@@ -133,6 +135,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     anaRhnResult,
   ] = await Promise.allSettled([
     fetchPelotasWeather(),
+    getOpenMeteoContingencyStatus(new Date(checkedAt)),
     fetchOfficialWeatherSources(),
     getEmbrapaHealthSnapshotServer(),
     getLaranjalLevelData(),
@@ -143,19 +146,52 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
   ]);
 
   const services: ServiceStatus[] = [];
+  const openMeteoContingency =
+    openMeteoContingencyResult.status === "fulfilled"
+      ? openMeteoContingencyResult.value
+      : null;
 
   if (baselineResult.status === "fulfilled") {
     const openMeteo = baselineResult.value.providers["open-meteo"];
     const metNorway = baselineResult.value.providers["met-norway"];
+    const openMeteoState: ServiceState =
+      openMeteo.status === "live"
+        ? openMeteo.source.isFallback
+          ? "partial"
+          : "operational"
+        : openMeteoContingency?.available
+          ? "partial"
+          : "offline";
+    const openMeteoCheckedAt =
+      openMeteo.status === "live"
+        ? openMeteo.source.fetchedAt || checkedAt
+        : openMeteoContingency?.available
+          ? openMeteoContingency.lastSuccessAt ||
+            openMeteoContingency.fetchedAt ||
+            openMeteo.source.fetchedAt ||
+            checkedAt
+          : openMeteo.source.fetchedAt || checkedAt;
+    const openMeteoDetail =
+      openMeteoState === "operational"
+        ? detailForState("operational")
+        : openMeteo.status === "live" && openMeteo.source.isFallback
+          ? "A origem direta não respondeu normalmente; a previsão está sendo servida pela contingência Open-Meteo com timestamp preservado."
+          : openMeteoContingency?.available
+            ? `A origem direta falhou nesta verificação, mas existe last-good persistido utilizável${
+                openMeteoContingency.ageMinutes === null
+                  ? ""
+                  : ` com ${openMeteoContingency.ageMinutes} min de idade`
+              }.`
+            : openMeteo.message || detailForState("offline");
 
     services.push(
       weatherService(
         "weather-open-meteo",
         "Previsão numérica principal",
         "Open-Meteo",
-        openMeteo.status === "live" ? "operational" : "offline",
-        openMeteo.source.fetchedAt || checkedAt,
-        openMeteo.message || detailForState(openMeteo.status === "live" ? "operational" : "offline"),
+        openMeteoState,
+        openMeteoCheckedAt,
+        openMeteoDetail,
       ),
       weatherService(
         "weather-met-norway",
@@ -167,13 +203,23 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       ),
     );
   } else {
+    const openMeteoState: ServiceState = openMeteoContingency?.available ? "partial" : "offline";
+    const openMeteoDetail = openMeteoContingency?.available
+      ? `O probe meteorológico principal falhou, mas existe last-good Open-Meteo persistido utilizável${
+          openMeteoContingency.ageMinutes === null
+            ? ""
+            : ` com ${openMeteoContingency.ageMinutes} min de idade`
+        }.`
+      : detailForState("offline");
+
     services.push(
       weatherService(
         "weather-open-meteo",
         "Previsão numérica principal",
         "Open-Meteo",
-        "offline",
-        checkedAt,
+        openMeteoState,
+        openMeteoContingency?.lastSuccessAt || openMeteoContingency?.fetchedAt || checkedAt,
+        openMeteoDetail,
       ),
       weatherService(
         "weather-met-norway",
