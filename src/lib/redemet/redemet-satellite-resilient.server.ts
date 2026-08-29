@@ -11,7 +11,7 @@ const OFFICIAL_URL = "https://redemet.decea.mil.br/";
 const IMAGE_PROXY_PATH = "/api/redemet/image";
 const PRIMARY_DEADLINE_MS = 3_600;
 const FALLBACK_DEADLINE_MS = 3_600;
-const REQUEST_TIMEOUT_MS = 3_400;
+const REQUEST_BUDGET_MS = 4_400;
 const TIMEZONE = "America/Sao_Paulo";
 
 const ALLOWED_API_HOSTS = new Set(["api-redemet.decea.mil.br", "api-redemet.decea.gov.br"]);
@@ -37,6 +37,17 @@ type RawFrame = {
   path: string;
   data: string | null;
 };
+
+type ParsedSatellitePayload = {
+  frames: RedemetImageFrame[];
+  bounds: RedemetBounds | null;
+  acceptedImageCount: number;
+  diagnostic: string;
+};
+
+type SatelliteRequestResult =
+  | { ok: true; payload: unknown }
+  | { ok: false; error: string };
 
 function readServerEnvironment(name: string) {
   return (globalThis as RuntimeWithProcess).process?.env?.[name]?.trim() || null;
@@ -217,6 +228,49 @@ function formatFrameLabel(value: string | null, fallbackIndex: number) {
   }).format(date);
 }
 
+export function previousRedemetUtcHourToken(reference = new Date()) {
+  const previous = new Date(reference.getTime() - 60 * 60 * 1_000);
+  return [
+    previous.getUTCFullYear(),
+    String(previous.getUTCMonth() + 1).padStart(2, "0"),
+    String(previous.getUTCDate()).padStart(2, "0"),
+    String(previous.getUTCHours()).padStart(2, "0"),
+  ].join("");
+}
+
+function parseSatellitePayload(payload: unknown, requested: number): ParsedSatellitePayload {
+  const bounds = findBounds(payload);
+  const unique = new Map<string, RawFrame>();
+  for (const frame of collectFrames(payload)) unique.set(frame.path, frame);
+
+  const frames = [...unique.values()]
+    .sort((first, second) => {
+      const firstTime = parseDate(first.data)?.getTime() ?? 0;
+      const secondTime = parseDate(second.data)?.getTime() ?? 0;
+      return firstTime - secondTime;
+    })
+    .slice(-requested)
+    .flatMap<RedemetImageFrame>((frame, index) => {
+      if (!bounds) return [];
+      return [
+        {
+          id: `${index}-${frame.data ?? frame.path}`,
+          label: formatFrameLabel(frame.data, index),
+          observedAt: parseDate(frame.data)?.toISOString() ?? null,
+          imageUrl: `${IMAGE_PROXY_PATH}?src=${encodeURIComponent(frame.path)}`,
+          bounds,
+        },
+      ];
+    });
+
+  return {
+    frames,
+    bounds,
+    acceptedImageCount: unique.size,
+    diagnostic: sanitizedPayloadDiagnostic(payload, bounds, unique.size),
+  };
+}
+
 function emptyRedemet(type: RedemetSatelliteType, error: string): RedemetImageLayerResponse {
   return {
     configured: Boolean(apiKey()),
@@ -232,6 +286,69 @@ function emptyRedemet(type: RedemetSatelliteType, error: string): RedemetImageLa
   };
 }
 
+async function requestSatellitePayload(
+  type: RedemetSatelliteType,
+  requested: number,
+  key: string,
+  signal: AbortSignal,
+  referenceData?: string,
+): Promise<SatelliteRequestResult> {
+  const url = new URL(`produtos/satelite/${type}`, apiBaseUrl());
+  url.searchParams.set("anima", String(requested));
+  if (referenceData) url.searchParams.set("data", referenceData);
+  // A documentação oficial da API-REDEMET e o portal usam api_key em query string.
+  // A URL é exclusivamente server-side e nunca é registrada ou devolvida ao cliente.
+  url.searchParams.set("api_key", key);
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "User-Agent": "TempoPelotas/2.0 (+https://tempopelotas.com.br)",
+    },
+    signal,
+  });
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      error: `A integração REDEMET recebeu HTTP ${response.status} ao consultar satélite.`,
+    };
+  }
+
+  const payload = (await response.json()) as unknown;
+  const root = asRecord(payload);
+  if (root?.status === false) {
+    return {
+      ok: false,
+      error:
+        asString(root.message) || "A API REDEMET informou que a consulta de satélite não foi atendida.",
+    };
+  }
+
+  return { ok: true, payload };
+}
+
+function availableRedemetLayer(
+  type: RedemetSatelliteType,
+  parsed: ParsedSatellitePayload,
+  recoveredFromPreviousHour: boolean,
+): RedemetImageLayerResponse {
+  return {
+    configured: true,
+    available: true,
+    provider: "REDEMET / DECEA",
+    product: requestedProductLabel(type),
+    sourceLabel: recoveredFromPreviousHour
+      ? "Satélite meteorológico REDEMET · última referência UTC disponível"
+      : "Satélite meteorológico REDEMET",
+    officialUrl: OFFICIAL_URL,
+    frames: parsed.frames,
+    currentIndex: parsed.frames.length - 1,
+    updatedAt: parsed.frames.at(-1)?.observedAt ?? new Date().toISOString(),
+    error: null,
+  };
+}
+
 export async function fetchOfficialRedemetSatellite(
   type: RedemetSatelliteType,
   frameCount = 8,
@@ -242,86 +359,66 @@ export async function fetchOfficialRedemetSatellite(
   }
 
   const requested = Math.max(1, Math.min(15, Math.round(frameCount)));
-  const url = new URL(`produtos/satelite/${type}`, apiBaseUrl());
-  url.searchParams.set("anima", String(requested));
-  // A documentação oficial da API-REDEMET e o portal usam api_key em query string.
-  // A URL é exclusivamente server-side e nunca é registrada ou devolvida ao cliente.
-  url.searchParams.set("api_key", key);
+  const signal = AbortSignal.timeout(REQUEST_BUDGET_MS);
 
   try {
-    const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "TempoPelotas/2.0 (+https://tempopelotas.com.br)",
-      },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    });
+    const current = await requestSatellitePayload(type, requested, key, signal);
+    if (!current.ok) return emptyRedemet(type, current.error);
 
-    if (!response.ok) {
+    const currentParsed = parseSatellitePayload(current.payload, requested);
+    if (currentParsed.frames.length > 0) {
+      return availableRedemetLayer(type, currentParsed, false);
+    }
+
+    if (signal.aborted) {
       return emptyRedemet(
         type,
-        `A integração REDEMET recebeu HTTP ${response.status} ao consultar satélite.`,
+        `A integração do satélite REDEMET excedeu o orçamento compartilhado de ${(
+          REQUEST_BUDGET_MS / 1_000
+        ).toFixed(1)} s após uma resposta sem imagem utilizável. Diagnóstico sanitizado: ${currentParsed.diagnostic}.`,
       );
     }
 
-    const payload = (await response.json()) as unknown;
-    const root = asRecord(payload);
-    if (root?.status === false) {
+    // A API oficial documenta `data=YYYYMMDDHH` e usa essa referência como quadro
+    // final quando `anima` é solicitado. A consulta sem `data` pode responder com
+    // `data: []` na virada/atualização do produto; tentamos apenas a hora UTC
+    // anterior, uma única vez, preservando os timestamps reais retornados.
+    const referenceData = previousRedemetUtcHourToken();
+    const previousHour = await requestSatellitePayload(
+      type,
+      requested,
+      key,
+      signal,
+      referenceData,
+    );
+
+    if (!previousHour.ok) {
       return emptyRedemet(
         type,
-        asString(root.message) || "A API REDEMET informou que a consulta de satélite não foi atendida.",
+        `A consulta atual da REDEMET veio sem imagem utilizável e a única contingência pela hora UTC anterior falhou. ${previousHour.error} Diagnóstico atual: ${currentParsed.diagnostic}.`,
       );
     }
 
-    const bounds = findBounds(payload);
-    const unique = new Map<string, RawFrame>();
-    for (const frame of collectFrames(payload)) unique.set(frame.path, frame);
-
-    const frames = [...unique.values()]
-      .sort((first, second) => {
-        const firstTime = parseDate(first.data)?.getTime() ?? 0;
-        const secondTime = parseDate(second.data)?.getTime() ?? 0;
-        return firstTime - secondTime;
-      })
-      .slice(-requested)
-      .flatMap<RedemetImageFrame>((frame, index) => {
-        if (!bounds) return [];
-        return [
-          {
-            id: `${index}-${frame.data ?? frame.path}`,
-            label: formatFrameLabel(frame.data, index),
-            observedAt: parseDate(frame.data)?.toISOString() ?? null,
-            imageUrl: `${IMAGE_PROXY_PATH}?src=${encodeURIComponent(frame.path)}`,
-            bounds,
-          },
-        ];
-      });
-
-    if (!frames.length) {
-      return emptyRedemet(
-        type,
-        `A integração recebeu resposta da REDEMET, mas o payload atual não gerou imagem utilizável. Diagnóstico sanitizado: ${sanitizedPayloadDiagnostic(payload, bounds, unique.size)}.`,
-      );
+    const previousParsed = parseSatellitePayload(previousHour.payload, requested);
+    if (previousParsed.frames.length > 0) {
+      return availableRedemetLayer(type, previousParsed, true);
     }
 
-    return {
-      configured: true,
-      available: true,
-      provider: "REDEMET / DECEA",
-      product: requestedProductLabel(type),
-      sourceLabel: "Satélite meteorológico REDEMET",
-      officialUrl: OFFICIAL_URL,
-      frames,
-      currentIndex: frames.length - 1,
-      updatedAt: frames.at(-1)?.observedAt ?? new Date().toISOString(),
-      error: null,
-    };
-  } catch (error) {
     return emptyRedemet(
       type,
-      error instanceof Error
-        ? `Falha da integração REDEMET: ${error.message}`
-        : "Falha desconhecida da integração REDEMET de satélite.",
+      `A REDEMET respondeu sem imagem utilizável tanto para a referência atual quanto para a hora UTC anterior. Diagnóstico atual: ${currentParsed.diagnostic}. Diagnóstico anterior: ${previousParsed.diagnostic}.`,
+    );
+  } catch (error) {
+    const timedOut = signal.aborted || (error instanceof Error && error.name === "TimeoutError");
+    return emptyRedemet(
+      type,
+      timedOut
+        ? `A integração do satélite REDEMET excedeu o orçamento compartilhado de ${(
+            REQUEST_BUDGET_MS / 1_000
+          ).toFixed(1)} s.`
+        : error instanceof Error
+          ? `Falha da integração REDEMET: ${error.message}`
+          : "Falha desconhecida da integração REDEMET de satélite.",
     );
   }
 }
