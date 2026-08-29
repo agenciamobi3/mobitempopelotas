@@ -397,8 +397,8 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       state: "implementation",
       detail:
         snapshot.status === "source-live"
-          ? `Contrato público respondeu para a estação LARANJAL ${snapshot.stationCode}; medição segue bloqueada até confirmar unidade, referência vertical e timezone.`
-          : `Integração segue em implantação; o probe público não respondeu de forma utilizável nesta verificação. ${snapshot.error ?? ""}`.trim(),
+          ? `Contrato público respondeu para a estação LARANJAL ${snapshot.stationCode}; ANA/RHN permanece somente como readiness/cross-check nesta fase porque o Laranjal já é coberto por duas fontes de coleta do projeto. Unidade (cm) e timezone estão confirmados; a referência vertical permanece não confirmada.`
+          : `Readiness ANA/RHN segue preservado sem ingestão nesta fase; o probe público não respondeu de forma utilizável nesta verificação. ${snapshot.error ?? ""}`.trim(),
       checkedAt: snapshot.fetchedAt || checkedAt,
       sourceUrl: snapshot.source.url,
     });
@@ -409,7 +409,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       provider: "ANA / SNIRH / RHN",
       category: "Hidrologia",
       state: "implementation",
-      detail: "Integração em validação; o probe público ANA/RHN falhou antes de produzir um snapshot sanitizado.",
+      detail: "Readiness ANA/RHN preservado sem ingestão nesta fase; o probe público falhou antes de produzir um snapshot sanitizado.",
       checkedAt,
       sourceUrl: "https://www.snirh.gov.br/hidroweb/",
     });
