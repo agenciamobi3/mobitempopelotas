@@ -15,6 +15,7 @@ const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
 const server = readFileSync("src/server.ts", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
+const sevenDayWidget = readFileSync("src/components/embed/SevenDayForecastWidget.tsx", "utf8");
 
 test("Free nasce com o gerador aberto e sem limite de quantidade nesta fase", () => {
   const access = resolveAccountAccess(null);
@@ -24,15 +25,20 @@ test("Free nasce com o gerador aberto e sem limite de quantidade nesta fase", ()
   assert.equal(access.entitlements.widgetsMax, null);
   assert.equal(access.entitlements.widgetsLaranjal, true);
   assert.equal(access.entitlements.widgetsCurrentWeather, true);
+  assert.equal(access.entitlements.widgetsSevenDayForecast, true);
   assert.equal(access.entitlements.widgetsRemoveBranding, false);
 });
 
-test("registry começa pelos dois embeds reais já existentes", () => {
+test("registry oferece hidrologia, tempo atual e previsão de 7 dias", () => {
   assert.deepEqual(
     WIDGET_REGISTRY.map((widget) => widget.type),
-    ["nivel-laranjal", "status-tempo-agora"],
+    ["nivel-laranjal", "status-tempo-agora", "previsao-7-dias"],
   );
   assert.equal(WIDGET_REGISTRY.every((widget) => widget.initialHeight > 0), true);
+  assert.equal(
+    WIDGET_REGISTRY.find((widget) => widget.type === "previsao-7-dias")?.requiredEntitlement,
+    "widgetsSevenDayForecast",
+  );
 });
 
 test("user_widgets fica privado por RLS e o público resolve somente token ativo", () => {
@@ -73,6 +79,15 @@ test("renderer gerenciado não usa cache e widgets fixos preservam cache públic
   assert.match(server, /headers\.set\("CDN-Cache-Control", "no-store"\)/);
   assert.match(server, /headers\.set\("Cache-Control", EMBED_CACHE_CONTROL\)/);
   assert.match(server, /headers\.set\("CDN-Cache-Control", EMBED_CDN_CACHE_CONTROL\)/);
+});
+
+test("previsão de 7 dias reutiliza a consolidação meteorológica e mantém atualização própria", () => {
+  assert.match(renderer, /getAggregatedPelotasWeather/);
+  assert.match(renderer, /definition\.widgetType === "previsao-7-dias"/);
+  assert.match(renderer, /SevenDayForecastWidget/);
+  assert.match(sevenDayWidget, /data\.daily\.slice\(0, 7\)/);
+  assert.match(sevenDayWidget, /15 \* 60 \* 1_000/);
+  assert.match(sevenDayWidget, /https:\/\/tempopelotas\.com\.br\/previsao-7-dias-pelotas/);
 });
 
 test("gerador e renderer genérico não recebem um segundo shell global", () => {
