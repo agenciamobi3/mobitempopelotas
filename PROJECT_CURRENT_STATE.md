@@ -36,7 +36,7 @@ Regras que não devem ser quebradas:
 | Satélite REDEMET | `partial` quando a API responde sem produto utilizável; não recebe lookback arbitrário |
 | GOES / INMET | Integração server-side pode retornar HTTP 403; isso não afirma indisponibilidade do portal INMET |
 | Hidrologia local/regional | Laranjal, Guaíba, Lagoa e Defesa Civil degradam por domínio |
-| ANA / SNIRH / RHN | **Readiness ativo, ingestão bloqueada**. Estação LARANJAL `87955001`; unidade e timezone confirmados, referência vertical ainda pendente |
+| ANA / SNIRH / RHN | **Readiness v2 validado em produção, ingestão bloqueada**. Estação LARANJAL `87955001`; unidade e timezone confirmados, referência vertical ainda pendente |
 | Historical Data Layer | Ativo, separando `observation`, `forecast`, `reanalysis` e `derived` |
 | Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços; histórico stale bloqueado após 30 min |
 | Central Regional | Pelotas + 23 páginas municipais indexáveis |
@@ -131,7 +131,9 @@ A estação foi confirmada em serviços públicos oficiais do SNIRH/ANA:
 
 A confirmação de unidade e timezone foi feita por evidência cruzada entre o ArcGIS público, o contrato oficial atual do HidroWebService e uma consulta diagnóstica ao serviço legado oficial. O serviço legado **não** é dependência de runtime.
 
-No inventário público da estação, `Altitude=null`, `EscalaNivel=Não` e `RegistradorNivel=Não`. Portanto não existe base pública suficiente para converter `116 cm` em altitude, cota sobre o nível do mar ou referência equivalente.
+No inventário público da estação, `Altitude=null`, `EscalaNivel=Não` e `RegistradorNivel=Não`. O catálogo público da pasta `SGH` foi inspecionado e contém somente `CotasReferencia2` e `EstacaoInventarioFluviometrica`. As duas interfaces foram exauridas para a estação 87955001. A consulta `outFields=*` de `CotasReferencia2` expõe apenas identidade, projeto RHN, estado, timestamp, `Ult_Dado` e `Status_Dado`; não existe campo de RN, datum, altitude do zero ou referência vertical. O renderer da camada deixa claro que “Sem dados de referência” trata das cotas classificatórias de atenção/normal/estiagem, não de datum vertical.
+
+Portanto não existe base pública suficiente nessas interfaces para converter `116 cm` em altitude, cota sobre o nível do mar ou referência equivalente.
 
 Estado no Supabase oficial:
 
@@ -145,13 +147,22 @@ Estado no Supabase oficial:
 - `publicMeasurementIngestionEnabled=false`;
 - **zero medições ANA/RHN** no arquivo canônico.
 
-O probe ANA participa apenas de readiness. Seu estado permanece `implementation`, portanto não entra no cálculo de disponibilidade do runtime. A primeira medição só pode ser gravada depois de confirmar a referência vertical específica da estação ou definir formalmente que o produto será publicado exclusivamente como cota relativa de régua com essa limitação documentada.
+O probe ANA participa apenas de readiness. Seu estado permanece `implementation`, portanto não entra no cálculo de disponibilidade do runtime. A primeira medição só pode ser gravada depois de confirmar a referência vertical específica da estação ou de aprovar explicitamente um contrato de produto que preserve a leitura apenas como cota relativa de régua, sem conversão vertical.
 
 Documento de referência: `docs/ANA_RHN_INTEGRATION.md`.
 
 ## 9. Monitor de status
 
-O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. A migration do scheduler está aplicada no Supabase oficial. A validação de produção do corte `2026-08-29-ana-rhn-contract-v2` deve confirmar 14 serviços e `ana-rhn` em `implementation` com apenas a referência vertical como gate semântico restante quando o endpoint responder.
+O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. A migration do scheduler está aplicada no Supabase oficial. O corte `2026-08-29-ana-rhn-contract-v2` foi validado em produção no domínio canônico.
+
+Validação de 29/08/2026:
+
+- `/api/runtime-version`: HTTP 200, release `2026-08-29-ana-rhn-contract-v2`;
+- coleta real do monitor: HTTP 200 no mesmo `x-deployment-id`, `services=14`;
+- `ana-rhn`: `state=implementation`;
+- detalhe persistido: unidade `cm` e timezone confirmados; somente a referência vertical específica da estação segue bloqueando a medição;
+- `/status-dos-dados`: HTTP 200 no mesmo deployment, contendo ANA/SNIRH/RHN, a cópia v2 e o estado de implantação;
+- `historical_measurements` para `source_key=ana-rhn`: **0**.
 
 A lacuna histórica anterior foi encerrada sem fabricar uma indisponibilidade contínua. Se nenhuma nova amostra for persistida por mais de 30 minutos, o histórico é tratado como stale.
 
@@ -190,10 +201,10 @@ GitHub Actions continua falhando antes dos steps. Portanto a existência dos tes
 
 ## 13. Prioridades imediatas
 
-1. **Fechar a referência vertical da ANA/RHN LARANJAL 87955001** por evidência específica da estação/UFPel/ANA; não usar referência de estação vizinha ou código histórico diferente.
-2. Depois disso, decidir o contrato de ingestão ANA: valor bruto em cm, referência, timestamp, QC, deduplicação e janela stale.
-3. Só então habilitar coleta ANA e inserir a primeira `observation` no Historical Data Layer.
-4. Revalidar `/status-dos-dados` após publicação do detalhe atualizado: ANA deve continuar `implementation` e mencionar apenas referência vertical como gate semântico restante quando o probe responder.
+1. **Fechar a referência vertical da ANA/RHN LARANJAL 87955001** por evidência específica da estação/UFPel/ANA, preferencialmente ficha de instalação, RN/benchmark ou documento que defina o zero da leitura; não usar referência de estação vizinha ou código histórico diferente.
+2. Enquanto esse documento não existir, manter `verticalReferenceStatus=unconfirmed`, coleta ANA desligada e zero medições no arquivo canônico.
+3. Depois disso, decidir o contrato de ingestão ANA: valor bruto em cm, referência, timestamp, QC, deduplicação e janela stale.
+4. Só então habilitar coleta ANA e inserir a primeira `observation` no Historical Data Layer.
 5. Continuar hardening de Open-Meteo/INMET/REDEMET sem aumentar budgets sem evidência.
 6. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
 7. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
