@@ -23,16 +23,17 @@ const REDEMET_SERVICE_IDS = new Set([
 ]);
 
 type ProbeLayer = RedemetImageLayerResponse | RedemetStormLayerResponse;
+type ProbeProvider = RedemetImageLayerResponse["provider"];
 
 type ProbeDefinition = {
   id: string;
   name: string;
-  provider: string;
+  provider: ProbeProvider;
   sourceUrl?: string;
   run: () => Promise<ProbeLayer>;
 };
 
-function timeoutLayer(provider: string, label: string): ProbeLayer {
+function timeoutLayer(provider: ProbeProvider, label: string): RedemetImageLayerResponse {
   return {
     configured: true,
     available: false,
@@ -86,7 +87,7 @@ function serviceFromProbe(
   return {
     id: definition.id,
     name: definition.name,
-    provider: layer.provider || definition.provider,
+    provider: layer.provider,
     category: "Radar e satélite",
     state,
     detail,
