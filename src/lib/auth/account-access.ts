@@ -5,6 +5,13 @@ export type AccountEntitlements = {
   panelAccess: boolean;
   favorites: boolean;
   preferences: boolean;
+  widgetsAccess: boolean;
+  widgetsCreate: boolean;
+  widgetsMax: number | null;
+  widgetsLaranjal: boolean;
+  widgetsCurrentWeather: boolean;
+  widgetsAdvancedThemes: boolean;
+  widgetsRemoveBranding: boolean;
   historyAccessDays: number | null;
   historyFull: boolean;
   historyCompare: boolean;
@@ -32,6 +39,13 @@ const FREE_ENTITLEMENTS: AccountEntitlements = {
   panelAccess: true,
   favorites: true,
   preferences: true,
+  widgetsAccess: true,
+  widgetsCreate: true,
+  widgetsMax: null,
+  widgetsLaranjal: true,
+  widgetsCurrentWeather: true,
+  widgetsAdvancedThemes: true,
+  widgetsRemoveBranding: false,
   historyAccessDays: 60,
   historyFull: false,
   historyCompare: false,
@@ -50,6 +64,13 @@ const PRO_ENTITLEMENTS: AccountEntitlements = {
   panelAccess: true,
   favorites: true,
   preferences: true,
+  widgetsAccess: true,
+  widgetsCreate: true,
+  widgetsMax: null,
+  widgetsLaranjal: true,
+  widgetsCurrentWeather: true,
+  widgetsAdvancedThemes: true,
+  widgetsRemoveBranding: true,
   historyAccessDays: null,
   historyFull: true,
   historyCompare: true,
