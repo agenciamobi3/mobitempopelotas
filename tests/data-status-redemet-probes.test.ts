@@ -10,6 +10,7 @@ const satellite = readFileSync(
   "src/lib/redemet/redemet-satellite-resilient.server.ts",
   "utf8",
 );
+const statusBase = readFileSync("src/lib/status/data-status.server.ts", "utf8");
 const statusFunctions = readFileSync("src/lib/status/data-status.functions.ts", "utf8");
 const statusCron = readFileSync("src/routes/api/cron/data-status.ts", "utf8");
 
@@ -21,6 +22,13 @@ test("status mede Radar, satélite REDEMET, STSC e GOES/INMET por adapters próp
   assert.match(probes, /fetchOfficialRedemetSatellite\("realcada", SATELLITE_FRAMES\)/);
   assert.doesNotMatch(probes, /getRedemetOverview/);
   assert.doesNotMatch(probes, /selectOfficialSatelliteResult/);
+});
+
+test("coletor base não repete Radar e satélites antes dos probes independentes", () => {
+  assert.doesNotMatch(statusBase, /getRedemetOverview/);
+  assert.doesNotMatch(statusBase, /redemetResult/);
+  assert.doesNotMatch(statusBase, /unavailableRedemetServices/);
+  assert.doesNotMatch(statusBase, /stateFromLayer/);
 });
 
 test("cada probe mantém timeout operacional próprio e preserva motivo sanitizado", () => {
