@@ -39,6 +39,10 @@ test("registry oferece hidrologia, tempo atual e previsão de 7 dias", () => {
     WIDGET_REGISTRY.find((widget) => widget.type === "previsao-7-dias")?.requiredEntitlement,
     "widgetsSevenDayForecast",
   );
+  assert.match(
+    widgetFunctions,
+    /z\.enum\(\["nivel-laranjal", "status-tempo-agora", "previsao-7-dias"\]\)/,
+  );
 });
 
 test("user_widgets fica privado por RLS e o público resolve somente token ativo", () => {
