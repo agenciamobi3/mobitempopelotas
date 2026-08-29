@@ -13,6 +13,7 @@ const widgetFunctions = readFileSync("src/lib/widgets/widget.functions.ts", "utf
 const renderer = readFileSync("src/routes/embed/widget.tsx", "utf8");
 const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
 const server = readFileSync("src/server.ts", "utf8");
+const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
 
 test("Free nasce com o gerador aberto e sem limite de quantidade nesta fase", () => {
@@ -64,6 +65,12 @@ test("embed gerado é responsivo e aceita frame externo somente no renderer dedi
   assert.match(renderer, /tempo-pelotas-widget/);
   assert.match(server, /"\/embed\/widget"/);
   assert.match(server, /withFrameAncestors\(headers\.get\("Content-Security-Policy"\), "\*"\)/);
+});
+
+test("gerador e renderer genérico não recebem um segundo shell global", () => {
+  assert.match(siteLayout, /"\/widgets"/);
+  assert.match(siteLayout, /"\/embed\/widget"/);
+  assert.match(siteLayout, /standaloneRoutes\.has\(resolvedPathname\)/);
 });
 
 test("gerador fica disponível no painel autenticado", () => {
