@@ -106,15 +106,15 @@ test("status monitor probes ANA RHN readiness without promoting the source to ru
   assert.match(statusSource, /anaRhnResult/);
   assert.match(statusSource, /id: "ana-rhn"/);
   assert.match(statusSource, /state: "implementation"/);
+  assert.match(statusSource, /somente como readiness\/cross-check nesta fase/);
+  assert.match(statusSource, /duas fontes de coleta do projeto/);
   assert.doesNotMatch(statusSource, /snapshot\.rawValue/);
 });
 
-test("status persistido corrige a cópia antiga e deixa apenas a referência vertical como gate ANA RHN", () => {
-  assert.match(statusProbeWrapper, /normalizeAnaRhnImplementationDetail/);
-  assert.match(statusProbeWrapper, /unidade \(cm\) e timezone foram confirmados/);
-  assert.match(statusProbeWrapper, /referência vertical específica da estação/);
-  assert.doesNotMatch(
-    statusProbeWrapper,
-    /ANA_RHN_CURRENT_BLOCKING_COPY[^;]+confirmar unidade, referência vertical e timezone/s,
-  );
+test("normalização do status ANA RHN preserva readiness-only mesmo para cópias antigas", () => {
+  assert.match(statusProbeWrapper, /ANA_RHN_PREVIOUS_BLOCKING_COPIES/);
+  assert.match(statusProbeWrapper, /ANA_RHN_CURRENT_READINESS_COPY/);
+  assert.match(statusProbeWrapper, /somente como readiness\/cross-check nesta fase/);
+  assert.match(statusProbeWrapper, /duas fontes de coleta do projeto/);
+  assert.match(statusProbeWrapper, /referência vertical permanece não confirmada/);
 });
