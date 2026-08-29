@@ -18,6 +18,7 @@ const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
 const sevenDayWidget = readFileSync("src/components/embed/SevenDayForecastWidget.tsx", "utf8");
 const rainWidget = readFileSync("src/components/embed/RainWidget.tsx", "utf8");
+const windWidget = readFileSync("src/components/embed/WindWidget.tsx", "utf8");
 
 test("Free nasce com o gerador aberto e sem limite de quantidade nesta fase", () => {
   const access = resolveAccountAccess(null);
@@ -29,13 +30,20 @@ test("Free nasce com o gerador aberto e sem limite de quantidade nesta fase", ()
   assert.equal(access.entitlements.widgetsCurrentWeather, true);
   assert.equal(access.entitlements.widgetsSevenDayForecast, true);
   assert.equal(access.entitlements.widgetsRain, true);
+  assert.equal(access.entitlements.widgetsWind, true);
   assert.equal(access.entitlements.widgetsRemoveBranding, false);
 });
 
 test("registry oferece os módulos gerenciados liberados nesta fase", () => {
   assert.deepEqual(
     WIDGET_REGISTRY.map((widget) => widget.type),
-    ["nivel-laranjal", "status-tempo-agora", "previsao-7-dias", "chuva-pelotas"],
+    [
+      "nivel-laranjal",
+      "status-tempo-agora",
+      "previsao-7-dias",
+      "chuva-pelotas",
+      "vento-pelotas",
+    ],
   );
   assert.equal(WIDGET_REGISTRY.every((widget) => widget.initialHeight > 0), true);
   assert.equal(
@@ -46,9 +54,12 @@ test("registry oferece os módulos gerenciados liberados nesta fase", () => {
     WIDGET_REGISTRY.find((widget) => widget.type === "chuva-pelotas")?.requiredEntitlement,
     "widgetsRain",
   );
-  for (const type of WIDGET_REGISTRY.map((widget) => widget.type)) {
-    assert.match(widgetFunctions, new RegExp(`"${type}"`));
-  }
+  assert.equal(
+    WIDGET_REGISTRY.find((widget) => widget.type === "vento-pelotas")?.requiredEntitlement,
+    "widgetsWind",
+  );
+  assert.match(widgetFunctions, /\.refine\(isWidgetType, "Módulo de widget inválido"\)/);
+  assert.match(widgetFunctions, /transform\(\(value\) => value as WidgetType\)/);
 });
 
 test("user_widgets fica privado por RLS e o público resolve somente token ativo", () => {
@@ -107,13 +118,23 @@ test("previsão de 7 dias reutiliza a consolidação meteorológica e mantém at
 test("chuva separa observação da Embrapa e previsão horária", () => {
   assert.match(renderer, /definition\.widgetType === "chuva-pelotas"/);
   assert.match(renderer, /RainWidget/);
-  assert.match(renderer, /getAggregatedPelotasWeather/);
   assert.match(rainWidget, /observation\.accumulated\.rainDaily/);
   assert.match(rainWidget, /data\.hourly\.slice\(0, 6\)/);
   assert.match(rainWidget, /precipitationProbability/);
   assert.match(rainWidget, /precipitationMm/);
   assert.match(rainWidget, /não é somada à previsão/);
   assert.match(rainWidget, /10 \* 60 \* 1_000/);
+});
+
+test("vento mostra leitura atual e tendência horária de rajadas", () => {
+  assert.match(renderer, /definition\.widgetType === "vento-pelotas"/);
+  assert.match(renderer, /WindWidget/);
+  assert.match(windWidget, /data\.hourly\.slice\(0, 6\)/);
+  assert.match(windWidget, /current\?\.windSpeed/);
+  assert.match(windWidget, /current\?\.windGust/);
+  assert.match(windWidget, /hour\.windSpeed/);
+  assert.match(windWidget, /hour\.windGust/);
+  assert.match(windWidget, /10 \* 60 \* 1_000/);
 });
 
 test("gerador e renderer genérico não recebem um segundo shell global", () => {
