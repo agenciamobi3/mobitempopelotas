@@ -32,6 +32,14 @@ test("cada probe mantém timeout operacional próprio e preserva motivo sanitiza
   assert.match(probes, /quadros utilizáveis/);
 });
 
+test("satélite REDEMET responsivo sem produto é parcial, enquanto falha real continua offline", () => {
+  assert.match(probes, /function probeState/);
+  assert.match(probes, /definition\.id === "redemet-satellite"/);
+  assert.match(probes, /error\.startsWith\("A REDEMET respondeu sem imagem utilizável"\)/);
+  assert.match(probes, /return redemetAnsweredWithoutProduct \? "partial" : "offline"/);
+  assert.doesNotMatch(probes, /definition\.id === "inmet-satellite"[\s\S]{0,180}"partial"/);
+});
+
 test("satélite REDEMET diagnostica estrutura sem registrar URL autenticada", () => {
   assert.match(satellite, /sanitizedPayloadDiagnostic/);
   assert.match(satellite, /collectCandidateImageHosts/);
