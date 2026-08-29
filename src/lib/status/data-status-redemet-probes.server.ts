@@ -90,7 +90,15 @@ function probeState(definition: ProbeDefinition, layer: ProbeLayer): ServiceStat
     (error.startsWith("A REDEMET respondeu sem imagem utilizável") ||
       error.startsWith("A integração recebeu resposta da REDEMET"));
 
-  return redemetAnsweredWithoutProduct ? "partial" : "offline";
+  if (redemetAnsweredWithoutProduct) return "partial";
+
+  const inmetSatelliteServerSideBlocked =
+    definition.id === "inmet-satellite" &&
+    layer.configured &&
+    /HTTP 403|recusou a integração server-side/i.test(error);
+
+  if (inmetSatelliteServerSideBlocked) return "implementation";
+  return "offline";
 }
 
 function serviceFromProbe(
@@ -106,7 +114,9 @@ function serviceFromProbe(
   const detail =
     state === "operational"
       ? `Probe independente respondeu com ${frameDetail}.`
-      : layer.error || "A integração não retornou dado utilizável nesta verificação independente.";
+      : state === "implementation" && definition.id === "inmet-satellite"
+        ? "O produto público de satélite do INMET permanece referenciado, mas o upstream recusa a integração server-side com HTTP 403. Este estado descreve a integração do Tempo Pelotas e não indisponibilidade do serviço público do INMET."
+        : layer.error || "A integração não retornou dado utilizável nesta verificação independente.";
 
   return {
     id: definition.id,
