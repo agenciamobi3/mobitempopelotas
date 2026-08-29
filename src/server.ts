@@ -277,12 +277,12 @@ function applyRouteResponseHeaders(request: Request, response: Response) {
   headers.set("X-Robots-Tag", EMBED_ROBOTS_POLICY);
   headers.set("Content-Language", "pt-BR");
 
-  if (response.ok) {
-    headers.set("Cache-Control", EMBED_CACHE_CONTROL);
-    headers.set("CDN-Cache-Control", EMBED_CDN_CACHE_CONTROL);
-  } else {
+  if (pathname === "/embed/widget" || !response.ok) {
     headers.set("Cache-Control", "no-store");
     headers.set("CDN-Cache-Control", "no-store");
+  } else {
+    headers.set("Cache-Control", EMBED_CACHE_CONTROL);
+    headers.set("CDN-Cache-Control", EMBED_CDN_CACHE_CONTROL);
   }
 
   return new Response(response.body, {
