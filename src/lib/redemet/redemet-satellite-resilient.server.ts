@@ -24,6 +24,8 @@ const ALLOWED_IMAGE_HOSTS = new Set([
   "redemet.decea.gov.br",
 ]);
 
+const IMAGE_PATH_KEYS = ["path", "url", "imagem", "image", "arquivo", "src"] as const;
+
 type JsonRecord = Record<string, unknown>;
 type RuntimeWithProcess = typeof globalThis & {
   process?: {
@@ -127,17 +129,18 @@ function findBounds(value: unknown): RedemetBounds | null {
   return null;
 }
 
+function rawImagePath(record: JsonRecord) {
+  for (const key of IMAGE_PATH_KEYS) {
+    const value = asString(record[key]);
+    if (value) return value;
+  }
+  return null;
+}
+
 function collectFrames(value: unknown, output: RawFrame[] = []) {
   const record = asRecord(value);
   if (record) {
-    const rawPath = asString(
-      record.path ??
-        record.url ??
-        record.imagem ??
-        record.image ??
-        record.arquivo ??
-        record.src,
-    );
+    const rawPath = rawImagePath(record);
     const path = rawPath ? normalizeOfficialImageUrl(rawPath) : null;
     if (path) {
       output.push({
@@ -152,6 +155,46 @@ function collectFrames(value: unknown, output: RawFrame[] = []) {
     for (const nested of value) collectFrames(nested, output);
   }
   return output;
+}
+
+function collectCandidateImageHosts(value: unknown, output = new Set<string>()) {
+  const record = asRecord(value);
+  if (record) {
+    const rawPath = rawImagePath(record);
+    if (rawPath) {
+      try {
+        const url = new URL(rawPath, apiBaseUrl());
+        if (url.protocol === "https:") output.add(url.hostname.toLowerCase());
+      } catch {
+        output.add("url-invalida");
+      }
+    }
+    for (const nested of Object.values(record)) collectCandidateImageHosts(nested, output);
+  } else if (Array.isArray(value)) {
+    for (const nested of value) collectCandidateImageHosts(nested, output);
+  }
+  return output;
+}
+
+function structuralKeys(value: unknown) {
+  const record = asRecord(value);
+  if (!record) return Array.isArray(value) ? [`array(${value.length})`] : [typeof value];
+  return Object.keys(record).sort().slice(0, 12);
+}
+
+function sanitizedPayloadDiagnostic(
+  payload: unknown,
+  bounds: RedemetBounds | null,
+  acceptedImageCount: number,
+) {
+  const root = asRecord(payload);
+  const data = root ? root.data : null;
+  const hosts = [...collectCandidateImageHosts(payload)].sort().slice(0, 6);
+  const hostLabel = hosts.length > 0 ? hosts.join(",") : "nenhum";
+  const rootKeys = structuralKeys(payload).join(",");
+  const dataKeys = structuralKeys(data).join(",");
+
+  return `bounds=${bounds ? "sim" : "não"}; imagensAceitas=${acceptedImageCount}; hostsCandidatos=${hostLabel}; chavesRaiz=${rootKeys}; chavesData=${dataKeys}`;
 }
 
 function parseDate(value: string | null) {
@@ -257,7 +300,7 @@ export async function fetchOfficialRedemetSatellite(
     if (!frames.length) {
       return emptyRedemet(
         type,
-        "A integração recebeu resposta da REDEMET, mas não reconheceu imagens e limites utilizáveis no payload atual.",
+        `A integração recebeu resposta da REDEMET, mas o payload atual não gerou imagem utilizável. Diagnóstico sanitizado: ${sanitizedPayloadDiagnostic(payload, bounds, unique.size)}.`,
       );
     }
 
