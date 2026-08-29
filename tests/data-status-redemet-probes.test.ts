@@ -44,8 +44,16 @@ test("satélite REDEMET responsivo sem produto é parcial, enquanto falha real c
   assert.match(probes, /function probeState/);
   assert.match(probes, /definition\.id === "redemet-satellite"/);
   assert.match(probes, /error\.startsWith\("A REDEMET respondeu sem imagem utilizável"\)/);
-  assert.match(probes, /return redemetAnsweredWithoutProduct \? "partial" : "offline"/);
-  assert.doesNotMatch(probes, /definition\.id === "inmet-satellite"[\s\S]{0,180}"partial"/);
+  assert.match(probes, /if \(redemetAnsweredWithoutProduct\) return "partial"/);
+  assert.match(probes, /return "offline"/);
+});
+
+test("HTTP 403 do satélite INMET representa bloqueio da integração e não outage do serviço público", () => {
+  assert.match(probes, /definition\.id === "inmet-satellite"/);
+  assert.match(probes, /HTTP 403\|recusou a integração server-side/);
+  assert.match(probes, /if \(inmetSatelliteServerSideBlocked\) return "implementation"/);
+  assert.match(probes, /Este estado descreve a integração do Tempo Pelotas/);
+  assert.match(probes, /não indisponibilidade do serviço público do INMET/);
 });
 
 test("satélite REDEMET diagnostica estrutura sem registrar URL autenticada", () => {
