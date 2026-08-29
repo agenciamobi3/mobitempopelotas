@@ -8,6 +8,7 @@ import {
 } from "../src/lib/hydrology/ana-rhn-public.server.ts";
 
 const source = readFileSync("src/lib/hydrology/ana-rhn-public.server.ts", "utf8");
+const statusSource = readFileSync("src/lib/status/data-status.server.ts", "utf8");
 
 const sanitizedLaranjalPayload = {
   displayFieldName: "Parametro",
@@ -93,4 +94,13 @@ test("ANA RHN adapter keeps a short request budget and never writes historical m
   assert.match(source, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
   assert.doesNotMatch(source, /historical_measurements/);
   assert.doesNotMatch(source, /supabase/);
+});
+
+test("status monitor probes ANA RHN readiness without promoting the source to runtime active", () => {
+  assert.match(statusSource, /fetchAnaRhnLaranjalPublicSnapshot/);
+  assert.match(statusSource, /anaRhnResult/);
+  assert.match(statusSource, /id: "ana-rhn"/);
+  assert.match(statusSource, /state: "implementation"/);
+  assert.match(statusSource, /medição segue bloqueada até confirmar unidade, referência vertical e timezone/);
+  assert.doesNotMatch(statusSource, /snapshot\.rawValue/);
 });
