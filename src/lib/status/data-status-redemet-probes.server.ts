@@ -22,6 +22,11 @@ const REDEMET_SERVICE_IDS = new Set([
   "inmet-satellite",
 ]);
 
+const ANA_RHN_LEGACY_BLOCKING_COPY =
+  "medição segue bloqueada até confirmar unidade, referência vertical e timezone.";
+const ANA_RHN_CURRENT_BLOCKING_COPY =
+  "unidade (cm) e timezone foram confirmados; a medição segue bloqueada até confirmar a referência vertical específica da estação.";
+
 type ProbeLayer = RedemetImageLayerResponse | RedemetStormLayerResponse;
 type ProbeProvider = RedemetImageLayerResponse["provider"];
 
@@ -116,6 +121,17 @@ function serviceFromProbe(
   };
 }
 
+function normalizeAnaRhnImplementationDetail(service: ServiceStatus): ServiceStatus {
+  if (service.id !== "ana-rhn" || !service.detail.includes(ANA_RHN_LEGACY_BLOCKING_COPY)) {
+    return service;
+  }
+
+  return {
+    ...service,
+    detail: service.detail.replace(ANA_RHN_LEGACY_BLOCKING_COPY, ANA_RHN_CURRENT_BLOCKING_COPY),
+  };
+}
+
 export async function collectIndependentRedemetServices(
   checkedAt = new Date().toISOString(),
 ): Promise<ServiceStatus[]> {
@@ -169,7 +185,9 @@ export async function collectDataStatusWithIndependentRedemet(): Promise<DataSta
   ]);
 
   const services = [
-    ...overview.services.filter((service) => !REDEMET_SERVICE_IDS.has(service.id)),
+    ...overview.services
+      .filter((service) => !REDEMET_SERVICE_IDS.has(service.id))
+      .map(normalizeAnaRhnImplementationDetail),
     ...redemetServices,
   ];
 
