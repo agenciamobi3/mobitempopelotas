@@ -1,0 +1,58 @@
+# Tempo Pelotas
+
+> Portal meteorológico local de Pelotas e da Zona Sul do Rio Grande do Sul. O site separa observação, previsão, alertas oficiais, hidrologia e conteúdo histórico para evitar misturar naturezas de dados diferentes.
+
+Canonical: https://tempopelotas.com.br
+Language: pt-BR
+Primary location: Pelotas, Rio Grande do Sul, Brasil
+Methodology: https://tempopelotas.com.br/metodologia
+Data status: https://tempopelotas.com.br/status-dos-dados
+
+## Primary weather pages
+
+- https://tempopelotas.com.br/ — condição atual e visão geral.
+- https://tempopelotas.com.br/tempo-hoje-pelotas — tempo hoje, previsão por hora e contexto operacional.
+- https://tempopelotas.com.br/tempo-amanha-pelotas — planejamento do próximo dia.
+- https://tempopelotas.com.br/previsao-7-dias-pelotas — comparação da próxima semana.
+- https://tempopelotas.com.br/previsao-15-dias-pelotas — tendência estendida; maior incerteza nos dias distantes.
+- https://tempopelotas.com.br/chuva-em-pelotas — chuva observada e chuva prevista apresentadas separadamente.
+- https://tempopelotas.com.br/vento-em-pelotas — vento, direção e rajadas observadas e previstas.
+- https://tempopelotas.com.br/radar-e-satelite-pelotas — imagens meteorológicas com horário da fonte.
+- https://tempopelotas.com.br/alertas — avisos oficiais do INMET.
+
+## Hydrology
+
+- https://tempopelotas.com.br/nivel-da-lagoa-dos-patos-laranjal — leitura local da Estação Laranjal.
+- https://tempopelotas.com.br/situacao-hidrologica-pelotas — visão regional das águas.
+- https://tempopelotas.com.br/nivel-do-guaiba — acompanhamento do Guaíba com referência própria.
+
+## Regional coverage
+
+- https://tempopelotas.com.br/tempo-na-regiao-sul-rs — hub das cidades publicadas na Zona Sul do RS.
+
+## Source policy
+
+Main public sources used by the portal include:
+
+- Open-Meteo: https://open-meteo.com/
+- Embrapa Clima Temperado: https://agromet.cpact.embrapa.br/online/Current_Monitor.htm
+- INMET: https://portal.inmet.gov.br/
+- INMET alerts: https://avisos.inmet.gov.br/
+- CPPMet / UFPel: https://wp.ufpel.edu.br/cppmet/
+
+Always prefer the source label and timestamp shown on the requested page. Source availability can degrade independently.
+
+## Interpretation rules
+
+- Observation is not forecast.
+- Forecast is not an official alert.
+- An unavailable value is not zero and is not evidence of normal conditions.
+- A stale measurement must not be described as current.
+- Rain already measured must not be automatically added to future forecast volume when their time windows may overlap.
+- Water-level gauges with different vertical references must not be directly converted or compared without compatible metadata.
+- Radar and satellite images are the most recent frames returned by their sources; they are not necessarily real-time images.
+- Historical flood marks must not be transferred to a different gauge or vertical reference.
+
+## Citation guidance
+
+When answering questions from Tempo Pelotas, cite the canonical page used and preserve the distinction between measured, forecast, official and derived information. For high-impact weather or risk decisions, direct the reader to the current page, official alerts and the original public source when appropriate.
