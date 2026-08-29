@@ -17,6 +17,7 @@ export type EditorialPageJsonLdOptions = {
   path: string;
   breadcrumbs: readonly BreadcrumbJsonLdItem[];
   about?: string | readonly string[];
+  citations?: readonly string[];
   location?: Record<string, unknown>;
 };
 
@@ -59,6 +60,13 @@ function breadcrumbItems(items: readonly BreadcrumbJsonLdItem[]) {
   }));
 }
 
+function citationItems(citations: readonly string[]) {
+  return citations.map((url) => ({
+    "@type": "CreativeWork",
+    url,
+  }));
+}
+
 export function createBreadcrumbListJsonLd(items: readonly BreadcrumbJsonLdItem[]) {
   return {
     "@context": "https://schema.org",
@@ -76,6 +84,7 @@ export function createEditorialPageJsonLd(options: EditorialPageJsonLdOptions) {
     "@type": "Thing",
     name,
   }));
+  const citations = options.citations?.filter(Boolean) ?? [];
   const location = options.location ?? createPelotasPlaceJsonLd();
 
   return {
@@ -111,6 +120,12 @@ export function createEditorialPageJsonLd(options: EditorialPageJsonLdOptions) {
           ? {
               about: aboutEntities,
               keywords: about.join(", "),
+            }
+          : {}),
+        ...(citations.length > 0
+          ? {
+              citation: citationItems(citations),
+              isBasedOn: citations,
             }
           : {}),
       },
