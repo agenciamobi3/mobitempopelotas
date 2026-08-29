@@ -24,7 +24,7 @@ Regras que não devem ser quebradas:
 | Domínio | Estado atual |
 | --- | --- |
 | Portal público | **P0 de navegação estabilizado** no domínio canônico |
-| Runtime publicado | Release identificável `2026-08-29-ana-rhn-readiness-v1`; `/api/runtime-version` é estático, `no-store` e `noindex` |
+| Runtime publicado | Release identificável `2026-08-29-ana-rhn-contract-v2`; `/api/runtime-version` é estático, `no-store` e `noindex` |
 | Home / Hoje / Amanhã / 7 dias | **Shell-first**: documento inicial não aguarda fontes externas |
 | Home sem dado inicial | Mostra “Atualizando dados meteorológicos...” durante o budget de recuperação; indisponibilidade só aparece após tentativa real |
 | Open-Meteo | Previsão principal; falha degrada localmente e não bloqueia documento shell-first |
@@ -151,7 +151,7 @@ Documento de referência: `docs/ANA_RHN_INTEGRATION.md`.
 
 ## 9. Monitor de status
 
-O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. A migration do scheduler está aplicada no Supabase oficial. Uma coleta real no runtime `2026-08-29-ana-rhn-readiness-v1` persistiu 14 serviços e manteve `ana-rhn` como `implementation`.
+O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. A migration do scheduler está aplicada no Supabase oficial. A validação de produção do corte `2026-08-29-ana-rhn-contract-v2` deve confirmar 14 serviços e `ana-rhn` em `implementation` com apenas a referência vertical como gate semântico restante quando o endpoint responder.
 
 A lacuna histórica anterior foi encerrada sem fabricar uma indisponibilidade contínua. Se nenhuma nova amostra for persistida por mais de 30 minutos, o histórico é tratado como stale.
 
