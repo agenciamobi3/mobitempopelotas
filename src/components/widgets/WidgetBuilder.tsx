@@ -56,7 +56,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
 
       if (!result.ok) {
         if (result.code === "unauthenticated") {
-          window.location.assign("/conta?next=/conta/widgets");
+          window.location.assign("/conta?next=/widgets");
           return;
         }
         setFeedback({
