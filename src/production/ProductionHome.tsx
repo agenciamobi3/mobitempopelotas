@@ -34,6 +34,7 @@ import "@/production/styles/home-water-deferred.css";
 
 const CAMERA_DISCOVERY_IDLE_TIMEOUT_MS = 2_000;
 const CAMERA_DISCOVERY_FALLBACK_DELAY_MS = 900;
+const WEATHER_RECOVERY_GRACE_MS = 12_250;
 
 const advisoryRank: Record<AdvisoryLevel, number> = { normal: 0, attention: 1, warning: 2 };
 const officialSeverityRank: Record<InmetAlertSeverity, number> = {
@@ -201,8 +202,24 @@ export function ProductionHome({
   const hasUsableWeather = Boolean(
     weather.current.available || weather.hourly.length > 0 || weather.daily.length > 0,
   );
+  const [weatherRecoveryExpired, setWeatherRecoveryExpired] = useState(false);
+
+  useEffect(() => {
+    if (hasUsableWeather) {
+      setWeatherRecoveryExpired(false);
+      return;
+    }
+
+    setWeatherRecoveryExpired(false);
+    const timeout = window.setTimeout(
+      () => setWeatherRecoveryExpired(true),
+      WEATHER_RECOVERY_GRACE_MS,
+    );
+    return () => window.clearTimeout(timeout);
+  }, [hasUsableWeather]);
 
   if (!hasUsableWeather) {
+    const recoveryPending = !weatherRecoveryExpired;
     return (
       <div className="site-shell site-shell--home site-shell--home-editorial">
         <SiteHeader advisoryLevel="normal" variant="hero" />
@@ -210,11 +227,26 @@ export function ProductionHome({
           <section
             className="status-page production-weather-unavailable"
             aria-labelledby="weather-unavailable-title"
+            aria-live="polite"
+            aria-busy={recoveryPending}
           >
             <p className="status-kicker">Tempo em Pelotas</p>
-            <h1 id="weather-unavailable-title">Dados temporariamente indisponíveis</h1>
-            <p>{recoveredData.weather.message ?? recoveredData.brief.summary}</p>
-            <p>O portal continuará consultando automaticamente as fontes meteorológicas.</p>
+            <h1 id="weather-unavailable-title">
+              {recoveryPending
+                ? "Atualizando dados meteorológicos..."
+                : "Dados meteorológicos temporariamente indisponíveis"}
+            </h1>
+            {recoveryPending ? (
+              <>
+                <p>Estamos consultando as fontes meteorológicas para montar a leitura atual.</p>
+                <p>A página permanece navegável enquanto a atualização acontece.</p>
+              </>
+            ) : (
+              <>
+                <p>{recoveredData.weather.message ?? recoveredData.brief.summary}</p>
+                <p>O portal continuará consultando automaticamente as fontes meteorológicas.</p>
+              </>
+            )}
             <p>
               Enquanto a previsão não atualiza, use os atalhos abaixo para consultar águas, câmeras,
               avisos e metodologia.
