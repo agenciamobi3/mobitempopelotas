@@ -1,7 +1,7 @@
 # Tempo Pelotas — arquitetura do gerador de widgets
 
 Última atualização: 29/08/2026  
-Estado: fundação V1 publicada; expansão meteorológica em validação
+Estado: fundação V1 publicada; expansão meteorológica com 5 módulos versionada
 
 ## Objetivo
 
@@ -18,7 +18,9 @@ A camada Free nasce propositalmente generosa para estimular cadastro, uso real e
 - quantidade de widgets: sem limite nesta fase (`widgetsMax=null`);
 - Nível do Laranjal: habilitado;
 - Tempo agora em Pelotas: habilitado;
-- Previsão de 7 dias: habilitada no registry e em validação de publicação;
+- Previsão de 7 dias: habilitada;
+- Chuva em Pelotas: habilitada;
+- Vento e rajadas: habilitado;
 - marca Tempo Pelotas: mantida;
 - billing: inexistente;
 - bloqueio por plano: somente infraestrutura, ainda sem venda comercial.
@@ -38,13 +40,27 @@ O `Widget Registry` em `src/lib/widgets/widget-registry.ts` é a fonte de verdad
    - entitlement: `widgetsCurrentWeather`.
 
 3. `previsao-7-dias`
-   - usa a consolidação meteorológica já existente em `getAggregatedPelotasWeather`;
-   - exibe os sete primeiros dias com mínima, máxima, chuva e rajada;
-   - possui renderer compacto próprio em `SevenDayForecastWidget`;
-   - atualiza a prévia periodicamente sem criar uma nova integração de fonte;
+   - usa `getAggregatedPelotasWeather`;
+   - exibe sete dias com mínima, máxima, chuva e rajadas;
+   - renderer compacto: `SevenDayForecastWidget`;
    - entitlement: `widgetsSevenDayForecast`.
 
-Novos módulos entram no registry antes de aparecerem no gerador. Não há HTML/JavaScript arbitrário definido pelo usuário.
+4. `chuva-pelotas`
+   - usa a mesma consolidação meteorológica do portal;
+   - mantém chuva observada da Embrapa separada da chuva prevista;
+   - exibe chance e volume das próximas horas sem somar janelas incompatíveis;
+   - renderer compacto: `RainWidget`;
+   - entitlement: `widgetsRain`.
+
+5. `vento-pelotas`
+   - usa a consolidação meteorológica existente;
+   - exibe vento e rajada atuais mais tendência horária de velocidade e rajadas;
+   - renderer compacto: `WindWidget`;
+   - entitlement: `widgetsWind`.
+
+Não há HTML/JavaScript arbitrário definido pelo usuário.
+
+A validação de criação deixou de repetir uma enumeração manual dos módulos: `widget.functions.ts` valida o valor contra `isWidgetType`, derivado do próprio registry. Isso evita que um novo módulo apareça no gerador mas seja rejeitado pelo endpoint de criação por desalinhamento entre listas.
 
 ## Persistência e segurança
 
@@ -79,7 +95,7 @@ Validação no Supabase oficial em 29/08/2026 confirmou:
 - `authenticated_select=true`;
 - `anon` pode executar apenas a RPC pública;
 - token UUID inexistente retornou zero linhas;
-- a tabela `user_widgets` continuava com zero registros antes da expansão de 7 dias, portanto nenhuma conta real foi usada silenciosamente para validar a feature.
+- `user_widgets` estava com zero registros durante esta rodada; nenhuma conta real foi usada silenciosamente para criar widgets de teste.
 
 ## Fluxo do usuário
 
@@ -93,6 +109,8 @@ Fluxo:
 4. recebe uma prévia;
 5. copia o snippet;
 6. pode pausar ou reativar o widget.
+
+Se a sessão expirar durante a criação, o login retorna para `/widgets`. A antiga referência incorreta a `/conta/widgets` foi removida.
 
 O V1 grava `theme=auto`. A infraestrutura de tema existe, mas personalização visual avançada ainda não está exposta como funcionalidade completa.
 
@@ -140,6 +158,8 @@ As páginas normais do portal não têm sua política de frame relaxada por caus
 - `widgetsLaranjal`;
 - `widgetsCurrentWeather`;
 - `widgetsSevenDayForecast`;
+- `widgetsRain`;
+- `widgetsWind`;
 - `widgetsAdvancedThemes`;
 - `widgetsRemoveBranding`.
 
@@ -147,25 +167,24 @@ As páginas normais do portal não têm sua política de frame relaxada por caus
 
 ## Evolução planejada
 
-Próximos candidatos naturais, sujeitos à estabilidade/licença/semântica de cada fonte:
+Com os cinco módulos-base cobertos, os próximos candidatos naturais são:
 
-- chuva e acumulados;
-- vento e rajadas;
 - nível do Guaíba;
 - rede regional da Lagoa dos Patos;
 - alertas oficiais;
 - radar;
-- widgets compostos.
+- widgets compostos;
+- opções de apresentação/configuração controladas pelo registry.
 
 Antes de restringir qualquer módulo Free, observar uso real e definir proposta de valor do futuro plano pago.
 
 ## Gates de validação
 
-1. `/widgets`, `/widgets/embed.js` e `/embed/widget` estão versionados e já tiveram publicação funcional observada;
+1. `/widgets`, `/widgets/embed.js` e `/embed/widget` estão versionados e já tiveram publicação funcional observada em rodadas anteriores;
 2. o renderer gerenciado está codificado como `no-store`, mas a prova externa dos headers no domínio canônico ainda deve ser repetida por um cliente HTTP que exponha cabeçalhos;
 3. o E2E autenticado completo continua pendente até existir uma conta descartável apropriada; contas reais não serão usadas silenciosamente;
-4. `previsao-7-dias` foi implementado de forma staged na `main`, reutilizando a consolidação existente e sem escrita em `user_widgets`;
-5. só depois da validação visual/publicação desse módulo avançar para chuva e, em seguida, vento.
+4. Previsão de 7 dias, Chuva e Vento reutilizam a consolidação meteorológica existente, sem novas credenciais e sem escrita extra de dados meteorológicos;
+5. em 29/08/2026 o Lovable aceitou novo deploy da expansão; a sincronização GitHub → Lovable é verificada pelos arquivos críticos antes de cada publicação.
 
 GitHub Actions não é gate operacional até 01/09/2026. Até essa data, a validação desta frente usa inspeção de código, contratos versionados, sincronização GitHub → Lovable, smoke de publicação quando disponível e verificações no Supabase que não alterem contas reais.
 
@@ -174,15 +193,19 @@ GitHub Actions não é gate operacional até 01/09/2026. Até essa data, a valid
 `tests/widget-builder-foundation.test.ts` protege:
 
 - Free aberto nesta fase;
-- módulos registrados;
-- entitlement próprio da previsão de 7 dias;
+- cinco módulos registrados;
+- entitlements por módulo;
+- criação derivada de `isWidgetType`, sem enum paralela;
 - RLS/RPC pública;
 - gates de sessão/entitlement/owner;
+- retorno correto ao gerador após login;
 - canonical do embed;
 - protocolo responsivo por `postMessage`;
 - liberação de frame apenas na rota dedicada;
 - `no-store` no renderer gerenciado;
 - reutilização da consolidação meteorológica no módulo de 7 dias;
+- separação entre chuva observada e prevista;
+- vento e rajadas atuais + tendência horária;
 - descoberta pelo painel.
 
 O contrato está incluído em `test:contracts`. Enquanto GitHub Actions estiver fora do gate até 01/09/2026, versionar o teste não equivale a declarar sua execução.
