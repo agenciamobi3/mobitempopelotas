@@ -79,9 +79,13 @@ function serviceFromProbe(
   fallbackCheckedAt: string,
 ): ServiceStatus {
   const state = layer.configured && layer.available ? "operational" : "offline";
+  const frameDetail =
+    layer.frames.length === 1
+      ? "1 quadro utilizável"
+      : `${layer.frames.length} quadros utilizáveis`;
   const detail =
     state === "operational"
-      ? `Probe independente respondeu com ${layer.frames.length} quadro${layer.frames.length === 1 ? "" : "s"} utilizável${layer.frames.length === 1 ? "" : "eis"}.`
+      ? `Probe independente respondeu com ${frameDetail}.`
       : layer.error || "A integração não retornou dado utilizável nesta verificação independente.";
 
   return {
