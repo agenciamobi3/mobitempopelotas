@@ -31,8 +31,6 @@ type RecoveryRecord = {
   reason: "asset" | "navigation" | "runtime";
 };
 
-let clientRuntimeReady = false;
-
 function errorMessage(error: unknown) {
   if (error instanceof Error) return `${error.name}: ${error.message}`;
   if (error instanceof Response) return `Response ${error.status} ${error.url}`;
@@ -105,7 +103,6 @@ function navigateToFreshDocument(reason: RecoveryRecord["reason"]) {
 
 export function markClientRuntimeReady() {
   if (typeof window === "undefined") return;
-  clientRuntimeReady = true;
   stripRecoveryParam();
 }
 
@@ -116,12 +113,14 @@ export function recoverStaleClientAssets(error?: unknown) {
 }
 
 /**
- * Uma aba hidratada pode atravessar um deploy e manter módulos antigos em
- * memória. Se qualquer erro alcançar o boundary global depois da hidratação,
- * fazemos no máximo uma navegação de documento realmente fresca por URL em
- * uma janela de 60 segundos. Erros transitórios recebem a razão navigation;
- * outros erros de runtime recebem uma única tentativa controlada antes do
- * fallback público do root.
+ * Qualquer erro que alcance o boundary global público recebe no máximo uma
+ * navegação de documento realmente fresca por URL em uma janela de 60 segundos.
+ *
+ * Não condicionamos essa tentativa a um marcador de "runtime pronto": quando o
+ * próprio root falha durante hidratação/navegação, RootComponent pode nunca
+ * montar e esse marcador jamais seria definido. O sessionStorage já impede
+ * loops; se a mesma URL falhar novamente dentro da janela, o boundary permanece
+ * visível e oferece navegação direta.
  */
 export function recoverClientNavigationFailure(error: unknown) {
   if (typeof window === "undefined") return false;
@@ -130,8 +129,6 @@ export function recoverClientNavigationFailure(error: unknown) {
   if (isStaleClientAssetError(error)) {
     return navigateToFreshDocument("asset");
   }
-
-  if (!clientRuntimeReady) return false;
 
   return navigateToFreshDocument(
     isTransientClientNavigationError(error) ? "navigation" : "runtime",
