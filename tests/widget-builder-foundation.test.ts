@@ -67,6 +67,14 @@ test("embed gerado é responsivo e aceita frame externo somente no renderer dedi
   assert.match(server, /withFrameAncestors\(headers\.get\("Content-Security-Policy"\), "\*"\)/);
 });
 
+test("renderer gerenciado não usa cache e widgets fixos preservam cache público", () => {
+  assert.match(server, /if \(pathname === "\/embed\/widget" \|\| !response\.ok\)/);
+  assert.match(server, /headers\.set\("Cache-Control", "no-store"\)/);
+  assert.match(server, /headers\.set\("CDN-Cache-Control", "no-store"\)/);
+  assert.match(server, /headers\.set\("Cache-Control", EMBED_CACHE_CONTROL\)/);
+  assert.match(server, /headers\.set\("CDN-Cache-Control", EMBED_CDN_CACHE_CONTROL\)/);
+});
+
 test("gerador e renderer genérico não recebem um segundo shell global", () => {
   assert.match(siteLayout, /"\/widgets"/);
   assert.match(siteLayout, /"\/embed\/widget"/);
