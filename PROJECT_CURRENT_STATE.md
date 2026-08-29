@@ -2,11 +2,11 @@
 
 Última atualização: 29/08/2026  
 Branch operacional: `main`  
-Domínio canônico: `https://tempopelotas.com.br`
+Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
 ## 1. Fonte de verdade e regras permanentes
 
-Este arquivo resume o estado operacional atual. Evidências e histórico detalhado ficam em `docs/`; código ativo, migrations aplicadas e runtime publicado prevalecem sobre documentação antiga.
+Este arquivo descreve o estado operacional atual. Evidências e histórico detalhado ficam nos documentos especializados em `docs/`; código ativo, migrations aplicadas e runtime publicado prevalecem sobre documentação antiga.
 
 Regras permanentes:
 
@@ -14,7 +14,7 @@ Regras permanentes:
 - observação, previsão, alerta oficial, reanálise e dado derivado permanecem semanticamente separados;
 - indisponibilidade nunca vira zero, normalidade ou diagnóstico automático;
 - timeout, HTTP 403, falha de parsing ou bloqueio de integração não provam indisponibilidade global da fonte pública;
-- dados correntes usam resposta `no-store/no-cache`; last-good conserva timestamp e idade reais;
+- dados correntes usam `no-store/no-cache`; last-good conserva timestamp e idade reais;
 - uma régua/cota não é convertida para outra referência sem metadados suficientes;
 - navegabilidade pública prevalece sobre disponibilidade instantânea de integrações externas;
 - fonte tecnicamente disponível não é automaticamente habilitada se o produto já possui cobertura suficiente;
@@ -25,29 +25,29 @@ Regras permanentes:
 | Domínio | Estado atual |
 | --- | --- |
 | Portal público | **P0 de navegação estabilizado** no domínio canônico |
-| Runtime publicado | `2026-08-29-ana-rhn-contract-v2`; `/api/runtime-version` estático, `no-store`, `noindex` |
+| Runtime marker | `/api/runtime-version` permanece estático e `no-store/noindex`; validar cortes novos também por `x-deployment-id` |
 | Home / Hoje / Amanhã / 7 dias | **Shell-first**: documento inicial não aguarda fontes externas |
 | Home sem dado inicial | “Atualizando dados meteorológicos...” durante recuperação; indisponibilidade somente após tentativa real |
-| Open-Meteo | Previsão principal; direto=`operational`, contingência/last-good recente=`partial`, sem previsão utilizável=`offline` |
+| Open-Meteo | Principal; direto=`operational`, contingência/last-good recente=`partial`, sem previsão utilizável=`offline` |
 | MET Norway | Contingência compartilhada quando aplicável |
-| Embrapa | Observação local centralizada e recuperação client-side |
-| INMET meteorológico | `operational` após priorização da rota municipal funcional; integrações individuais continuam semanticamente separadas |
-| Radar REDEMET | Probe independente; `operational` na última verificação registrada |
-| STSC | Probe independente; `operational` na última verificação registrada |
+| Embrapa | Observação local centralizada + recuperação client-side |
+| INMET meteorológico | `operational` após priorização da rota municipal funcional |
+| Radar REDEMET | Probe independente |
+| STSC | Probe independente; eventos históricos deduplicados antes do upsert |
 | Satélite REDEMET | `partial` quando a API responde sem produto utilizável |
-| GOES / INMET | 403 server-side tratado como `implementation` da integração, não como indisponibilidade do produto público INMET |
-| Hidrologia local/regional | Laranjal, Guaíba, Lagoa e Defesa Civil degradam por domínio |
-| ANA / SNIRH / RHN | **Readiness/cross-check somente; sem ingestão planejada nesta fase**. Laranjal já coberto por duas fontes de coleta |
-| Historical Data Layer | Ativo; eventos STSC deduplicados pela chave canônica antes do upsert; cron automático comprovado |
+| GOES / INMET | HTTP 403 server-side tratado como `implementation`, não como indisponibilidade pública global |
+| Hidrologia | Laranjal, Guaíba, Lagoa dos Patos e Defesa Civil degradam independentemente |
+| ANA / SNIRH / RHN | **Readiness/cross-check somente**, sem terceira ingestão do Laranjal nesta fase |
+| Historical Data Layer | Ativo; classes `observation`, `forecast`, `reanalysis`, `derived` separadas |
 | Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços |
+| Widget Builder | **Fundação V1 publicada**: conta cria e gerencia widgets responsivos por token público |
+| Widget modules V1 | Nível do Laranjal + Tempo agora em Pelotas |
+| Free / PRO | Entitlements existem; Free nasce sem limite de widgets nesta fase; billing comercial ainda não existe |
 | Central Regional | Pelotas + 23 páginas municipais indexáveis |
 | SEO técnico | 48 URLs indexáveis, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
-| Conta / Google | Fundação parcial operacional; E2E com duas contas pendente |
-| Free / PRO | Entitlements existem; billing comercial ainda não existe |
-| Weather AI | Fora do caminho crítico das rotas shell-first |
-| Service worker / Web Push | SW aposentado temporariamente; Web Push suspenso |
-| GitHub Actions | **Bloqueado antes dos steps**; não declarar build/test/typecheck executados |
-| Search Console | Recaptura pendente enquanto o conector estiver sem plano ativo |
+| Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis ainda pendente |
+| Service Worker / Web Push | Suspensos até estabilidade sustentada |
+| GitHub Actions | **Bloqueado antes dos steps**; não declarar suíte/build/typecheck executados |
 
 ## 3. Stack e budgets públicos
 
@@ -62,163 +62,189 @@ Budgets atuais:
 - previsão de 15 dias: 2,8 s;
 - inteligência meteorológica compartilhada: teto interno de 5 s.
 
-## 4. Rotas públicas e SEO
+## 4. Navegação, rotas e SEO
 
-`src/lib/public-routes.ts` mantém **48 URLs indexáveis = 25 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate; prioridade continua sendo qualidade e estabilidade das URLs existentes.
+`src/lib/public-routes.ts` mantém **48 URLs indexáveis = 25 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate.
 
-## 5. Navegação pública
+`/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` são shell-first. O menu público usa anchors nativas; preload SPA global por intenção e invalidação periódica da árvore foram retirados. O boundary “Carregando a versão mais recente do Tempo Pelotas” é contenção excepcional, não loading normal.
 
-`/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` são shell-first. Depois da hidratação, previsão e observação entram de forma independente.
+Rotas de conta e embeds que possuem shell próprio permanecem em `standaloneRoutes`. `/widgets` e `/embed/widget` também são standalone para impedir shell duplicado e manter o iframe limpo.
 
-O menu público usa anchors nativas; preload SPA global por intenção e invalidação periódica da árvore foram retirados. O boundary “Carregando a versão mais recente do Tempo Pelotas” é contenção excepcional, não loading normal.
+## 5. Meteorologia e monitor operacional
 
-## 6. Meteorologia e fontes oficiais
+### Open-Meteo
 
-### Open-Meteo / MET Norway
+Open-Meteo é a previsão principal. A rota de 15 dias nunca inventa dias 8–15; janela incompleta real é `partial`.
 
-Open-Meteo é a previsão principal. A rota de 15 dias nunca inventa dias 8–15; janela incompleta real é marcada como `partial`.
+A contingência persistida preserva last-good com timestamp original. O monitor possui leitura read-only independente do cache e usa esta semântica:
 
-A contingência Open-Meteo foi endurecida em 29/08/2026: runtime sem `SUPABASE_MODE` explícito pode inferir `external` somente quando URL e chave pública realmente existem; `mock` explícito continua soberano. Quando a chamada direta falha, o servidor tenta o last-good persistido e só atualiza pela Edge quando necessário. O snapshot conserva `fetched_at/last_success_at` reais e não transforma previsão antiga em dado “agora”.
+- origem direta utilizável: `operational`;
+- fallback ou last-good recente/utilizável: `partial`;
+- nenhuma previsão utilizável: `offline`.
 
-O monitor possui uma leitura read-only independente da contingência persistida. A semântica operacional é deliberadamente mais estrita que a disponibilidade do conteúdo:
-
-- origem direta Open-Meteo utilizável: `operational`;
-- resposta servida por fallback ou origem direta falhou com last-good persistido utilizável e recente: `partial`;
-- nenhuma previsão direta/fallback nem last-good recente utilizável: `offline`.
-
-O last-good usado pelo monitor precisa conter forecast diário utilizável e ter no máximo 30 minutos. Em produção, a coleta de 29/08/2026 05:46:29 UTC capturou exatamente o caso de degradação: a origem direta falhou, o last-good de 05:40:11 UTC tinha 6,3 minutos e `weather-open-meteo` foi corretamente registrado como `partial`, não `offline`.
-
-### Embrapa
-
-Embrapa Clima Temperado é a principal observação local quando utilizável. Pageview não dispara coleta persistente.
+Produção comprovou o caso de degradação: em 29/08/2026 05:46:29 UTC a origem direta falhou, o last-good de 05:40:11 UTC tinha 6,3 min e o serviço foi corretamente registrado como `partial`, não `offline`.
 
 ### INMET
 
-INMET fornece avisos, previsão complementar, estação e produtos específicos. Falha de uma integração é descrita apenas como falha daquela integração.
+A previsão municipal de Pelotas prioriza `/previsao/4314407`, que responde com contrato válido. `/api/forecast/4314407`, atualmente 404, permanece apenas como contingência. Após a correção, `weather-inmet` passou a `operational` no monitor real.
 
-A previsão municipal de Pelotas prioriza `/previsao/4314407`, que respondeu com contrato válido; `/api/forecast/4314407`, atualmente 404, permanece apenas como contingência. Após a correção, `weather-inmet` passou a `operational` no monitor real.
+O produto de satélite INMET que recusa integração server-side com HTTP 403 permanece `implementation`; isso descreve a integração do Tempo Pelotas, não o serviço público do INMET.
 
-## 7. REDEMET / radar / satélite
+### REDEMET
 
-`src/lib/status/data-status-redemet-probes.server.ts` mede Radar, satélite REDEMET, STSC e GOES/INMET independentemente, com teto de 5 s.
+Radar, STSC, satélite REDEMET e GOES/INMET têm probes independentes. Radar/STSC utilizáveis são `operational`; satélite REDEMET sem produto, mas com API responsiva, é `partial`; falha real/timeout é `offline` da integração.
 
-Semântica:
+## 6. Hidrologia e política ANA/RHN
 
-- Radar/STSC com quadro utilizável: `operational`;
-- satélite REDEMET respondendo sem produto: `partial`;
-- timeout/falha real: `offline` da integração;
-- GOES/INMET com HTTP 403 server-side: `implementation`, sem afirmar indisponibilidade pública global.
+O Laranjal já possui **duas fontes de coleta do projeto**. Por decisão de produto, ANA/RHN não será adicionada como terceira fonte nesta fase.
 
-Na coleta real de 29/08/2026 05:46 UTC, Radar e STSC estavam `operational`; satélite REDEMET permaneceu `partial` por resposta sem imagem utilizável.
+Estação ANA/RHN LARANJAL `87955001`:
 
-## 8. Hidrologia e política ANA/RHN
-
-### Cobertura atual do Laranjal
-
-O Laranjal já é coberto por **duas fontes de coleta do projeto**. Por decisão de produto, a ANA/RHN **não será adicionada como terceira fonte de ingestão nesta fase**.
-
-### ANA / SNIRH / RHN — LARANJAL 87955001
-
-Identidade confirmada:
-
-- código `87955001`;
-- LARANJAL, Pelotas/RS;
-- estação fluviométrica e telemétrica;
-- responsável e operadora UFPel;
 - parâmetro `Nivel`;
-- unidade confirmada: `cm`;
-- timezone confirmado: `America/Sao_Paulo`;
-- referência vertical: `unconfirmed`.
-
-As interfaces públicas oficiais `CotasReferencia2` e `EstacaoInventarioFluviometrica` foram inspecionadas integralmente. Não expõem RN, datum, benchmark ou zero vertical específico da estação. `Status_Dado = Sem dados de referencia` refere-se às cotas classificatórias da camada, não ao datum vertical.
-
-A referência vertical continua como limitação semântica documentada, mas **não é mais o único passo antes de ativar coleta**, porque a ingestão foi adiada por política de produto.
-
-Estado no Supabase oficial:
-
-- `source_key=ana-rhn`;
-- station `ana-rhn-laranjal-87955001`;
-- `unitStatus=confirmed`, `unit=cm`;
-- `timezoneStatus=confirmed`, `timezone=America/Sao_Paulo`;
-- `verticalReferenceStatus=unconfirmed`;
+- unidade confirmada `cm`;
+- timezone confirmado `America/Sao_Paulo`;
+- referência vertical específica continua `unconfirmed`;
 - `collection_enabled=false`;
 - `publicMeasurementIngestionEnabled=false`;
 - `collectionStrategy=readiness-cross-check-only`;
 - `ingestionDeferredByProductPolicy=true`;
 - `activationRequiresExplicitProductDecision=true`;
 - `coveredByExistingSourceCount=2`;
-- **zero medições ANA/RHN**.
+- zero medições ANA/RHN no Historical Data Layer.
 
-Mesmo que a referência vertical seja confirmada futuramente, isso não habilita coleta automaticamente. Qualquer ativação futura exige decisão explícita sobre o papel de uma terceira fonte para o Laranjal.
+As interfaces públicas `CotasReferencia2` e `EstacaoInventarioFluviometrica` não expõem RN, datum, benchmark ou zero vertical específico da estação. Mesmo que essa referência seja confirmada futuramente, isso não habilita ingestão automaticamente.
 
 Documento especializado: `docs/ANA_RHN_INTEGRATION.md`.
 
-## 9. Monitor de status
+## 7. Historical Data Layer
 
-O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. ANA/RHN permanece `state=implementation`, fora do cálculo do `overall`.
+O arquivo canônico separa `observation`, `forecast`, `reanalysis` e `derived`. Fontes novas entram com governança explícita antes de qualquer ingestão.
 
-A mensagem pública ANA deve informar readiness/cross-check sem ingestão nesta fase, porque o Laranjal já possui duas fontes de coleta. Unidade e timezone estão confirmados; referência vertical continua não confirmada.
+O `historical-events-capture` roda pelo `cron.job` 8 a cada 10 minutos. A versão 2 deduplica eventos STSC pela chave `(source_key,event_type,source_record_id)` antes do upsert. Execução automática comprovada em 29/08/2026 05:40 UTC: 464 entradas → 245 chaves únicas → 245 persistidas, `success=true`, `error=null`.
 
-Em 29/08/2026 05:37 UTC o monitor ainda produziu um falso `weather-open-meteo=offline` durante uma falha transitória, apesar da política de last-good. Esse caso motivou a separação explícita entre saúde da origem direta e saúde da contingência persistida.
+## 8. Widget Builder — fundação V1
 
-Prova pós-correção em produção, 29/08/2026 05:46:29 UTC:
+Objetivo: transformar cadastro em utilidade prática e preparar um futuro plano pago por módulos, sem criar billing agora.
 
-- `weather-open-meteo=partial`; origem direta falhou e last-good real de 05:40:11 UTC foi preservado, idade 6,3 min;
-- `weather-inmet=operational`;
-- `redemet-radar=operational`;
-- `redemet-stsc=operational`;
-- `inmet-satellite=implementation`;
-- `ana-rhn=implementation`;
-- `redemet-satellite=partial` por ausência de imagem utilizável na resposta da API;
-- `overall=partial`.
+### Produto atual
 
-Essa amostra comprova que o monitor não promove mais uma falha transitória do Open-Meteo a `offline` enquanto houver last-good recente e utilizável.
+A área autenticada fica em `/widgets` e é descoberta pelo módulo “Gerador de widgets” em `/painel`.
 
-## 10. Historical Data Layer
+Fluxo V1:
 
-O arquivo canônico separa `observation`, `forecast`, `reanalysis` e `derived`. Fontes novas permanecem com governança explícita antes de qualquer ingestão.
+1. usuário autenticado escolhe módulo habilitado;
+2. define o nome do widget;
+3. cria o widget vinculado à própria conta;
+4. vê a prévia;
+5. copia o snippet de incorporação;
+6. pode pausar ou reativar o widget.
 
-A migration `defer_ana_rhn_ingestion_by_product_policy` registra a decisão de manter ANA/RHN em readiness/cross-check e exige decisão explícita para eventual ativação futura.
+Módulos iniciais do `Widget Registry`:
 
-O coletor `historical-events-capture` é executado automaticamente pelo `cron.job` 8 a cada 10 minutos. Em 29/08/2026 foi identificado que o STSC podia repetir, no mesmo lote, a mesma chave `(source_key,event_type,source_record_id)`, fazendo o PostgreSQL rejeitar o `ON CONFLICT DO UPDATE` com “cannot affect row a second time”. A Edge Function versão 2 deduplica o lote pela própria chave canônica antes do upsert e registra `inputRows`, `deduplicatedRows` e `droppedDuplicates`.
+- `nivel-laranjal` — nível/tendência do Laranjal;
+- `status-tempo-agora` — temperatura observada e condição atual em Pelotas.
 
-Provas de produção após o deploy da versão 2:
+Não existe HTML/JS arbitrário definido pelo usuário. Novos módulos entram pelo registry e por entitlement controlado.
 
-- execução manual `id=2989`, 05:33:51 UTC: 462 entradas STSC → 243 chaves canônicas, 219 duplicatas descartadas, 243 persistidas, `success=true`, `error=null`;
-- execução pelo mesmo wrapper usado pelo cron `id=2991`, 05:36:58 UTC: 364 → 217, 147 duplicatas descartadas, `success=true`, `error=null`;
-- execução **automática** do `cron.job` 8 `id=2993`, 05:40:02 UTC: 464 → 245, 219 duplicatas descartadas, 245 persistidas, `success=true`, `error=null`.
+### Free nesta fase
 
-A execução automática encerra o incidente: a deduplicação não depende de smoke manual e está ativa no caminho operacional real.
+`AccountEntitlements` possui:
 
-## 11. Segurança e runtime
+- `widgetsAccess`;
+- `widgetsCreate`;
+- `widgetsMax`;
+- `widgetsLaranjal`;
+- `widgetsCurrentWeather`;
+- `widgetsAdvancedThemes`;
+- `widgetsRemoveBranding`.
 
-Ativo: secrets server-side, RLS, gate geográfico, CSP, firewall de aplicação, rate limiting distribuído, allowlists/proxies de fontes, logs sanitizados e endpoint de runtime `no-store/noindex`.
+Free atualmente:
+
+- acesso/criação habilitados;
+- `widgetsMax=null` — sem limite de quantidade nesta fase;
+- Laranjal e Tempo Agora habilitados;
+- marca Tempo Pelotas mantida;
+- sem billing.
+
+`widgetsAdvancedThemes` e `widgetsRemoveBranding` são infraestrutura de evolução. Remoção de marca ainda não é funcionalidade publicada e não deve ser anunciada como disponível.
+
+### Banco, RLS e token público
+
+Migration aplicada: `20260829061000_create_user_widgets.sql`.
+
+`public.user_widgets` possui `user_id`, `public_token` UUID aleatório, tipo, título, tema, config controlada, status e versão.
+
+Segurança validada no Supabase oficial:
+
+- RLS ativa;
+- quatro policies de owner;
+- `anon` sem `SELECT` na tabela;
+- autenticado pode operar apenas os próprios registros;
+- público resolve somente token ativo pela RPC `get_public_widget(uuid)`;
+- RPC não retorna `user_id`;
+- token inexistente retorna zero linhas;
+- smoke transacional confirmou: ativo resolve 1; pausado resolve 0; transação revertida sem deixar widget em conta real.
+
+### Embed responsivo
+
+Snippet canônico:
+
+```html
+<script src="https://tempopelotas.com.br/widgets/embed.js" data-widget="UUID_PUBLICO" async></script>
+```
+
+`/widgets/embed.js` cria iframe para `/embed/widget?token=...`, largura 100% e ajusta altura com `postMessage`. O listener valida origem canônica, `contentWindow`, token e tipo da mensagem.
+
+`/embed/widget`:
+
+- é `noindex`;
+- aceita frame externo somente por ser superfície dedicada de embed;
+- não carrega header/footer do portal;
+- token inválido/inativo mostra “Widget indisponível” sem dados da conta.
+
+Validação em produção no domínio canônico, deployment `415e524024efd758db97555044a3db7239af314e4993bbe2488417feb895ddcf`:
+
+- `/widgets`: HTTP 200 e login para visitante não autenticado;
+- `/widgets/embed.js`: HTTP 200 e canonical correto;
+- `/embed/widget` com token inválido: HTTP 200, `X-Frame-Options` ausente, `frame-ancestors *`, `noindex`, sem header/footer global.
+
+E2E autenticado de criação/pausa/reativação em browser real continua pendente até haver conta descartável apropriada para teste.
+
+Documento especializado: `docs/WIDGET_BUILDER_ARCHITECTURE.md`.
+
+## 9. Segurança e runtime
+
+Ativos: secrets server-side, RLS, gate geográfico, CSP, firewall de aplicação, rate limiting distribuído, allowlists/proxies de fontes, logs sanitizados e endpoint de runtime `no-store/noindex`.
+
+O relaxamento de `frame-ancestors` é restrito às superfícies de embed. Páginas normais, inclusive `/widgets`, continuam com `SAMEORIGIN`/`frame-ancestors 'self'`.
 
 WAF gerenciado de edge não deve ser confundido com firewall de aplicação.
 
-## 12. Testes e deploy
+## 10. Testes e deploy
 
-Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, semântica da contingência Open-Meteo no monitor, Embrapa, 15 dias, hidrologia, REDEMET, status histórico, deduplicação de eventos históricos e ANA/RHN.
+Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, Embrapa, INMET, 15 dias, hidrologia, REDEMET, Historical Data Layer, ANA/RHN e a fundação do Widget Builder.
 
-GitHub Actions continua falhando antes dos steps; portanto testes versionados não significam suíte executada. Lovable comprova sincronização/build de preview, não substitui CI completa.
+`tests/widget-builder-foundation.test.ts` protege entitlements Free, registry, RLS/RPC, owner gates, canonical do embed, protocolo responsivo, política de frame, isolamento de shell e descoberta pelo painel. Está incluído em `test:contracts`.
 
-O corte da semântica de contingência Open-Meteo foi sincronizado no Lovable e publicado no domínio canônico; a troca do `x-deployment-id` foi confirmada antes do smoke de 05:46 UTC.
+GitHub Actions continua falhando antes dos steps; portanto teste versionado não significa suíte executada. Lovable comprova sincronização/build/publicação do corte, mas não substitui CI completa.
 
-## 13. Prioridades imediatas
+## 11. Próximas prioridades
 
-1. Manter ANA/RHN em readiness/cross-check; **não gastar o caminho crítico do projeto tentando ativar uma terceira coleta do Laranjal agora**.
-2. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets nem marcar o portal como indisponível quando a API responde sem imagem.
-3. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
-4. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
-5. Concluir E2E de autenticação com duas contas descartáveis.
-6. Recapturar Search Console quando o conector estiver disponível.
-7. Manter Service Worker e Web Push suspensos até estabilidade sustentada.
+1. Fazer E2E autenticado do Widget Builder com conta descartável: criar, visualizar, copiar, pausar e reativar.
+2. Adicionar novos módulos ao registry **um por vez**, começando por 7 dias, chuva e vento, sem duplicar infraestrutura.
+3. Manter Free generoso e observar uso real antes de definir limites ou plano pago.
+4. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets sem evidência.
+5. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
+6. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
+7. Concluir E2E geral de autenticação com duas contas descartáveis.
+8. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
-## 14. Documentos principais
+## 12. Documentos principais
 
+- `docs/WIDGET_BUILDER_ARCHITECTURE.md` — gerador de widgets, RLS, embed e evolução por módulos;
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets;
 - `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação;
-- `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e histórico do monitor;
+- `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
 - `docs/ANA_RHN_INTEGRATION.md` — contrato ANA/RHN e política readiness-only;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
 - `docs/REDEMET_OPERATIONS.md` — REDEMET;
@@ -227,6 +253,6 @@ O corte da semântica de contingência Open-Meteo foi sincronizado no Lovable e 
 - `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` — SEO;
 - `docs/PRODUCTION_CUTOVER.md` — runbook de produção.
 
-## 15. Regra de manutenção
+## 13. Regra de manutenção
 
-Este arquivo deve permitir responder rapidamente: o que está publicado, quais fontes alimentam o portal, o que está parcial/suspenso, quais decisões de produto limitam novas integrações e qual é o próximo trabalho real. Histórico detalhado permanece nos documentos especializados.
+Este arquivo deve responder rapidamente: o que está publicado, quais fontes alimentam o portal, o que está parcial/suspenso, quais decisões de produto limitam integrações, quais módulos de conta existem e qual é o próximo trabalho real. Histórico detalhado permanece nos documentos especializados.
