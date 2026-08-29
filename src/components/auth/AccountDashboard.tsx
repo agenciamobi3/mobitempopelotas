@@ -16,13 +16,14 @@ const dashboardFooterSource = {
 } satisfies WeatherData["source"];
 
 type AuthenticatedAccount = Extract<AccountSnapshot, { status: "authenticated" }>;
-type DashboardPublicPath = "/situacao-hidrologica-pelotas" | "/radar-e-satelite-pelotas";
+type DashboardPath = "/situacao-hidrologica-pelotas" | "/radar-e-satelite-pelotas" | "/widgets";
 
 type DashboardModule = {
   title: string;
   description: string;
   state: "available" | "preparing" | "pro";
-  href?: DashboardPublicPath;
+  href?: DashboardPath;
+  actionLabel?: string;
 };
 
 function moduleStateLabel(state: DashboardModule["state"]) {
@@ -35,6 +36,14 @@ export function AccountDashboard({ snapshot }: { snapshot: AuthenticatedAccount 
   const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const modules: DashboardModule[] = [
+    {
+      title: "Gerador de widgets",
+      description:
+        "Crie widgets responsivos do Tempo Pelotas, veja a prévia e copie o código para incorporar em outro site.",
+      state: "available",
+      href: "/widgets",
+      actionLabel: "Criar meus widgets →",
+    },
     {
       title: "Histórico",
       description:
@@ -145,7 +154,7 @@ export function AccountDashboard({ snapshot }: { snapshot: AuthenticatedAccount 
                 <p>{module.description}</p>
                 {module.href ? (
                   <Link to={module.href} className="account-dashboard__module-link">
-                    Abrir recurso público →
+                    {module.actionLabel ?? "Abrir recurso público →"}
                   </Link>
                 ) : null}
               </article>
