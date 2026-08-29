@@ -2,7 +2,6 @@ import { fetchDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.serve
 import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
-import { getRedemetOverview } from "@/lib/redemet/redemet.functions";
 import { getEmbrapaHealthSnapshotServer } from "@/lib/weather/embrapa-health.server";
 import { fetchOfficialWeatherSources } from "@/lib/weather/official-sources.server";
 import { fetchPelotasWeather } from "@/lib/weather/weather-baseline.server";
@@ -10,7 +9,6 @@ import { fetchPelotasWeather } from "@/lib/weather/weather-baseline.server";
 import { getActiveMaintenanceWindows } from "./data-status-storage.server";
 import type {
   DataStatusOverview,
-  ServiceCategory,
   ServiceState,
   ServiceStatus,
 } from "./data-status.types";
@@ -45,10 +43,6 @@ function stateFromDefesaCivil(
   if (status === "unavailable" || status === "disabled") return "offline";
   if (status === "partial") return "partial";
   return "operational";
-}
-
-function stateFromLayer(configured: boolean, available: boolean): ServiceState {
-  return configured && available ? "operational" : "offline";
 }
 
 function stateFromEmbrapaHealth(
@@ -95,63 +89,6 @@ function weatherService(
   };
 }
 
-function unavailableWeatherServices(checkedAt: string): ServiceStatus[] {
-  return [
-    weatherService(
-      "weather-embrapa",
-      "Observação meteorológica local",
-      "Embrapa Clima Temperado",
-      "offline",
-      checkedAt,
-    ),
-    weatherService(
-      "weather-inmet",
-      "Avisos meteorológicos oficiais",
-      "INMET",
-      "offline",
-      checkedAt,
-    ),
-    weatherService(
-      "weather-cppmet",
-      "Previsão e contexto regional",
-      "CPPMet / UFPel",
-      "offline",
-      checkedAt,
-    ),
-    weatherService(
-      "weather-open-meteo",
-      "Previsão numérica principal",
-      "Open-Meteo",
-      "offline",
-      checkedAt,
-    ),
-    weatherService(
-      "weather-met-norway",
-      "Previsão numérica complementar",
-      "MET Norway",
-      "offline",
-      checkedAt,
-    ),
-  ];
-}
-
-function unavailableRedemetServices(checkedAt: string): ServiceStatus[] {
-  return [
-    ["redemet-radar", "Radar meteorológico", "REDEMET / DECEA"],
-    ["redemet-satellite", "Imagem de satélite", "REDEMET / DECEA"],
-    ["redemet-stsc", "Ocorrências de trovoadas — STSC", "REDEMET / DECEA"],
-    ["inmet-satellite", "Satélite meteorológico complementar", "INMET"],
-  ].map(([id, name, provider]) => ({
-    id,
-    name,
-    provider,
-    category: "Radar e satélite" as ServiceCategory,
-    state: "offline" as ServiceState,
-    detail: detailForState("offline"),
-    checkedAt,
-  }));
-}
-
 function applyMaintenanceWindows(
   services: ServiceStatus[],
   maintenance: Awaited<ReturnType<typeof getActiveMaintenanceWindows>>,
@@ -188,7 +125,6 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     baselineResult,
     officialResult,
     embrapaHealthResult,
-    redemetResult,
     laranjalResult,
     guaibaResult,
     lagoonResult,
@@ -197,7 +133,6 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     fetchPelotasWeather(),
     fetchOfficialWeatherSources(),
     getEmbrapaHealthSnapshotServer(),
-    getRedemetOverview(),
     getLaranjalLevelData(),
     getGuaibaObservation(),
     getLagoonMonitoringNetwork(),
@@ -338,51 +273,6 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
         checkedAt,
       ),
     );
-  }
-
-  if (redemetResult.status === "fulfilled") {
-    const layers = [
-      {
-        id: "redemet-radar",
-        name: "Radar meteorológico",
-        provider: redemetResult.value.radar.provider,
-        layer: redemetResult.value.radar,
-      },
-      {
-        id: "redemet-satellite",
-        name: "Imagem de satélite",
-        provider: redemetResult.value.satellite.provider,
-        layer: redemetResult.value.satellite,
-      },
-      {
-        id: "redemet-stsc",
-        name: "Ocorrências de trovoadas — STSC",
-        provider: redemetResult.value.storms.provider,
-        layer: redemetResult.value.storms,
-      },
-      {
-        id: "inmet-satellite",
-        name: "Satélite meteorológico complementar",
-        provider: redemetResult.value.inmetSatellite.provider,
-        layer: redemetResult.value.inmetSatellite,
-      },
-    ];
-
-    for (const item of layers) {
-      const state = stateFromLayer(item.layer.configured, item.layer.available);
-      services.push({
-        id: item.id,
-        name: item.name,
-        provider: item.provider,
-        category: "Radar e satélite",
-        state,
-        detail: detailForState(state),
-        checkedAt: item.layer.updatedAt || checkedAt,
-        sourceUrl: "officialUrl" in item.layer ? item.layer.officialUrl : undefined,
-      });
-    }
-  } else {
-    services.push(...unavailableRedemetServices(checkedAt));
   }
 
   if (laranjalResult.status === "fulfilled") {
