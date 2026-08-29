@@ -5,6 +5,7 @@ import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPag
 import { TomorrowForecastPageV3 } from "@/components/weather/TomorrowForecastPageV3";
 import { TomorrowRetailHero } from "@/components/weather/TomorrowRetailHero";
 import { createPageHead } from "@/lib/page-meta";
+import { CORE_WEATHER_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 
@@ -83,6 +84,7 @@ export const Route = createFileRoute("/tempo-amanha-pelotas")({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
         path: PAGE_PATH,
+        citations: CORE_WEATHER_CITATIONS,
         breadcrumbs: [
           { name: "Início", path: "/" },
           { name: "Tempo amanhã em Pelotas", path: PAGE_PATH },
