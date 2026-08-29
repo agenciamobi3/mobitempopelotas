@@ -47,6 +47,35 @@ function constantTimeEqual(left: string, right: string) {
   return difference === 0;
 }
 
+function canonicalEventKey(row: JsonRecord) {
+  const sourceKey = text(row.source_key);
+  const eventType = text(row.event_type);
+  const sourceRecordId = text(row.source_record_id);
+  if (!sourceKey || !eventType || !sourceRecordId) return null;
+  return `${sourceKey}\u0000${eventType}\u0000${sourceRecordId}`;
+}
+
+function deduplicateEventRows(rows: JsonRecord[]) {
+  const unique = new Map<string, JsonRecord>();
+  const passthrough: JsonRecord[] = [];
+
+  for (const row of rows) {
+    const key = canonicalEventKey(row);
+    if (!key) {
+      passthrough.push(row);
+      continue;
+    }
+
+    // A chave é exatamente a mesma usada pelo UNIQUE/ON CONFLICT do banco.
+    // Se o upstream repetir o mesmo evento no próprio lote, persistimos uma
+    // única linha. A ocorrência mais recente no payload vence, mantendo o
+    // last_seen_at e os metadados da última representação recebida.
+    unique.set(key, row);
+  }
+
+  return [...unique.values(), ...passthrough];
+}
+
 async function sha256Hex(value: string) {
   const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -268,7 +297,10 @@ Deno.serve(async (request) => {
       continue;
     }
 
-    const rows = item.result.value;
+    const inputRows = item.result.value;
+    const rows = deduplicateEventRows(inputRows);
+    const droppedDuplicates = Math.max(0, inputRows.length - rows.length);
+
     if (rows.length > 0) {
       const { data, error } = await supabase
         .from("historical_events")
@@ -276,16 +308,35 @@ Deno.serve(async (request) => {
         .select("id");
 
       if (error) {
-        details[item.key] = { status: "failed", storedCount: 0, error: error.message };
+        details[item.key] = {
+          status: "failed",
+          inputRows: inputRows.length,
+          deduplicatedRows: rows.length,
+          droppedDuplicates,
+          storedCount: 0,
+          error: error.message,
+        };
         errors.push(`${item.key}: ${error.message}`);
         continue;
       }
 
       const count = data?.length ?? rows.length;
       storedCount += count;
-      details[item.key] = { status: "ok", storedCount: count };
+      details[item.key] = {
+        status: "ok",
+        inputRows: inputRows.length,
+        deduplicatedRows: rows.length,
+        droppedDuplicates,
+        storedCount: count,
+      };
     } else {
-      details[item.key] = { status: "ok", storedCount: 0 };
+      details[item.key] = {
+        status: "ok",
+        inputRows: inputRows.length,
+        deduplicatedRows: 0,
+        droppedDuplicates,
+        storedCount: 0,
+      };
     }
     successfulSources += 1;
   }
