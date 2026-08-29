@@ -19,6 +19,7 @@ const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8"
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 const runtimeVersionRoute = readFileSync("src/routes/api/runtime-version.ts", "utf8");
+const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
 const navigationGuard = readFileSync(
   "src/components/navigation/PublicDocumentNavigationGuard.tsx",
   "utf8",
@@ -57,6 +58,13 @@ test("router não dispara loader público por hover ou foco antes do clique", ()
   assert.match(router, /defaultPreload:\s*false/);
   assert.doesNotMatch(router, /defaultPreload:\s*"intent"/);
   assert.doesNotMatch(router, /defaultPreloadDelay/);
+});
+
+test("boundary público pode recuperar documento mesmo antes do root ficar pronto", () => {
+  assert.match(staleClientRecovery, /recoverClientNavigationFailure/);
+  assert.match(staleClientRecovery, /navigateToFreshDocument\(/);
+  assert.match(staleClientRecovery, /sessionStorage/);
+  assert.doesNotMatch(staleClientRecovery, /if \(!clientRuntimeReady\) return false/);
 });
 
 test("home, hoje, amanhã e 7 dias entregam shell sem fonte externa no loader inicial", () => {
