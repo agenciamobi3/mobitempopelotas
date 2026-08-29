@@ -1,6 +1,10 @@
 import type { AccountEntitlements } from "@/lib/auth/account-access";
 
-export type WidgetType = "nivel-laranjal" | "status-tempo-agora" | "previsao-7-dias";
+export type WidgetType =
+  | "nivel-laranjal"
+  | "status-tempo-agora"
+  | "previsao-7-dias"
+  | "chuva-pelotas";
 export type WidgetTheme = "auto" | "light" | "dark";
 
 export type WidgetDefinition = {
@@ -44,6 +48,16 @@ export const WIDGET_REGISTRY: readonly WidgetDefinition[] = [
     defaultTitle: "Previsão de 7 dias em Pelotas",
     detailsUrl: "/previsao-7-dias-pelotas",
     initialHeight: 620,
+  },
+  {
+    type: "chuva-pelotas",
+    label: "Chuva em Pelotas",
+    description: "Chuva observada no dia e previsão de chance e volume nas próximas horas, sem misturar medição com previsão.",
+    category: "Meteorologia",
+    requiredEntitlement: "widgetsRain",
+    defaultTitle: "Chuva em Pelotas",
+    detailsUrl: "/chuva-em-pelotas",
+    initialHeight: 500,
   },
 ] as const;
 
