@@ -1,3 +1,4 @@
+import { fetchAnaRhnLaranjalPublicSnapshot } from "@/lib/hydrology/ana-rhn-public.server";
 import { fetchDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.server";
 import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
@@ -129,6 +130,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     guaibaResult,
     lagoonResult,
     defesaCivilResult,
+    anaRhnResult,
   ] = await Promise.allSettled([
     fetchPelotasWeather(),
     fetchOfficialWeatherSources(),
@@ -137,6 +139,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     getGuaibaObservation(),
     getLagoonMonitoringNetwork(),
     fetchDefesaCivilHydroData(),
+    fetchAnaRhnLaranjalPublicSnapshot(),
   ]);
 
   const services: ServiceStatus[] = [];
@@ -384,16 +387,33 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     });
   }
 
-  services.push({
-    id: "ana-rhn",
-    name: "Rede Hidrometeorológica Nacional",
-    provider: "ANA / SNIRH / RHN",
-    category: "Hidrologia",
-    state: "implementation",
-    detail: detailForState("implementation"),
-    checkedAt,
-    sourceUrl: "https://www.snirh.gov.br/hidroweb/",
-  });
+  if (anaRhnResult.status === "fulfilled") {
+    const snapshot = anaRhnResult.value;
+    services.push({
+      id: "ana-rhn",
+      name: "Rede Hidrometeorológica Nacional",
+      provider: "ANA / SNIRH / RHN",
+      category: "Hidrologia",
+      state: "implementation",
+      detail:
+        snapshot.status === "source-live"
+          ? `Contrato público respondeu para a estação LARANJAL ${snapshot.stationCode}; medição segue bloqueada até confirmar unidade, referência vertical e timezone.`
+          : `Integração segue em implantação; o probe público não respondeu de forma utilizável nesta verificação. ${snapshot.error ?? ""}`.trim(),
+      checkedAt: snapshot.fetchedAt || checkedAt,
+      sourceUrl: snapshot.source.url,
+    });
+  } else {
+    services.push({
+      id: "ana-rhn",
+      name: "Rede Hidrometeorológica Nacional",
+      provider: "ANA / SNIRH / RHN",
+      category: "Hidrologia",
+      state: "implementation",
+      detail: "Integração em validação; o probe público ANA/RHN falhou antes de produzir um snapshot sanitizado.",
+      checkedAt,
+      sourceUrl: "https://www.snirh.gov.br/hidroweb/",
+    });
+  }
 
   const maintainedServices = applyMaintenanceWindows(
     services,
