@@ -28,7 +28,7 @@ Regras permanentes:
 | Runtime publicado | `2026-08-29-ana-rhn-contract-v2`; `/api/runtime-version` estático, `no-store`, `noindex` |
 | Home / Hoje / Amanhã / 7 dias | **Shell-first**: documento inicial não aguarda fontes externas |
 | Home sem dado inicial | “Atualizando dados meteorológicos...” durante recuperação; indisponibilidade somente após tentativa real |
-| Open-Meteo | Previsão principal; cache last-good persistido é lido antes do refresh Edge e preserva timestamp real |
+| Open-Meteo | Previsão principal; direto=`operational`, contingência/last-good recente=`partial`, sem previsão utilizável=`offline` |
 | MET Norway | Contingência compartilhada quando aplicável |
 | Embrapa | Observação local centralizada e recuperação client-side |
 | INMET meteorológico | `operational` após priorização da rota municipal funcional; integrações individuais continuam semanticamente separadas |
@@ -38,7 +38,7 @@ Regras permanentes:
 | GOES / INMET | 403 server-side tratado como `implementation` da integração, não como indisponibilidade do produto público INMET |
 | Hidrologia local/regional | Laranjal, Guaíba, Lagoa e Defesa Civil degradam por domínio |
 | ANA / SNIRH / RHN | **Readiness/cross-check somente; sem ingestão planejada nesta fase**. Laranjal já coberto por duas fontes de coleta |
-| Historical Data Layer | Ativo; eventos STSC são deduplicados pela chave canônica antes do upsert |
+| Historical Data Layer | Ativo; eventos STSC deduplicados pela chave canônica antes do upsert; cron automático comprovado |
 | Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços |
 | Central Regional | Pelotas + 23 páginas municipais indexáveis |
 | SEO técnico | 48 URLs indexáveis, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
@@ -78,7 +78,15 @@ O menu público usa anchors nativas; preload SPA global por intenção e invalid
 
 Open-Meteo é a previsão principal. A rota de 15 dias nunca inventa dias 8–15; janela incompleta real é marcada como `partial`.
 
-A contingência Open-Meteo foi endurecida em 29/08/2026: runtime sem `SUPABASE_MODE` explícito pode inferir `external` somente quando URL e chave pública realmente existem; `mock` explícito continua soberano. Quando a chamada direta falha, o servidor tenta primeiro o last-good persistido e só então o refresh Edge. O snapshot conserva `fetched_at/last_success_at` reais e não transforma previsão antiga em dado “agora”. Na validação de produção das 05:07 UTC, `weather-open-meteo` voltou a `operational` usando o last-good de 05:03:38 UTC.
+A contingência Open-Meteo foi endurecida em 29/08/2026: runtime sem `SUPABASE_MODE` explícito pode inferir `external` somente quando URL e chave pública realmente existem; `mock` explícito continua soberano. Quando a chamada direta falha, o servidor tenta o last-good persistido e só atualiza pela Edge quando necessário. O snapshot conserva `fetched_at/last_success_at` reais e não transforma previsão antiga em dado “agora”.
+
+O monitor possui uma leitura read-only independente da contingência persistida. A semântica operacional é deliberadamente mais estrita que a disponibilidade do conteúdo:
+
+- origem direta Open-Meteo utilizável: `operational`;
+- resposta servida por fallback ou origem direta falhou com last-good persistido utilizável e recente: `partial`;
+- nenhuma previsão direta/fallback nem last-good recente utilizável: `offline`.
+
+O last-good usado pelo monitor precisa conter forecast diário utilizável e ter no máximo 30 minutos. Em produção, a coleta de 29/08/2026 05:46:29 UTC capturou exatamente o caso de degradação: a origem direta falhou, o last-good de 05:40:11 UTC tinha 6,3 minutos e `weather-open-meteo` foi corretamente registrado como `partial`, não `offline`.
 
 ### Embrapa
 
@@ -101,7 +109,7 @@ Semântica:
 - timeout/falha real: `offline` da integração;
 - GOES/INMET com HTTP 403 server-side: `implementation`, sem afirmar indisponibilidade pública global.
 
-Na coleta real de 29/08/2026 05:07 UTC, Radar e STSC estavam `operational`; o satélite REDEMET era o único serviço afetando o `overall`, em `partial`, por resposta sem imagem utilizável.
+Na coleta real de 29/08/2026 05:46 UTC, Radar e STSC estavam `operational`; satélite REDEMET permaneceu `partial` por resposta sem imagem utilizável.
 
 ## 8. Hidrologia e política ANA/RHN
 
@@ -151,15 +159,20 @@ O monitor usa `pg_cron` + `pg_net` a cada 10 minutos. ANA/RHN permanece `state=i
 
 A mensagem pública ANA deve informar readiness/cross-check sem ingestão nesta fase, porque o Laranjal já possui duas fontes de coleta. Unidade e timezone estão confirmados; referência vertical continua não confirmada.
 
-Última amostra operacional validada nesta atualização, 29/08/2026 05:07 UTC:
+Em 29/08/2026 05:37 UTC o monitor ainda produziu um falso `weather-open-meteo=offline` durante uma falha transitória, apesar da política de last-good. Esse caso motivou a separação explícita entre saúde da origem direta e saúde da contingência persistida.
 
-- `weather-open-meteo=operational`;
+Prova pós-correção em produção, 29/08/2026 05:46:29 UTC:
+
+- `weather-open-meteo=partial`; origem direta falhou e last-good real de 05:40:11 UTC foi preservado, idade 6,3 min;
 - `weather-inmet=operational`;
 - `redemet-radar=operational`;
 - `redemet-stsc=operational`;
 - `inmet-satellite=implementation`;
 - `ana-rhn=implementation`;
-- `redemet-satellite=partial`, único serviço afetando o `overall` naquela amostra.
+- `redemet-satellite=partial` por ausência de imagem utilizável na resposta da API;
+- `overall=partial`.
+
+Essa amostra comprova que o monitor não promove mais uma falha transitória do Open-Meteo a `offline` enquanto houver last-good recente e utilizável.
 
 ## 10. Historical Data Layer
 
@@ -169,7 +182,13 @@ A migration `defer_ana_rhn_ingestion_by_product_policy` registra a decisão de m
 
 O coletor `historical-events-capture` é executado automaticamente pelo `cron.job` 8 a cada 10 minutos. Em 29/08/2026 foi identificado que o STSC podia repetir, no mesmo lote, a mesma chave `(source_key,event_type,source_record_id)`, fazendo o PostgreSQL rejeitar o `ON CONFLICT DO UPDATE` com “cannot affect row a second time”. A Edge Function versão 2 deduplica o lote pela própria chave canônica antes do upsert e registra `inputRows`, `deduplicatedRows` e `droppedDuplicates`.
 
-Prova de produção após o deploy da versão 2: execução `historical_collection_runs.id=2989`, iniciada às 05:33:51 UTC, `success=true`, `error=null`; STSC recebeu 462 linhas, deduplicou para 243, descartou 219 duplicatas e persistiu 243 eventos. A execução imediatamente anterior, às 05:30 UTC, ainda registrava o erro antigo, isolando o efeito do deploy.
+Provas de produção após o deploy da versão 2:
+
+- execução manual `id=2989`, 05:33:51 UTC: 462 entradas STSC → 243 chaves canônicas, 219 duplicatas descartadas, 243 persistidas, `success=true`, `error=null`;
+- execução pelo mesmo wrapper usado pelo cron `id=2991`, 05:36:58 UTC: 364 → 217, 147 duplicatas descartadas, `success=true`, `error=null`;
+- execução **automática** do `cron.job` 8 `id=2993`, 05:40:02 UTC: 464 → 245, 219 duplicatas descartadas, 245 persistidas, `success=true`, `error=null`.
+
+A execução automática encerra o incidente: a deduplicação não depende de smoke manual e está ativa no caminho operacional real.
 
 ## 11. Segurança e runtime
 
@@ -179,20 +198,21 @@ WAF gerenciado de edge não deve ser confundido com firewall de aplicação.
 
 ## 12. Testes e deploy
 
-Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, Embrapa, 15 dias, hidrologia, REDEMET, status histórico, deduplicação de eventos históricos e ANA/RHN.
+Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, semântica da contingência Open-Meteo no monitor, Embrapa, 15 dias, hidrologia, REDEMET, status histórico, deduplicação de eventos históricos e ANA/RHN.
 
 GitHub Actions continua falhando antes dos steps; portanto testes versionados não significam suíte executada. Lovable comprova sincronização/build de preview, não substitui CI completa.
+
+O corte da semântica de contingência Open-Meteo foi sincronizado no Lovable e publicado no domínio canônico; a troca do `x-deployment-id` foi confirmada antes do smoke de 05:46 UTC.
 
 ## 13. Prioridades imediatas
 
 1. Manter ANA/RHN em readiness/cross-check; **não gastar o caminho crítico do projeto tentando ativar uma terceira coleta do Laranjal agora**.
-2. Observar a estabilidade automática do `historical-events-capture` versão 2 e do last-good Open-Meteo nas próximas execuções, sem novos ajustes sem evidência.
-3. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets nem marcar o portal como indisponível quando a API responde sem imagem.
-4. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
-5. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
-6. Concluir E2E de autenticação com duas contas descartáveis.
-7. Recapturar Search Console quando o conector estiver disponível.
-8. Manter Service Worker e Web Push suspensos até estabilidade sustentada.
+2. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets nem marcar o portal como indisponível quando a API responde sem imagem.
+3. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
+4. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
+5. Concluir E2E de autenticação com duas contas descartáveis.
+6. Recapturar Search Console quando o conector estiver disponível.
+7. Manter Service Worker e Web Push suspensos até estabilidade sustentada.
 
 ## 14. Documentos principais
 
