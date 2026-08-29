@@ -9,6 +9,10 @@ import {
 
 const source = readFileSync("src/lib/hydrology/ana-rhn-public.server.ts", "utf8");
 const statusSource = readFileSync("src/lib/status/data-status.server.ts", "utf8");
+const statusProbeWrapper = readFileSync(
+  "src/lib/status/data-status-redemet-probes.server.ts",
+  "utf8",
+);
 
 const sanitizedLaranjalPayload = {
   displayFieldName: "Parametro",
@@ -103,4 +107,14 @@ test("status monitor probes ANA RHN readiness without promoting the source to ru
   assert.match(statusSource, /id: "ana-rhn"/);
   assert.match(statusSource, /state: "implementation"/);
   assert.doesNotMatch(statusSource, /snapshot\.rawValue/);
+});
+
+test("status persistido corrige a cópia antiga e deixa apenas a referência vertical como gate ANA RHN", () => {
+  assert.match(statusProbeWrapper, /normalizeAnaRhnImplementationDetail/);
+  assert.match(statusProbeWrapper, /unidade \(cm\) e timezone foram confirmados/);
+  assert.match(statusProbeWrapper, /referência vertical específica da estação/);
+  assert.doesNotMatch(
+    statusProbeWrapper,
+    /ANA_RHN_CURRENT_BLOCKING_COPY[^;]+confirmar unidade, referência vertical e timezone/s,
+  );
 });
