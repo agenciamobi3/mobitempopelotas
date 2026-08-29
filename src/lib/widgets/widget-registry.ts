@@ -1,6 +1,6 @@
 import type { AccountEntitlements } from "@/lib/auth/account-access";
 
-export type WidgetType = "nivel-laranjal" | "status-tempo-agora";
+export type WidgetType = "nivel-laranjal" | "status-tempo-agora" | "previsao-7-dias";
 export type WidgetTheme = "auto" | "light" | "dark";
 
 export type WidgetDefinition = {
@@ -34,6 +34,16 @@ export const WIDGET_REGISTRY: readonly WidgetDefinition[] = [
     defaultTitle: "Tempo agora em Pelotas",
     detailsUrl: "/tempo-hoje-pelotas",
     initialHeight: 260,
+  },
+  {
+    type: "previsao-7-dias",
+    label: "Previsão de 7 dias",
+    description: "Mínimas, máximas, chuva e rajadas previstas para a próxima semana em Pelotas.",
+    category: "Meteorologia",
+    requiredEntitlement: "widgetsSevenDayForecast",
+    defaultTitle: "Previsão de 7 dias em Pelotas",
+    detailsUrl: "/previsao-7-dias-pelotas",
+    initialHeight: 620,
   },
 ] as const;
 
