@@ -68,29 +68,37 @@ test("Edge Function exige token e preserva último payload válido", () => {
 });
 
 
-test("cliente server-only lê last-good público antes de exigir service role", () => {
+test("cliente server-only prefere last-good privado e usa snapshot público sem service role", () => {
+  assert.match(edgeClient, /PROVIDER_KEY = "open-meteo"/);
   assert.match(edgeClient, /PUBLIC_CACHE_RPC = "get_public_open_meteo_cache_snapshot"/);
+  assert.match(edgeClient, /readAdminPersistedPayload/);
   assert.match(edgeClient, /readPublicPersistedPayload/);
-  assert.match(edgeClient, /forecastPayloadSchema\.safeParse\(row\.payload\)/);
+  assert.match(edgeClient, /normalizePersistedRow/);
   assert.match(edgeClient, /CACHE_READ_TIMEOUT_MS = 1_200/);
   assert.match(edgeClient, /SETTINGS_READ_TIMEOUT_MS = 1_200/);
-  assert.match(edgeClient, /EDGE_REQUEST_TIMEOUT_MS = 1_600/);
+  assert.match(edgeClient, /EDGE_REQUEST_TIMEOUT_MS = 2_200/);
   assert.match(edgeClient, /apikey: publishableKey/);
-  assert.match(edgeClient, /Authorization: `Bearer \$\{publishableKey\}`/);
-  assert.match(edgeClient, /if \(persisted\) return persisted/);
-  assert.match(edgeClient, /if \(!config\.isAdminConfigured\)/);
+  assert.doesNotMatch(edgeClient, /Authorization: `Bearer \$\{publishableKey\}`/);
   assert.match(edgeClient, /createSupabaseAdminClient/);
+  assert.match(edgeClient, /weather_provider_payload_cache/);
   assert.match(edgeClient, /weather_forecast_accuracy_settings/);
   assert.match(edgeClient, /"X-Collector-Token": settings\.collector_token/);
+  assert.doesNotMatch(edgeClient, /export const collectorToken/);
+});
 
+
+test("admin lê last-good antes de tentar refresh Edge", () => {
   const fallbackFlow = edgeClient.slice(
     edgeClient.indexOf("export async function fetchOpenMeteoPayloadViaEdge"),
   );
-  const publicCacheIndex = fallbackFlow.indexOf("readPublicPersistedPayload");
-  const adminGateIndex = fallbackFlow.indexOf("if (!config.isAdminConfigured)");
+  const adminIndex = fallbackFlow.indexOf("createSupabaseAdminClient");
+  const cacheIndex = fallbackFlow.indexOf("readAdminPersistedPayload(admin)");
   const edgeIndex = fallbackFlow.indexOf("fetchViaEdge(admin, config.url)");
-  assert.ok(publicCacheIndex >= 0 && adminGateIndex > publicCacheIndex && edgeIndex > adminGateIndex);
-  assert.doesNotMatch(edgeClient, /export const collectorToken/);
+  const publicIndex = fallbackFlow.indexOf("readPublicPersistedPayload");
+
+  assert.ok(adminIndex >= 0 && cacheIndex > adminIndex && edgeIndex > cacheIndex);
+  assert.ok(publicIndex > edgeIndex);
+  assert.match(fallbackFlow, /if \(persisted\) return persisted/);
 });
 
 
