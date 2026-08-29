@@ -6,6 +6,10 @@ const migration = readFileSync(
   "supabase/migrations/20260729071500_create_open_meteo_payload_cache.sql",
   "utf8",
 );
+const publicSnapshotMigration = readFileSync(
+  "supabase/migrations/20260829050000_public_open_meteo_cache_snapshot.sql",
+  "utf8",
+);
 const edgeFunction = readFileSync("supabase/functions/open-meteo-forecast/index.ts", "utf8");
 const edgeClient = readFileSync("src/lib/weather/open-meteo-edge.server.ts", "utf8");
 const resilient = readFileSync("src/lib/weather/open-meteo-resilient.server.ts", "utf8");
@@ -32,6 +36,20 @@ test("cache completo do Open-Meteo é privado e controla concorrência", () => {
 });
 
 
+test("snapshot público expõe somente last-good meteorológico sem abrir a tabela privada", () => {
+  assert.match(publicSnapshotMigration, /get_public_open_meteo_cache_snapshot/);
+  assert.match(publicSnapshotMigration, /security definer/);
+  assert.match(publicSnapshotMigration, /set search_path = public, pg_temp/);
+  assert.match(publicSnapshotMigration, /where cache\.provider_key = 'open-meteo'/);
+  assert.match(publicSnapshotMigration, /cache\.payload <> '\{\}'::jsonb/);
+  assert.match(publicSnapshotMigration, /grant execute[^;]+to anon, authenticated, service_role/s);
+  assert.doesNotMatch(publicSnapshotMigration, /collector_token/);
+  assert.doesNotMatch(publicSnapshotMigration, /refresh_lease_token/);
+  assert.doesNotMatch(publicSnapshotMigration, /last_attempt_at/);
+  assert.doesNotMatch(publicSnapshotMigration, /weather_forecast_accuracy_settings/);
+});
+
+
 test("Edge Function exige token e preserva último payload válido", () => {
   assert.match(edgeFunction, /constantTimeEqual/);
   assert.match(edgeFunction, /x-collector-token/);
@@ -50,27 +68,37 @@ test("Edge Function exige token e preserva último payload válido", () => {
 });
 
 
-test("cliente server-only prioriza cache persistido antes de consultar configuração e Edge", () => {
-  assert.match(edgeClient, /createSupabaseAdminClient/);
-  assert.match(edgeClient, /weather_provider_payload_cache/);
-  assert.match(edgeClient, /readPersistedPayload/);
-  assert.match(edgeClient, /forecastPayloadSchema\.safeParse\(data\.payload\)/);
+test("cliente server-only lê last-good público antes de exigir service role", () => {
+  assert.match(edgeClient, /PUBLIC_CACHE_RPC = "get_public_open_meteo_cache_snapshot"/);
+  assert.match(edgeClient, /readPublicPersistedPayload/);
+  assert.match(edgeClient, /forecastPayloadSchema\.safeParse\(row\.payload\)/);
   assert.match(edgeClient, /CACHE_READ_TIMEOUT_MS = 1_200/);
   assert.match(edgeClient, /SETTINGS_READ_TIMEOUT_MS = 1_200/);
   assert.match(edgeClient, /EDGE_REQUEST_TIMEOUT_MS = 1_600/);
+  assert.match(edgeClient, /apikey: publishableKey/);
+  assert.match(edgeClient, /Authorization: `Bearer \$\{publishableKey\}`/);
+  assert.match(edgeClient, /if \(persisted\) return persisted/);
+  assert.match(edgeClient, /if \(!config\.isAdminConfigured\)/);
+  assert.match(edgeClient, /createSupabaseAdminClient/);
   assert.match(edgeClient, /weather_forecast_accuracy_settings/);
-  assert.match(edgeClient, /\/functions\/v1\/\$\{EDGE_FUNCTION_NAME\}/);
   assert.match(edgeClient, /"X-Collector-Token": settings\.collector_token/);
 
   const fallbackFlow = edgeClient.slice(
     edgeClient.indexOf("export async function fetchOpenMeteoPayloadViaEdge"),
   );
-  const cacheIndex = fallbackFlow.indexOf("readPersistedPayload(admin)");
+  const publicCacheIndex = fallbackFlow.indexOf("readPublicPersistedPayload");
+  const adminGateIndex = fallbackFlow.indexOf("if (!config.isAdminConfigured)");
   const edgeIndex = fallbackFlow.indexOf("fetchViaEdge(admin, config.url)");
-  assert.ok(cacheIndex >= 0 && edgeIndex > cacheIndex);
-  assert.match(fallbackFlow, /if \(persisted\) return persisted/);
-  assert.doesNotMatch(edgeClient, /VITE_/);
+  assert.ok(publicCacheIndex >= 0 && adminGateIndex > publicCacheIndex && edgeIndex > adminGateIndex);
   assert.doesNotMatch(edgeClient, /export const collectorToken/);
+});
+
+
+test("last-good válido continua utilizável quando a última tentativa marcou indisponibilidade", () => {
+  assert.match(edgeClient, /row\.status === "live" && ageMs\(referenceTime\) <= CACHE_FRESH_MS/);
+  assert.match(edgeClient, /cacheStatus: fresh \? "fresh" : "stale"/);
+  assert.doesNotMatch(edgeClient, /row\.status === "unavailable"\) return null/);
+  assert.match(edgeClient, /Usando a última previsão válida persistida do Open-Meteo/);
 });
 
 
