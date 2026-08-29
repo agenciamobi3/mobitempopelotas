@@ -8,6 +8,7 @@ import "@/components/weather/WindForecastHomeContract.css";
 import "@/components/weather/WindNavigationAvailability.css";
 import { WIND_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
+import { WIND_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
 
@@ -113,6 +114,7 @@ export const Route = createFileRoute("/vento-em-pelotas")({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
         path: PAGE_PATH,
+        citations: WIND_CITATIONS,
         breadcrumbs: [
           { name: "Início", path: "/" },
           { name: "Vento em Pelotas hoje", path: PAGE_PATH },
