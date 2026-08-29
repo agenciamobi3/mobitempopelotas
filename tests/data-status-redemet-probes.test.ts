@@ -20,7 +20,7 @@ test("status mede Radar, satélite REDEMET, STSC e GOES/INMET por adapters próp
 });
 
 test("cada probe mantém timeout operacional próprio e preserva motivo sanitizado", () => {
-  assert.match(probes, /PROBE_DEADLINE_MS = 8_000/);
+  assert.match(probes, /PROBE_DEADLINE_MS = 5_000/);
   assert.match(probes, /Promise\.race/);
   assert.match(probes, /layer\.error \|\|/);
   assert.match(probes, /timeout desta integração, não indisponibilidade global da fonte oficial/);
