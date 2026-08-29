@@ -22,7 +22,7 @@ import {
 const SITE_ORIGIN = "https://tempopelotas.com.br";
 const EMBED_SCRIPT_URL = `${SITE_ORIGIN}/widgets/embed.js`;
 
-const widgetTypeSchema = z.enum(["nivel-laranjal", "status-tempo-agora"]);
+const widgetTypeSchema = z.enum(["nivel-laranjal", "status-tempo-agora", "previsao-7-dias"]);
 const widgetThemeSchema = z.enum(["auto", "light", "dark"]);
 
 const createWidgetSchema = z.object({
