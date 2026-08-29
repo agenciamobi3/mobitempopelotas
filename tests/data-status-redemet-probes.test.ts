@@ -6,6 +6,10 @@ const probes = readFileSync(
   "src/lib/status/data-status-redemet-probes.server.ts",
   "utf8",
 );
+const satellite = readFileSync(
+  "src/lib/redemet/redemet-satellite-resilient.server.ts",
+  "utf8",
+);
 const statusFunctions = readFileSync("src/lib/status/data-status.functions.ts", "utf8");
 const statusCron = readFileSync("src/routes/api/cron/data-status.ts", "utf8");
 
@@ -24,7 +28,18 @@ test("cada probe mantém timeout operacional próprio e preserva motivo sanitiza
   assert.match(probes, /Promise\.race/);
   assert.match(probes, /layer\.error \|\|/);
   assert.match(probes, /timeout desta integração, não indisponibilidade global da fonte oficial/);
-  assert.match(probes, /state === "operational"/);
+  assert.match(probes, /frameDetail/);
+  assert.match(probes, /quadros utilizáveis/);
+});
+
+test("satélite REDEMET diagnostica estrutura sem registrar URL autenticada", () => {
+  assert.match(satellite, /sanitizedPayloadDiagnostic/);
+  assert.match(satellite, /collectCandidateImageHosts/);
+  assert.match(satellite, /hostsCandidatos=/);
+  assert.match(satellite, /chavesRaiz=/);
+  assert.match(satellite, /chavesData=/);
+  assert.match(satellite, /imagensAceitas=/);
+  assert.doesNotMatch(satellite, /console\.(?:log|warn|error)\([^\n]*api_key/);
 });
 
 test("overview público e cron persistente usam o mesmo wrapper independente", () => {
