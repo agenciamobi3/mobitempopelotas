@@ -3,12 +3,19 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { parseRadarPayloadForArea } from "../src/lib/redemet/redemet-radar.server.ts";
+import {
+  previousRedemetUtcHourToken,
+} from "../src/lib/redemet/redemet-satellite-resilient.server.ts";
 import { parseRedemetStscPayload } from "../src/lib/redemet/redemet-stsc.server.ts";
 
 const radarRoute = readFileSync("src/routes/api/redemet/radar.ts", "utf8");
 const satelliteRoute = readFileSync("src/routes/api/redemet/satellite.ts", "utf8");
 const stormsRoute = readFileSync("src/routes/api/redemet/storms.ts", "utf8");
 const radarServer = readFileSync("src/lib/redemet/redemet-radar.server.ts", "utf8");
+const satelliteServer = readFileSync(
+  "src/lib/redemet/redemet-satellite-resilient.server.ts",
+  "utf8",
+);
 const stormsServer = readFileSync("src/lib/redemet/redemet-stsc.server.ts", "utf8");
 const redemetFunctions = readFileSync("src/lib/redemet/redemet.functions.ts", "utf8");
 const radarPageLoader = readFileSync("src/lib/redemet/radar-page-loader.ts", "utf8");
@@ -50,14 +57,33 @@ test("REDEMET overview requests compact windows without cutting normal upstream 
 });
 
 test("página pública de radar limita a espera SSR sem reduzir o budget interno das fontes", () => {
-  assert.match(radarPageLoader, /PUBLIC_RADAR_PAGE_DEADLINE_MS = 4_000/);
+  assert.match(radarPageLoader, /PUBLIC_RADAR_PAGE_DEADLINE_MS = 2_800/);
   assert.match(radarPageLoader, /settlePageDependency/);
   assert.match(radarPageLoader, /Promise\.race/);
-  assert.match(radarPageLoader, /Promise\.allSettled/);
+  assert.match(radarPageLoader, /Promise\.all\(/);
+  assert.doesNotMatch(radarPageLoader, /Promise\.allSettled/);
   assert.match(radarPageLoader, /getRedemetOverview\(\)/);
   assert.match(radarPageLoader, /getWeatherIntelligence\(\)/);
   assert.match(radarPageLoader, /createUnavailableRedemetOverview/);
   assert.match(radarPageLoader, /createUnavailableWeatherIntelligence/);
+});
+
+test("satélite REDEMET tenta somente a hora UTC anterior quando a resposta atual vem vazia", () => {
+  assert.equal(
+    previousRedemetUtcHourToken(new Date("2026-08-29T00:15:00.000Z")),
+    "2026082823",
+  );
+  assert.equal(
+    previousRedemetUtcHourToken(new Date("2026-01-01T00:01:00.000Z")),
+    "2025123123",
+  );
+  assert.match(satelliteServer, /const REQUEST_BUDGET_MS = 4_400/);
+  assert.match(satelliteServer, /AbortSignal\.timeout\(REQUEST_BUDGET_MS\)/);
+  assert.match(satelliteServer, /url\.searchParams\.set\("data", referenceData\)/);
+  assert.match(satelliteServer, /const referenceData = previousRedemetUtcHourToken\(\)/);
+  assert.match(satelliteServer, /const previousHour = await requestSatellitePayload/);
+  assert.match(satelliteServer, /hora UTC anterior, uma única vez/);
+  assert.doesNotMatch(satelliteServer, /for \([^\n]*previousRedemetUtcHourToken/);
 });
 
 test("radar parser keeps only the requested station from the official response shape", () => {
