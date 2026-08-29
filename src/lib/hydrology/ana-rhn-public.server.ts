@@ -6,6 +6,8 @@ const ANA_RHN_PUBLIC_LAYER_URL = `${ANA_RHN_PUBLIC_ORIGIN}/server/rest/services/
 const ANA_RHN_HIDROWEB_URL = "https://www.snirh.gov.br/hidroweb/";
 const REQUEST_TIMEOUT_MS = 3_500;
 const LARANJAL_STATION_CODE = "87955001";
+const ANA_RHN_LEVEL_UNIT = "cm" as const;
+const ANA_RHN_STATION_TIMEZONE = "America/Sao_Paulo" as const;
 const ALLOWED_HOSTS = new Set(["portal1.snirh.gov.br"]);
 
 const stationCodeSchema = z.union([z.string(), z.number()]);
@@ -43,10 +45,7 @@ const queryResponseSchema = z
   })
   .passthrough();
 
-export type AnaRhnBlockingReason =
-  | "unit-unconfirmed"
-  | "vertical-reference-unconfirmed"
-  | "timezone-contract-unconfirmed";
+export type AnaRhnBlockingReason = "vertical-reference-unconfirmed";
 
 export type AnaRhnPublicStationSnapshot = {
   status: "source-live" | "unavailable";
@@ -63,7 +62,8 @@ export type AnaRhnPublicStationSnapshot = {
   rawValue: number | null;
   rawObservedAt: string | null;
   sourceDataStatus: string | null;
-  unit: null;
+  unit: typeof ANA_RHN_LEVEL_UNIT;
+  timeZone: typeof ANA_RHN_STATION_TIMEZONE;
   verticalReference: null;
   publishableMeasurement: false;
   blockingReasons: AnaRhnBlockingReason[];
@@ -76,11 +76,7 @@ export type AnaRhnPublicStationSnapshot = {
   error: string | null;
 };
 
-const BLOCKING_REASONS: AnaRhnBlockingReason[] = [
-  "unit-unconfirmed",
-  "vertical-reference-unconfirmed",
-  "timezone-contract-unconfirmed",
-];
+const BLOCKING_REASONS: AnaRhnBlockingReason[] = ["vertical-reference-unconfirmed"];
 
 function asTrimmedText(value: string | null | undefined) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -127,7 +123,8 @@ function unavailableSnapshot(stationCode: string, error: string): AnaRhnPublicSt
     rawValue: null,
     rawObservedAt: null,
     sourceDataStatus: null,
-    unit: null,
+    unit: ANA_RHN_LEVEL_UNIT,
+    timeZone: ANA_RHN_STATION_TIMEZONE,
     verticalReference: null,
     publishableMeasurement: false,
     blockingReasons: [...BLOCKING_REASONS],
@@ -218,7 +215,8 @@ export function parseAnaRhnPublicPayload(
     rawValue: asFiniteNumber(attributes.Ult_Dado),
     rawObservedAt: parseArcGisEpoch(attributes.Data_ult_dado),
     sourceDataStatus: asTrimmedText(attributes.Status_Dado),
-    unit: null,
+    unit: ANA_RHN_LEVEL_UNIT,
+    timeZone: ANA_RHN_STATION_TIMEZONE,
     verticalReference: null,
     publishableMeasurement: false,
     blockingReasons: [...BLOCKING_REASONS],
