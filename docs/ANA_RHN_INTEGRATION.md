@@ -90,7 +90,11 @@ Payload real sanitizado observado para 87955001:
 - `Data_ult_dado = 2026-08-28T16:22:00Z`;
 - `Status_Dado = Sem dados de referencia`.
 
-`Status_Dado = Sem dados de referencia` se refere às referências usadas pela camada para classificação/limiares e **não deve ser interpretado como prova sobre datum vertical da estação**.
+A inspeção do catálogo público `SGH` mostrou somente dois serviços: `CotasReferencia2` e `EstacaoInventarioFluviometrica`. Ambos foram inspecionados integralmente para 87955001.
+
+A consulta `outFields=*` de `CotasReferencia2` confirmou que a feição completa expõe apenas `estcodigo`, identidade da estação, `Projeto`, `Status_Estacao`, `Data_ult_dado`, `Ult_Dado` e `Status_Dado`. Não existe campo de RN, datum, altitude do zero, benchmark ou referência vertical.
+
+`Status_Dado = Sem dados de referencia` se refere às referências usadas pela camada para classificação/limiares — atenção, normalidade e estiagem — e **não deve ser interpretado como prova sobre datum vertical da estação**.
 
 O ArcGIS é usado neste momento para readiness e identidade de último dado, não para inserir automaticamente uma observação pública.
 
@@ -152,6 +156,8 @@ O inventário público oficial da estação 87955001 retornou:
 - `RegistradorNivel = Não`;
 - `EstacaoTelemetrica = Sim`.
 
+O schema completo de `EstacaoInventarioFluviometrica` também não contém campo de RN, datum ou zero de régua. Somado à inspeção completa de `CotasReferencia2`, o catálogo público SGH disponível foi exaurido sem fornecer a referência vertical específica da estação.
+
 A documentação geral da ANA explica que réguas/cotas fluviométricas se relacionam ao plano de referência e referências de nível da própria estação. Isso não autoriza converter `116 cm` para altitude sobre o nível do mar sem a referência específica do ponto.
 
 Portanto:
@@ -197,9 +203,14 @@ Isso significa:
 - nenhum `rawValue` é exposto na mensagem pública do monitor;
 - nenhum valor é escrito no Historical Data Layer por esse adapter.
 
-O runtime `2026-08-29-ana-rhn-readiness-v1` foi validado em produção e uma coleta real persistiu o serviço ANA como `implementation`.
+O corte `2026-08-29-ana-rhn-contract-v2` foi validado em produção no domínio canônico:
 
-Após confirmação de unidade/timezone, a mensagem operacional deve dizer que esses dois gates estão fechados e que apenas a referência vertical permanece bloqueando a medição.
+- `/api/runtime-version`: HTTP 200 com a release v2;
+- monitor: HTTP 200, 14 serviços, no mesmo `x-deployment-id`;
+- `ana-rhn`: `implementation`;
+- detalhe persistido: unidade cm e timezone confirmados, somente referência vertical pendente;
+- `/status-dos-dados`: HTTP 200 no mesmo deployment e com a cópia v2;
+- arquivo canônico ANA: zero medições.
 
 ## 9. Historical Data Layer
 
@@ -249,6 +260,8 @@ Antes de habilitar ingestão:
 5. habilitar coleta em migration separada;
 6. inserir a primeira observação somente após validação;
 7. manter a fonte fora de funcionalidades pagas até revisão de governança/redistribuição.
+
+Até o item 1 ser resolvido, a decisão operacional é manter `verticalReferenceStatus=unconfirmed`, coleta desligada e zero medições.
 
 ## 11. Segurança
 
