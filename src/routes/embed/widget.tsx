@@ -125,13 +125,14 @@ function GeneratedWidgetRoute() {
     );
   }
 
-  let content = <ObsWeatherStatusWidget data={snapshot.payload} />;
-
-  if (snapshot.kind === "nivel-laranjal") {
-    content = <LaranjalLevelEmbed data={snapshot.payload} />;
-  } else if (snapshot.kind === "previsao-7-dias") {
-    content = <SevenDayForecastWidget data={snapshot.payload} />;
-  }
+  const content =
+    snapshot.kind === "nivel-laranjal" ? (
+      <LaranjalLevelEmbed data={snapshot.payload} />
+    ) : snapshot.kind === "previsao-7-dias" ? (
+      <SevenDayForecastWidget data={snapshot.payload} />
+    ) : (
+      <ObsWeatherStatusWidget data={snapshot.payload} />
+    );
 
   return (
     <div data-widget-theme={snapshot.definition.theme} data-widget-token={snapshot.definition.publicToken}>
