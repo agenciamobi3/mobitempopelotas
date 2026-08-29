@@ -51,19 +51,15 @@ test("ANA RHN public adapter preserves the verified station identity and raw rea
   assert.equal(snapshot.sourceDataStatus, "Sem dados de referencia");
 });
 
-test("ANA RHN raw value is never normalized into a publishable water level before semantic gates close", () => {
+test("ANA RHN closes unit and timezone but keeps publication blocked by vertical reference", () => {
   const snapshot = parseAnaRhnPublicPayload(sanitizedLaranjalPayload);
 
-  assert.equal(snapshot.unit, null);
+  assert.equal(snapshot.unit, "cm");
+  assert.equal(snapshot.timeZone, "America/Sao_Paulo");
   assert.equal(snapshot.verticalReference, null);
   assert.equal(snapshot.publishableMeasurement, false);
-  assert.deepEqual(snapshot.blockingReasons, [
-    "unit-unconfirmed",
-    "vertical-reference-unconfirmed",
-    "timezone-contract-unconfirmed",
-  ]);
+  assert.deepEqual(snapshot.blockingReasons, ["vertical-reference-unconfirmed"]);
   assert.equal(snapshot.rawValue, 116);
-  assert.notEqual(snapshot.rawValue, 1.16);
 });
 
 test("ANA RHN public query is fixed to the official HTTPS ArcGIS host and contains no credential", () => {
@@ -85,13 +81,18 @@ test("ANA RHN adapter treats a missing expected station as unavailable without f
 
   assert.equal(snapshot.status, "unavailable");
   assert.equal(snapshot.rawValue, null);
+  assert.equal(snapshot.unit, "cm");
+  assert.equal(snapshot.timeZone, "America/Sao_Paulo");
   assert.equal(snapshot.publishableMeasurement, false);
+  assert.deepEqual(snapshot.blockingReasons, ["vertical-reference-unconfirmed"]);
   assert.match(snapshot.error ?? "", /estação ANA\/RHN esperada/i);
 });
 
 test("ANA RHN adapter keeps a short request budget and never writes historical measurements", () => {
   assert.match(source, /REQUEST_TIMEOUT_MS = 3_500/);
   assert.match(source, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
+  assert.match(source, /ANA_RHN_LEVEL_UNIT = "cm"/);
+  assert.match(source, /ANA_RHN_STATION_TIMEZONE = "America\/Sao_Paulo"/);
   assert.doesNotMatch(source, /historical_measurements/);
   assert.doesNotMatch(source, /supabase/);
 });
@@ -101,6 +102,5 @@ test("status monitor probes ANA RHN readiness without promoting the source to ru
   assert.match(statusSource, /anaRhnResult/);
   assert.match(statusSource, /id: "ana-rhn"/);
   assert.match(statusSource, /state: "implementation"/);
-  assert.match(statusSource, /medição segue bloqueada até confirmar unidade, referência vertical e timezone/);
   assert.doesNotMatch(statusSource, /snapshot\.rawValue/);
 });
