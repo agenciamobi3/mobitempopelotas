@@ -7,8 +7,8 @@ import {
 } from "@/lib/supabase/server-client.server";
 
 const LOCATION_SLUG = "pelotas-rs";
-const PROVIDER_KEY = "open-meteo";
 const EDGE_FUNCTION_NAME = "open-meteo-forecast";
+const PUBLIC_CACHE_RPC = "get_public_open_meteo_cache_snapshot";
 const CACHE_READ_TIMEOUT_MS = 1_200;
 const SETTINGS_READ_TIMEOUT_MS = 1_200;
 const EDGE_REQUEST_TIMEOUT_MS = 1_600;
@@ -44,24 +44,6 @@ type OpenMeteoSettingsDatabase = {
         };
         Relationships: [];
       };
-      weather_provider_payload_cache: {
-        Row: {
-          provider_key: string;
-          status: "live" | "stale" | "unavailable";
-          payload: unknown;
-          fetched_at: string | null;
-          last_attempt_at: string | null;
-          last_success_at: string | null;
-          error: string | null;
-          refresh_started_at: string | null;
-          refresh_lease_token: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: never;
-        Update: never;
-        Relationships: [];
-      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
@@ -77,6 +59,13 @@ const forecastPayloadSchema = z
     daily: z.object({ time: z.array(z.string()).min(1) }).passthrough(),
   })
   .passthrough();
+
+const publicCacheRowSchema = z.object({
+  status: z.enum(["live", "stale", "unavailable"]),
+  payload: z.unknown(),
+  fetched_at: z.string().nullable(),
+  last_success_at: z.string().nullable(),
+});
 
 const edgeResponseSchema = z.object({
   success: z.literal(true),
@@ -101,32 +90,44 @@ function ageMs(value: string | null | undefined) {
   return Math.max(0, Date.now() - time);
 }
 
-async function readPersistedPayload(
-  admin: SupabaseClient<OpenMeteoSettingsDatabase>,
+async function readPublicPersistedPayload(
+  configUrl: string,
+  publishableKey: string,
 ): Promise<OpenMeteoEdgePayload | null> {
   try {
-    const signal = AbortSignal.timeout(CACHE_READ_TIMEOUT_MS);
-    const { data, error } = await admin
-      .from("weather_provider_payload_cache")
-      .select("status,payload,fetched_at,last_success_at,error")
-      .eq("provider_key", PROVIDER_KEY)
-      .abortSignal(signal)
-      .maybeSingle();
+    const response = await fetch(`${configUrl}/rest/v1/rpc/${PUBLIC_CACHE_RPC}`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        apikey: publishableKey,
+        Authorization: `Bearer ${publishableKey}`,
+      },
+      body: "{}",
+      signal: AbortSignal.timeout(CACHE_READ_TIMEOUT_MS),
+    });
 
-    if (error || !data || data.status === "unavailable") return null;
-    const parsed = forecastPayloadSchema.safeParse(data.payload);
-    if (!parsed.success) return null;
+    if (!response.ok) return null;
+    const parsedRows = z.array(publicCacheRowSchema).safeParse(await response.json());
+    if (!parsedRows.success) return null;
+    const row = parsedRows.data[0];
+    if (!row) return null;
 
-    const referenceTime = data.last_success_at ?? data.fetched_at;
-    const fresh = data.status === "live" && ageMs(referenceTime) <= CACHE_FRESH_MS;
+    const parsedPayload = forecastPayloadSchema.safeParse(row.payload);
+    if (!parsedPayload.success) return null;
+
+    const referenceTime = row.last_success_at ?? row.fetched_at;
+    if (!referenceTime) return null;
+
+    const fresh = row.status === "live" && ageMs(referenceTime) <= CACHE_FRESH_MS;
     return {
-      payload: parsed.data,
-      fetchedAt: data.fetched_at,
+      payload: parsedPayload.data,
+      fetchedAt: row.fetched_at,
       cacheStatus: fresh ? "fresh" : "stale",
-      warning: fresh ? null : data.error ?? "Usando a última previsão válida persistida do Open-Meteo.",
+      warning: fresh ? null : "Usando a última previsão válida persistida do Open-Meteo.",
     };
   } catch (error) {
-    console.warn("[weather/open-meteo-edge] Cache persistido não respondeu dentro do budget", {
+    console.warn("[weather/open-meteo-edge] Snapshot público persistido não respondeu dentro do budget", {
       message: error instanceof Error ? error.message : String(error),
     });
     return null;
@@ -184,13 +185,23 @@ async function fetchViaEdge(
 
 export async function fetchOpenMeteoPayloadViaEdge(): Promise<OpenMeteoEdgePayload> {
   const config = getSupabaseServerConfig();
-  if (!config.isAdminConfigured || !config.url) {
-    throw new Error("Supabase administrativo não configurado para a previsão Open-Meteo.");
+  if (!config.isPublicConfigured || !config.url || !config.publishableKey) {
+    throw new Error("Supabase público não configurado para recuperar a previsão persistida do Open-Meteo.");
+  }
+
+  // O last-good é previsão pública e não deve depender do service_role. A RPC
+  // expõe somente payload + timestamps do Open-Meteo; tabela, tokens e leases
+  // continuam privados. Isso evita falso offline quando uma instância não possui
+  // a configuração administrativa, preservando o timestamp real da última previsão.
+  const persisted = await readPublicPersistedPayload(config.url, config.publishableKey);
+  if (persisted) return persisted;
+
+  if (!config.isAdminConfigured) {
+    throw new Error(
+      "Snapshot público Open-Meteo indisponível e cliente administrativo não configurado para atualizar a contingência.",
+    );
   }
 
   const admin = createSupabaseAdminClient() as unknown as SupabaseClient<OpenMeteoSettingsDatabase>;
-  const persisted = await readPersistedPayload(admin);
-  if (persisted) return persisted;
-
   return fetchViaEdge(admin, config.url);
 }
