@@ -22,10 +22,12 @@ const REDEMET_SERVICE_IDS = new Set([
   "inmet-satellite",
 ]);
 
-const ANA_RHN_LEGACY_BLOCKING_COPY =
-  "medição segue bloqueada até confirmar unidade, referência vertical e timezone.";
-const ANA_RHN_CURRENT_BLOCKING_COPY =
-  "unidade (cm) e timezone foram confirmados; a medição segue bloqueada até confirmar a referência vertical específica da estação.";
+const ANA_RHN_PREVIOUS_BLOCKING_COPIES = [
+  "medição segue bloqueada até confirmar unidade, referência vertical e timezone.",
+  "unidade (cm) e timezone foram confirmados; a medição segue bloqueada até confirmar a referência vertical específica da estação.",
+] as const;
+const ANA_RHN_CURRENT_READINESS_COPY =
+  "ANA/RHN permanece somente como readiness/cross-check nesta fase porque o Laranjal já é coberto por duas fontes de coleta do projeto. Unidade (cm) e timezone estão confirmados; a referência vertical permanece não confirmada.";
 
 type ProbeLayer = RedemetImageLayerResponse | RedemetStormLayerResponse;
 type ProbeProvider = RedemetImageLayerResponse["provider"];
@@ -122,13 +124,16 @@ function serviceFromProbe(
 }
 
 function normalizeAnaRhnImplementationDetail(service: ServiceStatus): ServiceStatus {
-  if (service.id !== "ana-rhn" || !service.detail.includes(ANA_RHN_LEGACY_BLOCKING_COPY)) {
-    return service;
-  }
+  if (service.id !== "ana-rhn") return service;
+
+  const previousCopy = ANA_RHN_PREVIOUS_BLOCKING_COPIES.find((copy) =>
+    service.detail.includes(copy),
+  );
+  if (!previousCopy) return service;
 
   return {
     ...service,
-    detail: service.detail.replace(ANA_RHN_LEGACY_BLOCKING_COPY, ANA_RHN_CURRENT_BLOCKING_COPY),
+    detail: service.detail.replace(previousCopy, ANA_RHN_CURRENT_READINESS_COPY),
   };
 }
 
