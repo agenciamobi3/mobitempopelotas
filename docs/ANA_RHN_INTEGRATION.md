@@ -2,68 +2,72 @@
 
 Última consolidação: 29/08/2026.
 
-Este documento registra o estado técnico e editorial da integração do Tempo Pelotas com a Agência Nacional de Águas e Saneamento Básico (ANA), o Sistema Nacional de Informações sobre Recursos Hídricos (SNIRH) e a Rede Hidrometeorológica Nacional (RHN).
+## 1. Estado atual
 
-## Estado atual
+A integração ANA/RHN está em **readiness ativo, ingestão bloqueada**.
 
-- O responsável pelo Tempo Pelotas possui acesso autorizado à plataforma integrada da ANA.
-- O acesso autenticado ao Sistema HIDRO / Hidrotelemetria foi validado anteriormente.
-- A estação **LARANJAL**, código oficial **87955001**, foi confirmada também por um serviço ArcGIS público do SNIRH, sem sessão de navegador.
-- A fonte `ana-rhn` e a estação `ana-rhn-laranjal-87955001` já estão registradas no Historical Data Layer oficial do Tempo Pelotas.
-- `collection_enabled=false`, `paid_access_allowed=false` e `publicMeasurementIngestionEnabled=false` permanecem obrigatórios nesta fase.
-- Há **zero medições ANA/RHN** persistidas no arquivo canônico enquanto unidade, referência vertical e contrato de timezone não estiverem fechados.
-- Nenhuma credencial, cookie, senha, sessão ou HAR autenticado deve ser versionado.
-- A existência de acesso autorizado não é certificação, homologação, parceria oficial ou endosso editorial da ANA.
+Já confirmado:
 
-## 1. Papel da ANA/RHN no Tempo Pelotas
+- acesso autorizado à plataforma integrada da ANA;
+- estação **LARANJAL**, código oficial **87955001**;
+- município Pelotas/RS;
+- responsável e operadora UFPel;
+- estação fluviométrica e telemétrica ativa no inventário público;
+- parâmetro de último dado: `Nivel`;
+- unidade da cota/nível: **cm**;
+- timezone usado pela série da estação: **`America/Sao_Paulo`**;
+- endpoint ArcGIS público do SNIRH utilizável para readiness sem sessão de navegador.
 
-O HidroWeb integra o SNIRH e reúne séries e inventários da Rede Hidrometeorológica Nacional. O ecossistema distingue, em termos operacionais, acervo/séries do HidroWeb e dados mais recentes/telemétricos de estações.
+Ainda não confirmado:
 
-Para o Tempo Pelotas, a ANA/RHN pode futuramente fornecer:
+- referência vertical/zero da régua da estação 87955001;
+- contrato final de ingestão e QC para o Historical Data Layer;
+- política de ativação pública da leitura ANA.
 
-- nível;
-- vazão;
-- chuva;
-- inventário e metadados de estações;
-- séries históricas para validação e Historical Data Layer.
+Por isso permanecem obrigatórios:
 
-“Dado da RHN” não significa necessariamente “estação operada diretamente pela ANA”. Operadora e entidade responsável precisam permanecer associadas à estação quando a fonte as fornecer.
-
-## 2. Estação LARANJAL confirmada
-
-Identidade atualmente validada:
-
-- nome: **LARANJAL**;
-- código: **87955001**;
-- município: **Pelotas**;
-- estado: **Rio Grande do Sul**;
-- parâmetro retornado no serviço público: **Nivel**;
-- bacia: **ATLÂNTICO, TRECHO SUDESTE**;
-- sub-bacia: **LAGOA DOS PATOS**;
-- responsável: **UFPEL**;
-- operadora: **UFPEL**;
-- status da estação: **Ativo**.
-
-No banco oficial do Tempo Pelotas, essa identidade está registrada como:
-
-- source key: `ana-rhn`;
-- station key: `ana-rhn-laranjal-87955001`;
-- `integrationStatus=validation`;
-- `parameterStatus=unconfirmed` para normalização editorial/canônica, mesmo que o endpoint público informe `Nivel`;
-- `unitStatus=unconfirmed`;
+- `collection_enabled=false`;
+- `paid_access_allowed=false`;
+- `publicMeasurementIngestionEnabled=false`;
 - `verticalReferenceStatus=unconfirmed`;
-- `timezoneStatus=unconfirmed`;
-- `crossValidationOnlyUntilContractClosed=true`.
+- zero medições ANA/RHN no arquivo canônico.
 
-A migration correspondente é `supabase/migrations/20260829034000_register_ana_rhn_historical_source.sql` e já foi aplicada no Supabase oficial.
+Nenhuma credencial, cookie, sessão, token ou HAR autenticado deve ser versionado.
 
-## 3. Contrato público ArcGIS validado
+## 2. Identidade canônica da estação
 
-Foi validado um endpoint público do SNIRH no serviço:
+Estação adotada para validação:
 
-`https://portal1.snirh.gov.br/server/rest/services/SGH/CotasReferencia2/MapServer/2/query`
+- código: `87955001`;
+- nome: LARANJAL;
+- tipo: Fluviométrica;
+- município: PELOTAS;
+- UF: RIO GRANDE DO SUL;
+- rio/corpo hídrico: LAGOA DOS PATOS;
+- responsável: UFPEL;
+- operadora: UFPEL;
+- estação telemétrica: Sim.
 
-A consulta da estação `87955001` respondeu HTTP 200 sem cookie, sessão ou credencial e expôs, entre outros, os campos:
+Registro no Tempo Pelotas:
+
+- fonte: `ana-rhn`;
+- station key: `ana-rhn-laranjal-87955001`.
+
+A migration inicial registra identidade e governança sem inserir leituras. A migration posterior confirma unidade e timezone, mas mantém a referência vertical e a ingestão bloqueadas.
+
+## 3. Contrato público ArcGIS usado para readiness
+
+Origem oficial:
+
+`https://portal1.snirh.gov.br`
+
+Layer validada:
+
+`/server/rest/services/SGH/CotasReferencia2/MapServer/2/query`
+
+O adapter `src/lib/hydrology/ana-rhn-public.server.ts` consulta somente HTTPS, host em allowlist, sem token/API key/cookie e com timeout curto.
+
+Campos usados:
 
 - `Codigo`;
 - `Parametro`;
@@ -79,163 +83,189 @@ A consulta da estação `87955001` respondeu HTTP 200 sem cookie, sessão ou cre
 - `Ult_Dado`;
 - `Status_Dado`.
 
-Na verificação de 29/08/2026, a estação retornou:
+Payload real sanitizado observado para 87955001:
 
 - `Parametro = Nivel`;
 - `Ult_Dado = 116.0`;
-- `Data_ult_dado = 1787934120000`, correspondente ao instante UTC `2026-08-28T16:22:00.000Z` no transporte ArcGIS;
+- `Data_ult_dado = 2026-08-28T16:22:00Z`;
 - `Status_Dado = Sem dados de referencia`.
 
-### Regra crítica
+`Status_Dado = Sem dados de referencia` se refere às referências usadas pela camada para classificação/limiares e **não deve ser interpretado como prova sobre datum vertical da estação**.
 
-`116.0` é preservado como **valor bruto**, não como `1,16 m` e não como `116 cm` no runtime público.
+O ArcGIS é usado neste momento para readiness e identidade de último dado, não para inserir automaticamente uma observação pública.
 
-Há evidência contextual de que cotas ANA são frequentemente expressas em centímetros e o valor é plausível nessa escala, mas isso ainda não substitui a confirmação do contrato específico da série/estação. O Tempo Pelotas não normaliza unidade por plausibilidade.
+## 4. Unidade confirmada: centímetros
 
-`Status_Dado = Sem dados de referencia` também impede inferir automaticamente classes como normal, atenção, alerta ou inundação.
+O manual oficial atual do HidroWebService documenta a série telemétrica adotada com:
 
-## 4. Adapter público de readiness
+- chuva adotada em mm;
+- **cota adotada em cm**;
+- vazão adotada em m³/s;
+- timestamp de medição separado de atualização;
+- indicadores de qualidade.
 
-Arquivo:
+Para a estação 87955001, uma consulta diagnóstica ao serviço legado oficial retornou exatamente:
 
-`src/lib/hydrology/ana-rhn-public.server.ts`
+- `Nivel = 116.00`;
+- `DataHora = 2026-08-28 13:22:00`.
 
-Objetivo do adapter nesta fase:
+O ArcGIS público retornou no mesmo evento:
 
-- consultar somente o endpoint público ArcGIS;
-- usar host HTTPS fixo/allowlist `portal1.snirh.gov.br`;
-- validar payload com Zod;
-- preservar código, nome, operador, parâmetro, valor bruto, timestamp e status da fonte;
-- devolver `unit=null`;
-- devolver `verticalReference=null`;
-- devolver `publishableMeasurement=false`;
-- declarar bloqueios explícitos:
-  - `unit-unconfirmed`;
-  - `vertical-reference-unconfirmed`;
-  - `timezone-contract-unconfirmed`;
-- nunca escrever em `historical_measurements`.
+- `Ult_Dado = 116.0`;
+- `Data_ult_dado = 2026-08-28T16:22:00Z`.
 
-O request tem budget curto de 3,5 s e não utiliza token, `api_key`, cookie ou sessão.
+A igualdade exata de estação, valor e instante conecta o `Ult_Dado` do ArcGIS ao campo de nível/cota documentado em centímetros.
 
-Contrato de regressão: `tests/ana-rhn-public.test.ts`, incluído em `test:contracts`.
+Consequência atual:
 
-## 5. Cross-check com a Estação Laranjal já operacional
+- `unitStatus = confirmed`;
+- `unit = cm`.
 
-A página `/nivel-da-lagoa-dos-patos-laranjal` continua usando sua fonte operacional atual e **não muda silenciosamente de referência**.
+O serviço legado foi usado **somente como evidência cruzada de diagnóstico**. Ele está descontinuado para novas integrações e não deve entrar como dependência do runtime.
 
-Próximo ao instante bruto ANA de `2026-08-28T16:22Z`, o arquivo próprio LabHidroSens/UFPel possuía leitura próxima de `1,12 m`. O valor ANA `116.0` é numericamente compatível com a hipótese de centímetros, mas existe diferença suficiente — e, principalmente, referência vertical ainda não confirmada — para proibir equivalência automática.
+## 5. Timezone confirmado: America/Sao_Paulo
 
-Esse cross-check serve apenas para orientar investigação de contrato. Não é conversão, calibração ou conciliação de réguas.
+O mesmo evento fornece a evidência temporal:
 
-## 6. HidroWeb Service oficial
+- serviço diagnóstico: `2026-08-28 13:22:00`;
+- ArcGIS público: `2026-08-28T16:22:00Z`.
 
-Também foi identificado o HidroWeb Service oficial, com documentação Swagger/manual e famílias de endpoints para:
+A diferença é exatamente UTC−03:00, correspondente a Pelotas em `America/Sao_Paulo` na data analisada.
 
-- inventário de estações;
-- série telemétrica detalhada;
-- série telemétrica adotada;
-- série de cotas;
-- série de chuva;
-- série de vazão;
-- entidades, bacias e metadados relacionados.
+Consequência atual:
 
-A documentação pública indica limites de período por chamada, incluindo janelas menores para séries telemétricas e até 366 dias para série convencional de cotas.
+- `timezoneStatus = confirmed`;
+- `timezone = America/Sao_Paulo`.
 
-O serviço autenticado deve ser a próxima fonte de verdade para fechar:
+O Historical Data Layer deve continuar armazenando timestamps canônicos em UTC, preservando o timezone de origem em metadados quando necessário para auditoria/apresentação local.
 
-1. unidade oficial da série;
-2. semântica exata do parâmetro;
-3. referência/datum quando fornecido ou documentado;
-4. timezone/formato de datas;
-5. flags de qualidade/dado adotado;
-6. contrato de retenção e uso;
-7. diferença entre série telemétrica adotada, bruta e convencional.
+## 6. Referência vertical ainda bloqueada
 
-Não acoplar o runtime a sessão de navegador se o HidroWeb Service oferecer contrato oficial estável.
+Este é o último gate semântico antes da primeira medição ANA.
 
-## 7. Arquitetura alvo
+O inventário público oficial da estação 87955001 retornou:
 
-Fluxo final pretendido:
+- `Altitude = null`;
+- `EscalaNivel = Não`;
+- `EscalaNivelInicio = null`;
+- `EscalaNivelFim = null`;
+- `RegistradorNivel = Não`;
+- `EstacaoTelemetrica = Sim`.
 
-`ANA / SNIRH / RHN → coletor server-side → validação semântica → normalização → persistência → API sanitizada Tempo Pelotas → páginas públicas`
+A documentação geral da ANA explica que réguas/cotas fluviométricas se relacionam ao plano de referência e referências de nível da própria estação. Isso não autoriza converter `116 cm` para altitude sobre o nível do mar sem a referência específica do ponto.
 
-A integração só passa de `validation` para ingestão quando for possível produzir uma observação equivalente a:
+Portanto:
+
+- `verticalReference = null`;
+- `verticalReferenceStatus = unconfirmed`;
+- `publishableMeasurement = false` no adapter de readiness;
+- blocker atual: `vertical-reference-unconfirmed`.
+
+Não usar como substituto automático:
+
+- referência de estação histórica com outro código, inclusive `87955000`;
+- estação hidrográfica/maregráfica vizinha chamada Laranjal;
+- datum documentado para outro sensor UFPel, como Canal São Gonçalo;
+- altitude geográfica aproximada;
+- correlação visual com a régua LabHidroSens.
+
+Somente evidência específica que ligue a estação 87955001 à sua referência/zero pode fechar esse gate.
+
+## 7. Relação com LabHidroSens / UFPel
+
+A página pública `/nivel-da-lagoa-dos-patos-laranjal` já possui fonte operacional própria e não será alterada silenciosamente.
+
+A observação do LabHidroSens continua sendo tratada segundo a referência própria dessa estação/sensor. A ANA/RHN pode futuramente servir como:
+
+- fonte adicional;
+- cross-check;
+- série histórica complementar;
+- fonte primária somente após contrato formal e validação semântica.
+
+Mesmo quando duas leituras têm valores próximos, não se deve assumir que compartilham o mesmo zero de régua.
+
+## 8. Monitor operacional
+
+O monitor executa `fetchAnaRhnLaranjalPublicSnapshot()` dentro da coleta de status, mas a fonte permanece sempre em:
+
+`state = implementation`
+
+Isso significa:
+
+- readiness pode ser observado;
+- falha/intermitência do endpoint não derruba o `overall` do portal;
+- nenhum `rawValue` é exposto na mensagem pública do monitor;
+- nenhum valor é escrito no Historical Data Layer por esse adapter.
+
+O runtime `2026-08-29-ana-rhn-readiness-v1` foi validado em produção e uma coleta real persistiu o serviço ANA como `implementation`.
+
+Após confirmação de unidade/timezone, a mensagem operacional deve dizer que esses dois gates estão fechados e que apenas a referência vertical permanece bloqueando a medição.
+
+## 9. Historical Data Layer
+
+Estado oficial no Supabase:
+
+- source `ana-rhn` registrada;
+- station `ana-rhn-laranjal-87955001` registrada;
+- `unitStatus=confirmed`;
+- `unit=cm`;
+- `timezoneStatus=confirmed`;
+- `timezone=America/Sao_Paulo`;
+- `verticalReferenceStatus=unconfirmed`;
+- coleta desabilitada;
+- uso pago bloqueado;
+- ingestão pública desabilitada;
+- zero medições ANA/RHN persistidas.
+
+Quando a referência vertical for fechada, a primeira ingestão deverá preservar no mínimo:
 
 ```ts
-type HydrometricObservation = {
-  stationCode: string;
-  stationName: string;
-  operator: string | null;
-  parameter: "level" | "flow" | "rain" | string;
+type AnaRhnLevelObservation = {
+  stationCode: "87955001";
+  stationName: "LARANJAL";
+  operator: "UFPEL";
+  parameter: "level";
   value: number;
-  unit: string;
-  reference: string | null;
+  unit: "cm";
+  verticalReference: string;
   observedAt: string;
+  sourceTimeZone: "America/Sao_Paulo";
   fetchedAt: string;
-  status: "live" | "stale" | "unavailable";
+  qualityFlag: string;
   source: "ANA_RHN";
 };
 ```
 
-Sem `unit`, `reference` e contrato temporal confiáveis, o objeto acima não pode ser emitido como medição canônica.
+Deduplicação deve usar fonte + estação + variável + classe + `observedAt`.
 
-## 8. Persistência e governança
+## 10. Próximo gate
 
-Quando a ingestão for liberada:
+Antes de habilitar ingestão:
 
-- preservar `observedAt` e `fetchedAt` separadamente;
-- deduplicar por fonte + estação + variável + classe + horário;
-- preservar o código oficial da estação;
-- armazenar operadora/responsável em metadata quando aplicável;
-- registrar quality/status da fonte sem transformar ausência em zero;
-- usar last-good apenas com horário/idade originais;
-- manter `paid_access_allowed=false` até revisão específica de retenção, redistribuição, atribuição e uso comercial.
-
-## 9. Comunicação pública
-
-Formulação segura:
-
-> O Tempo Pelotas possui acesso autorizado à plataforma integrada da Agência Nacional de Águas e Saneamento Básico para trabalhar com informações hidrometeorológicas da Rede Hidrometeorológica Nacional. A integração é feita gradualmente, preservando estação de origem, unidade, referência e horário antes de qualquer medição ser publicada.
-
-Evitar:
-
-- “site oficial da ANA”;
-- “homologado pela ANA”;
-- “certificado pela ANA”;
-- “parceiro oficial da ANA”, salvo instrumento específico;
-- afirmar que toda estação RHN é operada diretamente pela ANA;
-- afirmar que o nível público atual do Laranjal já vem da ANA enquanto a ingestão permanecer desativada.
-
-## 10. Próximos gates
-
-Antes de inserir a primeira linha ANA em `historical_measurements`:
-
-1. confirmar unidade pelo HidroWeb Service oficial;
-2. confirmar referência vertical/datum ou documentar formalmente sua ausência;
-3. confirmar timezone/semântica temporal;
-4. escolher entre série telemétrica adotada, detalhada e/ou série convencional conforme a estação;
-5. validar flags de qualidade;
-6. documentar limites de requisição e política de uso;
-7. implementar fixture do payload autenticado sanitizado;
-8. definir freshness/stale por tipo de série;
-9. só então habilitar `collection_enabled` e criar o coletor;
-10. somente depois avaliar exposição pública/cross-validation.
+1. obter referência vertical/zero específica da estação 87955001, idealmente via ficha oficial ANA/SNIRH ou documentação UFPel da estação;
+2. documentar a evidência;
+3. decidir se a leitura será publicada como cota relativa de régua ou transformada para outra referência — transformação só se houver metadados suficientes;
+4. definir QC/stale e periodicidade;
+5. habilitar coleta em migration separada;
+6. inserir a primeira observação somente após validação;
+7. manter a fonte fora de funcionalidades pagas até revisão de governança/redistribuição.
 
 ## 11. Segurança
 
-- nunca versionar senha, cookie, token ou sessão;
-- nunca versionar HAR autenticado bruto;
-- nunca colocar credenciais ANA em query string, log ou resposta pública;
-- secrets ficam exclusivamente no servidor/ambiente;
-- não usar automação dependente de sessão de navegador quando existir serviço oficial estável.
+- não armazenar credenciais em código;
+- não automatizar sessão de navegador quando existe contrato de API mais estável;
+- não usar o serviço legado como runtime;
+- não registrar URLs autenticadas;
+- não registrar token OAuth;
+- logs devem ser sanitizados;
+- falha de API não vira nível zero.
 
-## Referências internas
+## 12. Referências internas
 
 - `PROJECT_CURRENT_STATE.md`;
 - `docs/HISTORICAL_DATA_INVENTORY.md`;
-- `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md`;
-- `supabase/migrations/20260829034000_register_ana_rhn_historical_source.sql`;
 - `src/lib/hydrology/ana-rhn-public.server.ts`;
+- `src/lib/status/data-status.server.ts`;
+- `src/lib/status/data-status-redemet-probes.server.ts`;
 - `tests/ana-rhn-public.test.ts`;
-- `src/routes/situacao-hidrologica-pelotas.tsx`;
-- `src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx`.
+- migrations `register_ana_rhn_historical_source` e `confirm_ana_rhn_unit_timezone`.
