@@ -19,7 +19,7 @@ type DirectObsStatus = {
 
 const OBS_WIDGET_PATH = "/embed/status-tempo-agora";
 const OBS_WIDGET_API_PATH = "/api/widgets/status-tempo-agora";
-const EMBED_PATHS = new Set(["/embed/nivel-laranjal", OBS_WIDGET_PATH]);
+const EMBED_PATHS = new Set(["/embed/nivel-laranjal", "/embed/widget", OBS_WIDGET_PATH]);
 const EMBED_CACHE_CONTROL = "public, max-age=60, s-maxage=60, stale-while-revalidate=300";
 const EMBED_CDN_CACHE_CONTROL = "max-age=60, stale-while-revalidate=300";
 const EMBED_ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
