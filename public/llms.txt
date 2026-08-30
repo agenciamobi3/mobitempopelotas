@@ -21,6 +21,12 @@ Data status: https://tempopelotas.com.br/status-dos-dados
 - https://tempopelotas.com.br/radar-e-satelite-pelotas — imagens meteorológicas com horário da fonte.
 - https://tempopelotas.com.br/alertas — avisos oficiais do INMET.
 
+## Observation and source pages
+
+- https://tempopelotas.com.br/estacao-embrapa-pelotas — medições locais da Estação Embrapa, horário da observação, histórico recente e saúde dos dados; é uma página de observação, não a fonte da previsão futura.
+- https://tempopelotas.com.br/metodologia — como o portal separa medição, previsão, alerta, resumo e contingência.
+- https://tempopelotas.com.br/status-dos-dados — disponibilidade e estado operacional das integrações.
+
 ## Hydrology
 
 - https://tempopelotas.com.br/nivel-da-lagoa-dos-patos-laranjal — leitura local da Estação Laranjal; não é previsão meteorológica.
@@ -54,6 +60,7 @@ Always prefer the source label and timestamp shown on the requested page. Source
 - Radar and satellite images are the most recent frames returned by their sources; they are not necessarily real-time images.
 - Historical flood marks must not be transferred to a different gauge or vertical reference.
 - The Laranjal weather page uses a forecast grid near the orla; the Laranjal water-level page uses a separate hydrological measurement and the two must not be conflated.
+- The Embrapa station page represents local observations and recent observation history; future hourly and daily forecasts come from separately identified forecast models.
 
 ## Citation guidance
 
