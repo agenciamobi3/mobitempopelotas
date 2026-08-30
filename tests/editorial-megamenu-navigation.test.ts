@@ -38,7 +38,7 @@ function escapeRegExp(value: string) {
 }
 
 test("megamenu groups the public weather inventory into editorial areas", () => {
-  for (const label of ["Previsão", "Satélites e Radares", "Águas", "Região", "Explorar"]) {
+  for (const label of ["Previsão", "Águas", "Região", "Explorar"]) {
     assert.match(header, new RegExp(`label: "${label}"`));
   }
 
@@ -47,10 +47,12 @@ test("megamenu groups the public weather inventory into editorial areas", () => 
   }
 });
 
-test("satélites e radares ficam em página dedicada, não na Home", () => {
+test("satélites e radares ficam em página dedicada e navegação direta", () => {
   assert.doesNotMatch(productionHome, /HomeRadarEditorial/);
-  assert.match(header, /label: "Satélites e Radares"/);
-  assert.match(header, /to: "\/radar-e-satelite-pelotas"/);
+  assert.doesNotMatch(header, /id: "monitoring"/);
+  assert.match(header, /to="\/radar-e-satelite-pelotas"/);
+  assert.match(header, />\s*Satélites e Radares\s*<\/Link>/);
+  assert.match(header, /return <a \{\.\.\.props\} href=\{href\} \/>/);
 });
 
 test("atalhos estaticos principais do megamenu pertencem ao inventario indexavel", () => {
@@ -85,11 +87,12 @@ test("desktop megamenu keeps the hover path continuous between trigger and panel
   assert.doesNotMatch(styles, /top: calc\(100% \+ 10px\)/);
 });
 
-test("mobile navigation reuses the same megamenu inventory instead of a parallel list", () => {
+test("mobile navigation reuses the same megamenu inventory and direct radar link", () => {
   assert.match(header, /id="tp-mobile-menu"/);
   assert.match(header, /aria-expanded=\{mobileOpen\}/);
   assert.match(header, /\{megaMenus\.map\(\(menu\) =>/);
   assert.match(header, /menu\.sections\.flatMap/);
+  assert.match(header, /aria-label="Satélites e Radares"/);
   assert.match(styles, /@media \(max-width: 1040px\)/);
   assert.match(styles, /\.tp-home-header__nav \{[\s\S]*display: none/);
   assert.match(styles, /\.tp-home-header__mobile-menu/);
