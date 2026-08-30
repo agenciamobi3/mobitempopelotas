@@ -53,19 +53,21 @@ function imageLayer(
   };
 }
 
-test("previsao municipal INMET prioriza endpoint atual sem falso timeout agressivo", () => {
-  const current = inmetResilientSource.indexOf("/api/forecast/");
-  const legacy = inmetResilientSource.indexOf("/previsao/");
+test("previsao municipal INMET prioriza endpoint estável validado e mantém contingência retardada", () => {
+  const stable = inmetResilientSource.indexOf("/previsao/");
+  const alternate = inmetResilientSource.indexOf("/api/forecast/");
 
-  assert.ok(current >= 0);
-  assert.ok(legacy > current);
-  assert.match(inmetResilientSource, /CURRENT_ENDPOINT_TIMEOUT_MS = 3_200/);
-  assert.match(inmetResilientSource, /LEGACY_ENDPOINT_TIMEOUT_MS = 2_800/);
-  assert.match(inmetResilientSource, /LEGACY_START_DELAY_MS = 650/);
+  assert.ok(stable >= 0);
+  assert.ok(alternate > stable);
+  assert.match(inmetResilientSource, /STABLE_ENDPOINT_TIMEOUT_MS = 2_800/);
+  assert.match(inmetResilientSource, /ALTERNATE_ENDPOINT_TIMEOUT_MS = 2_400/);
+  assert.match(inmetResilientSource, /ALTERNATE_START_DELAY_MS = 900/);
   assert.match(inmetResilientSource, /Origin: "https:\/\/previsao\.inmet\.gov\.br"/);
   assert.match(inmetResilientSource, /Referer: `\$\{INMET_FORECAST_APP_URL\}\/`/);
   assert.match(inmetResilientSource, /integração pela rota/);
-  assert.match(inmetResilientSource, /setTimeout\(startLegacy, LEGACY_START_DELAY_MS\)/);
+  assert.match(inmetResilientSource, /setTimeout\(startAlternate, ALTERNATE_START_DELAY_MS\)/);
+  assert.match(inmetResilientSource, /primary: STABLE_FORECAST_URL/);
+  assert.match(inmetResilientSource, /alternate: ALTERNATE_FORECAST_URL/);
   assert.match(officialSources, /fetchResilientInmetForecast/);
   assert.match(officialSources, /OFFICIAL_SOURCE_DEADLINE_MS\.inmetForecast/);
   assert.match(sourcePolicy, /inmetForecast:\s*4_000/);
@@ -92,8 +94,11 @@ test("satelite REDEMET usa a mesma autenticacao oficial ja adotada por radar e S
   assert.match(redemetSatelliteSource, /url\.searchParams\.set\("api_key", key\)/);
   assert.match(redemetSatelliteSource, /fetchOfficialRedemetSatellite/);
   assert.doesNotMatch(redemetSatelliteSource, /"X-Api-Key"/);
-  assert.match(redemetSatelliteSource, /record\.path/);
-  assert.match(redemetSatelliteSource, /record\.src/);
+  assert.match(
+    redemetSatelliteSource,
+    /IMAGE_PATH_KEYS = \["path", "url", "imagem", "image", "arquivo", "src"\]/,
+  );
+  assert.match(redemetSatelliteSource, /record\[key\]/);
 });
 
 test("overview usa os adaptadores resilientes e seleciona contingencia sem duplicar semantica", () => {
