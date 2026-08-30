@@ -2,7 +2,7 @@
 
 import { useRouterState } from "@tanstack/react-router";
 import type { AnchorHTMLAttributes } from "react";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
 import { AuthAccountAction } from "@/components/auth/AuthAccountAction";
 import type { EditorialInternalPath } from "@/lib/editorial-content";
@@ -11,7 +11,7 @@ import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
 import "./home-editorial-header.css";
 
-type MegaMenuId = "forecast" | "monitoring" | "water" | "region" | "explore";
+type MegaMenuId = "forecast" | "water" | "region" | "explore";
 type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
@@ -128,55 +128,6 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             label: "Vento e rajadas",
             to: "/vento-em-pelotas",
             description: "Direção, velocidade e rajadas previstas.",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "monitoring",
-    label: "Satélites e Radares",
-    summary: "Radar, satélites, câmeras e observações meteorológicas para Pelotas e a região.",
-    activePaths: [
-      "/radar-e-satelite-pelotas",
-      "/estacao-embrapa-pelotas",
-      "/mapa-de-geadas-rio-grande-do-sul",
-      "/cameras-ao-vivo-pelotas",
-    ],
-    featured: {
-      eyebrow: "Satélites e Radares",
-      label: "Abrir monitoramento meteorológico",
-      to: "/radar-e-satelite-pelotas",
-      description: "Radar de chuva, imagens de satélite e trovoadas em Pelotas e na Zona Sul.",
-    },
-    sections: [
-      {
-        title: "Observação local",
-        links: [
-          {
-            label: "Estação Embrapa",
-            to: "/estacao-embrapa-pelotas",
-            description: "Leituras observadas e extremos recentes da estação local.",
-          },
-          {
-            label: "Câmeras ao vivo",
-            to: "/cameras-ao-vivo-pelotas",
-            description: "Céu, visibilidade e condições locais em vídeo.",
-          },
-        ],
-      },
-      {
-        title: "Mapas e eventos",
-        links: [
-          {
-            label: "Mapa de geadas",
-            to: "/mapa-de-geadas-rio-grande-do-sul",
-            description: "Produto oficial do INMET para o Rio Grande do Sul.",
-          },
-          {
-            label: "Avisos oficiais",
-            to: "/alertas",
-            description: "Alertas meteorológicos vigentes aplicáveis a Pelotas.",
           },
         ],
       },
@@ -306,8 +257,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
   {
     id: "explore",
     label: "Explorar",
-    summary: "Clima, histórico, conteúdo editorial e transparência dos dados.",
+    summary: "Observação, clima, histórico, conteúdo editorial e transparência dos dados.",
     activePaths: [
+      "/estacao-embrapa-pelotas",
+      "/cameras-ao-vivo-pelotas",
+      "/mapa-de-geadas-rio-grande-do-sul",
       "/clima-em-pelotas",
       "/historico-climatico-pelotas",
       "/blog",
@@ -322,23 +276,38 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
     },
     sections: [
       {
-        title: "Contexto e memória",
+        title: "Observação e contexto",
         links: [
+          {
+            label: "Estação Embrapa",
+            to: "/estacao-embrapa-pelotas",
+            description: "Leituras observadas e extremos recentes da estação local.",
+          },
+          {
+            label: "Câmeras ao vivo",
+            to: "/cameras-ao-vivo-pelotas",
+            description: "Céu, visibilidade e condições locais em vídeo.",
+          },
+          {
+            label: "Mapa de geadas",
+            to: "/mapa-de-geadas-rio-grande-do-sul",
+            description: "Produto oficial do INMET para o Rio Grande do Sul.",
+          },
           {
             label: "Histórico climático",
             to: "/historico-climatico-pelotas",
             description: "Compare temperatura, chuva e vento dos últimos dias.",
           },
+        ],
+      },
+      {
+        title: "Conteúdo e transparência",
+        links: [
           {
             label: "Blog",
             to: "/blog",
             description: "Conteúdo meteorológico e explicações do portal.",
           },
-        ],
-      },
-      {
-        title: "Transparência",
-        links: [
           {
             label: "Status dos dados",
             to: "/status-dos-dados",
@@ -409,6 +378,7 @@ export function HomeEditorialHeader({
   const [openMenu, setOpenMenu] = useState<MegaMenuId | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const alertsActive = isActivePath(pathname, "/alertas");
+  const satellitesAndRadarsActive = isActivePath(pathname, "/radar-e-satelite-pelotas");
   const officialSeverityClass =
     officialAlertSeverity === "unknown" ? "" : ` severity-${officialAlertSeverity}`;
 
@@ -482,73 +452,87 @@ export function HomeEditorialHeader({
               const isActive = isMenuActive(pathname, menu.activePaths);
 
               return (
-                <div
-                  className={`tp-home-header__nav-item${isOpen ? " is-open" : ""}`}
-                  key={menu.id}
-                  onMouseEnter={() => setOpenMenu(menu.id)}
-                  onMouseLeave={() =>
-                    setOpenMenu((current) => (current === menu.id ? null : current))
-                  }
-                  onFocus={() => setOpenMenu(menu.id)}
-                  onBlur={(event) => {
-                    const nextTarget = event.relatedTarget as Node | null;
-                    if (!event.currentTarget.contains(nextTarget)) {
-                      setOpenMenu((current) => (current === menu.id ? null : current));
-                    }
-                  }}
-                >
-                  <button
-                    className={`tp-home-header__trigger${isActive ? " is-active" : ""}`}
-                    type="button"
-                    aria-expanded={isOpen}
-                    aria-controls={`tp-mega-${menu.id}`}
-                    onClick={() =>
-                      setOpenMenu((current) => (current === menu.id ? null : menu.id))
-                    }
-                  >
-                    <span>{menu.label}</span>
-                    <ChevronIcon />
-                  </button>
-
+                <Fragment key={menu.id}>
                   <div
-                    className="tp-home-header__mega"
-                    id={`tp-mega-${menu.id}`}
-                    hidden={!isOpen}
+                    className={`tp-home-header__nav-item${isOpen ? " is-open" : ""}`}
+                    onMouseEnter={() => setOpenMenu(menu.id)}
+                    onMouseLeave={() =>
+                      setOpenMenu((current) => (current === menu.id ? null : current))
+                    }
+                    onFocus={() => setOpenMenu(menu.id)}
+                    onBlur={(event) => {
+                      const nextTarget = event.relatedTarget as Node | null;
+                      if (!event.currentTarget.contains(nextTarget)) {
+                        setOpenMenu((current) => (current === menu.id ? null : current));
+                      }
+                    }}
                   >
-                    <div className="tp-home-header__mega-surface">
-                      <Link
-                        className="tp-home-header__mega-featured"
-                        to={menu.featured.to}
-                        onClick={() => setOpenMenu(null)}
-                      >
-                        <span className="tp-home-header__mega-eyebrow">{menu.featured.eyebrow}</span>
-                        <strong>{menu.featured.label}</strong>
-                        <p>{menu.featured.description}</p>
-                        <span className="tp-home-header__mega-cta">
-                          Abrir <ArrowIcon />
-                        </span>
-                      </Link>
+                    <button
+                      className={`tp-home-header__trigger${isActive ? " is-active" : ""}`}
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={`tp-mega-${menu.id}`}
+                      onClick={() =>
+                        setOpenMenu((current) => (current === menu.id ? null : menu.id))
+                      }
+                    >
+                      <span>{menu.label}</span>
+                      <ChevronIcon />
+                    </button>
 
-                      <div className="tp-home-header__mega-content">
-                        <div className="tp-home-header__mega-heading">
-                          <span>{menu.label}</span>
-                          <p>{menu.summary}</p>
-                        </div>
-                        <div className="tp-home-header__mega-sections">
-                          {menu.sections.map((section) => (
-                            <section key={section.title}>
-                              <h3>{section.title}</h3>
-                              <div className="tp-home-header__mega-links">
-                                {section.links.map((item) => {
-                                  const path = itemPath(item);
-                                  const active = isActivePath(pathname, path);
+                    <div
+                      className="tp-home-header__mega"
+                      id={`tp-mega-${menu.id}`}
+                      hidden={!isOpen}
+                    >
+                      <div className="tp-home-header__mega-surface">
+                        <Link
+                          className="tp-home-header__mega-featured"
+                          to={menu.featured.to}
+                          onClick={() => setOpenMenu(null)}
+                        >
+                          <span className="tp-home-header__mega-eyebrow">{menu.featured.eyebrow}</span>
+                          <strong>{menu.featured.label}</strong>
+                          <p>{menu.featured.description}</p>
+                          <span className="tp-home-header__mega-cta">
+                            Abrir <ArrowIcon />
+                          </span>
+                        </Link>
 
-                                  if (isRegionalMenuLink(item)) {
+                        <div className="tp-home-header__mega-content">
+                          <div className="tp-home-header__mega-heading">
+                            <span>{menu.label}</span>
+                            <p>{menu.summary}</p>
+                          </div>
+                          <div className="tp-home-header__mega-sections">
+                            {menu.sections.map((section) => (
+                              <section key={section.title}>
+                                <h3>{section.title}</h3>
+                                <div className="tp-home-header__mega-links">
+                                  {section.links.map((item) => {
+                                    const path = itemPath(item);
+                                    const active = isActivePath(pathname, path);
+
+                                    if (isRegionalMenuLink(item)) {
+                                      return (
+                                        <Link
+                                          key={path}
+                                          to={item.to}
+                                          params={item.params}
+                                          className={active ? "is-active" : undefined}
+                                          aria-current={active ? "page" : undefined}
+                                          onClick={() => setOpenMenu(null)}
+                                        >
+                                          <strong>{item.label}</strong>
+                                          <span>{item.description}</span>
+                                        </Link>
+                                      );
+                                    }
+
                                     return (
                                       <Link
                                         key={path}
                                         to={item.to}
-                                        params={item.params}
                                         className={active ? "is-active" : undefined}
                                         aria-current={active ? "page" : undefined}
                                         onClick={() => setOpenMenu(null)}
@@ -557,29 +541,26 @@ export function HomeEditorialHeader({
                                         <span>{item.description}</span>
                                       </Link>
                                     );
-                                  }
-
-                                  return (
-                                    <Link
-                                      key={path}
-                                      to={item.to}
-                                      className={active ? "is-active" : undefined}
-                                      aria-current={active ? "page" : undefined}
-                                      onClick={() => setOpenMenu(null)}
-                                    >
-                                      <strong>{item.label}</strong>
-                                      <span>{item.description}</span>
-                                    </Link>
-                                  );
-                                })}
-                              </div>
-                            </section>
-                          ))}
+                                  })}
+                                </div>
+                              </section>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+
+                  {menu.id === "forecast" ? (
+                    <Link
+                      className={`tp-home-header__direct${satellitesAndRadarsActive ? " is-active" : ""}`}
+                      to="/radar-e-satelite-pelotas"
+                      aria-current={satellitesAndRadarsActive ? "page" : undefined}
+                    >
+                      Satélites e Radares
+                    </Link>
+                  ) : null}
+                </Fragment>
               );
             })}
           </nav>
@@ -632,26 +613,40 @@ export function HomeEditorialHeader({
 
             <div className="tp-home-header__mobile-groups">
               {megaMenus.map((menu) => (
-                <section className="tp-home-header__mobile-group" key={menu.id}>
-                  <div className="tp-home-header__mobile-group-heading">
-                    <h2>{menu.label}</h2>
-                    <p>{menu.summary}</p>
-                  </div>
-                  <div className="tp-home-header__mobile-links">
-                    <Link className="is-featured" to={menu.featured.to}>
-                      <strong>{menu.featured.label}</strong>
-                      <span>{menu.featured.description}</span>
-                    </Link>
-                    {menu.sections.flatMap((section) => section.links).map((item) => {
-                      const path = itemPath(item);
-                      const active = isActivePath(pathname, path);
+                <Fragment key={menu.id}>
+                  <section className="tp-home-header__mobile-group">
+                    <div className="tp-home-header__mobile-group-heading">
+                      <h2>{menu.label}</h2>
+                      <p>{menu.summary}</p>
+                    </div>
+                    <div className="tp-home-header__mobile-links">
+                      <Link className="is-featured" to={menu.featured.to}>
+                        <strong>{menu.featured.label}</strong>
+                        <span>{menu.featured.description}</span>
+                      </Link>
+                      {menu.sections.flatMap((section) => section.links).map((item) => {
+                        const path = itemPath(item);
+                        const active = isActivePath(pathname, path);
 
-                      if (isRegionalMenuLink(item)) {
+                        if (isRegionalMenuLink(item)) {
+                          return (
+                            <Link
+                              key={path}
+                              to={item.to}
+                              params={item.params}
+                              className={active ? "is-active" : undefined}
+                              aria-current={active ? "page" : undefined}
+                            >
+                              <strong>{item.label}</strong>
+                              <span>{item.description}</span>
+                            </Link>
+                          );
+                        }
+
                         return (
                           <Link
                             key={path}
                             to={item.to}
-                            params={item.params}
                             className={active ? "is-active" : undefined}
                             aria-current={active ? "page" : undefined}
                           >
@@ -659,22 +654,25 @@ export function HomeEditorialHeader({
                             <span>{item.description}</span>
                           </Link>
                         );
-                      }
+                      })}
+                    </div>
+                  </section>
 
-                      return (
+                  {menu.id === "forecast" ? (
+                    <section className="tp-home-header__mobile-group" aria-label="Satélites e Radares">
+                      <div className="tp-home-header__mobile-links">
                         <Link
-                          key={path}
-                          to={item.to}
-                          className={active ? "is-active" : undefined}
-                          aria-current={active ? "page" : undefined}
+                          className={satellitesAndRadarsActive ? "is-featured is-active" : "is-featured"}
+                          to="/radar-e-satelite-pelotas"
+                          aria-current={satellitesAndRadarsActive ? "page" : undefined}
                         >
-                          <strong>{item.label}</strong>
-                          <span>{item.description}</span>
+                          <strong>Satélites e Radares</strong>
+                          <span>Radar de chuva, imagens de satélite e trovoadas em Pelotas e na Zona Sul.</span>
                         </Link>
-                      );
-                    })}
-                  </div>
-                </section>
+                      </div>
+                    </section>
+                  ) : null}
+                </Fragment>
               ))}
             </div>
           </div>
