@@ -60,11 +60,19 @@ test("router não dispara loader público por hover ou foco antes do clique", ()
   assert.doesNotMatch(router, /defaultPreloadDelay/);
 });
 
-test("boundary público pode recuperar documento mesmo antes do root ficar pronto", () => {
+test("boundary público recupera apenas falhas transitórias e não mascara exceção real", () => {
   assert.match(staleClientRecovery, /recoverClientNavigationFailure/);
-  assert.match(staleClientRecovery, /navigateToFreshDocument\(/);
+  assert.match(staleClientRecovery, /if \(isStaleClientAssetError\(error\)\)/);
+  assert.match(staleClientRecovery, /if \(isTransientClientNavigationError\(error\)\)/);
+  assert.match(staleClientRecovery, /return false;/);
+  assert.doesNotMatch(staleClientRecovery, /navigateToFreshDocument\(\s*"runtime"\s*\)/);
   assert.match(staleClientRecovery, /sessionStorage/);
   assert.doesNotMatch(staleClientRecovery, /if \(!clientRuntimeReady\) return false/);
+
+  assert.match(rootRoute, /Falha de navegação/);
+  assert.match(rootRoute, /Não foi possível concluir esta página/);
+  assert.match(rootRoute, /Tentar novamente/);
+  assert.doesNotMatch(rootRoute, /Carregando a versão mais recente do Tempo Pelotas/);
 });
 
 test("home, hoje, amanhã e 7 dias entregam shell sem fonte externa no loader inicial", () => {
