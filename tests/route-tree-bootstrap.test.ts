@@ -78,6 +78,15 @@ test("route generator discovers all exported file routes recursively", () => {
   assert.match(generator, /_addFileTypes<FileRouteTypes>\(\)/);
 });
 
+test("route check accepts TanStack final format and validates exact route coverage", () => {
+  assert.match(generator, /ROUTE_TREE_IMPORT_PATTERN/);
+  assert.match(generator, /function committedRouteImports/);
+  assert.match(generator, /function validateCommittedRouteTree/);
+  assert.match(generator, /rotas ausentes/);
+  assert.match(generator, /rotas extras/);
+  assert.match(generator, /Árvore versionada cobre exatamente/);
+});
+
 test("committed route tree matches every discovered route module", () => {
   const result = spawnSync(process.execPath, ["scripts/generate-route-tree.mjs", "--check"], {
     encoding: "utf8",
