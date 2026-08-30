@@ -214,11 +214,17 @@ function MeteogramaPelotasPage() {
       data={weather}
       pageClassName="internal-weather-shell--meteogram"
       showOfficialAlerts={false}
-      hero={() => <MeteogramHero weather={weather} meteogram={meteogram} />}
+      hero={({ data: recoveredWeather }) => (
+        <MeteogramHero weather={recoveredWeather} meteogram={meteogram} />
+      )}
     >
-      <MeteogramPage weather={weather} meteogram={meteogram} />
-      <SimagroModelProducts />
-      <EditorialContentSection id="como-interpretar-meteograma" content={METEOGRAM_CONTENT} />
+      {(recoveredWeather) => (
+        <>
+          <MeteogramPage weather={recoveredWeather} meteogram={meteogram} />
+          <SimagroModelProducts />
+          <EditorialContentSection id="como-interpretar-meteograma" content={METEOGRAM_CONTENT} />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
