@@ -9,6 +9,7 @@ const PROVIDER_KEY = "open-meteo";
 const MAX_CONTINGENCY_AGE_MS = 30 * 60 * 1_000;
 
 type CacheRow = {
+  provider_key: string;
   status: "live" | "stale" | "unavailable";
   payload: unknown;
   fetched_at: string | null;
