@@ -109,8 +109,8 @@ export const Route = createFileRoute("/previsao-7-dias-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, SEVEN_DAY_PAGE_CONTENT.faqs),
     ]),
-  // A rota entrega HTML imediatamente. A série semanal real entra depois pela
-  // recuperação client-side, sem manter o visitante esperando uma server function.
+  // A rota entrega HTML imediatamente. A consolidação semanal real entra depois
+  // pela recuperação client-side, sem manter o visitante esperando server function.
   loader: () => createUnavailableWeatherIntelligence(),
   staleTime: 5 * 60 * 1_000,
   component: PrevisaoSeteDiasPage,
@@ -131,12 +131,16 @@ function PrevisaoSeteDiasPage() {
         />
       )}
     >
-      <SevenDayForecastPageV2 data={weather} />
-      <ForecastHorizonBridge />
-      <EditorialContentSection
-        id="como-interpretar-a-previsao-semanal"
-        content={SEVEN_DAY_PAGE_CONTENT}
-      />
+      {(recoveredWeather) => (
+        <>
+          <SevenDayForecastPageV2 data={recoveredWeather} />
+          <ForecastHorizonBridge />
+          <EditorialContentSection
+            id="como-interpretar-a-previsao-semanal"
+            content={SEVEN_DAY_PAGE_CONTENT}
+          />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
