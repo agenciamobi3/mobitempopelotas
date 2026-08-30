@@ -1,4 +1,5 @@
 import Link from "@/production/compat/NextLink";
+import { HomeRadarCta } from "@/production/components/home-radar-cta";
 import { WeatherIcon } from "@/production/components/weather-icon";
 import { weatherConditionLabels } from "@/production/lib/hero-weather-presentation";
 import type { ForecastNarrative } from "@/production/lib/weather-ai-summary";
@@ -108,72 +109,76 @@ export function HomeForecastTrend({ weather, narrative }: HomeForecastTrendProps
   if (nextDays.length === 0) return null;
 
   return (
-    <section className="tp-home-trend" aria-labelledby="tp-home-trend-title">
-      <header className="tp-home-trend__header">
-        <span>Tendência do tempo</span>
-        <h2 id="tp-home-trend-title">Como o tempo deve evoluir na semana</h2>
-      </header>
+    <>
+      <section className="tp-home-trend" aria-labelledby="tp-home-trend-title">
+        <header className="tp-home-trend__header">
+          <span>Tendência do tempo</span>
+          <h2 id="tp-home-trend-title">Como o tempo deve evoluir na semana</h2>
+        </header>
 
-      <div className="tp-home-trend__list">
-        {nextDays.map((day, index) => {
-          const summary = summaries[index] ?? buildDaySummary(day);
-          const isRainiest =
-            rainiestDayChance !== null &&
-            day.rainChance === rainiestDayChance &&
-            day.rainChance !== null &&
-            day.rainChance >= 20;
-          const condition = weatherConditionLabels[day.icon];
+        <div className="tp-home-trend__list">
+          {nextDays.map((day, index) => {
+            const summary = summaries[index] ?? buildDaySummary(day);
+            const isRainiest =
+              rainiestDayChance !== null &&
+              day.rainChance === rainiestDayChance &&
+              day.rainChance !== null &&
+              day.rainChance >= 20;
+            const condition = weatherConditionLabels[day.icon];
 
-          return (
-            <article
-              className={`tp-home-trend-day${isRainiest ? " is-rainiest" : ""}`}
-              key={`${day.weekday}-${day.date}`}
-              aria-label={`${day.weekday}, ${day.date}: máxima de ${day.max} graus, mínima de ${day.min} graus e ${day.rainChance === null ? "probabilidade de chuva não informada" : `${day.rainChance}% de chance de chuva`}.`}
-            >
-              <div className="tp-home-trend-day__topline">
-                <div>
-                  <strong>{day.weekday}</strong>
-                  <span>{day.date}</span>
+            return (
+              <article
+                className={`tp-home-trend-day${isRainiest ? " is-rainiest" : ""}`}
+                key={`${day.weekday}-${day.date}`}
+                aria-label={`${day.weekday}, ${day.date}: máxima de ${day.max} graus, mínima de ${day.min} graus e ${day.rainChance === null ? "probabilidade de chuva não informada" : `${day.rainChance}% de chance de chuva`}.`}
+              >
+                <div className="tp-home-trend-day__topline">
+                  <div>
+                    <strong>{day.weekday}</strong>
+                    <span>{day.date}</span>
+                  </div>
+                  {isRainiest ? <b>Maior chance</b> : null}
                 </div>
-                {isRainiest ? <b>Maior chance</b> : null}
-              </div>
 
-              <div className="tp-home-trend-day__condition">
-                <WeatherIcon name={day.icon} title={condition} />
-                <span>{condition}</span>
-              </div>
-
-              <div className="tp-home-trend-day__summary">
-                <strong>{summary.headline}</strong>
-                <p>{summary.summary}</p>
-              </div>
-
-              <dl className="tp-home-trend-day__metrics">
-                <div>
-                  <dt>Chuva</dt>
-                  <dd>{day.rainChance === null ? "—" : `${day.rainChance}%`}</dd>
-                  <small>{rainChanceLabel(day.rainChance)}</small>
+                <div className="tp-home-trend-day__condition">
+                  <WeatherIcon name={day.icon} title={condition} />
+                  <span>{condition}</span>
                 </div>
-                <div>
-                  <dt>Máx.</dt>
-                  <dd>{day.max}°</dd>
-                </div>
-                <div>
-                  <dt>Mín.</dt>
-                  <dd>{day.min}°</dd>
-                </div>
-              </dl>
-            </article>
-          );
-        })}
-      </div>
 
-      <div className="tp-home-trend__links">
-        <Link href="/tempo-hoje-pelotas">
-          Ver previsão completa de hoje <span aria-hidden="true">→</span>
-        </Link>
-        <Link href="/previsao-7-dias-pelotas">Ver previsão para 7 dias</Link>
-      </div>
-    </section>
+                <div className="tp-home-trend-day__summary">
+                  <strong>{summary.headline}</strong>
+                  <p>{summary.summary}</p>
+                </div>
+
+                <dl className="tp-home-trend-day__metrics">
+                  <div>
+                    <dt>Chuva</dt>
+                    <dd>{day.rainChance === null ? "—" : `${day.rainChance}%`}</dd>
+                    <small>{rainChanceLabel(day.rainChance)}</small>
+                  </div>
+                  <div>
+                    <dt>Máx.</dt>
+                    <dd>{day.max}°</dd>
+                  </div>
+                  <div>
+                    <dt>Mín.</dt>
+                    <dd>{day.min}°</dd>
+                  </div>
+                </dl>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="tp-home-trend__links">
+          <Link href="/tempo-hoje-pelotas">
+            Ver previsão completa de hoje <span aria-hidden="true">→</span>
+          </Link>
+          <Link href="/previsao-7-dias-pelotas">Ver previsão para 7 dias</Link>
+        </div>
+      </section>
+
+      <HomeRadarCta />
+    </>
   );
 }
