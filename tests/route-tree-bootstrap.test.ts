@@ -52,6 +52,11 @@ test("route tree is generated before development, build, tests and typecheck", (
   );
 });
 
+test("production preview uses Nitro output instead of TanStack dist preview", () => {
+  assert.equal(packageJson.scripts?.preview, "nitro preview");
+  assert.notEqual(packageJson.scripts?.preview, "vite preview");
+});
+
 test("direct Vite invocations generate routes before TanStack plugins are created", () => {
   const bootstrapIndex = viteConfig.indexOf("execFileSync(process.execPath");
   const configIndex = viteConfig.indexOf("export default defineConfig");
