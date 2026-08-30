@@ -4,9 +4,13 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { HomeExplorePortal } from "@/components/weather/HomeExplorePortal";
 import { getWeatherCameras } from "@/lib/cameras/cameras.functions";
 import type { WeatherCameraData } from "@/lib/cameras/cameras.types";
+import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import type { GuaibaObservationData } from "@/lib/hydrology/guaiba.server";
+import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
 import type { LagoonMonitoringNetworkData } from "@/lib/hydrology/lagoon-network.server";
+import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
+import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import {
   toProductionAlerts,
@@ -100,6 +104,12 @@ function strongestHourlyWindSpeed(weather: WeatherData) {
   }, null);
 }
 
+function hasUsableWeatherIntelligence(data: WeatherIntelligenceData) {
+  return Boolean(
+    data.weather.current !== null || data.weather.hourly.length > 0 || data.weather.daily.length > 0,
+  );
+}
+
 function HomeWaterLoading() {
   return (
     <section className="home-water-deferred" aria-live="polite" aria-busy="true">
@@ -126,6 +136,43 @@ function HomeWaterUnavailable() {
   );
 }
 
+function HomeWaterClientRecovery() {
+  const [result, setResult] = useState<HomeHydrologyResult | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    void Promise.all([
+      getLaranjalLevelData(),
+      getGuaibaObservation(),
+      getLagoonMonitoringNetwork(),
+    ])
+      .then(([laranjal, guaiba, lagoon]) => {
+        if (!active) return;
+        setResult({ status: "ready", laranjal, guaiba, lagoon });
+      })
+      .catch((error) => {
+        console.error("Falha ao recuperar hidrologia da Home:", error);
+        if (active) setResult({ status: "unavailable" });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (!result) return <HomeWaterLoading />;
+  if (result.status === "unavailable") return <HomeWaterUnavailable />;
+
+  return (
+    <HomeWaterEditorial
+      laranjal={result.laranjal}
+      guaiba={result.guaiba}
+      lagoon={result.lagoon}
+    />
+  );
+}
+
 function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyResult> }) {
   return (
     <Suspense fallback={<HomeWaterLoading />}>
@@ -138,7 +185,7 @@ function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyResu
               lagoon={result.lagoon}
             />
           ) : (
-            <HomeWaterUnavailable />
+            <HomeWaterClientRecovery />
           )
         }
       </Await>
@@ -153,7 +200,33 @@ export function ProductionHome({
   data: WeatherIntelligenceData;
   hydrology: Promise<HomeHydrologyResult>;
 }) {
-  const recoveredData = useOpenMeteoIntelligenceRecovery(data);
+  const [serverRecoveredData, setServerRecoveredData] = useState(data);
+
+  useEffect(() => {
+    let active = true;
+    setServerRecoveredData(data);
+
+    if (hasUsableWeatherIntelligence(data)) {
+      return () => {
+        active = false;
+      };
+    }
+
+    void getWeatherIntelligence()
+      .then((nextData) => {
+        if (!active || !hasUsableWeatherIntelligence(nextData)) return;
+        setServerRecoveredData(nextData);
+      })
+      .catch(() => {
+        // A recuperação direta do Open-Meteo permanece como contingência no hook abaixo.
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [data]);
+
+  const recoveredData = useOpenMeteoIntelligenceRecovery(serverRecoveredData);
   const weather = useMemo(
     () => toProductionWeatherData(recoveredData.weather),
     [recoveredData.weather],
