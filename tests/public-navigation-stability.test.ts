@@ -20,6 +20,14 @@ const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "ut
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 const runtimeVersionRoute = readFileSync("src/routes/api/runtime-version.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
+const browserRecovery = readFileSync(
+  "src/production/lib/weather-intelligence-browser-recovery.ts",
+  "utf8",
+);
+const internalWeatherShell = readFileSync(
+  "src/components/layout/InternalWeatherPageShell.tsx",
+  "utf8",
+);
 const navigationGuard = readFileSync(
   "src/components/navigation/PublicDocumentNavigationGuard.tsx",
   "utf8",
@@ -88,6 +96,20 @@ test("home, hoje, amanhã e 7 dias entregam shell sem fonte externa no loader in
     assert.match(routeSource, /loader: \(\) => createUnavailableWeatherIntelligence\(\)/);
     assert.doesNotMatch(routeSource, /loadPublicWeatherPage/);
     assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
+  }
+});
+
+test("rotas shell-first recuperam a consolidação do backend e propagam ao conteúdo", () => {
+  assert.match(browserRecovery, /getWeatherIntelligence/);
+  assert.match(browserRecovery, /hasUsableWeatherIntelligence/);
+  assert.match(browserRecovery, /useOpenMeteoIntelligenceRecovery\(serverRecoveredData\)/);
+  assert.match(internalWeatherShell, /useWeatherIntelligenceBrowserRecovery\(data\)/);
+  assert.match(internalWeatherShell, /typeof children === "function"/);
+  assert.match(internalWeatherShell, /children\(recoveredData\)/);
+
+  for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute]) {
+    assert.match(routeSource, /\{\(recoveredWeather\) => \(/);
+    assert.match(routeSource, /data=\{recoveredWeather\}/);
   }
 });
 
