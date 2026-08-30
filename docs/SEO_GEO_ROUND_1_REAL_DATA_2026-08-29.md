@@ -1,17 +1,18 @@
-# Tempo Pelotas — SEO/GEO com dados externos reais
+# Tempo Pelotas — SEO/GEO com dados externos e analytics reais
 
 Data: 29/08/2026  
 Branch: `main`  
-Contexto: GSC Wizard temporariamente bloqueado por `payment_required`; rodadas executadas com dados reais externos, sem inventar métricas privadas.
+Contexto: GSC Wizard temporariamente bloqueado por `payment_required`; rodadas executadas com dados reais externos e analytics do deploy, sem inventar métricas privadas.
 
 ## Fontes usadas
 
 1. Ubersuggest, base Brasil / português.
 2. Semrush, base Brasil.
 3. SERP pública e páginas indexadas observadas em 29/08/2026.
-4. Código e conteúdo atuais do domínio canônico `https://tempopelotas.com.br`.
+4. Analytics do projeto publicado no Lovable, janela 02/08–30/08/2026.
+5. Código e conteúdo atuais do domínio canônico `https://tempopelotas.com.br`.
 
-O GSC continua sendo a fonte preferencial para cliques, impressões, CTR e pares query+página da propriedade. Os dados externos servem para descobrir oportunidades e validar intenção enquanto o acesso privado não está disponível.
+O GSC continua sendo a fonte preferencial para cliques, impressões, CTR e pares query+página da propriedade. Os dados alternativos servem para descobrir oportunidades e validar intenção enquanto o acesso privado não está disponível.
 
 ## Estado orgânico observado
 
@@ -53,6 +54,64 @@ O snapshot `domain_rank` para a base `br` retornou:
 - 313 keywords associadas a SERPs com People Also Ask.
 
 A tentativa de abrir o relatório detalhado `resource_organic` foi bloqueada em seguida por saldo de API (`API UNITS BALANCE IS ZERO`). O resumo já confirma que existe massa crítica orgânica além do pequeno recorte do Ubersuggest.
+
+## Analytics reais do deploy
+
+Janela consultada: 02/08/2026 a 30/08/2026.
+
+Totais brutos:
+
+- 1.834 visitantes;
+- 3.274 pageviews;
+- 1,79 pageviews por visita;
+- bounce rate agregado: 86%;
+- 963 acessos mobile e 870 desktop na classificação por dispositivo;
+- 1.675 acessos classificados como Brasil.
+
+Esses totais **não devem ser usados diretamente como KPI de SEO editorial**, porque incluem embeds e tráfego de desenvolvimento.
+
+### Páginas com mais pageviews
+
+1. `/embed/nivel-laranjal` — 864;
+2. `/` — 598;
+3. `/nivel-da-lagoa-dos-patos-laranjal` — 253;
+4. `/situacao-hidrologica-pelotas` — 87;
+5. `/tempo-hoje-pelotas` — 41;
+6. `/previsao-7-dias-pelotas` — 26;
+7. `/alertas` — 26;
+8. `/cameras-ao-vivo-pelotas` — 20;
+9. `/chuva-em-pelotas` — 18;
+10. `/tempo-na-regiao-sul-rs` — 14.
+
+Somente o embed responde por 864 dos 3.274 pageviews. Excluindo essa superfície técnica, restam 2.410 pageviews em páginas não-embed nessa janela.
+
+### Origens identificadas
+
+- `praiadolaranjal.tur.br` — 862;
+- Direct — 400;
+- `lovable.dev` — 366;
+- `google.com` — 137;
+- `lm.facebook.com` — 16;
+- `facebook.com` — 6;
+- Google app (`com.google.android.googlequicksearchbox`) — 4;
+- `search.google.com` — 4;
+- `chatgpt.com` — 2;
+- `l.facebook.com` — 1.
+
+O conjunto de referências explicitamente identificado como Google soma pelo menos 145 nessa leitura. Isso é tráfego de referência atribuído pelo analytics do deploy, não equivalente a cliques orgânicos medidos pelo GSC.
+
+O domínio `praiadolaranjal.tur.br` responde quase exatamente pelo volume do iframe do nível do Laranjal. Portanto, esse tráfego deve ser tratado como **distribuição de widget**, não como 862 visitas editoriais independentes ao portal.
+
+### Consequências para SEO/GEO
+
+- análises de bounce rate e páginas/visita devem excluir `/embed/*` antes de qualquer decisão editorial;
+- `lovable.dev` deve ser separado como tráfego de desenvolvimento/preview;
+- Google já produz tráfego identificável mesmo com rankings ainda modestos;
+- Laranjal é o principal ponto de distribuição real do produto e merece navegação editorial própria;
+- a integração por widget demonstra utilidade externa, mas não deve ser manipulada para criar backlinks artificiais;
+- links editoriais naturais de parceiros são preferíveis a links injetados automaticamente por widgets.
+
+Como consequência, `/tempo-laranjal-pelotas` também foi incluída no diretório global do footer, no grupo `Previsão`, dando à nova landing um caminho interno sitewide e semanticamente coerente.
 
 ## Concorrência orgânica observada
 
@@ -101,7 +160,8 @@ Características:
 - explicação visível de que previsão meteorológica e medição de nível são naturezas diferentes;
 - proveniência em JSON-LD com `citation`/`isBasedOn`;
 - inclusão no sitemap com atualização horária;
-- inclusão no `llms.txt`.
+- inclusão no `llms.txt`;
+- inclusão no diretório global do footer.
 
 A página hidrológica passou a apontar de volta para a previsão meteorológica, com texto explícito para não confundir previsão e nível da Lagoa.
 
@@ -177,12 +237,13 @@ Priorizar ativos que mereçam citação natural:
 
 O objetivo é transformar o Tempo Pelotas em **fonte local citável**, e não apenas em mais uma página que replica previsão.
 
-## Contratos adicionados ao gate
+## Contratos adicionados/atualizados
 
 - `tests/geo-machine-readability.test.ts`;
-- `tests/laranjal-weather-seo.test.ts`.
+- `tests/laranjal-weather-seo.test.ts`;
+- `tests/footer-editorial-navigation.test.ts` atualizado para exigir a nova landing do Laranjal.
 
-Ambos foram incluídos em `test:contracts`, preservando também os testes adicionados por outras frentes concorrentes na `main`.
+Os dois contratos SEO/GEO novos foram incluídos em `test:contracts`, preservando também os testes adicionados por outras frentes concorrentes na `main`.
 
 GitHub Actions continua fora do gate operacional até 01/09/2026; inclusão no script não equivale a afirmar execução hoje.
 
@@ -196,4 +257,5 @@ Quando o GSC Wizard voltar:
 - verificar se a página de nível perde somente as impressões meteorológicas indesejadas, preservando suas queries hidrológicas;
 - medir Home para `agora/temperatura` e confirmar se outras URLs deixam de aparecer indevidamente;
 - medir a Estação Embrapa para queries de observação/Embrapa e separar essas consultas de previsão futura;
+- segmentar analytics excluindo embeds e tráfego de desenvolvimento;
 - usar 28 dias antes x 28 dias depois, respeitando o atraso normal do Search Console.
