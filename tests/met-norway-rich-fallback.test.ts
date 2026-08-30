@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { fetchMetNorwayWeather } from "../src/lib/weather/met-norway.server.ts";
+import { selectBaseline } from "../src/lib/weather/weather-baseline-select.ts";
+import type { WeatherHomeData } from "../src/lib/weather/types.ts";
 
 function point(time: string, temperature: number, direction: number, rain: number) {
   return {
@@ -30,6 +33,50 @@ function point(time: string, temperature: number, direction: number, rain: numbe
         },
       },
     },
+  };
+}
+
+function forecastFixture(
+  key: "open-meteo" | "met-norway",
+  status: WeatherHomeData["status"],
+): WeatherHomeData {
+  const live = status === "live";
+  return {
+    status,
+    current: live
+      ? {
+          city: "Pelotas",
+          state: "RS",
+          temperature: 13,
+          feelsLike: null,
+          condition: "Céu nublado",
+          humidity: 86,
+          dewPoint: 11.6,
+          pressure: 1016,
+          windSpeed: 15,
+          windGust: 28,
+          windDirection: "S",
+          visibilityKm: null,
+          sunrise: null,
+          sunset: null,
+          observedAt: "2026-08-30T07:00:00Z",
+          icon: "cloud",
+        }
+      : null,
+    hourly: [],
+    daily: [],
+    source: {
+      name: key === "open-meteo" ? "Open-Meteo" : "MET Norway",
+      url: "https://example.com",
+      kind: "forecast",
+      key,
+      fetchedAt: "2026-08-30T07:00:00Z",
+      isFallback: key === "met-norway",
+      model: key === "open-meteo" ? "Open-Meteo Best Match" : "Locationforecast 2.0",
+      modelRun: null,
+      temporalResolutionMinutes: 60,
+    },
+    message: live ? null : `${key} indisponível`,
   };
 }
 
@@ -117,4 +164,41 @@ test("MET Norway does not label a 6-hour accumulation as hourly rain", async () 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("MET Norway wins the baseline when Open-Meteo is unavailable", () => {
+  const openMeteo = forecastFixture("open-meteo", "unavailable");
+  const metNorway = forecastFixture("met-norway", "live");
+
+  const result = selectBaseline(openMeteo, metNorway);
+
+  assert.equal(result.status, "live");
+  assert.equal(result.source.key, "met-norway");
+  assert.equal(result.providers["open-meteo"].status, "unavailable");
+  assert.equal(result.providers["met-norway"].status, "live");
+});
+
+test("Open-Meteo baseline deadline stays below the global intelligence deadline", () => {
+  const baselineSource = readFileSync("src/lib/weather/weather-baseline.server.ts", "utf8");
+  const intelligenceSource = readFileSync(
+    "src/lib/weather/weather-intelligence.functions.ts",
+    "utf8",
+  );
+
+  const baselineMatch = baselineSource.match(/OPEN_METEO_BASELINE_DEADLINE_MS\s*=\s*([\d_]+)/);
+  const intelligenceMatch = intelligenceSource.match(
+    /WEATHER_INTELLIGENCE_DEADLINE_MS\s*=\s*([\d_]+)/,
+  );
+
+  assert.ok(baselineMatch, "deadline do Open-Meteo deve permanecer explícito no baseline");
+  assert.ok(intelligenceMatch, "deadline global da inteligência deve permanecer explícito");
+
+  const baselineDeadline = Number(baselineMatch[1].replaceAll("_", ""));
+  const intelligenceDeadline = Number(intelligenceMatch[1].replaceAll("_", ""));
+
+  assert.ok(
+    baselineDeadline < intelligenceDeadline,
+    `baseline (${baselineDeadline} ms) deve terminar antes da inteligência (${intelligenceDeadline} ms)`,
+  );
+  assert.match(baselineSource, /Promise\.all\(\[\s*fetchOpenMeteoWithinBaselineDeadline\(\),\s*fetchMetNorwayWeather\(\)/);
 });
