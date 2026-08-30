@@ -178,27 +178,48 @@ test("MET Norway wins the baseline when Open-Meteo is unavailable", () => {
   assert.equal(result.providers["met-norway"].status, "live");
 });
 
-test("Open-Meteo baseline deadline stays below the global intelligence deadline", () => {
+test("budgets do baseline liberam MET Norway antes do loader público e preservam contingência", () => {
   const baselineSource = readFileSync("src/lib/weather/weather-baseline.server.ts", "utf8");
   const intelligenceSource = readFileSync(
     "src/lib/weather/weather-intelligence.functions.ts",
     "utf8",
   );
+  const publicLoaderSource = readFileSync(
+    "src/lib/weather/public-weather-page-loader.ts",
+    "utf8",
+  );
 
-  const baselineMatch = baselineSource.match(/OPEN_METEO_BASELINE_DEADLINE_MS\s*=\s*([\d_]+)/);
+  const primaryMatch = baselineSource.match(/OPEN_METEO_PRIMARY_GRACE_MS\s*=\s*([\d_]+)/);
+  const contingencyMatch = baselineSource.match(
+    /OPEN_METEO_CONTINGENCY_DEADLINE_MS\s*=\s*([\d_]+)/,
+  );
   const intelligenceMatch = intelligenceSource.match(
     /WEATHER_INTELLIGENCE_DEADLINE_MS\s*=\s*([\d_]+)/,
   );
+  const publicLoaderMatch = publicLoaderSource.match(
+    /PUBLIC_WEATHER_PAGE_DEADLINE_MS\s*=\s*([\d_]+)/,
+  );
 
-  assert.ok(baselineMatch, "deadline do Open-Meteo deve permanecer explícito no baseline");
+  assert.ok(primaryMatch, "janela primária do Open-Meteo deve permanecer explícita");
+  assert.ok(contingencyMatch, "janela de contingência do Open-Meteo deve permanecer explícita");
   assert.ok(intelligenceMatch, "deadline global da inteligência deve permanecer explícito");
+  assert.ok(publicLoaderMatch, "deadline do loader público deve permanecer explícito");
 
-  const baselineDeadline = Number(baselineMatch[1].replaceAll("_", ""));
+  const primaryGrace = Number(primaryMatch[1].replaceAll("_", ""));
+  const contingencyDeadline = Number(contingencyMatch[1].replaceAll("_", ""));
   const intelligenceDeadline = Number(intelligenceMatch[1].replaceAll("_", ""));
+  const publicLoaderDeadline = Number(publicLoaderMatch[1].replaceAll("_", ""));
 
   assert.ok(
-    baselineDeadline < intelligenceDeadline,
-    `baseline (${baselineDeadline} ms) deve terminar antes da inteligência (${intelligenceDeadline} ms)`,
+    primaryGrace < publicLoaderDeadline,
+    `janela primária (${primaryGrace} ms) deve liberar MET Norway antes do loader público (${publicLoaderDeadline} ms)`,
   );
-  assert.match(baselineSource, /Promise\.all\(\[\s*fetchOpenMeteoWithinBaselineDeadline\(\),\s*fetchMetNorwayWeather\(\)/);
+  assert.ok(
+    contingencyDeadline < intelligenceDeadline,
+    `contingência (${contingencyDeadline} ms) deve terminar antes da inteligência (${intelligenceDeadline} ms)`,
+  );
+  assert.match(baselineSource, /const metNorway = await fetchMetNorwayWeather\(\)/);
+  assert.match(baselineSource, /metNorway\.status === "live"/);
+  assert.match(baselineSource, /OPEN_METEO_PRIMARY_GRACE_MS/);
+  assert.match(baselineSource, /OPEN_METEO_CONTINGENCY_DEADLINE_MS/);
 });
