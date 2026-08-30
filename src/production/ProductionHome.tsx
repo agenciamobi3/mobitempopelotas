@@ -21,7 +21,6 @@ import { HomeDataGuide } from "@/production/components/home-data-guide";
 import { HomeForecastEditorial } from "@/production/components/home-forecast-editorial";
 import { HomeForecastTrend } from "@/production/components/home-forecast-trend";
 import { HomeLiveCameraBackground } from "@/production/components/home-live-camera-background";
-import { HomeRadarEditorial } from "@/production/components/home-radar-editorial";
 import { HomeSectionNavigation } from "@/production/components/home-section-navigation";
 import { HomeWaterEditorial } from "@/production/components/home-water-editorial";
 import { InmetAlertsPanel } from "@/production/components/inmet-alerts-panel";
@@ -417,7 +416,6 @@ export function ProductionHome({
           forecastWindSpeedKmh={forecastWindSpeedKmh}
         />
         <HomeForecastTrend weather={weather} narrative={summaries.tomorrow} />
-        <HomeRadarEditorial regionalWeather={weather.regional} />
         <DeferredHomeWater hydrology={hydrology} />
         <HomeExplorePortal />
         <HomeDataGuide />
