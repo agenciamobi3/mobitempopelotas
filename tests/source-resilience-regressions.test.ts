@@ -22,6 +22,8 @@ const redemetOverviewSource = readFileSync("src/lib/redemet/redemet.functions.ts
 const officialSources = readFileSync("src/lib/weather/official-sources.server.ts", "utf8");
 const sourcePolicy = readFileSync("src/lib/weather/source-policy.ts", "utf8");
 const satelliteRoute = readFileSync("src/routes/api/redemet/satellite.ts", "utf8");
+const radarRoute = readFileSync("src/routes/api/redemet/radar.ts", "utf8");
+const stormsRoute = readFileSync("src/routes/api/redemet/storms.ts", "utf8");
 
 function imageLayer(
   provider: RedemetImageLayerResponse["provider"],
@@ -134,7 +136,7 @@ test("canal visivel nunca e substituido silenciosamente por infravermelho", () =
   assert.equal(selected.provider, "REDEMET / DECEA");
 });
 
-test("falha das duas fontes preserva estado indisponivel e diagnostico", () => {
+test("falha das duas fontes preserva diagnostico interno para operacao", () => {
   const redemet = imageLayer("REDEMET / DECEA", false, "REDEMET indisponível");
   const inmet = imageLayer("INMET", false, "INMET indisponível");
   const selected = selectOfficialSatelliteResult("ir", redemet, inmet);
@@ -142,4 +144,15 @@ test("falha das duas fontes preserva estado indisponivel e diagnostico", () => {
   assert.equal(selected.available, false);
   assert.match(selected.error ?? "", /REDEMET indisponível/);
   assert.match(selected.error ?? "", /GOES\/INMET: INMET indisponível/);
+});
+
+test("APIs públicas de monitoramento não expõem diagnóstico técnico interno", () => {
+  assert.match(satelliteRoute, /sanitizePublicSatellitePayload/);
+  assert.match(satelliteRoute, /A fonte oficial de satélite não retornou uma imagem utilizável/);
+  assert.match(radarRoute, /A fonte oficial de radar não retornou uma imagem utilizável/);
+  assert.match(stormsRoute, /A fonte oficial de trovoadas não retornou uma leitura utilizável/);
+
+  assert.doesNotMatch(satelliteRoute, /Diagnóstico atual/);
+  assert.doesNotMatch(radarRoute, /hostsCandidatos/);
+  assert.doesNotMatch(stormsRoute, /hostsCandidatos/);
 });
