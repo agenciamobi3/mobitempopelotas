@@ -113,14 +113,9 @@ export function recoverStaleClientAssets(error?: unknown) {
 }
 
 /**
- * Qualquer erro que alcance o boundary global público recebe no máximo uma
- * navegação de documento realmente fresca por URL em uma janela de 60 segundos.
- *
- * Não condicionamos essa tentativa ao antigo gate clientRuntimeReady: quando o
- * próprio root falha durante hidratação/navegação, RootComponent pode nunca
- * montar e esse marcador jamais seria definido. O sessionStorage já impede
- * loops; se a mesma URL falhar novamente dentro da janela, o boundary permanece
- * visível e oferece navegação direta.
+ * O boundary global só força uma navegação fresca quando há evidência de asset
+ * obsoleto ou falha transitória de navegação. Exceções reais de runtime não são
+ * mascaradas como problema de versão: permanecem no boundary para diagnóstico.
  */
 export function recoverClientNavigationFailure(error: unknown) {
   if (typeof window === "undefined") return false;
@@ -130,9 +125,11 @@ export function recoverClientNavigationFailure(error: unknown) {
     return navigateToFreshDocument("asset");
   }
 
-  return navigateToFreshDocument(
-    isTransientClientNavigationError(error) ? "navigation" : "runtime",
-  );
+  if (isTransientClientNavigationError(error)) {
+    return navigateToFreshDocument("navigation");
+  }
+
+  return false;
 }
 
 export function installVitePreloadRecovery() {
