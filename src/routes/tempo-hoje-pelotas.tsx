@@ -120,7 +120,7 @@ export const Route = createFileRoute("/tempo-hoje-pelotas")({
       createFaqPageJsonLd(PAGE_PATH, TODAY_PAGE_CONTENT.faqs),
     ]),
   // O documento público abre sem esperar por server functions ou fontes externas.
-  // Após a hidratação, os componentes recuperam a previsão real no navegador.
+  // Após a hidratação, o shell recupera a consolidação real e a propaga ao conteúdo.
   loader: () => createUnavailableWeatherIntelligence(),
   staleTime: 5 * 60 * 1_000,
   component: TempoHojePage,
@@ -141,8 +141,12 @@ function TempoHojePage() {
         />
       )}
     >
-      <TodayForecastPageV5 data={weather} />
-      <EditorialContentSection id="como-interpretar-hoje" content={TODAY_PAGE_CONTENT} />
+      {(recoveredWeather) => (
+        <>
+          <TodayForecastPageV5 data={recoveredWeather} />
+          <EditorialContentSection id="como-interpretar-hoje" content={TODAY_PAGE_CONTENT} />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
