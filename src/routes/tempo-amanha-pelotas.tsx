@@ -101,7 +101,7 @@ export const Route = createFileRoute("/tempo-amanha-pelotas")({
       }),
       createFaqPageJsonLd(PAGE_PATH, TOMORROW_PAGE_CONTENT.faqs),
     ]),
-  // O primeiro HTML é independente das integrações; a previsão é recuperada no
+  // O primeiro HTML é independente das integrações; a consolidação real entra no
   // navegador depois que a rota já está disponível para o visitante.
   loader: () => createUnavailableWeatherIntelligence(),
   staleTime: 5 * 60 * 1_000,
@@ -123,8 +123,12 @@ function TempoAmanhaPage() {
         />
       )}
     >
-      <TomorrowForecastPageV3 data={weather} />
-      <EditorialContentSection id="como-interpretar-amanha" content={TOMORROW_PAGE_CONTENT} />
+      {(recoveredWeather) => (
+        <>
+          <TomorrowForecastPageV3 data={recoveredWeather} />
+          <EditorialContentSection id="como-interpretar-amanha" content={TOMORROW_PAGE_CONTENT} />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
