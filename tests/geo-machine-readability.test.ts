@@ -5,6 +5,7 @@ import test from "node:test";
 const structuredData = readFileSync("src/lib/structured-data.ts", "utf8");
 const sourceCitations = readFileSync("src/lib/seo-source-citations.ts", "utf8");
 const llms = readFileSync("public/llms.txt", "utf8");
+const home = readFileSync("src/routes/index.tsx", "utf8");
 const today = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
 const tomorrow = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
 const sevenDay = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
@@ -29,6 +30,7 @@ test("fontes públicas usadas pelo SEO/GEO ficam centralizadas", () => {
 });
 
 test("páginas meteorológicas centrais ligam conteúdo às fontes documentadas", () => {
+  assert.match(home, /citations: CORE_WEATHER_CITATIONS/);
   assert.match(today, /citations: CORE_WEATHER_CITATIONS/);
   assert.match(tomorrow, /citations: CORE_WEATHER_CITATIONS/);
   assert.match(sevenDay, /citations: CORE_WEATHER_CITATIONS/);
