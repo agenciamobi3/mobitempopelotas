@@ -44,6 +44,25 @@ test("previsão meteorológica não é apresentada como observação ou nível d
   assert.match(clientSource, /Ver avisos oficiais/);
 });
 
+test("a página destaca hoje, amanhã e contexto prático para a orla", () => {
+  assert.match(clientSource, /return "Hoje"/);
+  assert.match(clientSource, /return "Amanhã"/);
+  assert.match(clientSource, /O que observar antes de ir para a orla/);
+  assert.match(clientSource, /Rajada máxima/);
+  assert.match(clientSource, /Chance de chuva/);
+});
+
+test("a página conecta editorialmente o Tempo Pelotas ao Portal Praia do Laranjal", () => {
+  assert.match(
+    clientSource,
+    /https:\/\/praiadolaranjal\.tur\.br\/nivel-lagoa-aovivo/,
+  );
+  assert.match(clientSource, /Portal parceiro do Laranjal/);
+  assert.match(clientSource, /Acompanhe também o nível da Lagoa no Portal Praia do Laranjal/);
+  assert.match(clientSource, /Ver nível no Portal Praia do Laranjal/);
+  assert.doesNotMatch(clientSource, /nofollow/);
+});
+
 test("a página hidrológica devolve a intenção de previsão para a URL correta", () => {
   assert.match(levelRouteSource, /label: "Previsão do tempo no Laranjal"/);
   assert.match(levelRouteSource, /href: "\/tempo-laranjal-pelotas"/);
