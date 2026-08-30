@@ -2,7 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { createPageHead } from "@/lib/page-meta";
 import { getDataStatusPageData } from "@/lib/status/data-status.functions";
-import type { ServiceCategory, ServiceState } from "@/lib/status/data-status.types";
+import type {
+  DataStatusPageData,
+  ServiceCategory,
+  ServiceState,
+} from "@/lib/status/data-status.types";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
@@ -90,7 +94,7 @@ export const Route = createFileRoute("/status-dos-dados")({
 });
 
 function DataStatusPage() {
-  const data = Route.useLoaderData();
+  const data = Route.useLoaderData() as DataStatusPageData;
   const categories: ServiceCategory[] = ["Meteorologia e avisos", "Radar e satélite", "Hidrologia"];
   const counts = {
     operational: data.services.filter((service) => service.state === "operational").length,
