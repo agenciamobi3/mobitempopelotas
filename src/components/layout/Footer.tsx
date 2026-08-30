@@ -22,6 +22,11 @@ const footerGroups = [
         to: "/tempo-amanha-pelotas",
       },
       {
+        label: "Tempo no Laranjal",
+        ariaLabel: "Ver a previsão do tempo para a Praia do Laranjal em Pelotas",
+        to: "/tempo-laranjal-pelotas",
+      },
+      {
         label: "Próximos 7 dias",
         ariaLabel: "Ver a previsão do tempo para os próximos 7 dias em Pelotas",
         to: "/previsao-7-dias-pelotas",
