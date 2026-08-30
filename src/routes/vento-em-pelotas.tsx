@@ -153,12 +153,16 @@ function VentoPage() {
       pageClassName="internal-weather-shell--wind"
       showOfficialAlerts={false}
     >
-      <WindForecastPageV3 data={weather} />
-      <WindDirectionContext meteogram={meteogram} />
-      <EditorialContentSection
-        id="como-interpretar-a-previsao-de-vento"
-        content={WIND_PAGE_CONTENT}
-      />
+      {(recoveredWeather) => (
+        <>
+          <WindForecastPageV3 data={recoveredWeather} />
+          <WindDirectionContext meteogram={meteogram} />
+          <EditorialContentSection
+            id="como-interpretar-a-previsao-de-vento"
+            content={WIND_PAGE_CONTENT}
+          />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
