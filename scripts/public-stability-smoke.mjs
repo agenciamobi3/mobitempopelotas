@@ -34,6 +34,24 @@ const routes = [
     transientTexts: ["previsão de 7 dias está em atualização", "previsão para 7 dias está em atualização"],
   },
   {
+    name: "chuva",
+    path: "/chuva-em-pelotas",
+    waitMs: shellRecoveryWaitMs,
+    transientTexts: [],
+  },
+  {
+    name: "vento",
+    path: "/vento-em-pelotas",
+    waitMs: shellRecoveryWaitMs,
+    transientTexts: [],
+  },
+  {
+    name: "meteograma",
+    path: "/meteograma-pelotas",
+    waitMs: shellRecoveryWaitMs,
+    transientTexts: [],
+  },
+  {
     name: "aguas",
     path: "/situacao-hidrologica-pelotas",
     waitMs: ordinaryWaitMs,
@@ -56,7 +74,7 @@ const routes = [
   {
     name: "alertas",
     path: "/alertas",
-    waitMs: ordinaryWaitMs,
+    waitMs: shellRecoveryWaitMs,
     transientTexts: [],
   },
 ];
