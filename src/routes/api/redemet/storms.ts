@@ -28,8 +28,15 @@ export const Route = createFileRoute("/api/redemet/storms")({
         const payload = await withRedemetLastGood(`storms:${frames}`, () =>
           fetchRedemetStorms(frames),
         );
+        const publicPayload = payload.available
+          ? payload
+          : {
+              ...payload,
+              error:
+                "A fonte oficial de trovoadas não retornou uma leitura utilizável nesta atualização. Tente novamente em alguns minutos.",
+            };
 
-        return new Response(JSON.stringify(payload), { headers: RESPONSE_HEADERS });
+        return new Response(JSON.stringify(publicPayload), { headers: RESPONSE_HEADERS });
       },
     },
   },
