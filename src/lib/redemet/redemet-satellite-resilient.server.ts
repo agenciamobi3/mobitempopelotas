@@ -1,4 +1,4 @@
-import { fetchInmetSatellite } from "../weather/inmet-satellite.server";
+import { fetchInmetSatellite } from "../weather/inmet-satellite.server.ts";
 import type {
   RedemetBounds,
   RedemetImageFrame,
