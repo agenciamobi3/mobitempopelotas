@@ -18,20 +18,31 @@ test("home não consulta meteorologia ou hidrologia externa no loader inicial", 
   assert.doesNotMatch(route, /Promise\.race/);
 });
 
+test("home recupera meteorologia consolidada no navegador antes da contingência direta", () => {
+  assert.match(home, /import \{ getWeatherIntelligence \}/);
+  assert.match(home, /void getWeatherIntelligence\(\)/);
+  assert.match(home, /hasUsableWeatherIntelligence\(nextData\)/);
+  assert.match(home, /useOpenMeteoIntelligenceRecovery\(serverRecoveredData\)/);
+});
+
 test("home mantém fallback meteorológico auditável para recuperação no navegador", () => {
   assert.match(route, /createUnavailableWeatherIntelligence/);
-  assert.match(home, /useOpenMeteoIntelligenceRecovery\(data\)/);
-  assert.match(home, /Dados temporariamente indisponíveis/);
+  assert.match(home, /useOpenMeteoIntelligenceRecovery\(serverRecoveredData\)/);
+  assert.match(home, /Dados meteorológicos temporariamente indisponíveis/);
   assert.match(home, /O portal continuará consultando automaticamente as fontes meteorológicas/);
 });
 
-test("home mantém a seção de águas isolada do restante da página", () => {
+test("home mantém a seção de águas isolada e recupera dados reais após hidratação", () => {
   assert.match(home, /import \{ Await, Link \} from "@tanstack\/react-router"/);
   assert.match(home, /<Suspense fallback=\{<HomeWaterLoading \/>\}>/);
   assert.match(home, /<Await promise=\{hydrology\}>/);
   assert.match(home, /<DeferredHomeWater hydrology=\{hydrology\} \/>/);
   assert.match(home, /result\.status === "ready"/);
-  assert.match(home, /<HomeWaterUnavailable \/>/);
+  assert.match(home, /<HomeWaterClientRecovery \/>/);
+  assert.match(home, /getLaranjalLevelData\(\)/);
+  assert.match(home, /getGuaibaObservation\(\)/);
+  assert.match(home, /getLagoonMonitoringNetwork\(\)/);
+  assert.match(home, /Promise\.all\(\[/);
   assert.match(home, /Dados hidrológicos temporariamente indisponíveis/);
 });
 
