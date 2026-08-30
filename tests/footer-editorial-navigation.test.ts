@@ -11,6 +11,7 @@ const styles = readFileSync("src/production/components/site-footer-home.css", "u
 const footerRoutes = [
   "/tempo-hoje-pelotas",
   "/tempo-amanha-pelotas",
+  "/tempo-laranjal-pelotas",
   "/previsao-7-dias-pelotas",
   "/previsao-15-dias-pelotas",
   "/meteograma-pelotas",
