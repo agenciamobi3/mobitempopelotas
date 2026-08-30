@@ -29,6 +29,7 @@ const officialSeverityRank: Record<InmetAlertSeverity, number> = {
 };
 
 export type InternalWeatherShellContext = {
+  data: WeatherIntelligenceData;
   weather: WeatherData;
   advisoryLevel: AdvisoryLevel;
   officialAlertCount: number;
@@ -95,6 +96,7 @@ export function InternalWeatherPageShell({
     .filter(Boolean)
     .join(" ");
   const shellContext: InternalWeatherShellContext = {
+    data: recoveredData,
     weather: productionWeather,
     advisoryLevel,
     officialAlertCount: pelotasOfficialAlerts.length,
