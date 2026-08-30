@@ -72,6 +72,11 @@ const LARANJAL_PAGE_CONTENT = {
   ],
   relatedLinks: [
     {
+      label: "Previsão do tempo no Laranjal",
+      href: "/tempo-laranjal-pelotas" as const,
+      description: "Veja temperatura, chuva, vento e a tendência de 7 dias para um ponto de referência na orla, sem confundir previsão com nível da Lagoa.",
+    },
+    {
       label: "Situação das águas em Pelotas",
       href: "/situacao-hidrologica-pelotas" as const,
       description: "Compare a medição local com outros pontos da Lagoa e do Guaíba.",
