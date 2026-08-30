@@ -18,6 +18,9 @@ const todayRoute = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
 const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
 const alertsRoute = readFileSync("src/routes/alertas.tsx", "utf8");
+const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
+const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
+const meteogramRoute = readFileSync("src/routes/meteograma-pelotas.tsx", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 const runtimeVersionRoute = readFileSync("src/routes/api/runtime-version.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
@@ -108,6 +111,7 @@ test("rotas shell-first recuperam a consolidação do backend e propagam ao cont
   assert.match(internalWeatherShell, /useWeatherIntelligenceBrowserRecovery\(data\)/);
   assert.match(internalWeatherShell, /typeof children === "function"/);
   assert.match(internalWeatherShell, /children\(recoveredData\)/);
+  assert.match(internalWeatherShell, /data: recoveredData/);
 
   for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute]) {
     assert.match(routeSource, /\{\(recoveredWeather\) => \(/);
@@ -121,6 +125,28 @@ test("alertas propagam a recuperação do shell ao painel e à abrangência do I
   assert.match(alertsRoute, /<InmetAlertCoverageDetails data=\{recoveredWeather\} \/>/);
   assert.doesNotMatch(alertsRoute, /<WeatherAlertsPage data=\{weather\} \/>/);
   assert.doesNotMatch(alertsRoute, /<InmetAlertCoverageDetails data=\{weather\} \/>/);
+});
+
+test("chuva propaga recuperação para hero, acumulado e previsão", () => {
+  assert.match(rainRoute, /data: recoveredWeather/);
+  assert.match(rainRoute, /getObservedRainDaily\(recoveredWeather\)/);
+  assert.match(rainRoute, /<RainAccumulationContext data=\{recoveredWeather\} \/>/);
+  assert.match(rainRoute, /<RainForecastPageV2 data=\{recoveredWeather\} \/>/);
+  assert.doesNotMatch(rainRoute, /<RainForecastPageV2 data=\{weather\} \/>/);
+});
+
+test("vento propaga recuperação para a previsão sem misturar o meteograma independente", () => {
+  assert.match(windRoute, /\{\(recoveredWeather\) => \(/);
+  assert.match(windRoute, /<WindForecastPageV3 data=\{recoveredWeather\} \/>/);
+  assert.match(windRoute, /<WindDirectionContext meteogram=\{meteogram\} \/>/);
+  assert.doesNotMatch(windRoute, /<WindForecastPageV3 data=\{weather\} \/>/);
+});
+
+test("meteograma usa weather recuperado no hero e no conteúdo principal", () => {
+  assert.match(meteogramRoute, /hero=\{\(\{ data: recoveredWeather \}\) =>/);
+  assert.match(meteogramRoute, /<MeteogramHero weather=\{recoveredWeather\} meteogram=\{meteogram\} \/>/);
+  assert.match(meteogramRoute, /<MeteogramPage weather=\{recoveredWeather\} meteogram=\{meteogram\} \/>/);
+  assert.doesNotMatch(meteogramRoute, /<MeteogramPage weather=\{weather\} meteogram=\{meteogram\} \/>/);
 });
 
 test("release publicado pode ser identificado sem depender de integração externa", () => {
