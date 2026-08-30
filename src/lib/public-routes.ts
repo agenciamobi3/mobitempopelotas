@@ -10,6 +10,7 @@ export const PUBLIC_ROUTES: PublicRouteEntry[] = [
   { path: "/", changeFrequency: "hourly", priority: 1 },
   { path: "/tempo-hoje-pelotas", changeFrequency: "hourly", priority: 0.9 },
   { path: "/tempo-amanha-pelotas", changeFrequency: "hourly", priority: 0.9 },
+  { path: "/tempo-laranjal-pelotas", changeFrequency: "hourly", priority: 0.88 },
   { path: "/previsao-7-dias-pelotas", changeFrequency: "daily", priority: 0.9 },
   { path: "/previsao-15-dias-pelotas", changeFrequency: "daily", priority: 0.88 },
   { path: "/chuva-em-pelotas", changeFrequency: "hourly", priority: 0.8 },
