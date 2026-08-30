@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { HOME_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
+import { CORE_WEATHER_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 import { createUnavailableWeatherIntelligence } from "@/lib/weather/weather-intelligence-fallback";
 import { ProductionHome, type HomeHydrologyResult } from "@/production/ProductionHome";
@@ -47,6 +48,7 @@ export const Route = createFileRoute("/")({
           "Nível do Guaíba",
           "Câmera ao vivo da Praia do Laranjal",
         ],
+        citations: CORE_WEATHER_CITATIONS,
       }),
       createFaqPageJsonLd(PAGE_PATH, HOME_EDITORIAL_CONTENT.faqs),
     ]),
