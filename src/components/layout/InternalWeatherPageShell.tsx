@@ -9,7 +9,7 @@ import {
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
 import type { InmetAlertSeverity } from "@/production/lib/inmet-alerts";
-import { useOpenMeteoIntelligenceRecovery } from "@/production/lib/open-meteo-browser-recovery";
+import { useWeatherIntelligenceBrowserRecovery } from "@/production/lib/weather-intelligence-browser-recovery";
 import type { WeatherData } from "@/production/lib/weather-data";
 import { getWeatherAdvisory, type AdvisoryLevel } from "@/production/lib/weather-insights";
 
@@ -36,7 +36,7 @@ export type InternalWeatherShellContext = {
 
 type InternalWeatherPageShellProps = {
   data: WeatherIntelligenceData;
-  children: ReactNode;
+  children: ReactNode | ((data: WeatherIntelligenceData) => ReactNode);
   hero?: (context: InternalWeatherShellContext) => ReactNode;
   showOfficialAlerts?: boolean;
   pageClassName?: string;
@@ -49,7 +49,7 @@ export function InternalWeatherPageShell({
   showOfficialAlerts = true,
   pageClassName = "",
 }: InternalWeatherPageShellProps) {
-  const recoveredData = useOpenMeteoIntelligenceRecovery(data);
+  const recoveredData = useWeatherIntelligenceBrowserRecovery(data);
   const productionWeather = toProductionWeatherData(recoveredData.weather);
   const inmetAlerts = toProductionAlerts(recoveredData.weather);
   const advisory = getWeatherAdvisory(productionWeather);
@@ -99,6 +99,8 @@ export function InternalWeatherPageShell({
     advisoryLevel,
     officialAlertCount: pelotasOfficialAlerts.length,
   };
+  const renderedChildren =
+    typeof children === "function" ? children(recoveredData) : children;
 
   return (
     <div className={shellClassName} data-internal-weather-style="home-editorial">
@@ -117,7 +119,7 @@ export function InternalWeatherPageShell({
             advisoryLevel={advisoryLevel}
           />
         ) : null}
-        {children}
+        {renderedChildren}
       </main>
 
       <SiteFooter source={productionWeather.source} />
