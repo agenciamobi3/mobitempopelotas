@@ -6,6 +6,8 @@ const header = readFileSync("src/production/components/home-editorial-header.tsx
 const styles = readFileSync("src/production/components/home-editorial-header.css", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const productionHome = readFileSync("src/production/ProductionHome.tsx", "utf8");
+const homeForecastTrend = readFileSync("src/production/components/home-forecast-trend.tsx", "utf8");
+const homeRadarCta = readFileSync("src/production/components/home-radar-cta.tsx", "utf8");
 
 const requiredPublicNavigationPaths = [
   "/tempo-hoje-pelotas",
@@ -53,6 +55,14 @@ test("satélites e radares ficam em página dedicada e navegação direta", () =
   assert.match(header, /to="\/radar-e-satelite-pelotas"/);
   assert.match(header, />\s*Satélites e Radares\s*<\/Link>/);
   assert.match(header, /return <a \{\.\.\.props\} href=\{href\} \/>/);
+});
+
+test("Home mantém descoberta por CTA estática sem carregar REDEMET", () => {
+  assert.match(homeForecastTrend, /import \{ HomeRadarCta \}/);
+  assert.match(homeForecastTrend, /<HomeRadarCta \/>/);
+  assert.match(homeRadarCta, /href="\/radar-e-satelite-pelotas"/);
+  assert.match(homeRadarCta, /As imagens são carregadas somente quando você abre o monitoramento/);
+  assert.doesNotMatch(homeRadarCta, /getRedemetOverview|loadRadarPageData|fetchRedemet|WeatherMap/);
 });
 
 test("atalhos estaticos principais do megamenu pertencem ao inventario indexavel", () => {
