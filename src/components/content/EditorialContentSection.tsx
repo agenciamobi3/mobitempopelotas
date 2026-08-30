@@ -15,6 +15,7 @@ type AdditionalEditorialPath =
   | "/privacidade-e-dados"
   | "/quem-somos"
   | "/status-dos-dados"
+  | "/tempo-laranjal-pelotas"
   | "/tempo-na-regiao-sul-rs";
 
 type EditorialSectionRelatedLink = Omit<EditorialRelatedLink, "href"> & {
