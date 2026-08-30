@@ -10,6 +10,8 @@ import {
 import styles from "./LaranjalWeatherPageClient.module.css";
 
 const REFRESH_INTERVAL_MS = 10 * 60 * 1_000;
+const PORTAL_PRAIA_LARANJAL_LEVEL_URL =
+  "https://praiadolaranjal.tur.br/nivel-lagoa-aovivo";
 
 type LaranjalForecast = {
   fetchedAt: string;
@@ -85,6 +87,12 @@ function formatDate(value: string) {
   })
     .format(parsed)
     .replace(".", "");
+}
+
+function dayLabel(value: string, index: number) {
+  if (index === 0) return "Hoje";
+  if (index === 1) return "Amanhã";
+  return formatDate(value);
 }
 
 function formatDateTime(value: string) {
@@ -203,36 +211,74 @@ export function LaranjalWeatherPageClient() {
   }, []);
 
   const current = forecast?.current ?? null;
+  const today = forecast?.daily[0] ?? null;
 
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="laranjal-weather-title">
         <div className={styles.heroCopy}>
           <span>Praia do Laranjal · Pelotas, RS</span>
-          <h1 id="laranjal-weather-title">Previsão do tempo no Laranjal</h1>
+          <h1 id="laranjal-weather-title">Tempo no Laranjal, Pelotas</h1>
           <p>
-            Previsão calculada para um ponto de referência na orla do Laranjal. Os valores são
-            estimativas de modelo e podem diferir entre Valverde, Santo Antônio, Barro Duro,
-            áreas mais afastadas da Lagoa e outros pontos de Pelotas.
+            Veja as condições agora e a previsão de 7 dias para um ponto de referência na orla
+            do Laranjal. Os valores são estimativas de modelo e podem diferir entre Valverde,
+            Santo Antônio, Barro Duro, áreas mais afastadas da Lagoa e outros pontos de Pelotas.
           </p>
+
+          <div className={styles.todaySummary} aria-label="Resumo da previsão de hoje no Laranjal">
+            <div>
+              <span>Temperatura hoje</span>
+              <strong>{metric(today?.minimum ?? null, "°")} / {metric(today?.maximum ?? null, "°")}</strong>
+            </div>
+            <div>
+              <span>Chance de chuva</span>
+              <strong>{metric(today?.rainChance ?? null, "%")}</strong>
+            </div>
+            <div>
+              <span>Rajada máxima</span>
+              <strong>{metric(today?.windGust ?? null, " km/h")}</strong>
+            </div>
+          </div>
+
           <div className={styles.actions}>
             <Link to="/nivel-da-lagoa-dos-patos-laranjal">Ver nível da Lagoa</Link>
             <Link to="/alertas">Ver avisos oficiais</Link>
+            <a
+              href={PORTAL_PRAIA_LARANJAL_LEVEL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Nível no Portal Praia do Laranjal ↗
+            </a>
           </div>
         </div>
 
         <div className={styles.currentCard}>
-          <span>Estimativa para agora</span>
+          <div className={styles.currentHeading}>
+            <span>Estimativa para agora</span>
+            <i aria-hidden="true" />
+          </div>
           <strong>{metric(current?.temperature ?? null, "°C")}</strong>
-          <p>{current ? weatherLabel(current.weatherCode) : failed ? "Previsão temporariamente indisponível" : "Atualizando previsão..."}</p>
+          <p>
+            {current
+              ? weatherLabel(current.weatherCode)
+              : failed
+                ? "Previsão temporariamente indisponível"
+                : "Atualizando previsão..."}
+          </p>
           <dl>
             <div><dt>Sensação</dt><dd>{metric(current?.feelsLike ?? null, "°C")}</dd></div>
             <div><dt>Umidade</dt><dd>{metric(current?.humidity ?? null, "%")}</dd></div>
             <div><dt>Vento</dt><dd>{metric(current?.windSpeed ?? null, " km/h")}</dd></div>
             <div><dt>Rajada</dt><dd>{metric(current?.windGust ?? null, " km/h")}</dd></div>
             <div><dt>Direção</dt><dd>{compass(current?.windDirection ?? null)}</dd></div>
+            <div><dt>Condição</dt><dd>{current ? weatherLabel(current.weatherCode) : "—"}</dd></div>
           </dl>
-          <small>{current ? `Modelo referente a ${formatDateTime(current.time)}` : "Nenhum valor é preenchido manualmente."}</small>
+          <small>
+            {current
+              ? <>Modelo referente a <time dateTime={current.time}>{formatDateTime(current.time)}</time></>
+              : "Nenhum valor é preenchido manualmente."}
+          </small>
         </div>
       </section>
 
@@ -240,20 +286,51 @@ export function LaranjalWeatherPageClient() {
         <header>
           <span>Próximos dias</span>
           <h2 id="laranjal-seven-days-title">Previsão de 7 dias para o Laranjal</h2>
-          <p>Compare temperatura, chuva e rajadas. Nos dias mais distantes, confirme novamente a previsão conforme a data se aproxima.</p>
+          <p>
+            Compare temperatura, chuva e rajadas. Quanto mais distante a data, maior a chance de
+            a previsão mudar; confirme novamente antes de atividades ao ar livre ou na Lagoa.
+          </p>
         </header>
         <div className={styles.days}>
-          {forecast?.daily.length ? forecast.daily.map((day) => (
-            <article key={day.date}>
-              <strong>{formatDate(day.date)}</strong>
+          {forecast?.daily.length ? forecast.daily.map((day, index) => (
+            <article key={day.date} className={index === 0 ? styles.today : undefined}>
+              <strong><time dateTime={day.date}>{dayLabel(day.date, index)}</time></strong>
               <span>{weatherLabel(day.weatherCode)}</span>
               <p>{metric(day.minimum, "°")} / {metric(day.maximum, "°")}</p>
               <small>Chuva {metric(day.rainChance, "%")} · {metric(day.precipitation, " mm", 1)}</small>
               <small>Rajada {metric(day.windGust, " km/h")}</small>
             </article>
           )) : (
-            <p className={styles.loading}>{failed ? "A previsão está temporariamente indisponível. Use a previsão geral de Pelotas enquanto a fonte se recupera." : "Carregando a previsão para a orla do Laranjal..."}</p>
+            <p className={styles.loading}>
+              {failed
+                ? "A previsão está temporariamente indisponível. Consulte os avisos oficiais e tente novamente em alguns minutos."
+                : "Carregando a previsão para a orla do Laranjal..."}
+            </p>
           )}
+        </div>
+      </section>
+
+      <section className={styles.orlaGuide} aria-labelledby="laranjal-orla-guide-title">
+        <header>
+          <span>Antes de sair</span>
+          <h2 id="laranjal-orla-guide-title">O que observar antes de ir para a orla</h2>
+        </header>
+        <div className={styles.guideGrid}>
+          <article>
+            <span>01</span>
+            <h3>Vento e rajadas</h3>
+            <p>Na beira da Lagoa, rajadas podem pesar mais na experiência do que a temperatura sozinha.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Chuva e temporais</h3>
+            <p>Confira a chance de chuva e, em instabilidade, consulte os avisos meteorológicos oficiais.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Nível da Lagoa</h3>
+            <p>A medição hidrológica é separada da previsão do tempo e deve ser consultada como outra camada de contexto.</p>
+          </article>
         </div>
       </section>
 
@@ -277,10 +354,36 @@ export function LaranjalWeatherPageClient() {
         </ul>
       </section>
 
+      <section className={styles.portalFeature} aria-labelledby="portal-praia-laranjal-title">
+        <div>
+          <span>Portal parceiro do Laranjal</span>
+          <h2 id="portal-praia-laranjal-title">Acompanhe também o nível da Lagoa no Portal Praia do Laranjal</h2>
+          <p>
+            O Tempo Pelotas concentra a leitura meteorológica. Para uma visão voltada à
+            comunidade e aos visitantes da orla, o Portal Praia do Laranjal mantém uma página
+            própria com o nível da Estação Laranjal e o contexto das condições na Lagoa dos Patos.
+          </p>
+        </div>
+        <a
+          href={PORTAL_PRAIA_LARANJAL_LEVEL_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.portalLink}
+        >
+          Ver nível no Portal Praia do Laranjal
+          <span aria-hidden="true">↗</span>
+        </a>
+      </section>
+
       <footer className={styles.sources}>
         <strong>Fonte e referência</strong>
         <p>
-          Previsão por coordenadas: <a href={LARANJAL_OPEN_METEO_URL} target="_blank" rel="noreferrer">Open-Meteo</a>. Ponto de referência aproximado da orla: {LARANJAL_LATITUDE}, {LARANJAL_LONGITUDE}. {forecast ? `Consulta atualizada em ${formatDateTime(forecast.fetchedAt)}.` : "A fonte é consultada no navegador e pode ficar temporariamente indisponível."}
+          Previsão por coordenadas:{" "}
+          <a href={LARANJAL_OPEN_METEO_URL} target="_blank" rel="noreferrer">Open-Meteo</a>.
+          Ponto de referência aproximado da orla: {LARANJAL_LATITUDE}, {LARANJAL_LONGITUDE}.{" "}
+          {forecast
+            ? <>Consulta atualizada em <time dateTime={forecast.fetchedAt}>{formatDateTime(forecast.fetchedAt)}</time>.</>
+            : "A fonte é consultada no navegador e pode ficar temporariamente indisponível."}
         </p>
       </footer>
     </div>
