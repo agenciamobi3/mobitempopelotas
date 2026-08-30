@@ -38,7 +38,7 @@ const GOOGLE_ANALYTICS_MEASUREMENT_ID = "G-97YX7HPD90";
 const GOOGLE_ANALYTICS_IDLE_TIMEOUT_MS = 3_000;
 const GOOGLE_ANALYTICS_FALLBACK_DELAY_MS = 1_500;
 const GOOGLE_ADSENSE_CLIENT_ID = "ca-pub-4545997973925216";
-const PUBLIC_RUNTIME_RELEASE = "2026-08-29-ana-rhn-contract-v2";
+const PUBLIC_RUNTIME_RELEASE = "2026-08-30-public-stability-met-norway-v1";
 
 type AnalyticsWindow = Window & {
   dataLayer?: unknown[][];
