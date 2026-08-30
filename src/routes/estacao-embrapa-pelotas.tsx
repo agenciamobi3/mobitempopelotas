@@ -12,13 +12,34 @@ import "@/components/embrapa/EmbrapaStationHomeContract.css";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { EMBRAPA_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
-import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import { SEO_SOURCE_URLS } from "@/lib/seo-source-citations";
+import {
+  createDatasetJsonLd,
+  createEditorialPageJsonLd,
+  createFaqPageJsonLd,
+} from "@/lib/structured-data";
 import { loadEmbrapaStationPageData } from "@/lib/weather/embrapa-station-page-loader";
 
 const PAGE_TITLE = "Estação meteorológica da Embrapa em Pelotas";
 const PAGE_DESCRIPTION =
   "Consulte temperatura, umidade, pressão, vento, chuva, extremos, histórico de 24 horas, origem e saúde operacional dos dados da Estação Embrapa em Pelotas.";
 const PAGE_PATH = "/estacao-embrapa-pelotas";
+
+const EMBRAPA_STATION_PLACE = {
+  "@type": "Place",
+  name: "Posto Meteorológico da Sede — Embrapa Clima Temperado, Pelotas",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Pelotas",
+    addressRegion: "RS",
+    addressCountry: "BR",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: -31.7,
+    longitude: -52.4,
+  },
+};
 
 const EMBRAPA_PAGE_CONTENT = {
   ...EMBRAPA_EDITORIAL_CONTENT,
@@ -92,9 +113,47 @@ const EMBRAPA_PAGE_CONTENT = {
   ],
 };
 
+function createEmbrapaDataset(
+  snapshot: Awaited<ReturnType<typeof loadEmbrapaStationPageData>> | undefined,
+) {
+  if (!snapshot) return null;
+
+  const dateModified =
+    snapshot.health.data.observationTime ??
+    snapshot.health.data.fetchedAt ??
+    snapshot.history.generatedAt;
+  const temporalCoverage =
+    snapshot.history.from && snapshot.history.to
+      ? `${snapshot.history.from}/${snapshot.history.to}`
+      : null;
+
+  return createDatasetJsonLd({
+    name: "Medições meteorológicas da Estação Embrapa em Pelotas",
+    description:
+      "Conjunto observacional apresentado pelo Tempo Pelotas a partir da Estação Embrapa Clima Temperado, com medições locais e histórico recente. Não representa a previsão meteorológica das próximas horas.",
+    path: PAGE_PATH,
+    sourceUrl: SEO_SOURCE_URLS.embrapa,
+    dateModified,
+    spatialCoverage: EMBRAPA_STATION_PLACE,
+    temporalCoverage,
+    creator: {
+      name: "Embrapa Clima Temperado",
+      url: SEO_SOURCE_URLS.embrapa,
+    },
+    variables: [
+      { name: "Temperatura do ar", unitText: "°C" },
+      { name: "Umidade relativa do ar", unitText: "%" },
+      { name: "Pressão atmosférica", unitText: "hPa" },
+      { name: "Velocidade do vento", unitText: "km/h" },
+      { name: "Chuva acumulada", unitText: "mm" },
+    ],
+  });
+}
+
 export const Route = createFileRoute("/estacao-embrapa-pelotas")({
-  head: () =>
-    createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
+  head: ({ loaderData }) => {
+    const dataset = createEmbrapaDataset(loaderData);
+    return createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
       createEditorialPageJsonLd({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
@@ -116,9 +175,13 @@ export const Route = createFileRoute("/estacao-embrapa-pelotas")({
           "Origem dos dados da condição atual",
           "Saúde operacional do coletor meteorológico",
         ],
+        citations: [SEO_SOURCE_URLS.methodology, SEO_SOURCE_URLS.embrapa],
+        location: EMBRAPA_STATION_PLACE,
       }),
       createFaqPageJsonLd(PAGE_PATH, EMBRAPA_PAGE_CONTENT.faqs),
-    ]),
+      ...(dataset ? [dataset] : []),
+    ]);
+  },
   loader: () => loadEmbrapaStationPageData(),
   staleTime: 60 * 1_000,
   component: EstacaoEmbrapaPage,
