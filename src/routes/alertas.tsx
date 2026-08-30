@@ -139,9 +139,13 @@ function AlertasPage() {
       pageClassName="internal-weather-shell--alerts"
       showOfficialAlerts={false}
     >
-      <WeatherAlertsPage data={weather} />
-      <InmetAlertCoverageDetails data={weather} />
-      <EditorialContentSection id="como-interpretar-alertas" content={ALERTS_PAGE_CONTENT} />
+      {(recoveredWeather) => (
+        <>
+          <WeatherAlertsPage data={recoveredWeather} />
+          <InmetAlertCoverageDetails data={recoveredWeather} />
+          <EditorialContentSection id="como-interpretar-alertas" content={ALERTS_PAGE_CONTENT} />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
