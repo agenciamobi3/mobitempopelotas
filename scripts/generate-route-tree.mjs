@@ -7,6 +7,7 @@ const ROUTES_DIRECTORY = resolve(SOURCE_ROOT, "routes");
 const GENERATED_ROUTE_TREE = resolve(SOURCE_ROOT, "routeTree.gen.ts");
 const ROUTE_PATTERN = /export\s+const\s+Route\s*=\s*createFileRoute\(\s*(["'`])([^"'`]+)\1\s*\)/m;
 const CREATE_FILE_ROUTE_CALL_PATTERN = /\bcreateFileRoute\s*\(/m;
+const ROUTE_TREE_IMPORT_PATTERN = /^import\s+\{\s*Route\s+as\s+\w+Import\s*\}\s+from\s+['"](\.\/routes\/[^'"]+)['"]/gm;
 const CHECK_ONLY = process.argv.includes("--check");
 
 async function walk(directory) {
@@ -199,6 +200,33 @@ export const routeTree = rootRouteImport
 `;
 }
 
+function committedRouteImports(source) {
+  const imports = new Set();
+  for (const match of source.matchAll(ROUTE_TREE_IMPORT_PATTERN)) {
+    const path = match[1];
+    if (path && path !== "./routes/__root") imports.add(path);
+  }
+  return imports;
+}
+
+function validateCommittedRouteTree(routes, current) {
+  if (!current.trim()) {
+    return "src/routeTree.gen.ts não existe ou está vazio.";
+  }
+
+  const expected = new Set(routes.map((route) => route.importPath));
+  const committed = committedRouteImports(current);
+  const missing = [...expected].filter((path) => !committed.has(path)).sort();
+  const extra = [...committed].filter((path) => !expected.has(path)).sort();
+
+  if (missing.length === 0 && extra.length === 0) return null;
+
+  const details = [];
+  if (missing.length > 0) details.push(`rotas ausentes: ${missing.join(", ")}`);
+  if (extra.length > 0) details.push(`rotas extras: ${extra.join(", ")}`);
+  return `routeTree.gen.ts não corresponde às rotas descobertas (${details.join("; ")}).`;
+}
+
 const routes = await discoverRoutes();
 if (routes.length === 0) {
   throw new Error("Nenhuma rota TanStack foi encontrada em src/routes.");
@@ -212,16 +240,20 @@ try {
   // The first generation creates the file.
 }
 
-if (current === generated) {
-  console.log(`[routes] Árvore atualizada: ${routes.length} rotas.`);
+if (CHECK_ONLY) {
+  const error = validateCommittedRouteTree(routes, current);
+  if (error) {
+    console.error(`[routes] ${error}`);
+    process.exit(1);
+  }
+
+  console.log(`[routes] Árvore versionada cobre exatamente ${routes.length} rotas.`);
   process.exit(0);
 }
 
-if (CHECK_ONLY) {
-  console.error(
-    `[routes] routeTree.gen.ts está desatualizado. Execute: node scripts/generate-route-tree.mjs`,
-  );
-  process.exit(1);
+if (current === generated) {
+  console.log(`[routes] Árvore atualizada: ${routes.length} rotas.`);
+  process.exit(0);
 }
 
 await writeFile(GENERATED_ROUTE_TREE, generated, "utf8");
