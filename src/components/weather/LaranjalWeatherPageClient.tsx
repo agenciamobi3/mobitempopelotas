@@ -88,7 +88,8 @@ function formatDate(value: string) {
 }
 
 function formatDateTime(value: string) {
-  const parsed = new Date(value);
+  const hasExplicitZone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(value);
+  const parsed = new Date(hasExplicitZone ? value : `${value}-03:00`);
   if (Number.isNaN(parsed.getTime())) return value;
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -174,19 +175,21 @@ export function LaranjalWeatherPageClient() {
 
   useEffect(() => {
     let disposed = false;
-    let controller = new AbortController();
+    let activeController: AbortController | null = null;
 
     const load = () => {
-      controller.abort();
-      controller = new AbortController();
-      void fetchForecast(controller.signal)
+      activeController?.abort();
+      const requestController = new AbortController();
+      activeController = requestController;
+
+      void fetchForecast(requestController.signal)
         .then((next) => {
-          if (disposed) return;
+          if (disposed || requestController.signal.aborted) return;
           setForecast(next);
           setFailed(false);
         })
         .catch(() => {
-          if (!disposed && !controller.signal.aborted) setFailed(true);
+          if (!disposed && !requestController.signal.aborted) setFailed(true);
         });
     };
 
@@ -195,7 +198,7 @@ export function LaranjalWeatherPageClient() {
     return () => {
       disposed = true;
       window.clearInterval(interval);
-      controller.abort();
+      activeController?.abort();
     };
   }, []);
 
