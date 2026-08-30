@@ -38,8 +38,15 @@ export const Route = createFileRoute("/api/redemet/radar")({
         const payload = await withRedemetLastGood(`radar:${frames}`, () =>
           fetchRedemetRadarResilient(frames),
         );
+        const publicPayload = payload.available
+          ? payload
+          : {
+              ...payload,
+              error:
+                "A fonte oficial de radar não retornou uma imagem utilizável nesta atualização. Tente novamente em alguns minutos.",
+            };
 
-        return new Response(JSON.stringify(payload), {
+        return new Response(JSON.stringify(publicPayload), {
           headers: responseHeaders(payload.available),
         });
       },
