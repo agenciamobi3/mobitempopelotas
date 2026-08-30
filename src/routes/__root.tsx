@@ -116,7 +116,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
 
   useEffect(() => {
@@ -126,15 +126,19 @@ function ErrorComponent({ error }: { error: Error; reset: () => void }) {
 
   return (
     <SiteLayout forceShell>
-      <section className="status-page" aria-labelledby="recovery-title" role="status">
-        <p className="status-kicker">Atualização de conteúdo</p>
-        <h1 id="recovery-title">Carregando a versão mais recente do Tempo Pelotas</h1>
+      <section className="status-page" aria-labelledby="recovery-title" role="alert">
+        <p className="status-kicker">Falha de navegação</p>
+        <h1 id="recovery-title">Não foi possível concluir esta página</h1>
         <p>
-          O portal está sincronizando esta navegação com a versão publicada. Se a atualização
-          automática não concluir, os atalhos abaixo continuam disponíveis por carregamento direto.
+          O portal tentou recuperar automaticamente falhas transitórias de carregamento. Se esta
+          mensagem permaneceu visível, use “Tentar novamente” ou abra uma das áreas abaixo por
+          carregamento direto.
         </p>
         <div className="status-actions">
-          <a className="primary-link" href="/">
+          <button className="primary-link" type="button" onClick={reset}>
+            Tentar novamente
+          </button>
+          <a className="secondary-link" href="/">
             Tempo agora
           </a>
           <a className="secondary-link" href="/tempo-hoje-pelotas">
