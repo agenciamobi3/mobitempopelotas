@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 29/08/2026  
+Última atualização: 30/08/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -18,24 +18,25 @@ Regras permanentes:
 - uma régua/cota não é convertida para outra referência sem metadados suficientes;
 - navegabilidade pública prevalece sobre disponibilidade instantânea de integrações externas;
 - fonte tecnicamente disponível não é automaticamente habilitada se o produto já possui cobertura suficiente;
+- diagnóstico técnico pode permanecer em logs/contratos internos, mas não deve ser exposto como copy pública;
 - `main` é operacional e histórico publicado não é reescrito.
 
 ## 2. Estado executivo
 
 | Domínio | Estado atual |
 | --- | --- |
-| Portal público | **P0 de navegação estabilizado** no domínio canônico |
+| Portal público | **Rodada de estabilização de regressões em 30/08**; código sincronizado no Lovable e publicação direta solicitada |
 | Runtime marker | `/api/runtime-version` permanece estático e `no-store/noindex`; validar cortes novos também por `x-deployment-id` |
-| Home / Hoje / Amanhã / 7 dias | **Shell-first**: documento inicial não aguarda fontes externas |
-| Home sem dado inicial | “Atualizando dados meteorológicos...” durante recuperação; indisponibilidade somente após tentativa real |
+| Home / Hoje / Amanhã / 7 dias | **Shell-first + recuperação real após hidratação**: documento inicial não aguarda fontes externas |
+| Recuperação meteorológica | Primeiro consulta a consolidação server-side, permitindo usar MET Norway/Embrapa e outras contingências; Open-Meteo direto no navegador permanece como fallback adicional |
+| Home hidrológica | Loader inicial continua sem fontes externas; após hidratação consulta Laranjal, Guaíba e rede da Lagoa em isolamento client-side |
+| Boundary público | Auto-reload apenas para asset obsoleto ou falha transitória; exceção real não é mais mascarada como “versão mais recente” |
 | Open-Meteo | Principal; direto=`operational`, contingência/last-good recente=`partial`, sem previsão utilizável=`offline` |
-| MET Norway | Contingência compartilhada quando aplicável |
+| MET Norway | Contingência compartilhada quando aplicável; deve alimentar as páginas shell-first quando Open-Meteo falhar |
 | Embrapa | Observação local centralizada + recuperação client-side |
 | INMET meteorológico | `operational` após priorização da rota municipal funcional |
-| Radar REDEMET | Probe independente |
-| STSC | Probe independente; eventos históricos deduplicados antes do upsert |
-| Satélite REDEMET | `partial` quando a API responde sem produto utilizável |
-| GOES / INMET | HTTP 403 server-side tratado como `implementation`, não como indisponibilidade pública global |
+| Radar / satélite / STSC | Probes independentes; APIs públicas sanitizam erros antes de entregá-los ao navegador |
+| GOES / INMET | HTTP 403/404 server-side descreve a integração, não indisponibilidade pública global; diagnóstico bruto não deve aparecer na UI |
 | Hidrologia | Laranjal, Guaíba, Lagoa dos Patos e Defesa Civil degradam independentemente |
 | ANA / SNIRH / RHN | **Readiness/cross-check somente**, sem terceira ingestão do Laranjal nesta fase |
 | Historical Data Layer | Ativo; classes `observation`, `forecast`, `reanalysis`, `derived` separadas |
@@ -57,23 +58,96 @@ Stack: React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro, Tailwind 
 Budgets atuais:
 
 - Home/Hoje/Amanhã/7 dias: nenhuma fonte externa no loader inicial;
+- inteligência meteorológica compartilhada chamada após hidratação: teto interno de 5 s;
 - loaders meteorológicos secundários: 2,5 s por dependência;
-- loaders hidrológicos: 2,5 s por dependência;
+- loaders hidrológicos dedicados: 2,5 s por dependência;
 - Radar: 2,8 s;
-- previsão de 15 dias: 2,8 s;
-- inteligência meteorológica compartilhada: teto interno de 5 s.
+- previsão de 15 dias: 2,8 s.
 
-## 4. Navegação, rotas e SEO
+O shell-first existe para manter o documento navegável. Ele **não pode** significar “entregar objeto indisponível e nunca recuperar o dado real”.
+
+## 4. Rodada de estabilização pública — 30/08/2026
+
+A revisão visual em produção revelou quatro regressões de produto que haviam sido introduzidas enquanto a arquitetura de resiliência era expandida.
+
+### 4.1 Home meteorológica presa em atualização
+
+O loader da Home parte corretamente de `createUnavailableWeatherIntelligence()` para não bloquear o documento. Porém a recuperação de previsão no navegador dependia principalmente de uma consulta direta ao Open-Meteo.
+
+Em 30/08 o monitor público mostrava Open-Meteo offline ao mesmo tempo em que MET Norway permanecia ativo. Mesmo assim a Home continuava em “Atualizando dados meteorológicos...”.
+
+Correção na `main`:
+
+- `ProductionHome` consulta `getWeatherIntelligence()` após hidratação quando o baseline não possui dado utilizável;
+- essa server function usa a consolidação já existente e pode aproveitar MET Norway, Embrapa e demais contingências;
+- a recuperação direta de Open-Meteo continua como tentativa adicional, sem bloquear documento.
+
+### 4.2 Hoje / Amanhã / 7 dias recuperavam somente parte da tela
+
+`InternalWeatherPageShell` fazia recuperação client-side para header/hero, mas os componentes principais das páginas continuavam recebendo o objeto vazio vindo do loader shell-first.
+
+Correção:
+
+- `src/production/lib/weather-intelligence-browser-recovery.ts` centraliza a recuperação consolidada após hidratação;
+- `InternalWeatherPageShell` usa esse contrato;
+- o shell aceita children como função e entrega `recoveredData` ao conteúdo;
+- `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` passaram a renderizar seus componentes principais com o mesmo dado recuperado usado pelo shell.
+
+### 4.3 Home hidrológica estava programada para parecer indisponível
+
+O loader inicial da Home contém, por design shell-first:
+
+```text
+Promise.resolve({ status: "unavailable" })
+```
+
+Esse valor não representa uma consulta real às fontes. O problema era que a UI convertia esse baseline diretamente em “Dados hidrológicos temporariamente indisponíveis”.
+
+Correção:
+
+- o loader permanece sem chamadas externas;
+- ao receber o baseline `unavailable`, `HomeWaterClientRecovery` consulta após hidratação:
+  - Laranjal;
+  - Guaíba;
+  - rede regional da Lagoa dos Patos;
+- enquanto recupera, mostra estado de atualização;
+- somente uma falha real dessa recuperação mantém o fallback de indisponibilidade.
+
+### 4.4 Diagnóstico REDEMET vazava para a interface pública
+
+O `WeatherMap` pode exibir `activeLayer.data.error`. O adaptador de satélite mantinha diagnósticos sanitizados tecnicamente, porém inadequados para visitante, incluindo contagem de imagens, chaves do payload, hosts candidatos e erros HTTP das tentativas de contingência.
+
+Correção na borda pública:
+
+- `/api/redemet/satellite` preserva internamente o diagnóstico, mas substitui falhas por mensagem operacional pública;
+- `/api/redemet/radar` faz o mesmo;
+- `/api/redemet/storms` faz o mesmo;
+- exceção de produto do canal visível por ausência de luz solar continua com explicação específica, pois é informação útil ao visitante.
+
+### 4.5 Boundary global não pode fingir atualização
+
+Antes deste corte, qualquer erro que chegasse ao boundary global podia disparar uma navegação fresca e era apresentado como “Carregando a versão mais recente do Tempo Pelotas”. Isso escondia exceções reais de aplicação sob uma mensagem de sincronização.
+
+Agora:
+
+- stale asset → uma tentativa controlada de documento fresco;
+- erro transitório de navegação/rede → uma tentativa controlada;
+- erro real de runtime → não entra em reload automático;
+- o boundary mostra “Falha de navegação / Não foi possível concluir esta página”, oferece retry e atalhos diretos.
+
+## 5. Navegação, rotas e SEO
 
 `src/lib/public-routes.ts` mantém **48 URLs indexáveis = 25 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate.
 
-`/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` são shell-first. O menu público usa anchors nativas; preload SPA global por intenção e invalidação periódica da árvore foram retirados. O boundary “Carregando a versão mais recente do Tempo Pelotas” é contenção excepcional, não loading normal.
+`/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` continuam shell-first. O menu público usa anchors nativas; preload SPA global por intenção e invalidação periódica da árvore permanecem retirados.
+
+O boundary global é contenção excepcional, não loading normal. Se ele permanecer visível, deve comunicar uma falha real em vez de afirmar que uma atualização está em andamento sem evidência.
 
 Rotas de conta e embeds que possuem shell próprio permanecem em `standaloneRoutes`. `/widgets` e `/embed/widget` também são standalone para impedir shell duplicado e manter o iframe limpo.
 
-## 5. Meteorologia e monitor operacional
+## 6. Meteorologia e monitor operacional
 
-### Open-Meteo
+### Open-Meteo / MET Norway
 
 Open-Meteo é a previsão principal. A rota de 15 dias nunca inventa dias 8–15; janela incompleta real é `partial`.
 
@@ -83,19 +157,23 @@ A contingência persistida preserva last-good com timestamp original. O monitor 
 - fallback ou last-good recente/utilizável: `partial`;
 - nenhuma previsão utilizável: `offline`.
 
-Produção comprovou o caso de degradação: em 29/08/2026 05:46:29 UTC a origem direta falhou, o last-good de 05:40:11 UTC tinha 6,3 min e o serviço foi corretamente registrado como `partial`, não `offline`.
+A recuperação das páginas shell-first não pode ignorar MET Norway quando essa contingência estiver operacional.
+
+Produção já comprovou um caso anterior de degradação: em 29/08/2026 05:46:29 UTC a origem direta falhou, o last-good de 05:40:11 UTC tinha 6,3 min e o serviço foi corretamente registrado como `partial`, não `offline`.
 
 ### INMET
 
-A previsão municipal de Pelotas prioriza `/previsao/4314407`, que responde com contrato válido. `/api/forecast/4314407`, atualmente 404, permanece apenas como contingência. Após a correção, `weather-inmet` passou a `operational` no monitor real.
+A previsão municipal de Pelotas prioriza `/previsao/4314407`, que responde com contrato válido. `/api/forecast/4314407`, quando 404, permanece apenas como contingência.
 
-O produto de satélite INMET que recusa integração server-side com HTTP 403 permanece `implementation`; isso descreve a integração do Tempo Pelotas, não o serviço público do INMET.
+O produto de satélite INMET que recusa integração server-side permanece um estado da integração do Tempo Pelotas; não deve ser descrito como indisponibilidade global do serviço público do INMET.
 
 ### REDEMET
 
-Radar, STSC, satélite REDEMET e GOES/INMET têm probes independentes. Radar/STSC utilizáveis são `operational`; satélite REDEMET sem produto, mas com API responsiva, é `partial`; falha real/timeout é `offline` da integração.
+Radar, STSC, satélite REDEMET e GOES/INMET têm probes independentes. Radar/STSC utilizáveis são `operational`; satélite REDEMET sem produto, mas com API responsiva, pode ser `partial`; falha real/timeout é `offline` da integração.
 
-## 6. Hidrologia e política ANA/RHN
+Erros técnicos detalhados continuam úteis para operação, testes e diagnóstico, mas as APIs consumidas pela UI pública devem retornar copy sanitizada.
+
+## 7. Hidrologia e política ANA/RHN
 
 O Laranjal já possui **duas fontes de coleta do projeto**. Por decisão de produto, ANA/RHN não será adicionada como terceira fonte nesta fase.
 
@@ -117,17 +195,15 @@ As interfaces públicas `CotasReferencia2` e `EstacaoInventarioFluviometrica` n�
 
 Documento especializado: `docs/ANA_RHN_INTEGRATION.md`.
 
-## 7. Historical Data Layer
+## 8. Historical Data Layer
 
 O arquivo canônico separa `observation`, `forecast`, `reanalysis` e `derived`. Fontes novas entram com governança explícita antes de qualquer ingestão.
 
-O `historical-events-capture` roda pelo `cron.job` 8 a cada 10 minutos. A versão 2 deduplica eventos STSC pela chave `(source_key,event_type,source_record_id)` antes do upsert. Execução automática comprovada em 29/08/2026 05:40 UTC: 464 entradas → 245 chaves únicas → 245 persistidas, `success=true`, `error=null`.
+O `historical-events-capture` roda pelo `cron.job` 8 a cada 10 minutos. A versão 2 deduplica eventos STSC pela chave `(source_key,event_type,source_record_id)` antes do upsert.
 
-## 8. Widget Builder — fundação V1
+## 9. Widget Builder — fundação V1
 
 Objetivo: transformar cadastro em utilidade prática e preparar um futuro plano pago por módulos, sem criar billing agora.
-
-### Produto atual
 
 A área autenticada fica em `/widgets` e é descoberta pelo módulo “Gerador de widgets” em `/painel`.
 
@@ -149,15 +225,7 @@ Não existe HTML/JS arbitrário definido pelo usuário. Novos módulos entram pe
 
 ### Free nesta fase
 
-`AccountEntitlements` possui:
-
-- `widgetsAccess`;
-- `widgetsCreate`;
-- `widgetsMax`;
-- `widgetsLaranjal`;
-- `widgetsCurrentWeather`;
-- `widgetsAdvancedThemes`;
-- `widgetsRemoveBranding`.
+`AccountEntitlements` possui `widgetsAccess`, `widgetsCreate`, `widgetsMax`, `widgetsLaranjal`, `widgetsCurrentWeather`, `widgetsAdvancedThemes` e `widgetsRemoveBranding`.
 
 Free atualmente:
 
@@ -183,8 +251,7 @@ Segurança validada no Supabase oficial:
 - autenticado pode operar apenas os próprios registros;
 - público resolve somente token ativo pela RPC `get_public_widget(uuid)`;
 - RPC não retorna `user_id`;
-- token inexistente retorna zero linhas;
-- smoke transacional confirmou: ativo resolve 1; pausado resolve 0; transação revertida sem deixar widget em conta real.
+- token inexistente retorna zero linhas.
 
 ### Embed responsivo
 
@@ -196,41 +263,21 @@ Snippet canônico:
 
 `/widgets/embed.js` cria iframe para `/embed/widget?token=...`, largura 100% e ajusta altura com `postMessage`. O listener valida origem canônica, `contentWindow`, token e tipo da mensagem.
 
-`/embed/widget`:
-
-- é `noindex`;
-- aceita frame externo somente por ser superfície dedicada de embed;
-- não carrega header/footer do portal;
-- token inválido/inativo mostra “Widget indisponível” sem dados da conta.
-
-Validação em produção no domínio canônico, deployment `415e524024efd758db97555044a3db7239af314e4993bbe2488417feb895ddcf`:
-
-- `/widgets`: HTTP 200 e login para visitante não autenticado;
-- `/widgets/embed.js`: HTTP 200 e canonical correto;
-- `/embed/widget` com token inválido: HTTP 200, `X-Frame-Options` ausente, `frame-ancestors *`, `noindex`, sem header/footer global.
+`/embed/widget` é `noindex`, aceita frame externo apenas como superfície dedicada de embed, não carrega header/footer global e não revela dados de conta para token inválido/inativo.
 
 E2E autenticado de criação/pausa/reativação em browser real continua pendente até haver conta descartável apropriada para teste.
 
 Documento especializado: `docs/WIDGET_BUILDER_ARCHITECTURE.md`.
 
-## 9. Segurança e runtime
+## 10. Segurança, runtime e MOBI Ticket
 
 Ativos: secrets server-side, RLS, gate geográfico, CSP, firewall de aplicação, rate limiting distribuído, allowlists/proxies de fontes, logs sanitizados e endpoint de runtime `no-store/noindex`.
 
 O relaxamento de `frame-ancestors` é restrito às superfícies de embed. Páginas normais, inclusive `/widgets`, continuam com `SAMEORIGIN`/`frame-ancestors 'self'`.
 
-WAF gerenciado de edge não deve ser confundido com firewall de aplicação.
-
 ### MOBI Ticket / suporte do portal
 
-O root público já monta `MobiTicketWidgetLoader` globalmente. Em 29/08 o consumidor foi preparado para o P1 do Core sem alterar o runtime publicado:
-
-- `source=tempo_pelotas` permanece fixo;
-- com `VITE_MOBI_TICKET_WIDGET_TOKEN`, usa `https://agenciamobi.com.br/widgets/mobi-support-widget-loader.js` e `data-config-mode=remote`;
-- sem a variável, preserva temporariamente `https://agenciamobi.com.br/widget/mobi-ticket.js` como fallback P0;
-- o valor real da chave pública de instalação não é versionado;
-- o consumidor não possui `service_role`, acesso ao banco Core ou autorização administrativa;
-- categorias/copy locais funcionam como fallback enquanto a configuração pública P1 do Core não estiver disponível.
+O root público monta `MobiTicketWidgetLoader` globalmente.
 
 Estado correto:
 
@@ -242,31 +289,36 @@ Core support-widget-config  = source_ready_not_deployed
 Core loader v1.1            = source_ready_not_published
 ```
 
+Com `VITE_MOBI_TICKET_WIDGET_TOKEN`, o consumidor está preparado para o loader canônico remoto. Sem a variável, preserva temporariamente o fallback P0. O valor real da chave pública de instalação não é versionado e o consumidor não possui `service_role` ou acesso administrativo ao Core.
+
 Documento especializado: `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md`.
 
-## 10. Testes e deploy
+## 11. Testes e deploy
 
-Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, Embrapa, INMET, 15 dias, hidrologia, REDEMET, Historical Data Layer, ANA/RHN, a fundação do Widget Builder e a migração do consumidor MOBI Ticket para o loader canônico.
+Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, MET Norway, Embrapa, INMET, 15 dias, hidrologia, REDEMET, Historical Data Layer, ANA/RHN, Widget Builder e MOBI Ticket.
 
-`tests/widget-builder-foundation.test.ts` protege entitlements Free, registry, RLS/RPC, owner gates, canonical do embed, protocolo responsivo, política de frame, isolamento de shell e descoberta pelo painel. Está incluído em `test:contracts`.
+A rodada de 30/08 atualizou especificamente:
 
-`tests/analytics-communication-runtime.test.ts` protege a montagem global do MOBI Ticket, idle loading, loader canônico, fallback legado, `source=tempo_pelotas`, variável de instalação sem valor versionado e ausência de credenciais administrativas.
+- `tests/home-deferred-hydrology.test.ts` — garante que o loader inicial não consulta fontes e que a Home recupera águas reais após hidratação;
+- `tests/public-navigation-stability.test.ts` — garante recuperação meteorológica consolidada, propagação para Hoje/Amanhã/7 dias e impede auto-reload de exceção real de runtime;
+- `tests/source-resilience-regressions.test.ts` — mantém diagnóstico interno, mas exige sanitização nas APIs públicas de satélite, radar e trovoadas.
 
-GitHub Actions continua falhando antes dos steps; portanto teste versionado não significa suíte executada. Lovable comprova sincronização/build/publicação do corte, mas não substitui CI completa.
+GitHub Actions continua bloqueado antes dos steps; portanto contrato versionado não equivale a suíte executada. O projeto Lovable sincronizou os novos arquivos e foi acionado um deploy direto após este corte. O smoke do domínio canônico continua obrigatório antes de declarar a regressão encerrada.
 
-## 11. Próximas prioridades
+## 12. Próximas prioridades
 
-1. Fazer E2E autenticado do Widget Builder com conta descartável: criar, visualizar, copiar, pausar e reativar.
-2. Adicionar novos módulos ao registry **um por vez**, começando por 7 dias, chuva e vento, sem duplicar infraestrutura.
-3. Executar o canário MOBI Ticket somente após o Core aplicar/publicar o P1: configurar a chave `tempo_pelotas`, publicar o portal e confirmar primeiro ticket real portal→Core.
-4. Manter Free generoso e observar uso real antes de definir limites ou plano pago.
-5. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets sem evidência.
-6. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
-7. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
-8. Concluir E2E geral de autenticação com duas contas descartáveis.
-9. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+1. Executar smoke no domínio canônico após a publicação desta rodada: Home, Hoje, Amanhã, 7 dias, situação hidrológica, radar/satélite e transição entre menus.
+2. Confirmar que, com Open-Meteo indisponível e MET Norway ativo, Home/Hoje/Amanhã/7 dias deixam o estado “Atualizando” e mostram previsão de contingência.
+3. Confirmar que a Home deixa de mostrar indisponibilidade hidrológica sem uma tentativa real das três fontes.
+4. Confirmar que nenhum endpoint/mapa público exibe `Diagnóstico atual`, chaves de payload, hosts candidatos ou HTTP interno.
+5. Fazer E2E autenticado do Widget Builder com conta descartável: criar, visualizar, copiar, pausar e reativar.
+6. Adicionar novos módulos ao registry **um por vez**, somente depois da rodada de estabilidade; candidatos: 7 dias, chuva e vento.
+7. Executar o canário MOBI Ticket somente após o Core aplicar/publicar o P1.
+8. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
+9. Concluir E2E geral de autenticação com duas contas descartáveis.
+10. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
-## 12. Documentos principais
+## 13. Documentos principais
 
 - `docs/WIDGET_BUILDER_ARCHITECTURE.md` — gerador de widgets, RLS, embed e evolução por módulos;
 - `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket, fallback P0 e canário P1;
@@ -281,6 +333,6 @@ GitHub Actions continua falhando antes dos steps; portanto teste versionado não
 - `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` — SEO;
 - `docs/PRODUCTION_CUTOVER.md` — runbook de produção.
 
-## 13. Regra de manutenção
+## 14. Regra de manutenção
 
-Este arquivo deve responder rapidamente: o que está publicado, quais fontes alimentam o portal, o que está parcial/suspenso, quais decisões de produto limitam integrações, quais módulos de conta existem e qual é o próximo trabalho real. Histórico detalhado permanece nos documentos especializados.
+Este arquivo deve responder rapidamente: o que está publicado, quais fontes alimentam o portal, o que está parcial/suspenso, quais decisões de produto limitam integrações, quais módulos de conta existem, quais regressões foram identificadas e qual é o próximo trabalho real. Histórico detalhado permanece nos documentos especializados.
