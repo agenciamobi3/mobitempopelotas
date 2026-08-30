@@ -116,8 +116,9 @@ function redemetHeaders() {
 }
 
 function publicImageResponse(image: ArrayBuffer | Uint8Array, contentType: string) {
-  const byteLength = image.byteLength;
-  return new Response(image, {
+  const body: ArrayBuffer = image instanceof Uint8Array ? new Uint8Array(image).buffer : image;
+  const byteLength = body.byteLength;
+  return new Response(body, {
     status: 200,
     headers: {
       "Cache-Control": "public, max-age=300, stale-while-revalidate=1800",
