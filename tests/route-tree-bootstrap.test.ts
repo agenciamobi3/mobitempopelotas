@@ -58,7 +58,8 @@ test("production preview uses Nitro output with a Windows-safe Wrangler launcher
   assert.match(previewLauncher, /\.output\/nitro\.json/);
   assert.match(previewLauncher, /process\.platform === "win32"/);
   assert.match(previewLauncher, /process\.env\.ComSpec \|\| "cmd\.exe"/);
-  assert.match(previewLauncher, /npx \$\{wranglerArgs\.join\(" "\)\}/);
+  assert.match(previewLauncher, /const npxArgs = \["--yes", \.\.\.wranglerArgs\]/);
+  assert.match(previewLauncher, /npx \$\{npxArgs\.join\(" "\)\}/);
   assert.match(previewLauncher, /"4173"/);
   assert.notEqual(packageJson.scripts?.preview, "vite preview");
 });
