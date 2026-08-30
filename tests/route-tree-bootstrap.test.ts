@@ -18,6 +18,7 @@ const packageLock = JSON.parse(readFileSync("package-lock.json", "utf8")) as {
   >;
 };
 const generator = readFileSync("scripts/generate-route-tree.mjs", "utf8");
+const previewLauncher = readFileSync("scripts/preview-production.mjs", "utf8");
 const viteConfig = readFileSync("vite.config.ts", "utf8");
 const qualityWorkflow = readFileSync(".github/workflows/quality.yml", "utf8");
 
@@ -52,8 +53,13 @@ test("route tree is generated before development, build, tests and typecheck", (
   );
 });
 
-test("production preview uses Nitro output instead of TanStack dist preview", () => {
-  assert.equal(packageJson.scripts?.preview, "nitro preview");
+test("production preview uses Nitro output with a Windows-safe Wrangler launcher", () => {
+  assert.equal(packageJson.scripts?.preview, "node scripts/preview-production.mjs");
+  assert.match(previewLauncher, /\.output\/nitro\.json/);
+  assert.match(previewLauncher, /process\.platform === "win32"/);
+  assert.match(previewLauncher, /process\.env\.ComSpec \|\| "cmd\.exe"/);
+  assert.match(previewLauncher, /npx \$\{wranglerArgs\.join\(" "\)\}/);
+  assert.match(previewLauncher, /"4173"/);
   assert.notEqual(packageJson.scripts?.preview, "vite preview");
 });
 
