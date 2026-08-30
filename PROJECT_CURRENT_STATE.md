@@ -40,6 +40,7 @@ Regras permanentes:
 | ANA / SNIRH / RHN | **Readiness/cross-check somente**, sem terceira ingestão do Laranjal nesta fase |
 | Historical Data Layer | Ativo; classes `observation`, `forecast`, `reanalysis`, `derived` separadas |
 | Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços |
+| MOBI Ticket | **Consumidor P1 source-ready / runtime unchanged**; loader canônico entra por canário e preserva fallback P0 |
 | Widget Builder | **Fundação V1 publicada**: conta cria e gerencia widgets responsivos por token público |
 | Widget modules V1 | Nível do Laranjal + Tempo agora em Pelotas |
 | Free / PRO | Entitlements existem; Free nasce sem limite de widgets nesta fase; billing comercial ainda não existe |
@@ -220,11 +221,36 @@ O relaxamento de `frame-ancestors` é restrito às superfícies de embed. Págin
 
 WAF gerenciado de edge não deve ser confundido com firewall de aplicação.
 
+### MOBI Ticket / suporte do portal
+
+O root público já monta `MobiTicketWidgetLoader` globalmente. Em 29/08 o consumidor foi preparado para o P1 do Core sem alterar o runtime publicado:
+
+- `source=tempo_pelotas` permanece fixo;
+- com `VITE_MOBI_TICKET_WIDGET_TOKEN`, usa `https://agenciamobi.com.br/widgets/mobi-support-widget-loader.js` e `data-config-mode=remote`;
+- sem a variável, preserva temporariamente `https://agenciamobi.com.br/widget/mobi-ticket.js` como fallback P0;
+- o valor real da chave pública de instalação não é versionado;
+- o consumidor não possui `service_role`, acesso ao banco Core ou autorização administrativa;
+- categorias/copy locais funcionam como fallback enquanto a configuração pública P1 do Core não estiver disponível.
+
+Estado correto:
+
+```text
+Tempo consumer source       = ready_for_p1_canary
+Tempo production runtime    = unchanged
+Core P1 migration           = source_only_not_applied
+Core support-widget-config  = source_ready_not_deployed
+Core loader v1.1            = source_ready_not_published
+```
+
+Documento especializado: `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md`.
+
 ## 10. Testes e deploy
 
-Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, Embrapa, INMET, 15 dias, hidrologia, REDEMET, Historical Data Layer, ANA/RHN e a fundação do Widget Builder.
+Contratos versionados cobrem shell-first, navegação, cache, Open-Meteo, Embrapa, INMET, 15 dias, hidrologia, REDEMET, Historical Data Layer, ANA/RHN, a fundação do Widget Builder e a migração do consumidor MOBI Ticket para o loader canônico.
 
 `tests/widget-builder-foundation.test.ts` protege entitlements Free, registry, RLS/RPC, owner gates, canonical do embed, protocolo responsivo, política de frame, isolamento de shell e descoberta pelo painel. Está incluído em `test:contracts`.
+
+`tests/analytics-communication-runtime.test.ts` protege a montagem global do MOBI Ticket, idle loading, loader canônico, fallback legado, `source=tempo_pelotas`, variável de instalação sem valor versionado e ausência de credenciais administrativas.
 
 GitHub Actions continua falhando antes dos steps; portanto teste versionado não significa suíte executada. Lovable comprova sincronização/build/publicação do corte, mas não substitui CI completa.
 
@@ -232,16 +258,18 @@ GitHub Actions continua falhando antes dos steps; portanto teste versionado não
 
 1. Fazer E2E autenticado do Widget Builder com conta descartável: criar, visualizar, copiar, pausar e reativar.
 2. Adicionar novos módulos ao registry **um por vez**, começando por 7 dias, chuva e vento, sem duplicar infraestrutura.
-3. Manter Free generoso e observar uso real antes de definir limites ou plano pago.
-4. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets sem evidência.
-5. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
-6. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
-7. Concluir E2E geral de autenticação com duas contas descartáveis.
-8. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+3. Executar o canário MOBI Ticket somente após o Core aplicar/publicar o P1: configurar a chave `tempo_pelotas`, publicar o portal e confirmar primeiro ticket real portal→Core.
+4. Manter Free generoso e observar uso real antes de definir limites ou plano pago.
+5. Investigar satélite REDEMET somente pela disponibilidade real do produto/API; não aumentar budgets sem evidência.
+6. Reintroduzir resumo hidrológico da Home apenas como recuperação isolada/client-side.
+7. Resolver provisionamento do GitHub Actions e executar suíte completa, routes check, TypeScript, build e browser smoke.
+8. Concluir E2E geral de autenticação com duas contas descartáveis.
+9. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 12. Documentos principais
 
 - `docs/WIDGET_BUILDER_ARCHITECTURE.md` — gerador de widgets, RLS, embed e evolução por módulos;
+- `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket, fallback P0 e canário P1;
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets;
 - `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação;
 - `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
