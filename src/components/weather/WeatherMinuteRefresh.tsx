@@ -1,4 +1,4 @@
-// A atualização global por router.invalidate() foi retirada do caminho público.
+// A atualização global por invalidação do router foi retirada do caminho público.
 //
 // O portal público navega por documentos completos para preservar consistência
 // entre HTML/runtime depois de deploys. Invalidar a árvore inteira a cada minuto
