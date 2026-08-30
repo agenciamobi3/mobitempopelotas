@@ -5,6 +5,7 @@ import test from "node:test";
 const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 const styles = readFileSync("src/production/components/home-editorial-header.css", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
+const productionHome = readFileSync("src/production/ProductionHome.tsx", "utf8");
 
 const requiredPublicNavigationPaths = [
   "/tempo-hoje-pelotas",
@@ -37,13 +38,19 @@ function escapeRegExp(value: string) {
 }
 
 test("megamenu groups the public weather inventory into editorial areas", () => {
-  for (const label of ["Previsão", "Monitoramento", "Águas", "Região", "Explorar"]) {
+  for (const label of ["Previsão", "Satélites e Radares", "Águas", "Região", "Explorar"]) {
     assert.match(header, new RegExp(`label: "${label}"`));
   }
 
   for (const path of requiredPublicNavigationPaths) {
     assert.match(header, new RegExp(escapeRegExp(path)), `Menu deve expor ${path}`);
   }
+});
+
+test("satélites e radares ficam em página dedicada, não na Home", () => {
+  assert.doesNotMatch(productionHome, /HomeRadarEditorial/);
+  assert.match(header, /label: "Satélites e Radares"/);
+  assert.match(header, /to: "\/radar-e-satelite-pelotas"/);
 });
 
 test("atalhos estaticos principais do megamenu pertencem ao inventario indexavel", () => {
