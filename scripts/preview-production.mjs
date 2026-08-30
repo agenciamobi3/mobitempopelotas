@@ -10,16 +10,17 @@ if (!existsSync(".output/nitro.json")) {
 }
 
 const wranglerArgs = ["wrangler", "--cwd", "./", "dev", "--port", port, "--host", host];
+const npxArgs = ["--yes", ...wranglerArgs];
 
 let command;
 let args;
 
 if (process.platform === "win32") {
   command = process.env.ComSpec || "cmd.exe";
-  args = ["/d", "/s", "/c", `npx ${wranglerArgs.join(" ")}`];
+  args = ["/d", "/s", "/c", `npx ${npxArgs.join(" ")}`];
 } else {
   command = "npx";
-  args = wranglerArgs;
+  args = npxArgs;
 }
 
 console.log(`[preview] Wrangler em http://${host}:${port}/`);
