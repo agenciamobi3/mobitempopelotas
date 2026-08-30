@@ -5,11 +5,14 @@ import type { WeatherHomeData } from "./types";
 
 export type { WeatherBaselineData } from "./weather-baseline-select";
 
-// O baseline participa da consolidação meteorológica, cujo teto global é 5 s.
-// O caminho resiliente do Open-Meteo pode encadear origem direta, cache e Edge;
-// quando a origem está fora, esse encadeamento não pode impedir o MET Norway
-// (que roda em paralelo) de assumir como contingência dentro do mesmo request.
-export const OPEN_METEO_BASELINE_DEADLINE_MS = 3_200;
+// Loaders públicos que dependem desta base têm teto de 2,5 s. Quando o MET Norway
+// já respondeu como fonte utilizável, o Open-Meteo recebe somente uma janela primária
+// total de 2,2 s para preservar sua preferência sem segurar a contingência.
+export const OPEN_METEO_PRIMARY_GRACE_MS = 2_200;
+
+// Se o MET Norway também estiver indisponível, vale gastar um pouco mais do orçamento
+// global de 5 s tentando last-good/Edge do Open-Meteo antes de declarar indisponibilidade.
+export const OPEN_METEO_CONTINGENCY_DEADLINE_MS = 4_200;
 
 function unavailableOpenMeteoWithinBaseline(): WeatherHomeData {
   return {
@@ -33,19 +36,24 @@ function unavailableOpenMeteoWithinBaseline(): WeatherHomeData {
   };
 }
 
-async function fetchOpenMeteoWithinBaselineDeadline(): Promise<WeatherHomeData> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
+async function settleOpenMeteoWithin(
+  openMeteoPromise: Promise<WeatherHomeData>,
+  remainingMs: number,
+  deadlineMs: number,
+): Promise<WeatherHomeData> {
+  if (remainingMs <= 0) return unavailableOpenMeteoWithinBaseline();
 
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([
-      fetchOpenMeteoWeather(),
+      openMeteoPromise,
       new Promise<WeatherHomeData>((resolve) => {
         timeout = setTimeout(() => {
           console.warn("[weather/baseline] Open-Meteo excedeu o orçamento do baseline", {
-            deadlineMs: OPEN_METEO_BASELINE_DEADLINE_MS,
+            deadlineMs,
           });
           resolve(unavailableOpenMeteoWithinBaseline());
-        }, OPEN_METEO_BASELINE_DEADLINE_MS);
+        }, remainingMs);
       }),
     ]);
   } finally {
@@ -54,10 +62,20 @@ async function fetchOpenMeteoWithinBaselineDeadline(): Promise<WeatherHomeData> 
 }
 
 export async function fetchPelotasWeather(): Promise<WeatherBaselineData> {
-  const [openMeteo, metNorway] = await Promise.all([
-    fetchOpenMeteoWithinBaselineDeadline(),
-    fetchMetNorwayWeather(),
-  ]);
+  const startedAt = Date.now();
+  const openMeteoPromise = fetchOpenMeteoWeather();
+  const metNorway = await fetchMetNorwayWeather();
+
+  const deadlineMs =
+    metNorway.status === "live"
+      ? OPEN_METEO_PRIMARY_GRACE_MS
+      : OPEN_METEO_CONTINGENCY_DEADLINE_MS;
+  const elapsedMs = Date.now() - startedAt;
+  const openMeteo = await settleOpenMeteoWithin(
+    openMeteoPromise,
+    Math.max(0, deadlineMs - elapsedMs),
+    deadlineMs,
+  );
 
   return selectBaseline(openMeteo, metNorway);
 }
