@@ -135,8 +135,8 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
   },
   {
     id: "monitoring",
-    label: "Monitoramento",
-    summary: "Observação local, imagens, câmeras e eventos meteorológicos.",
+    label: "Satélites e Radares",
+    summary: "Radar, satélites, câmeras e observações meteorológicas para Pelotas e a região.",
     activePaths: [
       "/radar-e-satelite-pelotas",
       "/estacao-embrapa-pelotas",
@@ -144,10 +144,10 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       "/cameras-ao-vivo-pelotas",
     ],
     featured: {
-      eyebrow: "Radar e satélite",
-      label: "Veja a atmosfera em movimento",
+      eyebrow: "Satélites e Radares",
+      label: "Abrir monitoramento meteorológico",
       to: "/radar-e-satelite-pelotas",
-      description: "Chuva, nuvens e trovoadas em Pelotas e na região.",
+      description: "Radar de chuva, imagens de satélite e trovoadas em Pelotas e na Zona Sul.",
     },
     sections: [
       {
