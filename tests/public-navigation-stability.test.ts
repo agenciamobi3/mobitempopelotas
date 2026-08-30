@@ -17,6 +17,7 @@ const homeRoute = readFileSync("src/routes/index.tsx", "utf8");
 const todayRoute = readFileSync("src/routes/tempo-hoje-pelotas.tsx", "utf8");
 const tomorrowRoute = readFileSync("src/routes/tempo-amanha-pelotas.tsx", "utf8");
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
+const alertsRoute = readFileSync("src/routes/alertas.tsx", "utf8");
 const rootRoute = readFileSync("src/routes/__root.tsx", "utf8");
 const runtimeVersionRoute = readFileSync("src/routes/api/runtime-version.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
@@ -112,6 +113,14 @@ test("rotas shell-first recuperam a consolidação do backend e propagam ao cont
     assert.match(routeSource, /\{\(recoveredWeather\) => \(/);
     assert.match(routeSource, /data=\{recoveredWeather\}/);
   }
+});
+
+test("alertas propagam a recuperação do shell ao painel e à abrangência do INMET", () => {
+  assert.match(alertsRoute, /\{\(recoveredWeather\) => \(/);
+  assert.match(alertsRoute, /<WeatherAlertsPage data=\{recoveredWeather\} \/>/);
+  assert.match(alertsRoute, /<InmetAlertCoverageDetails data=\{recoveredWeather\} \/>/);
+  assert.doesNotMatch(alertsRoute, /<WeatherAlertsPage data=\{weather\} \/>/);
+  assert.doesNotMatch(alertsRoute, /<InmetAlertCoverageDetails data=\{weather\} \/>/);
 });
 
 test("release publicado pode ser identificado sem depender de integração externa", () => {
