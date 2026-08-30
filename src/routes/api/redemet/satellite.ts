@@ -73,6 +73,18 @@ function daylightVisiblePayload(payload: RedemetImageLayerResponse, requestedFra
   } satisfies RedemetImageLayerResponse;
 }
 
+function sanitizePublicSatellitePayload(payload: RedemetImageLayerResponse) {
+  if (payload.available || !payload.error || payload.availabilityReason === "daylight") {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    error:
+      "A fonte oficial de satélite não retornou uma imagem utilizável nesta atualização. Tente novamente em alguns minutos.",
+  } satisfies RedemetImageLayerResponse;
+}
+
 export const Route = createFileRoute("/api/redemet/satellite")({
   server: {
     handlers: {
@@ -83,14 +95,16 @@ export const Route = createFileRoute("/api/redemet/satellite")({
           const payload = await withRedemetLastGood(`satellite:inmet:${frames}`, () =>
             fetchInmetSatellite(frames),
           );
-          return new Response(JSON.stringify(payload), { headers: RESPONSE_HEADERS });
+          const publicPayload = sanitizePublicSatellitePayload(payload);
+          return new Response(JSON.stringify(publicPayload), { headers: RESPONSE_HEADERS });
         }
 
         const upstreamFrames = type === "vis" ? VISIBLE_LOOKBACK_FRAMES : frames;
         const payload = await withRedemetLastGood(`satellite:${type}:${upstreamFrames}`, () =>
           fetchResilientSatellite(type, upstreamFrames),
         );
-        const publicPayload = type === "vis" ? daylightVisiblePayload(payload, frames) : payload;
+        const displayPayload = type === "vis" ? daylightVisiblePayload(payload, frames) : payload;
+        const publicPayload = sanitizePublicSatellitePayload(displayPayload);
 
         return new Response(JSON.stringify(publicPayload), { headers: RESPONSE_HEADERS });
       },
