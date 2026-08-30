@@ -12,14 +12,14 @@ import { createPageHead } from "@/lib/page-meta";
 import { loadRadarPageData } from "@/lib/redemet/radar-page-loader";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 
-const PAGE_TITLE = "Radar de chuva e satélite em Pelotas: imagens recentes";
+const PAGE_TITLE = "Satélites e radares em Pelotas: chuva, nuvens e trovoadas";
 const PAGE_DESCRIPTION =
-  "Veja radar de chuva, satélite e trovoadas na região de Pelotas com horário das imagens, sequência recente, janela temporal e distância aproximada da atividade elétrica.";
+  "Acompanhe satélites e radares em Pelotas com radar de chuva, imagens de satélite, trovoadas, horários recentes, sequência temporal e fontes meteorológicas oficiais.";
 const PAGE_PATH = "/radar-e-satelite-pelotas";
 
 const RADAR_PAGE_CONTENT = {
   ...RADAR_EDITORIAL_CONTENT,
-  eyebrow: "Como interpretar as imagens",
+  eyebrow: "Satélites e Radares",
   title: "Acompanhe chuva, nuvens e trovoadas na região de Pelotas",
   answer:
     "Confira primeiro o horário da imagem mais recente e depois reproduza a sequência. O radar ajuda a localizar áreas associadas à chuva; o satélite mostra a cobertura e a organização das nuvens; e os registros de trovoadas indicam atividade elétrica detectada. Os valores exibidos ao lado pertencem à previsão por hora mais próxima, enquanto as imagens representam registros recentes da fonte.",
@@ -121,9 +121,10 @@ export const Route = createFileRoute("/radar-e-satelite-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Radar de chuva e satélite em Pelotas", path: PAGE_PATH },
+          { name: "Satélites e Radares em Pelotas", path: PAGE_PATH },
         ],
         about: [
+          "Satélites e radares em Pelotas",
           "Radar de chuva em Pelotas",
           "Radar meteorológico de Pelotas agora",
           "Imagem de radar mais recente para Pelotas",
