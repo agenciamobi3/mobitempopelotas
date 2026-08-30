@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const RUNTIME_RELEASE = "2026-08-29-ana-rhn-contract-v2";
+const RUNTIME_RELEASE = "2026-08-30-public-stability-met-norway-v1";
 
 export const Route = createFileRoute("/api/runtime-version")({
   server: {
