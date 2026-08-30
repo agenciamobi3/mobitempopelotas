@@ -37,6 +37,7 @@ const publicHeader = readFileSync(
   "utf8",
 );
 const router = readFileSync("src/router.tsx", "utf8");
+const publicStabilitySmoke = readFileSync("scripts/public-stability-smoke.mjs", "utf8");
 
 const P0_RELEASE = "2026-08-29-ana-rhn-contract-v2";
 
@@ -136,4 +137,25 @@ test("radar e previsão estendida não seguram a navegação por quatro segundos
   assert.doesNotMatch(radarLoader, /PUBLIC_RADAR_PAGE_DEADLINE_MS = 4_000/);
   assert.match(extendedLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800/);
   assert.doesNotMatch(extendedLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_000/);
+});
+
+test("smoke público cobre recuperação, águas, radar e alertas após hidratação", () => {
+  for (const path of [
+    "/",
+    "/tempo-hoje-pelotas",
+    "/tempo-amanha-pelotas",
+    "/previsao-7-dias-pelotas",
+    "/situacao-hidrologica-pelotas",
+    "/radar-e-satelite-pelotas",
+    "/alertas",
+  ]) {
+    assert.match(publicStabilitySmoke, new RegExp(path.replaceAll("/", "\\/")));
+  }
+
+  assert.match(publicStabilitySmoke, /STABILITY_RECOVERY_WAIT_MS \?\? 7_000/);
+  assert.match(publicStabilitySmoke, /Atualizando dados meteorológicos/);
+  assert.match(publicStabilitySmoke, /A previsão de hoje está em atualização/);
+  assert.match(publicStabilitySmoke, /Diagnóstico atual/);
+  assert.match(publicStabilitySmoke, /hostsCandidatos/);
+  assert.match(publicStabilitySmoke, /Carregando a versão mais recente do Tempo Pelotas/);
 });
