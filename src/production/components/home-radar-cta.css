@@ -1,0 +1,228 @@
+.tp-home-radar-cta {
+  position: relative;
+  display: grid;
+  width: min(1220px, calc(100% - 48px));
+  min-height: 270px;
+  margin: 0 auto clamp(54px, 6vw, 78px);
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 84% 18%, rgb(94 44 237 / 12%), transparent 30%),
+    radial-gradient(circle at 68% 92%, rgb(24 189 205 / 14%), transparent 34%),
+    #f8fbfb;
+  color: #071e2f;
+}
+
+.tp-home-radar-cta::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #18bdcd 0 30%, #5e2ced 30% 55%, #e70b85 55% 78%, #f27035 78% 100%);
+  content: "";
+}
+
+.tp-home-radar-cta__content {
+  z-index: 1;
+  display: flex;
+  max-width: 720px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(34px, 4vw, 52px);
+}
+
+.tp-home-radar-cta__eyebrow {
+  margin-bottom: 10px;
+  color: #087f91;
+  font-size: 0.66rem;
+  font-weight: 820;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.tp-home-radar-cta h2 {
+  max-width: 17ch;
+  margin: 0;
+  font-size: clamp(2rem, 3.2vw, 3.25rem);
+  font-weight: 590;
+  line-height: 0.99;
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+}
+
+.tp-home-radar-cta__content p {
+  max-width: 64ch;
+  margin: 17px 0 0;
+  color: #5e747f;
+  font-size: 0.82rem;
+  line-height: 1.62;
+}
+
+.tp-home-radar-cta__link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  margin-top: 22px;
+  padding: 0 18px;
+  border: 1px solid #143548;
+  border-radius: 999px;
+  background: #071e2f;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.tp-home-radar-cta__link:hover,
+.tp-home-radar-cta__link:focus-visible {
+  border-color: #5e2ced;
+  background: #5e2ced;
+  outline: none;
+}
+
+.tp-home-radar-cta__link:focus-visible {
+  box-shadow: 0 0 0 3px rgb(94 44 237 / 20%);
+}
+
+.tp-home-radar-cta__visual {
+  position: relative;
+  display: grid;
+  min-height: 270px;
+  place-items: center;
+  padding: 28px;
+}
+
+.tp-home-radar-cta__radar {
+  position: relative;
+  width: min(230px, 72%);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(24 189 205 / 14%) 0 9%, transparent 10% 100%);
+}
+
+.tp-home-radar-cta__ring {
+  position: absolute;
+  inset: 50%;
+  border: 1px solid rgb(94 44 237 / 22%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tp-home-radar-cta__ring--one {
+  width: 38%;
+  height: 38%;
+}
+
+.tp-home-radar-cta__ring--two {
+  width: 68%;
+  height: 68%;
+}
+
+.tp-home-radar-cta__ring--three {
+  width: 96%;
+  height: 96%;
+}
+
+.tp-home-radar-cta__beam {
+  position: absolute;
+  inset: 5% 5% 50% 50%;
+  border-radius: 0 100% 0 0;
+  background: linear-gradient(135deg, rgb(24 189 205 / 32%), rgb(94 44 237 / 4%));
+  transform-origin: 0 100%;
+  transform: rotate(18deg);
+}
+
+.tp-home-radar-cta__point {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #18bdcd;
+  box-shadow: 0 0 0 5px rgb(24 189 205 / 12%);
+}
+
+.tp-home-radar-cta__point--one {
+  top: 30%;
+  left: 66%;
+}
+
+.tp-home-radar-cta__point--two {
+  top: 62%;
+  left: 28%;
+  background: #e70b85;
+  box-shadow: 0 0 0 5px rgb(231 11 133 / 10%);
+}
+
+.tp-home-radar-cta__point--three {
+  top: 72%;
+  left: 70%;
+  background: #f27035;
+  box-shadow: 0 0 0 5px rgb(242 112 53 / 10%);
+}
+
+.tp-home-radar-cta__legend {
+  position: absolute;
+  right: 24px;
+  bottom: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.tp-home-radar-cta__legend span {
+  padding: 6px 9px;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 76%);
+  color: #526d79;
+  font-size: 0.58rem;
+  font-weight: 760;
+}
+
+@media (max-width: 860px) {
+  .tp-home-radar-cta {
+    width: calc(100% - 40px);
+    grid-template-columns: 1fr;
+  }
+
+  .tp-home-radar-cta__visual {
+    min-height: 190px;
+    border-top: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .tp-home-radar-cta__radar {
+    width: 160px;
+  }
+}
+
+@media (max-width: 700px) {
+  .tp-home-radar-cta {
+    width: calc(100% - 32px);
+    margin-bottom: 48px;
+    border-radius: 18px;
+  }
+
+  .tp-home-radar-cta__content {
+    padding: 30px 24px;
+  }
+
+  .tp-home-radar-cta h2 {
+    font-size: clamp(2rem, 10vw, 2.8rem);
+  }
+
+  .tp-home-radar-cta__visual {
+    min-height: 170px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-home-radar-cta__link {
+    transition: none;
+  }
+}
