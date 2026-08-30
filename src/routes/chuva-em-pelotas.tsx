@@ -10,6 +10,7 @@ import { RAIN_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { RAIN_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Chuva em Pelotas hoje: acumulado, chance e previsão";
@@ -102,6 +103,14 @@ const RAIN_PAGE_CONTENT = {
   ],
 };
 
+function getObservedRainDaily(data: WeatherIntelligenceData) {
+  const embrapaStatus = data.weather.sources.embrapa.status;
+  return data.weather.observation.status !== "unavailable" &&
+    (embrapaStatus === "live" || embrapaStatus === "partial")
+    ? data.weather.observation.accumulated.rainDaily
+    : null;
+}
+
 export const Route = createFileRoute("/chuva-em-pelotas")({
   head: () =>
     createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
@@ -141,33 +150,36 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
 
 function ChuvaPage() {
   const { weather, meteogram } = Route.useLoaderData();
-  const embrapaStatus = weather.weather.sources.embrapa.status;
-  const observedRainDaily =
-    weather.weather.observation.status !== "unavailable" &&
-    (embrapaStatus === "live" || embrapaStatus === "partial")
-      ? weather.weather.observation.accumulated.rainDaily
-      : null;
 
   return (
     <InternalWeatherPageShell
       data={weather}
       pageClassName="internal-weather-shell--rain"
-      hero={({ weather: productionWeather, advisoryLevel, officialAlertCount }) => (
+      hero={({
+        data: recoveredWeather,
+        weather: productionWeather,
+        advisoryLevel,
+        officialAlertCount,
+      }) => (
         <RainRetailHero
           weather={productionWeather}
           advisoryLevel={advisoryLevel}
           officialAlertCount={officialAlertCount}
-          observedRainDaily={observedRainDaily}
+          observedRainDaily={getObservedRainDaily(recoveredWeather)}
         />
       )}
     >
-      <RainAccumulationContext data={weather} />
-      <RainForecastPageV2 data={weather} />
-      <RainHourlyVolumeContext meteogram={meteogram} />
-      <EditorialContentSection
-        id="como-interpretar-a-previsao-de-chuva"
-        content={RAIN_PAGE_CONTENT}
-      />
+      {(recoveredWeather) => (
+        <>
+          <RainAccumulationContext data={recoveredWeather} />
+          <RainForecastPageV2 data={recoveredWeather} />
+          <RainHourlyVolumeContext meteogram={meteogram} />
+          <EditorialContentSection
+            id="como-interpretar-a-previsao-de-chuva"
+            content={RAIN_PAGE_CONTENT}
+          />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
