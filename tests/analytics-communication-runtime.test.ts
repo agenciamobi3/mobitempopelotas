@@ -6,6 +6,7 @@ const root = readFileSync("src/routes/__root.tsx", "utf8");
 const login = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 const push = readFileSync("src/components/pwa/PushNotificationsManager.tsx", "utf8");
 const ticketWidget = readFileSync("src/components/mobi-ticket/MobiTicketWidgetLoader.tsx", "utf8");
+const envExample = readFileSync(".env.example", "utf8");
 const privacy = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
 
 test("GA4 keeps the SSR queue but defers the external library while SPA pageviews remain explicit", () => {
@@ -44,15 +45,32 @@ test("Web Push code is preserved but remains outside the global root while suspe
   assert.match(push, /Notification\.requestPermission/);
 });
 
-test("ticket widget remains global but defers third-party JavaScript until the browser is idle", () => {
+test("ticket widget remains global, idle-loaded and migrates to the canonical Core loader without breaking P0", () => {
   assert.match(root, /<MobiTicketWidgetLoader\s*\/>/);
   assert.match(ticketWidget, /requestIdleCallback/);
   assert.match(ticketWidget, /IDLE_TIMEOUT_MS/);
   assert.match(ticketWidget, /window\.setTimeout\(loadWidget, FALLBACK_DELAY_MS\)/);
   assert.match(ticketWidget, /script\.async = true/);
+  assert.match(ticketWidget, /agenciamobi\.com\.br\/widgets\/mobi-support-widget-loader\.js/);
   assert.match(ticketWidget, /agenciamobi\.com\.br\/widget\/mobi-ticket\.js/);
+  assert.match(ticketWidget, /VITE_MOBI_TICKET_WIDGET_TOKEN/);
+  assert.match(ticketWidget, /canonicalReady \? CANONICAL_LOADER_URL : LEGACY_WIDGET_URL/);
+  assert.match(ticketWidget, /script\.dataset\.source = WIDGET_SOURCE/);
+  assert.match(ticketWidget, /script\.dataset\.configMode = "remote"/);
+  assert.match(ticketWidget, /Erro no portal/);
+  assert.match(ticketWidget, /Dados incorretos/);
+  assert.match(ticketWidget, /Solicitação de melhoria/);
   assert.match(ticketWidget, /cancelIdleCallback/);
   assert.match(ticketWidget, /window\.clearTimeout/);
+});
+
+test("ticket install key is environment-only and no credential value is versioned by the integration source", () => {
+  assert.match(envExample, /VITE_MOBI_TICKET_WIDGET_TOKEN=/);
+  assert.match(envExample, /Nunca versionar o valor real no Git/);
+  assert.doesNotMatch(envExample, /VITE_MOBI_TICKET_WIDGET_TOKEN=\S+/);
+  assert.doesNotMatch(ticketWidget, /VITE_MOBI_TICKET_WIDGET_TOKEN\s*\|\|\s*["'][^"']+["']/);
+  assert.doesNotMatch(ticketWidget, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(ticketWidget, /MOBI_SUPPORT_WIDGET_TOKEN/);
 });
 
 test("Google login explains authentication without exposing infrastructure jargon", () => {
