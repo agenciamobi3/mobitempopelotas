@@ -39,7 +39,7 @@ const publicHeader = readFileSync(
 const router = readFileSync("src/router.tsx", "utf8");
 const publicStabilitySmoke = readFileSync("scripts/public-stability-smoke.mjs", "utf8");
 
-const P0_RELEASE = "2026-08-29-ana-rhn-contract-v2";
+const P0_RELEASE = "2026-08-30-public-stability-met-norway-v1";
 
 test("portal público não invalida a árvore inteira a cada minuto", () => {
   assert.doesNotMatch(minuteRefresh, /router\.invalidate\(/);
