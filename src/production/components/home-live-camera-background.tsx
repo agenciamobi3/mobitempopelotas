@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 const MAX_RELOAD_ATTEMPTS = 2;
 const PLAYER_RETRY_DELAY_MS = 9_000;
@@ -64,7 +64,7 @@ function buildBackgroundPlayerUrl(embedUrl: string, attempt: number) {
   }
 }
 
-export function HomeLiveCameraBackground({
+function HomeLiveCameraBackgroundComponent({
   embedUrl,
   title,
 }: HomeLiveCameraBackgroundProps) {
@@ -182,3 +182,14 @@ export function HomeLiveCameraBackground({
     </div>
   );
 }
+
+// O player é uma camada independente dos dados meteorológicos do Hero.
+// Temperatura, alertas, pressão, vento e previsão podem atualizar e renderizar
+// novamente sem tocar no iframe. O player só entra em um novo ciclo quando a
+// URL real da transmissão muda (ou quando o próprio mecanismo de retry atua).
+export const HomeLiveCameraBackground = memo(
+  HomeLiveCameraBackgroundComponent,
+  (previous, next) => previous.embedUrl === next.embedUrl,
+);
+
+HomeLiveCameraBackground.displayName = "HomeLiveCameraBackground";
