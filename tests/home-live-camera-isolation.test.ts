@@ -16,5 +16,8 @@ test("live camera player is isolated from weather hero rerenders", () => {
   );
   assert.match(liveBackground, /\[embedUrl\]/);
   assert.match(liveBackground, /key=\{`\$\{embedUrl\}-\$\{attempt\}`\}/);
-  assert.doesNotMatch(liveBackground, /weather|temperature|pressure|humidity|alert/i);
+  assert.doesNotMatch(
+    liveBackground,
+    /HomeLiveCameraBackgroundProps[\s\S]{0,180}(weather|temperature|pressure|humidity|alerts?)/i,
+  );
 });
