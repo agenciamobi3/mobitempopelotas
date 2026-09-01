@@ -2,7 +2,17 @@
  * Fatos essenciais do Hero.
  * Cinco sinais convivem no desktop; em telas menores a grade quebra sem
  * transformar o Hero em tabela comprimida ou introduzir rolagem horizontal.
+ *
+ * O pequeno ganho vertical no desktop deixa a câmera ao vivo respirar mais
+ * sem alterar a composição responsiva usada em tablets e celulares.
  */
+
+@media (min-width: 1041px) {
+  .tp-home-hero,
+  .tp-home-hero__layout {
+    min-height: 590px;
+  }
+}
 
 .tp-home-hero__facts {
   max-width: 960px;
