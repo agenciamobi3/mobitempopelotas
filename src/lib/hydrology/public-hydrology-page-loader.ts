@@ -13,21 +13,27 @@ import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.funct
 
 const PUBLIC_HYDROLOGY_PAGE_DEADLINE_MS = 2_500;
 
-async function settlePageDependency<T>(promise: Promise<T>, fallback: () => T): Promise<T> {
+async function settlePageDependency<T>(run: () => Promise<T>, fallback: () => T): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
 
   try {
-    return await Promise.race([
-      promise,
+    const value = await Promise.race([
+      Promise.resolve().then(run),
       new Promise<T>((resolve) => {
         timeout = setTimeout(() => resolve(fallback()), PUBLIC_HYDROLOGY_PAGE_DEADLINE_MS);
       }),
     ]);
+
+    return value ?? fallback();
   } catch {
     return fallback();
   } finally {
     if (timeout) clearTimeout(timeout);
   }
+}
+
+function settledValueOrFallback<T>(result: PromiseSettledResult<T>, fallback: () => T): T {
+  return result.status === "fulfilled" && result.value != null ? result.value : fallback();
 }
 
 export function createUnavailableLaranjalLevelData(): LaranjalLevelData {
@@ -154,33 +160,44 @@ export function createUnavailableDefesaCivilHydroData(): DefesaCivilHydroData {
 export async function loadGuaibaPageData() {
   return {
     guaiba: await settlePageDependency(
-      getGuaibaObservation(),
+      () => getGuaibaObservation(),
       createUnavailableGuaibaObservationData,
     ),
   };
 }
 
 export async function loadLaranjalHydrologyPageData() {
-  const [weather, level] = await Promise.all([
-    settlePageDependency(getWeatherIntelligence(), createUnavailableWeatherIntelligence),
-    settlePageDependency(getLaranjalLevelData(), createUnavailableLaranjalLevelData),
+  const [weatherResult, levelResult] = await Promise.allSettled([
+    settlePageDependency(() => getWeatherIntelligence(), createUnavailableWeatherIntelligence),
+    settlePageDependency(() => getLaranjalLevelData(), createUnavailableLaranjalLevelData),
   ]);
 
-  return { weather, level };
+  return {
+    weather: settledValueOrFallback(weatherResult, createUnavailableWeatherIntelligence),
+    level: settledValueOrFallback(levelResult, createUnavailableLaranjalLevelData),
+  };
 }
 
 export async function loadHydrologyOverviewPageData() {
-  const [weather, level, guaiba, lagoon, sace, defesaCivil] = await Promise.all([
-    settlePageDependency(getWeatherIntelligence(), createUnavailableWeatherIntelligence),
-    settlePageDependency(getLaranjalLevelData(), createUnavailableLaranjalLevelData),
-    settlePageDependency(getGuaibaObservation(), createUnavailableGuaibaObservationData),
-    settlePageDependency(
-      getLagoonMonitoringNetwork(),
-      createUnavailableLagoonMonitoringNetworkData,
-    ),
-    settlePageDependency(getSaceGuaibaData(), createUnavailableSaceGuaibaData),
-    settlePageDependency(getDefesaCivilHydroData(), createUnavailableDefesaCivilHydroData),
-  ]);
+  const [weatherResult, levelResult, guaibaResult, lagoonResult, saceResult, defesaCivilResult] =
+    await Promise.allSettled([
+      settlePageDependency(() => getWeatherIntelligence(), createUnavailableWeatherIntelligence),
+      settlePageDependency(() => getLaranjalLevelData(), createUnavailableLaranjalLevelData),
+      settlePageDependency(() => getGuaibaObservation(), createUnavailableGuaibaObservationData),
+      settlePageDependency(
+        () => getLagoonMonitoringNetwork(),
+        createUnavailableLagoonMonitoringNetworkData,
+      ),
+      settlePageDependency(() => getSaceGuaibaData(), createUnavailableSaceGuaibaData),
+      settlePageDependency(() => getDefesaCivilHydroData(), createUnavailableDefesaCivilHydroData),
+    ]);
 
-  return { weather, level, guaiba, lagoon, sace, defesaCivil };
+  return {
+    weather: settledValueOrFallback(weatherResult, createUnavailableWeatherIntelligence),
+    level: settledValueOrFallback(levelResult, createUnavailableLaranjalLevelData),
+    guaiba: settledValueOrFallback(guaibaResult, createUnavailableGuaibaObservationData),
+    lagoon: settledValueOrFallback(lagoonResult, createUnavailableLagoonMonitoringNetworkData),
+    sace: settledValueOrFallback(saceResult, createUnavailableSaceGuaibaData),
+    defesaCivil: settledValueOrFallback(defesaCivilResult, createUnavailableDefesaCivilHydroData),
+  };
 }
