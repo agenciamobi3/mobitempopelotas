@@ -72,6 +72,7 @@ function readingStatus(status: LaranjalLevelData["status"]) {
 function stationState(observation: LagoonMonitoringObservation) {
   if (observation.status === "unavailable") return "Sem dados";
   if (observation.status === "stale") return "Dados atrasados";
+  if (observation.risk === "unclassified") return "Sem cota local publicada";
   if (observation.risk === "flooding") return "Acima da cota local";
   if (observation.risk === "attention") return "Próximo da cota local";
   return "Abaixo da cota local";
