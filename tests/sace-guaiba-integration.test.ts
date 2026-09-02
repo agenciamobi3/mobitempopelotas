@@ -287,8 +287,10 @@ test("SACE retries one transient failure on the station endpoint before declarin
 });
 
 test("hydrology page identifies SACE as upstream context and keeps local refresh cadence", () => {
-  assert.match(route, /getSaceGuaibaData/);
-  assert.match(route, /sace=\{data\.sace\}/);
+  assert.match(route, /loadHydrologyOverviewPageData/);
+  assert.match(route, /useHydrologyNetworkRecovery\(data\.sace, data\.defesaCivil\)/);
+  assert.match(route, /sace=\{recoveredNetworks\.sace\}/);
+  assert.doesNotMatch(route, /sace=\{data\.sace\}/);
   assert.match(route, /staleTime: 60 \* 1_000/);
   assert.match(route, /SACE Guaíba do Serviço Geológico do Brasil/);
   assert.match(route, /Uma estação elevada no SACE significa que o Laranjal vai subir/);
