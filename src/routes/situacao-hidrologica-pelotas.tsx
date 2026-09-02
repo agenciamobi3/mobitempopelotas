@@ -9,6 +9,7 @@ import {
   HydrologyOverviewV2,
 } from "@/components/hydrology/HydrologyOverviewV2";
 import "@/components/hydrology/HydrologyOverviewHomeContract.css";
+import { useHydrologyNetworkRecovery } from "@/components/hydrology/useHydrologyNetworkRecovery";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { HYDROLOGY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { loadHydrologyOverviewPageData } from "@/lib/hydrology/public-hydrology-page-loader";
@@ -159,6 +160,7 @@ export const Route = createFileRoute("/situacao-hidrologica-pelotas")({
 
 function SituacaoHidrologicaPage() {
   const data = Route.useLoaderData();
+  const recoveredNetworks = useHydrologyNetworkRecovery(data.sace, data.defesaCivil);
 
   return (
     <InternalWeatherPageShell
@@ -166,23 +168,35 @@ function SituacaoHidrologicaPage() {
       pageClassName="internal-weather-shell--hydrology"
       showOfficialAlerts={false}
       hero={() => (
-        <HydrologyOverviewHero level={data.level} lagoon={data.lagoon} sace={data.sace} />
+        <HydrologyOverviewHero
+          level={data.level}
+          lagoon={data.lagoon}
+          sace={recoveredNetworks.sace}
+        />
       )}
     >
-      <HydrologyCurrentSituationAnswer level={data.level} lagoon={data.lagoon} sace={data.sace} />
-      <HydrologyOverviewV2
-        weather={data.weather}
-        level={data.level}
-        guaiba={data.guaiba}
-        lagoon={data.lagoon}
-        sace={data.sace}
-      />
-      <DefesaCivilHydroNetwork data={data.defesaCivil} />
-      <OfficialDataAccessNotice scope="hydrology" />
-      <EditorialContentSection
-        id="como-interpretar-situacao-das-aguas"
-        content={HYDROLOGY_PAGE_CONTENT}
-      />
+      {(recoveredWeather) => (
+        <>
+          <HydrologyCurrentSituationAnswer
+            level={data.level}
+            lagoon={data.lagoon}
+            sace={recoveredNetworks.sace}
+          />
+          <HydrologyOverviewV2
+            weather={recoveredWeather}
+            level={data.level}
+            guaiba={data.guaiba}
+            lagoon={data.lagoon}
+            sace={recoveredNetworks.sace}
+          />
+          <DefesaCivilHydroNetwork data={recoveredNetworks.defesaCivil} />
+          <OfficialDataAccessNotice scope="hydrology" />
+          <EditorialContentSection
+            id="como-interpretar-situacao-das-aguas"
+            content={HYDROLOGY_PAGE_CONTENT}
+          />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
