@@ -11,12 +11,17 @@ export type LagoonMonitoringStationDefinition = {
   name: string;
   city: string;
   role: string;
-  floodLevelCm: number;
-  may2024MaximumCm: number;
+  floodLevelCm: number | null;
+  may2024MaximumCm: number | null;
 };
 
 export type LagoonMonitoringObservationStatus = "live" | "stale" | "unavailable";
-export type LagoonMonitoringRisk = "normal" | "attention" | "flooding" | "unavailable";
+export type LagoonMonitoringRisk =
+  | "normal"
+  | "attention"
+  | "flooding"
+  | "unclassified"
+  | "unavailable";
 
 export type LagoonMonitoringPoint = {
   timestamp: string;
@@ -37,8 +42,8 @@ export type LagoonMonitoringObservation = {
   periodMinimumCm: number | null;
   periodMaximumCm: number | null;
   series: LagoonMonitoringPoint[];
-  floodLevelCm: number;
-  may2024MaximumCm: number;
+  floodLevelCm: number | null;
+  may2024MaximumCm: number | null;
   distanceToFloodCm: number | null;
   floodThresholdPercentage: number | null;
   error: string | null;
@@ -112,7 +117,7 @@ export const LAGOON_MONITORING_STATIONS: LagoonMonitoringStationDefinition[] = [
     name: "São José do Norte",
     city: "São José do Norte / RS",
     role: "Complementa a leitura do estuário no lado oposto a Rio Grande.",
-    floodLevelCm: 108,
+    floodLevelCm: 80,
     may2024MaximumCm: 226,
   },
   {
@@ -292,12 +297,21 @@ async function getStationObservation(
   const ageMinutes = Math.max(0, (fetchedAt.getTime() - current.epoch) / 60_000);
   const status: LagoonMonitoringObservationStatus =
     ageMinutes > STALE_AFTER_MINUTES ? "stale" : "live";
-  const distanceToFloodCm = round(station.floodLevelCm - current.levelCm);
-  const floodThresholdPercentage = round((current.levelCm / station.floodLevelCm) * 100);
-  const risk: LagoonMonitoringRisk =
-    current.levelCm >= station.floodLevelCm
+  const hasFloodReference =
+    station.floodLevelCm !== null &&
+    Number.isFinite(station.floodLevelCm) &&
+    station.floodLevelCm > 0;
+  const distanceToFloodCm = hasFloodReference
+    ? round(station.floodLevelCm! - current.levelCm)
+    : null;
+  const floodThresholdPercentage = hasFloodReference
+    ? round((current.levelCm / station.floodLevelCm!) * 100)
+    : null;
+  const risk: LagoonMonitoringRisk = !hasFloodReference
+    ? "unclassified"
+    : current.levelCm >= station.floodLevelCm!
       ? "flooding"
-      : current.levelCm >= station.floodLevelCm * 0.85
+      : current.levelCm >= station.floodLevelCm! * 0.85
         ? "attention"
         : "normal";
   const values = calculationPoints.map((point) => point.levelCm);
