@@ -80,7 +80,7 @@ function stationStatus(observation: LagoonMonitoringObservation) {
     return { label: "Leitura atrasada", className: "is-stale" };
   }
   if (observation.risk === "unclassified") {
-    return { label: "Sem cota local publicada", className: "is-unclassified" };
+    return { label: "Sem cota local publicada", className: "is-unavailable" };
   }
   if (observation.risk === "flooding") {
     return { label: "Acima da cota local", className: "is-flooding" };
