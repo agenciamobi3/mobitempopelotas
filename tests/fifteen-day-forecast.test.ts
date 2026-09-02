@@ -55,7 +55,7 @@ test("função pública da previsão estendida possui cache próprio", () => {
 });
 
 test("loader público de 15 dias degrada as duas consultas de forma independente e limita a espera SSR", () => {
-  assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_000/);
+  assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800/);
   assert.match(extendedPageLoader, /settlePageDependency/);
   assert.match(extendedPageLoader, /Promise\.race/);
   assert.match(extendedPageLoader, /Promise\.allSettled/);
