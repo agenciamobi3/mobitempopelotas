@@ -79,6 +79,9 @@ function stationStatus(observation: LagoonMonitoringObservation) {
   if (observation.status === "stale") {
     return { label: "Leitura atrasada", className: "is-stale" };
   }
+  if (observation.risk === "unclassified") {
+    return { label: "Sem cota local publicada", className: "is-unclassified" };
+  }
   if (observation.risk === "flooding") {
     return { label: "Acima da cota local", className: "is-flooding" };
   }
@@ -89,6 +92,7 @@ function stationStatus(observation: LagoonMonitoringObservation) {
 }
 
 function distanceLabel(observation: LagoonMonitoringObservation) {
+  if (observation.floodLevelCm === null) return "Comparação com cota indisponível";
   if (observation.distanceToFloodCm === null) return "Sem comparação com a cota local";
   if (observation.distanceToFloodCm > 0) {
     return `${formatNumber(observation.distanceToFloodCm)} cm abaixo da cota local`;
@@ -233,10 +237,10 @@ export function RegionalWaterNetwork({
               const status = stationStatus(observation);
               const trend = trendState(observation.trendCmPerHour);
               const TrendIcon = trend.icon;
-              const progress = Math.max(
-                0,
-                Math.min(observation.floodThresholdPercentage ?? 0, 100),
-              );
+              const progress =
+                observation.floodThresholdPercentage === null
+                  ? null
+                  : Math.max(0, Math.min(observation.floodThresholdPercentage, 100));
 
               return (
                 <article
@@ -262,16 +266,22 @@ export function RegionalWaterNetwork({
                         <span>{trend.label}</span>
                       </div>
                       <p>{distanceLabel(observation)}</p>
-                      <div
-                        className="regional-water-progress"
-                        aria-label={`${formatNumber(observation.floodThresholdPercentage)}% da cota local`}
-                      >
-                        <span style={{ width: `${progress}%` }} />
-                      </div>
+                      {progress !== null ? (
+                        <div
+                          className="regional-water-progress"
+                          aria-label={`${formatNumber(observation.floodThresholdPercentage)}% da cota local`}
+                        >
+                          <span style={{ width: `${progress}%` }} />
+                        </div>
+                      ) : null}
                       <dl>
                         <div>
                           <dt>Cota local</dt>
-                          <dd>{formatNumber(observation.floodLevelCm)} cm</dd>
+                          <dd>
+                            {observation.floodLevelCm === null
+                              ? "Não publicada"
+                              : `${formatNumber(observation.floodLevelCm)} cm`}
+                          </dd>
                         </div>
                         <div>
                           <dt>Variação 24h</dt>
@@ -280,7 +290,11 @@ export function RegionalWaterNetwork({
                         {full ? (
                           <div>
                             <dt>Máxima mai/2024</dt>
-                            <dd>{formatNumber(observation.may2024MaximumCm)} cm</dd>
+                            <dd>
+                              {observation.may2024MaximumCm === null
+                                ? "—"
+                                : `${formatNumber(observation.may2024MaximumCm)} cm`}
+                            </dd>
                           </div>
                         ) : null}
                       </dl>
