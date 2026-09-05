@@ -63,6 +63,21 @@ function formatSigned(value: number | null | undefined, unit: string, digits = 1
   return `${prefix}${formatNumber(value, digits)} ${unit}`;
 }
 
+function lagoonAvailabilityLabel(lagoon: LagoonMonitoringNetworkData) {
+  if (lagoon.status === "unavailable") return "Sem dados";
+  return `${lagoon.available}/${lagoon.total}`;
+}
+
+function saceAvailabilityLabel(sace: SaceGuaibaData) {
+  if (sace.status === "unavailable") return "Sem dados";
+  return `${sace.counts.transmitting}/${sace.counts.total}`;
+}
+
+function saceAvailabilityDetail(sace: SaceGuaibaData) {
+  if (sace.status === "unavailable") return "Integração sem resposta nesta atualização";
+  return `${sace.counts.aboveNormal} em categoria diferente de Normal`;
+}
+
 function ageLabel(value: number | null) {
   if (value === null) return "Tempo desde a leitura não informado";
   if (value < 1) return "Menos de 1 minuto";
@@ -238,8 +253,8 @@ export function HydrologyOverviewHero({ level, lagoon, sace }: Pick<HydrologyOve
           <span><small>Mudança recente</small><strong>{trend.label}</strong></span>
         </div>
         <dl>
-          <div><dt>Pontos da Lagoa disponíveis</dt><dd>{lagoon.available}/{lagoon.total}</dd></div>
-          <div><dt>Estações do SACE disponíveis</dt><dd>{sace.counts.transmitting}/{sace.counts.total}</dd></div>
+          <div><dt>Pontos da Lagoa disponíveis</dt><dd>{lagoonAvailabilityLabel(lagoon)}</dd></div>
+          <div><dt>Estações do SACE disponíveis</dt><dd>{saceAvailabilityLabel(sace)}</dd></div>
         </dl>
         <footer>Referência local · não é cota oficial de inundação</footer>
       </aside>
@@ -300,7 +315,7 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
         <dl>
           <div><dt>Horário da medição</dt><dd>{formatDateTime(level.updatedAt)}</dd></div>
           <div><dt>Tempo desde a leitura</dt><dd>{ageLabel(level.ageMinutes)}</dd></div>
-          <div><dt>Última atualização</dt><dd>{formatDateTime(level.source.fetchedAt)}</dd></div>
+          <div><dt>Consulta do portal</dt><dd>{formatDateTime(level.source.fetchedAt)}</dd></div>
         </dl>
       </section>
 
@@ -400,9 +415,9 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
         </header>
         <div>
           <article><Waves aria-hidden="true" /><span>Estação Laranjal</span><strong>{level.status === "live" ? "Atualizada" : level.status === "stale" ? "Atrasada" : "Indisponível"}</strong><small>Referência local da UFPel</small></article>
-          <article><MapPinned aria-hidden="true" /><span>Pontos da Lagoa</span><strong>{lagoon.available}/{lagoon.total}</strong><small>Com leitura disponível agora</small></article>
+          <article><MapPinned aria-hidden="true" /><span>Pontos da Lagoa</span><strong>{lagoonAvailabilityLabel(lagoon)}</strong><small>{lagoon.status === "unavailable" ? "Integração sem resposta nesta atualização" : "Com leitura disponível agora"}</small></article>
           <article><Activity aria-hidden="true" /><span>Guaíba</span><strong>{guaiba.status === "live" ? "Atualizado" : guaiba.status === "stale" ? "Atrasado" : "Indisponível"}</strong><small>{guaiba.station}</small></article>
-          <article><RadioTower aria-hidden="true" /><span>Estações do SACE</span><strong>{sace.counts.transmitting}/{sace.counts.total}</strong><small>{sace.counts.aboveNormal} em categoria diferente de Normal</small></article>
+          <article><RadioTower aria-hidden="true" /><span>Estações do SACE</span><strong>{saceAvailabilityLabel(sace)}</strong><small>{saceAvailabilityDetail(sace)}</small></article>
         </div>
       </section>
 
