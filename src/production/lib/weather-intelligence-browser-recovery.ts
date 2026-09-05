@@ -10,6 +10,10 @@ export function hasUsableWeatherIntelligence(data: WeatherIntelligenceData) {
   );
 }
 
+function runServerRecovery<T>(run: () => Promise<T>) {
+  return Promise.resolve().then(run);
+}
+
 /**
  * Mantém o documento shell-first, mas depois da hidratação pede ao backend a
  * consolidação meteorológica completa. Isso permite aproveitar a contingência
@@ -29,13 +33,14 @@ export function useWeatherIntelligenceBrowserRecovery(baseline: WeatherIntellige
       };
     }
 
-    void getWeatherIntelligence()
+    void runServerRecovery(() => getWeatherIntelligence())
       .then((nextData) => {
         if (!active || !hasUsableWeatherIntelligence(nextData)) return;
         setServerRecoveredData(nextData);
       })
       .catch(() => {
-        // O hook Open-Meteo abaixo continua sendo a contingência client-side.
+        // Falha síncrona ou assíncrona da server function não derruba o documento;
+        // o hook Open-Meteo abaixo continua sendo a contingência client-side.
       });
 
     return () => {
