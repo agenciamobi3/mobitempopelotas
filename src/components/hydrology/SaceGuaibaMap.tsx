@@ -83,70 +83,78 @@ export function SaceGuaibaMap({
 
         map.once("load", () => {
           if (cancelled) return;
-          styleLoaded = true;
+          try {
+            styleLoaded = true;
 
-          layers.slice(0, 2).forEach((layer, index) => {
-            const sourceId = `sace-wms-${index}`;
-            const layerId = `${sourceId}-layer`;
-            map.addSource(sourceId, {
-              type: "raster",
-              tiles: [wmsTileUrl(layer)],
-              tileSize: 256,
-              attribution: "Serviço Geológico do Brasil — SACE Guaíba",
+            layers.slice(0, 2).forEach((layer, index) => {
+              const sourceId = `sace-wms-${index}`;
+              const layerId = `${sourceId}-layer`;
+              map.addSource(sourceId, {
+                type: "raster",
+                tiles: [wmsTileUrl(layer)],
+                tileSize: 256,
+                attribution: "Serviço Geológico do Brasil — SACE Guaíba",
+              });
+              map.addLayer({
+                id: layerId,
+                type: "raster",
+                source: sourceId,
+                paint: { "raster-opacity": index === 0 ? 0.22 : 0.5 },
+              });
+            });
+
+            map.addSource(STATIONS_SOURCE_ID, {
+              type: "geojson",
+              data: initialCollectionRef.current,
             });
             map.addLayer({
-              id: layerId,
-              type: "raster",
-              source: sourceId,
-              paint: { "raster-opacity": index === 0 ? 0.22 : 0.5 },
+              id: STATIONS_LAYER_ID,
+              type: "circle",
+              source: STATIONS_SOURCE_ID,
+              paint: {
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 5, 9, 9, 13, 13],
+                "circle-color": ["coalesce", ["get", "alertColor"], "#78909c"],
+                "circle-opacity": 0.9,
+                "circle-stroke-color": "#ffffff",
+                "circle-stroke-width": 2,
+              },
             });
-          });
 
-          map.addSource(STATIONS_SOURCE_ID, {
-            type: "geojson",
-            data: initialCollectionRef.current,
-          });
-          map.addLayer({
-            id: STATIONS_LAYER_ID,
-            type: "circle",
-            source: STATIONS_SOURCE_ID,
-            paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 5, 9, 9, 13, 13],
-              "circle-color": ["coalesce", ["get", "alertColor"], "#78909c"],
-              "circle-opacity": 0.9,
-              "circle-stroke-color": "#ffffff",
-              "circle-stroke-width": 2,
-            },
-          });
+            map.on("click", STATIONS_LAYER_ID, (event) => {
+              const feature = event.features?.[0];
+              if (!feature || feature.geometry.type !== "Point") return;
+              const coordinates = feature.geometry.coordinates as [number, number];
+              const properties = feature.properties as Record<string, unknown>;
+              const name = typeof properties.name === "string" ? properties.name : "Estação SACE";
+              const river = typeof properties.river === "string" ? properties.river : "Rio não informado";
+              const alertLabel =
+                typeof properties.alertLabel === "string" ? properties.alertLabel : "Situação não informada";
+              new maplibregl.Popup({ closeButton: true, maxWidth: "290px" })
+                .setLngLat(coordinates)
+                .setText(`${name} · ${river} · ${alertLabel}`)
+                .addTo(map);
+            });
+            map.on("mouseenter", STATIONS_LAYER_ID, () => {
+              map.getCanvas().style.cursor = "pointer";
+            });
+            map.on("mouseleave", STATIONS_LAYER_ID, () => {
+              map.getCanvas().style.cursor = "";
+            });
 
-          map.on("click", STATIONS_LAYER_ID, (event) => {
-            const feature = event.features?.[0];
-            if (!feature || feature.geometry.type !== "Point") return;
-            const coordinates = feature.geometry.coordinates as [number, number];
-            const properties = feature.properties as Record<string, unknown>;
-            const name = typeof properties.name === "string" ? properties.name : "Estação SACE";
-            const river = typeof properties.river === "string" ? properties.river : "Rio não informado";
-            const alertLabel =
-              typeof properties.alertLabel === "string" ? properties.alertLabel : "Situação não informada";
-            new maplibregl.Popup({ closeButton: true, maxWidth: "290px" })
-              .setLngLat(coordinates)
-              .setText(`${name} · ${river} · ${alertLabel}`)
-              .addTo(map);
-          });
-          map.on("mouseenter", STATIONS_LAYER_ID, () => {
-            map.getCanvas().style.cursor = "pointer";
-          });
-          map.on("mouseleave", STATIONS_LAYER_ID, () => {
-            map.getCanvas().style.cursor = "";
-          });
-
-          setLoaded(true);
+            setLoaded(true);
+          } catch (error) {
+            console.warn("Mapa SACE isolado após falha no carregamento:", error);
+            setFailed(true);
+          }
         });
         map.on("error", () => {
           if (!styleLoaded) setFailed(true);
         });
       })
-      .catch(() => setFailed(true));
+      .catch((error) => {
+        console.warn("MapLibre do SACE não pôde ser iniciado:", error);
+        setFailed(true);
+      });
 
     return () => {
       cancelled = true;
@@ -157,19 +165,24 @@ export function SaceGuaibaMap({
 
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
-    const source = mapRef.current.getSource(STATIONS_SOURCE_ID) as GeoJSONSource | undefined;
-    source?.setData(collection);
+    try {
+      const source = mapRef.current.getSource(STATIONS_SOURCE_ID) as GeoJSONSource | undefined;
+      source?.setData(collection);
 
-    if (stations.length > 0) {
-      const longitudes = stations.map((station) => station.longitude);
-      const latitudes = stations.map((station) => station.latitude);
-      mapRef.current.fitBounds(
-        [
-          [Math.min(...longitudes), Math.min(...latitudes)],
-          [Math.max(...longitudes), Math.max(...latitudes)],
-        ],
-        { padding: 44, maxZoom: 9.5, duration: 450 },
-      );
+      if (stations.length > 0) {
+        const longitudes = stations.map((station) => station.longitude);
+        const latitudes = stations.map((station) => station.latitude);
+        mapRef.current.fitBounds(
+          [
+            [Math.min(...longitudes), Math.min(...latitudes)],
+            [Math.max(...longitudes), Math.max(...latitudes)],
+          ],
+          { padding: 44, maxZoom: 9.5, duration: 450 },
+        );
+      }
+    } catch (error) {
+      console.warn("Mapa SACE isolado após falha de atualização:", error);
+      setFailed(true);
     }
   }, [collection, loaded, stations]);
 
