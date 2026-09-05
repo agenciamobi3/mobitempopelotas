@@ -272,6 +272,11 @@ export function Flood2024HistoricalPage() {
                 Fontes: <a href="https://www.pelotas.rs.gov.br/index.php/noticia/situacao-de-emergencia-prefeito-reune-o-secretariado" target="_blank" rel="noreferrer">Prefeitura de Pelotas, 21/10/2015</a>{" "}
                 e <a href="https://www.pelotas.rs.gov.br/index.php/noticia/cheias-2015-balanco-registra-mobilizacao-gigantesca" target="_blank" rel="noreferrer">balanço municipal de 06/11/2015</a>.
               </p>
+              <p>
+                <Link to="/enchente-2015-pelotas">
+                  Ver a linha do tempo completa da enchente de 2015 <span aria-hidden="true">→</span>
+                </Link>
+              </p>
             </div>
           </section>
         </div>
@@ -335,6 +340,9 @@ export function Flood2024HistoricalPage() {
         <div className="tp-flood-related__links">
           <Link to="/enchente-1941-pelotas">
             Enchente de 1941 em Pelotas <span aria-hidden="true">→</span>
+          </Link>
+          <Link to="/enchente-2015-pelotas">
+            Enchente de 2015 em Pelotas <span aria-hidden="true">→</span>
           </Link>
           <Link to="/situacao-hidrologica-pelotas">
             Situação atual das águas <span aria-hidden="true">→</span>
