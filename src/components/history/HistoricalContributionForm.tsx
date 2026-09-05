@@ -77,7 +77,16 @@ export function HistoricalContributionForm({
     setError(null);
     setSuccess(false);
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const rightsConfirmed = form.get("rightsConfirmed") === "on";
+    const publicationAuthorized = form.get("publicationAuthorized") === "on";
+
+    if (!rightsConfirmed || !publicationAuthorized) {
+      setError("Confirme a autorização de compartilhamento e publicação antes de enviar.");
+      return;
+    }
+
     const client = getSupabaseBrowserClient();
     if (!client) {
       setError("A conexão com a área de membros não está disponível neste navegador.");
@@ -120,7 +129,12 @@ export function HistoricalContributionForm({
 
         if (uploadError) throw new Error(`upload:${uploadError.message}`);
         uploadedPaths.push(path);
-        attachments.push({ path, name: file.name, mime: file.type as HistoricalContributionAttachment["mime"], size: file.size });
+        attachments.push({
+          path,
+          name: file.name,
+          mime: file.type as HistoricalContributionAttachment["mime"],
+          size: file.size,
+        });
       }
 
       const result = await createContribution({
@@ -136,8 +150,8 @@ export function HistoricalContributionForm({
           creditName: String(form.get("creditName") ?? ""),
           publishAnonymously,
           attachments,
-          rightsConfirmed: form.get("rightsConfirmed") === "on" as true,
-          publicationAuthorized: form.get("publicationAuthorized") === "on" as true,
+          rightsConfirmed: true,
+          publicationAuthorized: true,
         },
       });
 
@@ -145,7 +159,7 @@ export function HistoricalContributionForm({
 
       setSuccess(true);
       setFiles([]);
-      event.currentTarget.reset();
+      formElement.reset();
       setKind("source");
       setPublishAnonymously(false);
     } catch (caught) {
@@ -153,7 +167,11 @@ export function HistoricalContributionForm({
         await client.storage.from("historical-contributions").remove(uploadedPaths);
       }
       const code = caught instanceof Error ? caught.message : "storage_error";
-      setError(code.startsWith("upload:") ? "Falha ao enviar um dos anexos. Tente novamente." : contributionError(code));
+      setError(
+        code.startsWith("upload:")
+          ? "Falha ao enviar um dos anexos. Tente novamente."
+          : contributionError(code),
+      );
     } finally {
       setBusy(false);
     }
@@ -169,46 +187,92 @@ export function HistoricalContributionForm({
 
       <div className="tp-contribution-form__field">
         <label htmlFor="contribution-kind">Tipo de contribuição</label>
-        <select id="contribution-kind" value={kind} onChange={(event) => setKind(event.target.value as HistoricalContributionKind)}>
+        <select
+          id="contribution-kind"
+          value={kind}
+          onChange={(event) => setKind(event.target.value as HistoricalContributionKind)}
+        >
           {contributionKinds.map((item) => (
-            <option value={item.value} key={item.value}>{item.label}</option>
+            <option value={item.value} key={item.value}>
+              {item.label}
+            </option>
           ))}
         </select>
       </div>
 
       <div className="tp-contribution-form__field">
         <label htmlFor="contribution-title">Título</label>
-        <input id="contribution-title" name="title" required minLength={3} maxLength={180} placeholder="Ex.: Foto da Avenida Rio Grande durante a cheia" />
+        <input
+          id="contribution-title"
+          name="title"
+          required
+          minLength={3}
+          maxLength={180}
+          placeholder="Ex.: Foto da Avenida Rio Grande durante a cheia"
+        />
       </div>
 
       <div className="tp-contribution-form__field">
         <label htmlFor="contribution-description">Conte o que você sabe</label>
-        <textarea id="contribution-description" name="description" required minLength={10} maxLength={8000} rows={8} placeholder="Descreva o material, o que aparece, como você obteve a informação e qualquer contexto que ajude a verificar o registro." />
+        <textarea
+          id="contribution-description"
+          name="description"
+          required
+          minLength={10}
+          maxLength={8000}
+          rows={8}
+          placeholder="Descreva o material, o que aparece, como você obteve a informação e qualquer contexto que ajude a verificar o registro."
+        />
       </div>
 
       <div className="tp-contribution-form__row">
         <div className="tp-contribution-form__field">
           <label htmlFor="contribution-location">Local</label>
-          <input id="contribution-location" name="locationText" maxLength={240} placeholder="Ex.: Valverde, Laranjal" />
+          <input
+            id="contribution-location"
+            name="locationText"
+            maxLength={240}
+            placeholder="Ex.: Valverde, Laranjal"
+          />
         </div>
         <div className="tp-contribution-form__field">
           <label htmlFor="contribution-date">Data ou período</label>
-          <input id="contribution-date" name="dateLabel" maxLength={120} placeholder="Ex.: outubro de 2015 / data aproximada" />
+          <input
+            id="contribution-date"
+            name="dateLabel"
+            maxLength={120}
+            placeholder="Ex.: outubro de 2015 / data aproximada"
+          />
         </div>
       </div>
 
       <div className="tp-contribution-form__field">
         <label htmlFor="contribution-source">Link da fonte, se houver</label>
-        <input id="contribution-source" name="sourceUrl" type="url" maxLength={1200} placeholder="https://..." />
+        <input
+          id="contribution-source"
+          name="sourceUrl"
+          type="url"
+          maxLength={1200}
+          placeholder="https://..."
+        />
       </div>
 
       <div className="tp-contribution-form__row">
         <div className="tp-contribution-form__field">
           <label htmlFor="contribution-credit">Crédito / autor do material</label>
-          <input id="contribution-credit" name="creditName" maxLength={120} placeholder="Nome do fotógrafo, autor ou acervo" />
+          <input
+            id="contribution-credit"
+            name="creditName"
+            maxLength={120}
+            placeholder="Nome do fotógrafo, autor ou acervo"
+          />
         </div>
         <label className="tp-contribution-form__check tp-contribution-form__check--compact">
-          <input type="checkbox" checked={publishAnonymously} onChange={(event) => setPublishAnonymously(event.target.checked)} />
+          <input
+            type="checkbox"
+            checked={publishAnonymously}
+            onChange={(event) => setPublishAnonymously(event.target.checked)}
+          />
           <span>Se publicado, não mostrar meu nome como colaborador</span>
         </label>
       </div>
@@ -222,21 +286,33 @@ export function HistoricalContributionForm({
           multiple
           onChange={(event) => setFiles(Array.from(event.target.files ?? []).slice(0, MAX_FILES))}
         />
-        <small>{fileSummary}. Até 5 arquivos, 15 MB cada. Fotos e PDFs ficam privados durante a revisão.</small>
+        <small>
+          {fileSummary}. Até 5 arquivos, 15 MB cada. Fotos e PDFs ficam privados durante a revisão.
+        </small>
       </div>
 
       <div className="tp-contribution-form__consents">
         <label className="tp-contribution-form__check">
           <input type="checkbox" name="rightsConfirmed" required />
-          <span>Confirmo que posso compartilhar este material e que não estou enviando conteúdo de terceiros sem autorização.</span>
+          <span>
+            Confirmo que posso compartilhar este material e que não estou enviando conteúdo de
+            terceiros sem autorização.
+          </span>
         </label>
         <label className="tp-contribution-form__check">
           <input type="checkbox" name="publicationAuthorized" required />
-          <span>Autorizo o Tempo Pelotas a armazenar, revisar e, se aprovado editorialmente, publicar esta contribuição com a origem e os créditos informados.</span>
+          <span>
+            Autorizo o Tempo Pelotas a armazenar, revisar e, se aprovado editorialmente, publicar
+            esta contribuição com a origem e os créditos informados.
+          </span>
         </label>
       </div>
 
-      {error ? <p className="tp-contribution-form__message is-error" role="alert">{error}</p> : null}
+      {error ? (
+        <p className="tp-contribution-form__message is-error" role="alert">
+          {error}
+        </p>
+      ) : null}
       {success ? (
         <div className="tp-contribution-form__message is-success" role="status">
           <strong>Contribuição recebida.</strong>
