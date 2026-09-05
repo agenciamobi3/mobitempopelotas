@@ -6,13 +6,27 @@ export type Flood2015Source = {
   role: string;
 };
 
+export type Flood2015Measurement = {
+  label: string;
+  value: string;
+  detail?: string;
+};
+
 export type Flood2015TimelineItem = {
   date: string;
   title: string;
   stage: "lagoa" | "pelotas";
   stageLabel: string;
   paragraphs: string[];
+  measurements?: Flood2015Measurement[];
   highlight?: string;
+};
+
+export type Flood2015ArchiveEntry = {
+  date: string;
+  publications: string[];
+  retrieval: "full" | "indexed";
+  note: string;
 };
 
 export const FLOOD_2015_KEY_FACTS = [
@@ -38,7 +52,7 @@ export const FLOOD_2015_KEY_FACTS = [
 
 export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
   {
-    date: "18–19 de outubro de 2015",
+    date: "18-19 de outubro de 2015",
     title: "O período mais crítico da cheia",
     stage: "pelotas",
     stageLabel: "Laranjal, Z3, Barra e áreas baixas",
@@ -47,7 +61,8 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "A Prefeitura associou o cenário às chuvas intensas, ao excedente do Guaíba chegando à Lagoa dos Patos e às contribuições da Lagoa Mirim e dos rios Piratini e Jaguarão para o Canal São Gonçalo.",
       "Valverde, Novo Valverde, Pontal da Barra, Z3, Barra e Doquinhas aparecem entre as áreas atingidas nos registros municipais.",
     ],
-    highlight: "O pico é uma conclusão do balanço retrospectivo de 06/11, não uma reconstrução feita a partir de leituras soltas.",
+    highlight:
+      "O pico é uma conclusão do balanço retrospectivo de 06/11, não uma reconstrução feita a partir de leituras soltas.",
   },
   {
     date: "19 de outubro",
@@ -68,7 +83,12 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
     paragraphs: [
       "Boletim municipal registrou na Z3 180 pessoas em abrigos oficiais e outras 120 desalojadas em casas de parentes ou amigos.",
       "Em Pontal da Barra, Valverde e Novo Valverde, 135 pessoas estavam desalojadas; 33 haviam sido resgatadas naquele dia. A Defesa Civil advertia que outras famílias tinham saído por conta própria, impedindo uma contagem completa naquele momento.",
-      "Naquela atualização, a Lagoa dos Patos havia baixado 30 cm desde a manhã e o Canal São Gonçalo havia recuado 21 cm, marcando 2,04 m.",
+      "A atualização preserva também a variação desde a manhã: a Lagoa dos Patos havia baixado 30 cm e o Canal São Gonçalo havia recuado 21 cm.",
+    ],
+    measurements: [
+      { label: "Canal São Gonçalo", value: "2,04 m", detail: "tarde de 20/10" },
+      { label: "Variação do São Gonçalo", value: "-21 cm", detail: "desde a manhã" },
+      { label: "Variação da Lagoa", value: "-30 cm", detail: "desde a manhã; sem cota absoluta no boletim" },
     ],
   },
   {
@@ -81,7 +101,8 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "Em registro jornalístico contemporâneo, o G1 apontou cerca de 300 pessoas fora de casa e aproximadamente 400 militares auxiliando os afetados. Barcos e caminhões eram usados na retirada de moradores.",
       "A reportagem também registrou corte preventivo de energia e o desabamento do trapiche da Praia do Laranjal durante a tarde.",
     ],
-    highlight: "O G1 é usado como registro complementar do dia do decreto; os números operacionais principais permanecem ancorados nos boletins municipais.",
+    highlight:
+      "O G1 é usado como registro complementar do dia do decreto; os números operacionais principais permanecem ancorados nos boletins municipais.",
   },
   {
     date: "21 de outubro",
@@ -92,6 +113,12 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "A Prefeitura informou que a Estação da Embrapa havia acumulado 270 mm em setembro e 299 mm em outubro até o dia 20. No mesmo texto, a média de outubro foi indicada como 101 mm.",
       "O Município descreveu a cheia como resultado da combinação entre o grande volume no Canal São Gonçalo, alimentado pela Lagoa Mirim e pelos rios Piratini e Jaguarão, a elevação da Lagoa dos Patos com contribuição do Guaíba e o vento nordeste dificultando o escoamento para o mar.",
       "Na Z3, o informativo registrou 300 desalojados e 180 desabrigados; no Valverde, 198 pessoas haviam sido removidas de suas casas.",
+      "O boletim da manhã seguinte preservou como referência para o dia 21 as leituras de 2,12 m no São Gonçalo e 1,60 m na Lagoa dos Patos.",
+    ],
+    measurements: [
+      { label: "Canal São Gonçalo", value: "2,12 m", detail: "referência do dia 21 citada no boletim de 22/10" },
+      { label: "Lagoa dos Patos", value: "1,60 m", detail: "referência do dia 21 citada no boletim de 22/10" },
+      { label: "Chuva em outubro", value: "299 mm", detail: "Embrapa, acumulado até 20/10" },
     ],
   },
   {
@@ -104,7 +131,35 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "O Canal São Gonçalo passou de 2,12 m no dia 21 para 2,18 m na manhã do dia 22. A Lagoa dos Patos passou de 1,60 m para 1,90 m nas referências divulgadas pela Prefeitura.",
       "Mais oito pessoas foram removidas no Valverde, elevando de 198 para 206 o número de desalojados informado para a localidade naquela atualização.",
     ],
-    highlight: "A cheia não recuou em linha reta: vento e níveis regionais produziram novas oscilações durante a emergência.",
+    measurements: [
+      { label: "Canal São Gonçalo", value: "2,18 m", detail: "+6 cm frente à referência do dia 21" },
+      { label: "Lagoa dos Patos", value: "1,90 m", detail: "+30 cm frente à referência do dia 21" },
+    ],
+    highlight:
+      "A cheia não recuou em linha reta: vento e níveis regionais produziram novas oscilações durante a emergência.",
+  },
+  {
+    date: "23 de outubro",
+    title: "A baixa da Lagoa permite reabrir o acesso de ônibus à Z3",
+    stage: "pelotas",
+    stageLabel: "Primeiros sinais de recuo",
+    paragraphs: [
+      "A Prefeitura informou que a estrada de acesso à Colônia de Pescadores Z3 voltou a receber transporte coletivo na tarde de sexta-feira, depois de elevação da pista e correção de danos do alagamento.",
+      "A Defesa Civil havia restringido a passagem dos ônibus no início da semana. O Município atribuiu a normalização do acesso à baixa dos níveis da Lagoa dos Patos naquele dia.",
+      "A própria notícia anunciava novo boletim de alagamentos para 17h30, um exemplo da frequência operacional adotada durante a emergência.",
+    ],
+  },
+  {
+    date: "25 de outubro",
+    title: "Começa a construção do dique no Pontal da Barra",
+    stage: "pelotas",
+    stageLabel: "Obra emergencial",
+    paragraphs: [
+      "Após vistoria realizada no dia 24, a Prefeitura iniciou no domingo um dique para separar o banhado das áreas habitadas e favorecer o escoamento por bombas e canais já existentes.",
+      "O projeto previa aproximadamente 2 km de extensão e 3 m de largura, com duas frentes de trabalho em sentidos opostos.",
+      "O texto municipal voltou a atribuir a enchente ao somatório entre o grande volume no São Gonçalo, a Lagoa dos Patos elevada pela contribuição do Guaíba e ventos desfavoráveis ao escoamento para o mar.",
+    ],
+    highlight: "Dique emergencial: aproximadamente 2 km de extensão e 3 m de largura.",
   },
   {
     date: "26 de outubro",
@@ -116,20 +171,55 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "A energia elétrica havia sido restabelecida em 948 residências entre a avenida Joaquim Assumpção e a rua 29, e a bomba de drenagem da rua 29 voltara a operar.",
       "A Barra ainda recebia assistência por barco, mostrando que a recuperação ocorria de maneira desigual entre as áreas atingidas.",
     ],
-  },
-  {
-    date: "28 de outubro",
-    title: "Ainda há 137 pessoas em abrigos e a União reconhece a emergência",
-    stage: "pelotas",
-    stageLabel: "Resposta e reconhecimento federal",
-    paragraphs: [
-      "Após chuva e ventos fortes na madrugada, boletim das 11h mantinha o Canal São Gonçalo em 2,02 m e a Lagoa dos Patos em 1,80 m.",
-      "Ainda permaneciam 137 pessoas em abrigos oficiais: 123 da Z3 e 14 de Novo Valverde, Pontal da Barra e Valverde.",
-      "No mesmo dia, o Ministério da Integração Nacional reconheceu a Situação de Emergência de Pelotas. A Prefeitura também trabalhava em dique emergencial no Valverde para setorizar a área habitada e favorecer a drenagem.",
+    measurements: [
+      { label: "Lagoa dos Patos · 10h30", value: "1,80 m" },
+      { label: "Lagoa dos Patos · tarde", value: "1,70 m", detail: "-10 cm no intervalo informado" },
+      { label: "Canal São Gonçalo · manhã", value: "2,16 m", detail: "dado mais recente citado no boletim das 18h" },
     ],
   },
   {
-    date: "3–4 de novembro",
+    date: "27 de outubro · fim da tarde",
+    title: "A série oficial registra 2,02 m no São Gonçalo e 1,80 m na Lagoa",
+    stage: "lagoa",
+    stageLabel: "Níveis ainda elevados",
+    paragraphs: [
+      "O arquivo municipal lista boletins às 11h e às 19h em 27 de outubro. O corpo dessas duas páginas antigas não está sendo recuperado de forma confiável pelo arquivo público atual.",
+      "Há, porém, uma referência oficial inequívoca no boletim de 28 de outubro: a Prefeitura informa que as leituras daquela manhã eram as mesmas do final da tarde do dia anterior.",
+      "Por isso, os valores abaixo podem ser associados ao fim da tarde de 27 sem reconstruir o restante das leituras daquele dia.",
+    ],
+    measurements: [
+      { label: "Canal São Gonçalo", value: "2,02 m", detail: "fim da tarde de 27/10, restatado no boletim de 28/10" },
+      { label: "Lagoa dos Patos", value: "1,80 m", detail: "fim da tarde de 27/10, restatado no boletim de 28/10" },
+    ],
+  },
+  {
+    date: "28 de outubro · 11h",
+    title: "Chuva e vento mantêm os níveis do fim da tarde anterior",
+    stage: "pelotas",
+    stageLabel: "Resposta e reconhecimento federal",
+    paragraphs: [
+      "A Prefeitura informou que os fortes ventos da madrugada e a chuva até as 2h mantiveram inalterados os níveis da Lagoa e do São Gonçalo em relação ao fim da tarde anterior.",
+      "Ainda permaneciam 137 pessoas em abrigos oficiais: 123 da Z3 e 14 de Novo Valverde, Pontal da Barra e Valverde.",
+      "No mesmo dia, o Município divulgou o reconhecimento federal da Situação de Emergência. A Prefeitura também trabalhava no dique emergencial para setorizar a área habitada e favorecer a drenagem.",
+    ],
+    measurements: [
+      { label: "Canal São Gonçalo", value: "2,02 m", detail: "inalterado frente ao fim da tarde de 27/10" },
+      { label: "Lagoa dos Patos", value: "1,80 m", detail: "inalterada frente ao fim da tarde de 27/10" },
+    ],
+  },
+  {
+    date: "29 de outubro",
+    title: "O arquivo oficial registra nova atualização às 11h",
+    stage: "pelotas",
+    stageLabel: "Arquivo municipal",
+    paragraphs: [
+      "A listagem histórica da Prefeitura confirma uma nova edição de “Cheias 2015 - Boletim atualizado às 11h” em 29 de outubro.",
+      "O corpo dessa notícia não está sendo entregue de forma confiável pelo arquivo público atual. Por isso, esta linha do tempo registra a existência do boletim, mas não atribui a ele níveis, totais ou tendência que não tenham sido recuperados do texto original.",
+    ],
+    highlight: "Boletim identificado; medições não preenchidas sem o corpo documental.",
+  },
+  {
+    date: "3 de novembro · manhã",
     title: "A Defesa Civil encerra o plantão especial no Laranjal",
     stage: "pelotas",
     stageLabel: "Estabilização e recuperação",
@@ -137,6 +227,21 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "Com a situação considerada estável, a Defesa Civil anunciou o encerramento do plantão na Administração do Laranjal para 4 de novembro.",
       "Na manhã do dia 3, o São Gonçalo registrava 1,80 m e a Lagoa dos Patos 1,40 m nas referências usadas naquele acompanhamento.",
       "O trabalho passava a se concentrar na recuperação: drenagem de água remanescente, ensaibramento e retirada de móveis e entulhos.",
+    ],
+    measurements: [
+      { label: "Canal São Gonçalo", value: "1,80 m", detail: "manhã de 03/11" },
+      { label: "Lagoa dos Patos", value: "1,40 m", detail: "manhã de 03/11" },
+    ],
+  },
+  {
+    date: "5 de novembro",
+    title: "A operação passa da emergência para limpeza e reconstrução",
+    stage: "pelotas",
+    stageLabel: "Retorno às casas",
+    paragraphs: [
+      "Com o escoamento das águas, a Prefeitura concentrou equipes na limpeza de ruas, canais e orla do Laranjal e na retirada de móveis descartados e entulhos.",
+      "No dia 4 haviam sido recolhidas 19 cargas de móveis e entulho na orla e sete cargas no Pontal da Barra e Valverde. No dia 5, três caçambas e duas retroescavadeiras trabalhavam na retirada de aguapés e juncos.",
+      "A Prefeitura informou que já não havia desabrigados no Valverde nem na Z3 e que os abrigos do Laranjal Praia Clube e do CRAS São Gonçalo haviam sido desativados.",
     ],
   },
   {
@@ -147,12 +252,57 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
     paragraphs: [
       "A Prefeitura informou que aproximadamente 1.300 famílias receberam atendimento ao longo do episódio no Laranjal, Z3, Barra e Doquinhas. Esse total é cumulativo e não equivale a 1.300 famílias simultaneamente desabrigadas.",
       "O balanço registrou o São Gonçalo em 2,20 m no período crítico, diante de 1,20 m indicado no documento como nível normal para outubro, e informou que 1.956 moradias tiveram a energia cortada por segurança.",
+      "Para a Lagoa dos Patos, o balanço informa que a régua de 1,80 m ficou submersa e cita 0,60 m como altura normal para o período. Sem uma leitura calibrada acima do limite da régua, a página não transforma esse registro em um pico numérico da Lagoa.",
       "A estimativa de prejuízos usada na fundamentação da Situação de Emergência ficou em cerca de R$ 40 milhões, e o dique emergencial reforçado e ampliado tinha aproximadamente 2 km de comprimento e 3 m de largura.",
       "O mesmo documento confirma que a Assessoria de Comunicação publicou boletins diariamente, duas ou mais vezes, transformando a série municipal em uma fonte especialmente rica para reconstruir a evolução da cheia.",
     ],
-    highlight: "~1.300 famílias atendidas ao longo do episódio · São Gonçalo 2,20 m na referência de 2015",
+    measurements: [
+      { label: "Canal São Gonçalo · pico retrospectivo", value: "2,20 m", detail: "balanço de 06/11; normal citado: 1,20 m" },
+      { label: "Lagoa dos Patos", value: "> 1,80 m", detail: "régua de 1,80 m ficou submersa; sem pico calibrado informado" },
+    ],
+    highlight:
+      "~1.300 famílias atendidas ao longo do episódio · São Gonçalo 2,20 m na referência de 2015",
   },
 ];
+
+export const FLOOD_2015_ARCHIVE: Flood2015ArchiveEntry[] = [
+  {
+    date: "25/10",
+    publications: ["Defesa Civil remove 14 pessoas neste domingo", "Começa a construção de dique no Pontal da Barra"],
+    retrieval: "full",
+    note: "O arquivo confirma a continuidade dos resgates; o texto integral do dique foi recuperado e incorporado à cronologia.",
+  },
+  {
+    date: "26/10",
+    publications: ["Boletim atualizado às 11h", "Boletim atualizado às 18h"],
+    retrieval: "full",
+    note: "A edição das 18h foi recuperada integralmente e preserva leituras da manhã e da tarde.",
+  },
+  {
+    date: "27/10",
+    publications: ["Boletim atualizado às 11h", "Boletim atualizado às 19h"],
+    retrieval: "indexed",
+    note: "As duas edições aparecem no índice oficial. Os valores do fim da tarde foram recuperados apenas porque o boletim de 28/10 os repete explicitamente.",
+  },
+  {
+    date: "28/10",
+    publications: ["Boletim atualizado às 11h", "Boletim atualizado às 18h", "União reconhece Situação de Emergência de Pelotas"],
+    retrieval: "full",
+    note: "A edição das 11h e o registro do reconhecimento federal foram recuperados; o índice também preserva a edição das 18h.",
+  },
+  {
+    date: "29/10",
+    publications: ["Boletim atualizado às 11h"],
+    retrieval: "indexed",
+    note: "A existência da edição está comprovada pelo índice municipal, mas o corpo antigo não é entregue de forma confiável pelo arquivo atual.",
+  },
+  {
+    date: "03/11",
+    publications: ["Boletim atualizado às 11h", "Defesa Civil encerra operações na Administração do Laranjal"],
+    retrieval: "full",
+    note: "As últimas leituras operacionais foram recuperadas no comunicado de encerramento do plantão.",
+  },
+] as const;
 
 export const FLOOD_2015_SOURCES: Flood2015Source[] = [
   {
@@ -167,7 +317,7 @@ export const FLOOD_2015_SOURCES: Flood2015Source[] = [
     organization: "Prefeitura Municipal de Pelotas",
     date: "20/10/2015",
     url: "https://www.pelotas.com.br/noticia/cheias-2015-prefeitura-divulga-boletim-atualizado",
-    role: "Boletim contemporâneo de resgates, desalojados e leituras da Lagoa dos Patos e do Canal São Gonçalo.",
+    role: "Boletim contemporâneo de resgates, desalojados, variações desde a manhã e leitura do Canal São Gonçalo.",
   },
   {
     name: "Prefeito decreta situação de emergência devido à cheia",
@@ -188,28 +338,49 @@ export const FLOOD_2015_SOURCES: Flood2015Source[] = [
     organization: "Prefeitura Municipal de Pelotas",
     date: "22/10/2015",
     url: "https://www.pelotas.rs.gov.br/index.php/noticia/enchentes-2015-boletim-atualizado-as-8h30min",
-    role: "Registra a nova subida associada ao vento e as leituras de Lagoa e São Gonçalo naquela manhã.",
+    role: "Registra a nova subida associada ao vento e permite comparar as referências do dia 21 com a manhã de 22.",
+  },
+  {
+    name: "Transporte coletivo retoma atividade na Colônia Z3",
+    organization: "Prefeitura Municipal de Pelotas",
+    date: "23/10/2015",
+    url: "https://www.pelotas.com.br/noticia/transporte-coletivo-retoma-atividade-na-colonia-z3",
+    role: "Registra a baixa da Lagoa e a retomada do acesso de ônibus à Z3.",
+  },
+  {
+    name: "Começa a construção de dique no Pontal da Barra",
+    organization: "Prefeitura Municipal de Pelotas",
+    date: "25/10/2015",
+    url: "https://www.pelotas.com.br/noticia/comeca-a-construcao-de-dique-no-pontal-da-barra",
+    role: "Documenta a obra emergencial, dimensões previstas e o mecanismo hidrológico descrito pelo Município.",
   },
   {
     name: "Cheias 2015: boletim atualizado às 18h",
     organization: "Prefeitura Municipal de Pelotas",
     date: "26/10/2015",
     url: "https://pelotashomolog.coinpel.com.br/noticia/cheias-2015-boletim-atualizado-as-18h",
-    role: "Registra recuo parcial, restabelecimento de energia, drenagem e continuidade da assistência à Barra.",
+    role: "Registra leituras da manhã e tarde, restabelecimento de energia, drenagem e continuidade da assistência à Barra.",
+  },
+  {
+    name: "Arquivo municipal de Segurança Pública - página 84",
+    organization: "Prefeitura Municipal de Pelotas",
+    date: "25-29/10/2015",
+    url: "https://pelotashomolog.coinpel.com.br/listar-noticias?categoria=Seguran%C3%A7a+P%C3%BAblica&page=84",
+    role: "Inventário oficial que comprova as edições de boletins em 25, 26, 27, 28 e 29 de outubro, inclusive mais de uma atualização em alguns dias.",
   },
   {
     name: "Cheias 2015: boletim atualizado às 11h",
     organization: "Prefeitura Municipal de Pelotas",
     date: "28/10/2015",
     url: "https://www.pelotas.rs.gov.br/index.php/noticia/cheias-2015-boletim-atualizado-as-11h",
-    role: "Fonte para níveis e número de pessoas ainda em abrigos oficiais em 28 de outubro.",
+    role: "Fonte para os níveis de 28/10 e para os mesmos valores registrados no fim da tarde de 27/10, além do número de pessoas ainda em abrigos.",
   },
   {
     name: "União reconhece Situação de Emergência de Pelotas",
     organization: "Prefeitura Municipal de Pelotas",
     date: "28/10/2015",
     url: "https://pelotashomolog.coinpel.com.br/noticia/uniao-reconhece-situacao-de-emergencia-de-pelotas",
-    role: "Registra o reconhecimento federal e a estratégia do dique emergencial no Valverde.",
+    role: "Registra a divulgação municipal do reconhecimento federal e a estratégia do dique emergencial.",
   },
   {
     name: "Defesa Civil encerra operações na Administração do Laranjal",
@@ -219,10 +390,17 @@ export const FLOOD_2015_SOURCES: Flood2015Source[] = [
     role: "Marca a estabilização, as últimas leituras operacionais e a transição para a recuperação.",
   },
   {
+    name: "Cheias: equipes mobilizadas na limpeza das áreas atingidas",
+    organization: "Prefeitura Municipal de Pelotas",
+    date: "05/11/2015",
+    url: "https://www.pelotas.com.br/noticia/cheias-equipes-mobilizadas-na-limpeza-das-areas-atingidas",
+    role: "Documenta retorno às casas, desativação dos abrigos e a escala da limpeza após o escoamento das águas.",
+  },
+  {
     name: "Cheias 2015: balanço registra mobilização gigantesca",
     organization: "Prefeitura Municipal de Pelotas",
     date: "06/11/2015",
     url: "https://www.pelotas.rs.gov.br/index.php/noticia/cheias-2015-balanco-registra-mobilizacao-gigantesca",
-    role: "Balanço retrospectivo para pico crítico, famílias atendidas, impactos, infraestrutura e frequência dos boletins oficiais.",
+    role: "Balanço retrospectivo para pico crítico, famílias atendidas, impactos, limite da régua da Lagoa, infraestrutura e frequência dos boletins oficiais.",
   },
 ] as const;
