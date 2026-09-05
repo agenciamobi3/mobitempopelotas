@@ -36,8 +36,8 @@ function PrivacyDataPage() {
             <h1>Seus dados devem ser compreensíveis e estar sob seu controle</h1>
             <p>
               O Tempo Pelotas mantém previsão, avisos oficiais, radar, satélite, câmeras e situação
-              das águas acessíveis sem login. A conta existe somente para identificação básica e
-              preferências opcionais.
+              das águas acessíveis sem login. A conta existe para identificação básica, preferências
+              opcionais e recursos voluntários como a colaboração com o arquivo histórico.
             </p>
           </div>
           <aside className="privacy-summary" aria-label="Resumo da política">
@@ -57,8 +57,23 @@ function PrivacyDataPage() {
               <li>nome, e-mail e imagem fornecidos pelo Google;</li>
               <li>preferências de alertas, águas, resumo diário e novidades;</li>
               <li>histórico de alterações dessas preferências;</li>
-              <li>dados técnicos do aparelho quando notificações são ativadas.</li>
+              <li>dados técnicos do aparelho quando notificações são ativadas;</li>
+              <li>
+                quando você colabora voluntariamente com o arquivo histórico, o conteúdo enviado,
+                sua origem informada, créditos, anexos e o vínculo da contribuição com sua conta.
+              </li>
             </ul>
+          </section>
+
+          <section className="privacy-card">
+            <span className="eyebrow">Colaborações históricas</span>
+            <h2>Anexos ficam privados durante a revisão</h2>
+            <p>
+              Fotos e documentos enviados para o arquivo histórico são armazenados em área privada e
+              a contribuição entra como pendente. O envio não altera automaticamente uma página do
+              portal. Material aprovado só é publicado após revisão editorial e conforme a autorização
+              dada no formulário.
+            </p>
           </section>
 
           <section className="privacy-card">
@@ -66,7 +81,7 @@ function PrivacyDataPage() {
             <h2>Informação meteorológica continua pública</h2>
             <p>
               Previsão do tempo, chuva, vento, imagens de radar e satélite, avisos oficiais,
-              câmeras e níveis das águas permanecem acessíveis aos visitantes.
+              câmeras, níveis das águas e páginas históricas permanecem acessíveis aos visitantes.
             </p>
           </section>
 
@@ -75,7 +90,9 @@ function PrivacyDataPage() {
             <h2>Baixar, corrigir, revogar ou excluir</h2>
             <p>
               Na área da conta, você pode corrigir informações, alterar autorizações, baixar seus
-              dados e remover definitivamente a conta.
+              dados e remover definitivamente a conta. A exportação inclui os metadados das
+              contribuições históricas vinculadas ao seu usuário. A exclusão da conta remove também
+              essas contribuições e seus anexos privados.
             </p>
             <div className="privacy-actions">
               <Link to="/conta" search={{ erro: undefined, next: "/conta" }}>
