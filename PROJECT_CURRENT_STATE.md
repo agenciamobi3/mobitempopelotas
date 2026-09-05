@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 30/08/2026  
+Última atualização: 05/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -46,7 +46,8 @@ Regras permanentes:
 | Widget modules V1 | Nível do Laranjal + Tempo agora em Pelotas |
 | Free / PRO | Entitlements existem; Free nasce sem limite de widgets nesta fase; billing comercial ainda não existe |
 | Central Regional | Pelotas + 23 páginas municipais indexáveis |
-| SEO técnico | 48 URLs indexáveis, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
+| SEO técnico | 49 URLs indexáveis, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
+| História das cheias | Rotas dedicadas para 1941, 2015 e 2024; 2015 usa a série oficial “Cheias 2015” com cronologia e caveats de régua/referência |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis ainda pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
 | GitHub Actions | **Bloqueado antes dos steps**; não declarar suíte/build/typecheck executados |
@@ -137,7 +138,9 @@ Agora:
 
 ## 5. Navegação, rotas e SEO
 
-`src/lib/public-routes.ts` mantém **48 URLs indexáveis = 25 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate.
+`src/lib/public-routes.ts` mantém **49 URLs indexáveis = 26 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate.
+
+`/enchente-2015-pelotas` é uma página histórica pública dedicada baseada principalmente na série oficial “Cheias 2015” da Prefeitura de Pelotas. A página preserva cada boletim como fotografia temporal, não compara cotas antigas com réguas atuais sem metadados compatíveis e usa o G1 apenas como registro contemporâneo complementar para o dia do decreto.
 
 `/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` continuam shell-first. O menu público usa anchors nativas; preload SPA global por intenção e invalidação periódica da árvore permanecem retirados.
 
@@ -303,6 +306,8 @@ A rodada de 30/08 atualizou especificamente:
 - `tests/public-navigation-stability.test.ts` — garante recuperação meteorológica consolidada, propagação para Hoje/Amanhã/7 dias e impede auto-reload de exceção real de runtime;
 - `tests/source-resilience-regressions.test.ts` — mantém diagnóstico interno, mas exige sanitização nas APIs públicas de satélite, radar e trovoadas.
 
+A rodada histórica de 05/09 adicionou `tests/flood-2015-historical-page.test.ts` para proteger os principais marcos documentados, a hierarquia de fontes e os caveats de comparação de níveis de 2015.
+
 GitHub Actions continua bloqueado antes dos steps; portanto contrato versionado não equivale a suíte executada. O projeto Lovable sincronizou os novos arquivos e foi acionado um deploy direto após este corte. O smoke do domínio canônico continua obrigatório antes de declarar a regressão encerrada.
 
 ## 12. Próximas prioridades
@@ -327,6 +332,7 @@ GitHub Actions continua bloqueado antes dos steps; portanto contrato versionado 
 - `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
 - `docs/ANA_RHN_INTEGRATION.md` — contrato ANA/RHN e política readiness-only;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
+- `docs/FLOODS_2001_2015_RESEARCH_2026-09-05.md` — base documental das cheias de 2001 e 2015 e limites editoriais;
 - `docs/REDEMET_OPERATIONS.md` — REDEMET;
 - `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências;
 - `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` — previsão de 15 dias;
