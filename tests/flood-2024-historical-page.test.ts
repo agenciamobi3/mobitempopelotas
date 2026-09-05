@@ -46,6 +46,19 @@ test("timeline preserves the main Pelotas flood milestones", () => {
   assert.match(content, /54 dias/);
 });
 
+test("page contextualizes the documented events of 2001 and 2015 without conflating mechanisms", () => {
+  assert.match(page, /8 de outubro de 2001/);
+  assert.match(page, /ciclone extratropical/);
+  assert.match(page, /105 km\/h/);
+  assert.match(page, /aproximadamente 600/);
+  assert.match(page, /18 a 22 de outubro de 2015/);
+  assert.match(page, /299 mm/);
+  assert.match(page, /2,20 m/);
+  assert.match(page, /1\.300 famílias/);
+  assert.match(page, /não são cópias umas das outras/);
+  assert.match(page, /não deve ser tratado como uma réplica da cheia de 2024/);
+});
+
 test("page explains why Pelotas flooded later and links history to current monitoring", () => {
   assert.match(page, /Por que Pelotas inundou dias depois de Porto Alegre\?/);
   assert.match(page, /Onde estava o problema/);

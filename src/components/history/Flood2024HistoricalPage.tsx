@@ -69,6 +69,7 @@ export function Flood2024HistoricalPage() {
         <a href="#linha-do-tempo">Linha do tempo</a>
         <a href="#por-que-pelotas-inundou">Por que Pelotas inundou depois</a>
         <a href="#caminho-da-cheia">Caminho da cheia</a>
+        <a href="#outros-eventos-historicos">2001 e 2015</a>
         <a href="#ensinamentos">O que o evento ensinou</a>
       </nav>
 
@@ -189,6 +190,93 @@ export function Flood2024HistoricalPage() {
         <HydrologicalPath />
       </section>
 
+      <section
+        className="tp-flood-timeline"
+        id="outros-eventos-historicos"
+        aria-labelledby="tp-flood-other-events-title"
+      >
+        <header>
+          <span>Outros eventos históricos</span>
+          <h2 id="tp-flood-other-events-title">2001 e 2015 mostram mecanismos diferentes de inundação</h2>
+          <p>
+            As grandes cheias de Pelotas não são cópias umas das outras. O registro de 2001 destaca
+            a força do vento associada a um ciclone extratropical e o avanço da Lagoa dos Patos. Em
+            2015, a documentação municipal descreve uma combinação de chuva excepcional, níveis altos
+            na Lagoa e no São Gonçalo e vento nordeste desfavorável ao escoamento.
+          </p>
+        </header>
+
+        <div className="tp-flood-timeline__list">
+          <section className="tp-flood-event is-lagoa">
+            <div className="tp-flood-event__date">
+              <span>8 de outubro de 2001</span>
+              <small>Mecanismo documentado</small>
+              <strong>Ciclone + vento sobre a Lagoa</strong>
+            </div>
+            <div className="tp-flood-event__body">
+              <h3>Ciclone extratropical empurra as águas sobre o Laranjal e isola a Z3</h3>
+              <p>
+                A Folha de S.Paulo registrou um ciclone extratropical sobre o Rio Grande do Sul. Em
+                Pelotas, o vento chegou a 105 km/h, cerca de 3 mil pessoas ficaram ilhadas na Colônia
+                de Pescadores Z3 e, no Laranjal, as ondas avançaram seis quadras, aproximadamente 600
+                metros, para dentro da área urbana.
+              </p>
+              <p>
+                Em outubro de 2002, ao enfrentar nova invasão das águas da Lagoa, a Prefeitura de
+                Pelotas recordou o episódio do ano anterior como efeito do “nordestão”, denominação
+                usada por pescadores para o forte vento nordeste que havia isolado a Z3 e provocado
+                danos nos balneários.
+              </p>
+              <p>
+                Esse episódio não deve ser tratado como uma réplica da cheia de 2024: a documentação
+                disponível para 2001 dá destaque especial ao vento e à resposta da Lagoa junto à
+                costa de Pelotas.
+              </p>
+              <b className="tp-flood-event__highlight">105 km/h em Pelotas · avanço de cerca de 600 m no Laranjal</b>
+              <p>
+                Fontes: <a href="https://www1.folha.uol.com.br/fsp/cotidian/ff0910200111.htm" target="_blank" rel="noreferrer">Folha de S.Paulo, 09/10/2001</a>{" "}
+                e <a href="https://www.pelotas.com.br/noticia/prefeitura-trabalha-para-conter-a-invasao-das-aguas-da-lagoa-os-patos" target="_blank" rel="noreferrer">Prefeitura de Pelotas, 18/10/2002</a>.
+              </p>
+            </div>
+          </section>
+
+          <section className="tp-flood-event is-pelotas">
+            <div className="tp-flood-event__date">
+              <span>18 a 22 de outubro de 2015</span>
+              <small>Mecanismo documentado</small>
+              <strong>Chuva + bacias regionais + vento nordeste</strong>
+            </div>
+            <div className="tp-flood-event__body">
+              <h3>Chuva histórica e água represada produzem uma das maiores cheias em décadas</h3>
+              <p>
+                Até 20 de outubro, a Estação da Embrapa havia registrado 299 mm de chuva no mês,
+                quase três vezes a média mensal de 101 mm citada pela Prefeitura. O Município atribuiu
+                a enchente à combinação do grande volume no Canal São Gonçalo, alimentado pela Lagoa
+                Mirim e pelos rios Piratini e Jaguarão, da elevação da Lagoa dos Patos com contribuição
+                do Guaíba e do vento nordeste, que dificultava o escoamento da laguna para o mar.
+              </p>
+              <p>
+                O balanço municipal posterior apontou o pico crítico entre 18 e 19 de outubro, o São
+                Gonçalo em 2,20 m, diante de uma referência de 1,20 m considerada normal para outubro
+                naquele documento, e atendimento a cerca de 1.300 famílias em áreas como Valverde,
+                Novo Valverde, Pontal da Barra, Z3, Barra e Doquinhas.
+              </p>
+              <p>
+                Os valores são preservados com a referência das fontes da época e não são convertidos
+                automaticamente para as réguas atuais. O evento de 2015 ajuda a mostrar que o risco
+                local pode resultar da soma entre chuva em Pelotas, água vinda das bacias regionais e
+                condições de vento que dificultam a drenagem natural.
+              </p>
+              <b className="tp-flood-event__highlight">São Gonçalo: 2,20 m · cerca de 1.300 famílias atendidas</b>
+              <p>
+                Fontes: <a href="https://www.pelotas.rs.gov.br/index.php/noticia/situacao-de-emergencia-prefeito-reune-o-secretariado" target="_blank" rel="noreferrer">Prefeitura de Pelotas, 21/10/2015</a>{" "}
+                e <a href="https://www.pelotas.rs.gov.br/index.php/noticia/cheias-2015-balanco-registra-mobilizacao-gigantesca" target="_blank" rel="noreferrer">balanço municipal de 06/11/2015</a>.
+              </p>
+            </div>
+          </section>
+        </div>
+      </section>
+
       <section className="tp-flood-lessons" id="ensinamentos">
         <div>
           <span>O que a enchente de 2024 ensinou</span>
@@ -222,7 +310,8 @@ export function Flood2024HistoricalPage() {
           <p>
             Esta página reúne informações históricas e dados publicados durante e após a enchente de
             abril e maio de 2024 por órgãos públicos, instituições de pesquisa e sistemas oficiais de
-            monitoramento.
+            monitoramento. Os registros de 2001 e 2015 aparecem como contexto histórico documentado e
+            preservam os mecanismos descritos nas fontes de cada época.
           </p>
           <p>
             Os valores apresentados correspondem aos sistemas, estações e réguas utilizados nas
