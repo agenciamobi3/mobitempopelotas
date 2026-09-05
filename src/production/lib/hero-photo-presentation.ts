@@ -1,6 +1,13 @@
 import type { WeatherData, WeatherIconName } from "@/production/lib/weather-data";
 
-export type HeroPhotoKind = "rain" | "fog" | "clear" | "clear-night" | "cloudy";
+export type HeroPhotoKind =
+  | "rain"
+  | "fog"
+  | "clear"
+  | "clear-night"
+  | "partly-cloudy-light"
+  | "partly-cloudy-dense"
+  | "cloudy";
 
 export type HeroPhotoPresentation = {
   kind: HeroPhotoKind;
@@ -34,6 +41,18 @@ const heroPhotos = {
     position: "center 54%",
     credit: "Acervo Tempo Pelotas · Praia do Laranjal · noite",
   },
+  "partly-cloudy-light": {
+    kind: "partly-cloudy-light",
+    src: "/weather/hero/pelotas-parcialmente-nublado.avif",
+    position: "center 50%",
+    credit: "Acervo Tempo Pelotas",
+  },
+  "partly-cloudy-dense": {
+    kind: "partly-cloudy-dense",
+    src: "/weather/hero/pelotas parcialmente nublado centro.jpg",
+    position: "center 50%",
+    credit: "Acervo Tempo Pelotas · Centro de Pelotas",
+  },
   cloudy: {
     kind: "cloudy",
     src: "/weather/hero/pelotas-parcialmente-nublado.avif",
@@ -49,6 +68,11 @@ function normalizeText(value: string | null | undefined) {
     .toLowerCase();
 }
 
+function currentCloudCover(weather: WeatherData) {
+  const cloudCover = weather.hourly[0]?.cloudCover;
+  return typeof cloudCover === "number" && Number.isFinite(cloudCover) ? cloudCover : null;
+}
+
 export function resolveHeroPhoto({
   weather,
   icon,
@@ -58,19 +82,26 @@ export function resolveHeroPhoto({
   icon: WeatherIconName;
   officialSummary?: string | null;
 }): HeroPhotoPresentation {
+  const hasVisualWeatherSource = Boolean(
+    weather.current.icon || weather.hourly[0]?.icon || weather.daily[0]?.icon,
+  );
   const conditionText = normalizeText(
-    [weather.current.condition, officialSummary].filter(Boolean).join(" "),
+    weather.current.condition ?? (!hasVisualWeatherSource ? officialSummary : null),
   );
 
-  if (/nevoeiro|neblina|nevoa|cerração|cerracao/.test(conditionText)) {
+  if (
+    (icon === "cloud" || icon === "partly-cloudy" || icon === "partly-cloudy-night") &&
+    /nevoeiro|neblina|nevoa|cerração|cerracao/.test(conditionText)
+  ) {
     return heroPhotos.fog;
   }
 
-  if (/tempest|trovo|chuva|garoa|pancada/.test(conditionText) || icon === "rain" || icon === "storm") {
+  if (icon === "rain" || icon === "storm") {
     return heroPhotos.rain;
   }
 
   const isClearNight =
+    icon !== "partly-cloudy-night" &&
     /ceu (aberto|limpo).*noite|noite.*ceu (aberto|limpo)/.test(conditionText);
 
   if (isClearNight || icon === "moon") {
@@ -79,6 +110,17 @@ export function resolveHeroPhoto({
 
   if (icon === "sun") {
     return heroPhotos.clear;
+  }
+
+  if (icon === "partly-cloudy") {
+    const cloudCover = currentCloudCover(weather);
+    return cloudCover !== null && cloudCover >= 50
+      ? heroPhotos["partly-cloudy-dense"]
+      : heroPhotos["partly-cloudy-light"];
+  }
+
+  if (icon === "partly-cloudy-night") {
+    return heroPhotos["partly-cloudy-dense"];
   }
 
   return heroPhotos.cloudy;

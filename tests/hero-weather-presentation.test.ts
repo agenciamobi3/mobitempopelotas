@@ -25,6 +25,28 @@ function weatherWithCondition(condition: string | null): WeatherData {
   });
 }
 
+function partlyCloudyWeather(cloudCover: number): WeatherData {
+  return weatherWith({
+    current: {
+      ...fallbackWeatherData.current,
+      available: true,
+      condition: null,
+      icon: null,
+    },
+    hourly: [
+      {
+        time: "Agora",
+        temperature: 17,
+        precipitation: 6,
+        windSpeed: 6.4,
+        windGust: null,
+        icon: "partly-cloudy",
+        cloudCover,
+      },
+    ],
+  });
+}
+
 test("o hero prioriza a previsão horária para representar o período atual", () => {
   const weather = weatherWith({
     hourly: [
@@ -85,6 +107,27 @@ test("o hero usa o acervo local de Pelotas conforme a condição observada", () 
     resolveHeroPhoto({ weather: weatherWithCondition("Nublado"), icon: "cloud" }).kind,
     "cloudy",
   );
+});
+
+test("sol entre nuvens alterna entre os dois registros locais pela cobertura de nuvens", () => {
+  const lighter = resolveHeroPhoto({ weather: partlyCloudyWeather(34), icon: "partly-cloudy" });
+  const denser = resolveHeroPhoto({ weather: partlyCloudyWeather(68), icon: "partly-cloudy" });
+
+  assert.equal(lighter.kind, "partly-cloudy-light");
+  assert.equal(lighter.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
+  assert.equal(denser.kind, "partly-cloudy-dense");
+  assert.equal(denser.src, "/weather/hero/pelotas parcialmente nublado centro.jpg");
+});
+
+test("a narrativa de chuva futura não troca uma foto de sol entre nuvens por chuva", () => {
+  const photo = resolveHeroPhoto({
+    weather: partlyCloudyWeather(68),
+    icon: "partly-cloudy",
+    officialSummary: "Parcialmente nublado. Sujeito a pancadas isoladas de chuva fraca.",
+  });
+
+  assert.equal(photo.kind, "partly-cloudy-dense");
+  assert.notEqual(photo.src, "/weather/hero/pelotas-laranjal-chuva.webp");
 });
 
 test("o acervo local substitui créditos e URLs externas no hero estático", () => {
