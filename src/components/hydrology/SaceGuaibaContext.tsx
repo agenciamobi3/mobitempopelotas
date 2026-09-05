@@ -20,6 +20,7 @@ import type {
   SaceRiverSystem,
 } from "@/lib/hydrology/sace-guaiba.server";
 
+import { HydrologyMapDeferred } from "./HydrologyMapDeferred";
 import { SaceGuaibaMap } from "./SaceGuaibaMap";
 import "./SaceGuaibaContext.css";
 
@@ -206,7 +207,14 @@ export function SaceGuaibaContext({ data }: { data: SaceGuaibaData }) {
               </div>
             </div>
 
-            <SaceGuaibaMap stations={filteredStations} layers={data.layers} bounds={data.bounds} />
+            <HydrologyMapDeferred
+              label="Mapa da bacia do Guaíba"
+              title="Carregue o mapa somente quando precisar explorar as estações."
+              description="Os dados e cartões da rede permanecem disponíveis sem iniciar o MapLibre automaticamente."
+              fallbackDescription="Os dados textuais e os cartões das estações continuam disponíveis nesta página."
+            >
+              <SaceGuaibaMap stations={filteredStations} layers={data.layers} bounds={data.bounds} />
+            </HydrologyMapDeferred>
 
             {data.legend.length ? (
               <div className="sace-legend" aria-label="Legenda oficial do SACE Guaíba">
