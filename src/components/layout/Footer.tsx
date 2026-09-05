@@ -107,6 +107,11 @@ const footerGroups = [
         to: "/enchente-1941-pelotas",
       },
       {
+        label: "Enchente de 2001",
+        ariaLabel: "Consultar o registro histórico em pesquisa da enchente de 2001 em Pelotas e no Laranjal",
+        to: "/enchente-2001-pelotas",
+      },
+      {
         label: "Enchente de 2015",
         ariaLabel: "Consultar a linha do tempo histórica da enchente de 2015 em Pelotas",
         to: "/enchente-2015-pelotas",
