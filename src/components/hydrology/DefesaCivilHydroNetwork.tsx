@@ -23,10 +23,12 @@ import "./DefesaCivilHydroNetwork.css";
 import "./DefesaCivilHydroInventory.css";
 
 function formatNumber(value: number | null, digits = 1) {
-  if (value === null) return "—";
+  if (value === null || !Number.isFinite(value)) return "—";
+  const maximumFractionDigits = Math.max(0, digits);
+  const minimumFractionDigits = Number.isInteger(value) ? 0 : Math.min(1, maximumFractionDigits);
   return new Intl.NumberFormat("pt-BR", {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: value % 1 === 0 ? 0 : 1,
+    maximumFractionDigits,
+    minimumFractionDigits,
   }).format(value);
 }
 
@@ -87,7 +89,7 @@ function StationCard({ station }: { station: DefesaCivilHydroStation }) {
   const freshness = freshnessCopy(station.freshness);
   const classification = classificationCopy(station.classification);
   const capabilities = capabilityLabels(station);
-  const hasHydrology = station.capabilities.riverLevel || station.river.levelM !== null;
+  const hasHydrology = station.capabilities.riverLevel;
   const hasWeather =
     station.capabilities.rain ||
     station.capabilities.temperature ||
@@ -169,7 +171,7 @@ function StationCard({ station }: { station: DefesaCivilHydroStation }) {
         </dl>
       ) : null}
 
-      {station.river.trend ? (
+      {hasHydrology && station.river.trend ? (
         <p className="defesa-civil-hydro__river-trend">
           <strong>Tendência informada pela estação:</strong> {station.river.trend}. Este texto é
           preservado como dado da fonte e não é convertido pelo Tempo Pelotas em classificação de
