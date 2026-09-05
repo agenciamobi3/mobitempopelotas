@@ -16,6 +16,56 @@ const deleteAccountSchema = z.object({
   confirmation: z.literal("EXCLUIR MINHA CONTA"),
 });
 
+const CONTRIBUTION_BUCKET = "historical-contributions";
+const STORAGE_PAGE_SIZE = 100;
+
+async function listContributionFiles(
+  bucket: ReturnType<typeof createSupabaseAdminClient>["storage"] extends infer _Storage
+    ? ReturnType<ReturnType<typeof createSupabaseAdminClient>["storage"]["from"]>
+    : never,
+  prefix: string,
+): Promise<string[]> {
+  const paths: string[] = [];
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await bucket.list(prefix, {
+      limit: STORAGE_PAGE_SIZE,
+      offset,
+      sortBy: { column: "name", order: "asc" },
+    });
+    if (error) throw error;
+
+    const entries = data ?? [];
+    if (entries.length === 0) return paths;
+
+    for (const entry of entries) {
+      const path = `${prefix}/${entry.name}`;
+      if (entry.id) {
+        paths.push(path);
+      } else {
+        paths.push(...(await listContributionFiles(bucket, path)));
+      }
+    }
+
+    if (entries.length < STORAGE_PAGE_SIZE) return paths;
+    offset += entries.length;
+  }
+}
+
+async function removeHistoricalContributionFiles(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  userId: string,
+) {
+  const bucket = admin.storage.from(CONTRIBUTION_BUCKET);
+  const paths = await listContributionFiles(bucket, userId);
+
+  for (let index = 0; index < paths.length; index += STORAGE_PAGE_SIZE) {
+    const { error } = await bucket.remove(paths.slice(index, index + STORAGE_PAGE_SIZE));
+    if (error) throw error;
+  }
+}
+
 async function deleteAccount(request: Request) {
   if (!isSameOriginRequest(request)) {
     return pushJsonResponse({ success: false, error: "Origem não permitida." }, 403);
@@ -61,6 +111,8 @@ async function deleteAccount(request: Request) {
 
   try {
     const admin = createSupabaseAdminClient();
+    await removeHistoricalContributionFiles(admin, user.id);
+
     const { error: deleteError } = await admin.auth.admin.deleteUser(user.id);
     if (deleteError) throw deleteError;
 
@@ -76,7 +128,7 @@ async function deleteAccount(request: Request) {
       {
         success: true,
         message:
-          "A conta, as preferências, o histórico de consentimentos e as inscrições vinculadas foram removidos.",
+          "A conta, as preferências, o histórico de consentimentos, as inscrições e as contribuições históricas vinculadas foram removidos.",
       },
       200,
       responseHeaders,
