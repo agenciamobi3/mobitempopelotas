@@ -30,6 +30,15 @@ test("2015 page preserves the principal official milestones", () => {
   assert.match(content, /1,40 m/);
 });
 
+test("timeline now starts before the peak and keeps the Porto gauge isolated", () => {
+  assert.match(content, /14 de outubro · tarde/);
+  assert.match(content, /170 mm/);
+  assert.match(content, /Casa de Bombas do Porto/);
+  assert.match(content, /2,10 m/);
+  assert.match(content, /não é cota diretamente comparável à série Lagoa\/São Gonçalo/);
+  assert.match(page, /A leitura de 2,10 m da Casa de Bombas do Porto/);
+});
+
 test("timeline renders recovered measurements with their temporal context", () => {
   assert.match(content, /measurements\?: Flood2015Measurement\[]/);
   assert.match(page, /tp-flood-event__measurements/);
@@ -42,6 +51,7 @@ test("timeline renders recovered measurements with their temporal context", () =
     "Lagoa dos Patos · tarde",
     "Canal São Gonçalo · manhã",
     "fim da tarde de 27/10",
+    "manhã de 27/10",
     "manhã de 03/11",
     "pico retrospectivo",
   ]) {
@@ -52,14 +62,30 @@ test("timeline renders recovered measurements with their temporal context", () =
   assert.match(content, /régua de 1,80 m ficou submersa; sem pico calibrado informado/);
 });
 
+test("rescued contemporary reports stay distinct from missing municipal bulletins", () => {
+  assert.match(content, /27 de outubro · manhã/);
+  assert.match(content, /1,60 m/);
+  assert.match(content, /-40 cm/);
+  assert.match(content, /137/);
+  assert.match(content, /GZH citando Defesa Civil de Pelotas/);
+  assert.match(content, /28 de outubro · cerca de 14h/);
+  assert.match(content, /\+2 cm/);
+  assert.match(content, /última medição da Defesa Civil citada pela GZH às 14h01/);
+  assert.match(content, /não substitui o boletim perdido das 18h/);
+  assert.match(page, /Quando um valor sobrevive apenas em reportagem contemporânea que cita a Defesa Civil/);
+});
+
 test("daily archive distinguishes full documents from index-only bulletins", () => {
   assert.match(content, /FLOOD_2015_ARCHIVE/);
   assert.match(content, /27\/10/);
   assert.match(content, /Boletim atualizado às 19h/);
+  assert.match(content, /39270/);
+  assert.match(content, /39279/);
+  assert.match(content, /39294/);
   assert.match(content, /29\/10/);
-  assert.match(content, /apenas índice recuperado|retrieval: "indexed"/);
+  assert.match(content, /retrieval: "indexed"/);
   assert.match(page, /Arquivo oficial localizado/);
-  assert.match(page, /O índice prova que a edição\s+existiu; não prova quais números ela continha/);
+  assert.match(page, /não transforma essa fonte no boletim municipal perdido/);
   assert.match(styles, /\.tp-flood-archive/);
 });
 
@@ -78,7 +104,7 @@ test("historical levels keep temporal and vertical-reference caveats", () => {
   assert.match(page, /não entra como\s+cota calibrada/);
   assert.match(content, /não representa famílias simultaneamente desabrigadas/);
   assert.match(content, /sem cota absoluta no boletim/);
-  assert.match(content, /não atribui a ele níveis, totais ou tendência que não tenham sido recuperados/);
+  assert.match(content, /não atribui a elas níveis, totais ou tendência que não tenham sido recuperados/);
 });
 
 test("timeline includes operational recovery milestones already found in municipal archive", () => {
@@ -91,13 +117,15 @@ test("timeline includes operational recovery milestones already found in municip
   assert.match(content, /abrigos.*desativados/i);
 });
 
-test("source hierarchy is explicit and the G1 remains complementary", () => {
+test("source hierarchy keeps municipality primary and journalism explicitly complementary", () => {
   assert.match(content, /www\.pelotas\.rs\.gov\.br/);
   assert.match(content, /pelotashomolog\.coinpel\.com\.br/);
   assert.match(content, /g1\.globo\.com/);
-  assert.match(content, /Registro jornalístico contemporâneo complementar/);
+  assert.match(content, /gauchazh\.clicrbs\.com\.br/);
+  assert.match(content, /Corroboração jornalística contemporânea/);
   assert.match(content, /Arquivo municipal de Segurança Pública - página 84/);
   assert.match(page, /espinha dorsal desta reconstrução é a série “Cheias 2015” da Prefeitura/);
+  assert.match(page, /G1 e GZH entram como fontes jornalísticas contemporâneas complementares/);
 });
 
 test("2015 history connects earlier, later and current hydrology pages", () => {
