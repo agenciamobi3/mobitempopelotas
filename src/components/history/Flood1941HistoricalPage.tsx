@@ -156,6 +156,7 @@ export function Flood1941HistoricalPage() {
           </p>
           <ul>
             <li>1941 é uma referência histórica reconstruída com documentação local;</li>
+            <li>2015 possui uma série municipal quase diária, mas usa referências próprias de cada boletim;</li>
             <li>2024 possui telemetria e registros operacionais muito mais densos;</li>
             <li>níveis de estações diferentes não devem ser convertidos por simples subtração;</li>
             <li>a comparação histórica não substitui alertas ou decisões de segurança atuais.</li>
@@ -192,9 +193,12 @@ export function Flood1941HistoricalPage() {
       <section className="tp-flood-related" aria-label="Continue consultando">
         <div>
           <span>Do histórico ao monitoramento atual</span>
-          <h2>Compare o registro de 1941 com a cheia de 2024 e com as leituras atuais</h2>
+          <h2>Compare 1941, 2015 e 2024 sem misturar as referências de medição</h2>
         </div>
         <div className="tp-flood-related__links">
+          <Link to="/enchente-2015-pelotas">
+            Enchente de 2015 em Pelotas <span aria-hidden="true">→</span>
+          </Link>
           <Link to="/enchente-2024-pelotas-laranjal">
             Enchente de 2024 em Pelotas <span aria-hidden="true">→</span>
           </Link>
