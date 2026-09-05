@@ -46,8 +46,8 @@ Regras permanentes:
 | Widget modules V1 | Nível do Laranjal + Tempo agora em Pelotas |
 | Free / PRO | Entitlements existem; Free nasce sem limite de widgets nesta fase; billing comercial ainda não existe |
 | Central Regional | Pelotas + 23 páginas municipais indexáveis |
-| SEO técnico | 49 URLs indexáveis, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
-| História das cheias | Rotas dedicadas para 1941, 2015 e 2024; 2015 usa a série oficial “Cheias 2015” com cronologia e caveats de régua/referência |
+| SEO técnico | 49 URLs indexáveis no inventário da `main`, canonical/sitemap/robots/Schema/BreadcrumbList ativos |
+| História das cheias | Rotas dedicadas na `main` para 1941, 2015 e 2024; 2015 usa a série oficial “Cheias 2015” com cronologia e caveats de régua/referência |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis ainda pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
 | GitHub Actions | **Bloqueado antes dos steps**; não declarar suíte/build/typecheck executados |
@@ -140,7 +140,7 @@ Agora:
 
 `src/lib/public-routes.ts` mantém **49 URLs indexáveis = 26 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate.
 
-`/enchente-2015-pelotas` é uma página histórica pública dedicada baseada principalmente na série oficial “Cheias 2015” da Prefeitura de Pelotas. A página preserva cada boletim como fotografia temporal, não compara cotas antigas com réguas atuais sem metadados compatíveis e usa o G1 apenas como registro contemporâneo complementar para o dia do decreto.
+`/enchente-2015-pelotas` é uma página histórica pública dedicada na árvore da `main`, baseada principalmente na série oficial “Cheias 2015” da Prefeitura de Pelotas. A página preserva cada boletim como fotografia temporal, não compara cotas antigas com réguas atuais sem metadados compatíveis e usa o G1 apenas como registro contemporâneo complementar para o dia do decreto.
 
 `/`, `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas` e `/previsao-7-dias-pelotas` continuam shell-first. O menu público usa anchors nativas; preload SPA global por intenção e invalidação periódica da árvore permanecem retirados.
 
@@ -308,7 +308,7 @@ A rodada de 30/08 atualizou especificamente:
 
 A rodada histórica de 05/09 adicionou `tests/flood-2015-historical-page.test.ts` para proteger os principais marcos documentados, a hierarquia de fontes e os caveats de comparação de níveis de 2015.
 
-GitHub Actions continua bloqueado antes dos steps; portanto contrato versionado não equivale a suíte executada. O projeto Lovable sincronizou os novos arquivos e foi acionado um deploy direto após este corte. O smoke do domínio canônico continua obrigatório antes de declarar a regressão encerrada.
+A rodada de 05/09 foi materializada na `main`, mas ainda não foi validada por uma execução de build/testes nem publicada em produção nesta etapa. O workflow `Qualidade` continua falhando antes de iniciar os steps, e a tentativa de usar o executor do Lovable foi bloqueada por falta de créditos do workspace. Portanto, contrato versionado não equivale a suíte executada, e a rota de 2015 só deve ser considerada publicada depois de build/routes check e smoke no domínio canônico.
 
 ## 12. Próximas prioridades
 
