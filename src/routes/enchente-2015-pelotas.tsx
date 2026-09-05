@@ -4,6 +4,7 @@ import {
   Flood2015Hero,
   Flood2015HistoricalPage,
 } from "@/components/history/Flood2015HistoricalPage";
+import "@/components/history/Flood2015HistoricalPage.css";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
