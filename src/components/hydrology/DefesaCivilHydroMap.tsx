@@ -69,66 +69,74 @@ export function DefesaCivilHydroMap({ stations }: { stations: DefesaCivilHydroSt
 
         map.once("load", () => {
           if (cancelled) return;
-          styleLoaded = true;
+          try {
+            styleLoaded = true;
 
-          map.addSource(SOURCE_ID, {
-            type: "geojson",
-            data: initialCollectionRef.current,
-            attribution: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
-          });
-          map.addLayer({
-            id: LAYER_ID,
-            type: "circle",
-            source: SOURCE_ID,
-            paint: {
-              "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 5, 9, 8, 13, 11],
-              "circle-color": [
-                "match",
-                ["get", "freshness"],
-                "recent",
-                "#17bdcc",
-                "delayed",
-                "#f26f35",
-                "old",
-                "#94a3b8",
-                "#64748b",
-              ],
-              "circle-opacity": 0.92,
-              "circle-stroke-color": "#ffffff",
-              "circle-stroke-width": 2,
-            },
-          });
+            map.addSource(SOURCE_ID, {
+              type: "geojson",
+              data: initialCollectionRef.current,
+              attribution: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
+            });
+            map.addLayer({
+              id: LAYER_ID,
+              type: "circle",
+              source: SOURCE_ID,
+              paint: {
+                "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 5, 9, 8, 13, 11],
+                "circle-color": [
+                  "match",
+                  ["get", "freshness"],
+                  "recent",
+                  "#17bdcc",
+                  "delayed",
+                  "#f26f35",
+                  "old",
+                  "#94a3b8",
+                  "#64748b",
+                ],
+                "circle-opacity": 0.92,
+                "circle-stroke-color": "#ffffff",
+                "circle-stroke-width": 2,
+              },
+            });
 
-          map.on("click", LAYER_ID, (event) => {
-            const feature = event.features?.[0];
-            if (!feature || feature.geometry.type !== "Point") return;
-            const coordinates = feature.geometry.coordinates as [number, number];
-            const properties = feature.properties as Record<string, unknown>;
-            const name = typeof properties.name === "string" ? properties.name : "Estação";
-            const code =
-              typeof properties.code === "string" ? properties.code : "Código não informado";
-            const basin =
-              typeof properties.basin === "string" ? properties.basin : "Bacia não informada";
+            map.on("click", LAYER_ID, (event) => {
+              const feature = event.features?.[0];
+              if (!feature || feature.geometry.type !== "Point") return;
+              const coordinates = feature.geometry.coordinates as [number, number];
+              const properties = feature.properties as Record<string, unknown>;
+              const name = typeof properties.name === "string" ? properties.name : "Estação";
+              const code =
+                typeof properties.code === "string" ? properties.code : "Código não informado";
+              const basin =
+                typeof properties.basin === "string" ? properties.basin : "Bacia não informada";
 
-            new maplibregl.Popup({ closeButton: true, maxWidth: "310px" })
-              .setLngLat(coordinates)
-              .setText(`${name} · ${code} · ${basin}`)
-              .addTo(map);
-          });
-          map.on("mouseenter", LAYER_ID, () => {
-            map.getCanvas().style.cursor = "pointer";
-          });
-          map.on("mouseleave", LAYER_ID, () => {
-            map.getCanvas().style.cursor = "";
-          });
+              new maplibregl.Popup({ closeButton: true, maxWidth: "310px" })
+                .setLngLat(coordinates)
+                .setText(`${name} · ${code} · ${basin}`)
+                .addTo(map);
+            });
+            map.on("mouseenter", LAYER_ID, () => {
+              map.getCanvas().style.cursor = "pointer";
+            });
+            map.on("mouseleave", LAYER_ID, () => {
+              map.getCanvas().style.cursor = "";
+            });
 
-          setLoaded(true);
+            setLoaded(true);
+          } catch (error) {
+            console.warn("Mapa da Defesa Civil isolado após falha no carregamento:", error);
+            setFailed(true);
+          }
         });
         map.on("error", () => {
           if (!styleLoaded) setFailed(true);
         });
       })
-      .catch(() => setFailed(true));
+      .catch((error) => {
+        console.warn("MapLibre da Defesa Civil não pôde ser iniciado:", error);
+        setFailed(true);
+      });
 
     return () => {
       cancelled = true;
@@ -139,29 +147,34 @@ export function DefesaCivilHydroMap({ stations }: { stations: DefesaCivilHydroSt
 
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
-    const source = mapRef.current.getSource(SOURCE_ID) as GeoJSONSource | undefined;
-    source?.setData(stationCollection);
+    try {
+      const source = mapRef.current.getSource(SOURCE_ID) as GeoJSONSource | undefined;
+      source?.setData(stationCollection);
 
-    if (stations.length === 1) {
-      const station = stations[0];
-      mapRef.current.easeTo({
-        center: [station.longitude, station.latitude],
-        zoom: 9,
-        duration: 450,
-      });
-      return;
-    }
+      if (stations.length === 1) {
+        const station = stations[0];
+        mapRef.current.easeTo({
+          center: [station.longitude, station.latitude],
+          zoom: 9,
+          duration: 450,
+        });
+        return;
+      }
 
-    if (stations.length > 1) {
-      const longitudes = stations.map((station) => station.longitude);
-      const latitudes = stations.map((station) => station.latitude);
-      mapRef.current.fitBounds(
-        [
-          [Math.min(...longitudes), Math.min(...latitudes)],
-          [Math.max(...longitudes), Math.max(...latitudes)],
-        ],
-        { padding: 44, maxZoom: 9.5, duration: 450 },
-      );
+      if (stations.length > 1) {
+        const longitudes = stations.map((station) => station.longitude);
+        const latitudes = stations.map((station) => station.latitude);
+        mapRef.current.fitBounds(
+          [
+            [Math.min(...longitudes), Math.min(...latitudes)],
+            [Math.max(...longitudes), Math.max(...latitudes)],
+          ],
+          { padding: 44, maxZoom: 9.5, duration: 450 },
+        );
+      }
+    } catch (error) {
+      console.warn("Mapa da Defesa Civil isolado após falha de atualização:", error);
+      setFailed(true);
     }
   }, [loaded, stationCollection, stations]);
 
