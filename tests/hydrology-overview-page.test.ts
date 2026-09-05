@@ -48,8 +48,10 @@ test("hydrology route loads six independent sources through the resilient shared
   assert.match(route, /HydrologyOverviewHero/);
   assert.match(route, /HydrologyOverviewV2/);
   assert.match(route, /DefesaCivilHydroNetwork/);
-  assert.match(route, /useHydrologyNetworkRecovery\(data\.sace, data\.defesaCivil\)/);
-  assert.match(route, /data=\{recoveredNetworks\.defesaCivil\}/);
+  assert.doesNotMatch(route, /useHydrologyNetworkRecovery/);
+  assert.match(route, /sace=\{data\.sace\}/);
+  assert.match(route, /data=\{data\.defesaCivil\}/);
+  assert.match(route, /weather=\{recoveredWeather\}/);
   assert.match(route, /HydrologyOverviewHomeContract\.css/);
   assert.match(route, /pageClassName="internal-weather-shell--hydrology"/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
