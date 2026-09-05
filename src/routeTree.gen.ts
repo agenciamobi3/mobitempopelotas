@@ -39,10 +39,12 @@ import { Route as CamerasAoVivoPelotasRouteImport } from './routes/cameras-ao-vi
 import { Route as ChuvaEmPelotasRouteImport } from './routes/chuva-em-pelotas'
 import { Route as ClimaEmPelotasRouteImport } from './routes/clima-em-pelotas'
 import { Route as ContaRouteImport } from './routes/conta'
+import { Route as ContribuirRouteImport } from './routes/contribuir'
 import { Route as EmbedNivelLaranjalRouteImport } from './routes/embed/nivel-laranjal'
 import { Route as EmbedStatusTempoAgoraRouteImport } from './routes/embed/status-tempo-agora'
 import { Route as EmbedWidgetRouteImport } from './routes/embed/widget'
 import { Route as Enchente1941PelotasRouteImport } from './routes/enchente-1941-pelotas'
+import { Route as Enchente2001PelotasRouteImport } from './routes/enchente-2001-pelotas'
 import { Route as Enchente2015PelotasRouteImport } from './routes/enchente-2015-pelotas'
 import { Route as Enchente2024PelotasLaranjalRouteImport } from './routes/enchente-2024-pelotas-laranjal'
 import { Route as EntrarRouteImport } from './routes/entrar'
@@ -108,10 +110,12 @@ const CamerasAoVivoPelotasRoute = CamerasAoVivoPelotasRouteImport.update({ id: '
 const ChuvaEmPelotasRoute = ChuvaEmPelotasRouteImport.update({ id: '/chuva-em-pelotas', path: '/chuva-em-pelotas', getParentRoute: () => rootRouteImport } as any)
 const ClimaEmPelotasRoute = ClimaEmPelotasRouteImport.update({ id: '/clima-em-pelotas', path: '/clima-em-pelotas', getParentRoute: () => rootRouteImport } as any)
 const ContaRoute = ContaRouteImport.update({ id: '/conta', path: '/conta', getParentRoute: () => rootRouteImport } as any)
+const ContribuirRoute = ContribuirRouteImport.update({ id: '/contribuir', path: '/contribuir', getParentRoute: () => rootRouteImport } as any)
 const EmbedNivelLaranjalRoute = EmbedNivelLaranjalRouteImport.update({ id: '/embed/nivel-laranjal', path: '/embed/nivel-laranjal', getParentRoute: () => rootRouteImport } as any)
 const EmbedStatusTempoAgoraRoute = EmbedStatusTempoAgoraRouteImport.update({ id: '/embed/status-tempo-agora', path: '/embed/status-tempo-agora', getParentRoute: () => rootRouteImport } as any)
 const EmbedWidgetRoute = EmbedWidgetRouteImport.update({ id: '/embed/widget', path: '/embed/widget', getParentRoute: () => rootRouteImport } as any)
 const Enchente1941PelotasRoute = Enchente1941PelotasRouteImport.update({ id: '/enchente-1941-pelotas', path: '/enchente-1941-pelotas', getParentRoute: () => rootRouteImport } as any)
+const Enchente2001PelotasRoute = Enchente2001PelotasRouteImport.update({ id: '/enchente-2001-pelotas', path: '/enchente-2001-pelotas', getParentRoute: () => rootRouteImport } as any)
 const Enchente2015PelotasRoute = Enchente2015PelotasRouteImport.update({ id: '/enchente-2015-pelotas', path: '/enchente-2015-pelotas', getParentRoute: () => rootRouteImport } as any)
 const Enchente2024PelotasLaranjalRoute = Enchente2024PelotasLaranjalRouteImport.update({ id: '/enchente-2024-pelotas-laranjal', path: '/enchente-2024-pelotas-laranjal', getParentRoute: () => rootRouteImport } as any)
 const EntrarRoute = EntrarRouteImport.update({ id: '/entrar', path: '/entrar', getParentRoute: () => rootRouteImport } as any)
@@ -184,10 +188,12 @@ const rootRouteChildren = {
   ChuvaEmPelotasRoute,
   ClimaEmPelotasRoute,
   ContaRoute,
+  ContribuirRoute,
   EmbedNivelLaranjalRoute,
   EmbedStatusTempoAgoraRoute,
   EmbedWidgetRoute,
   Enchente1941PelotasRoute,
+  Enchente2001PelotasRoute,
   Enchente2015PelotasRoute,
   Enchente2024PelotasLaranjalRoute,
   EntrarRoute,
