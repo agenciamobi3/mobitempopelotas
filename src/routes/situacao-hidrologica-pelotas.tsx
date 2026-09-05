@@ -163,6 +163,7 @@ function SituacaoHidrologicaPage() {
   return (
     <InternalWeatherPageShell
       data={data.weather}
+      recoverWeatherAfterHydration={false}
       pageClassName="internal-weather-shell--hydrology"
       showOfficialAlerts={false}
       hero={() => (
