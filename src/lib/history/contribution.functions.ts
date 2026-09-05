@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
 
+import type { ContributionDatabase } from "@/lib/history/contribution-database";
 import { getHistoricalCollaborationContext } from "@/lib/history/historical-collaboration";
 import { createSupabaseRequestClient } from "@/lib/supabase/request-client.server";
 import { getSupabaseServerConfig } from "@/lib/supabase/server-client.server";
@@ -43,65 +44,6 @@ const createContributionSchema = z.object({
 export type HistoricalContributionKind = z.infer<typeof contributionKindSchema>;
 export type HistoricalContributionAttachment = z.infer<typeof attachmentSchema>;
 export type CreateHistoricalContributionInput = z.infer<typeof createContributionSchema>;
-
-type ContributionDatabase = {
-  public: {
-    Tables: {
-      historical_contributions: {
-        Row: {
-          id: string;
-          user_id: string;
-          page_path: string;
-          page_title: string;
-          event_year: number | null;
-          kind: string;
-          title: string;
-          description: string;
-          location_text: string | null;
-          date_label: string | null;
-          source_url: string | null;
-          credit_name: string | null;
-          publish_anonymously: boolean;
-          attachments: unknown;
-          rights_confirmed: boolean;
-          publication_authorized: boolean;
-          status: string;
-          moderation_note: string | null;
-          created_at: string;
-          reviewed_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          page_path: string;
-          page_title: string;
-          event_year?: number | null;
-          kind: string;
-          title: string;
-          description: string;
-          location_text?: string | null;
-          date_label?: string | null;
-          source_url?: string | null;
-          credit_name?: string | null;
-          publish_anonymously?: boolean;
-          attachments?: unknown;
-          rights_confirmed: boolean;
-          publication_authorized: boolean;
-          status?: string;
-          moderation_note?: string | null;
-          created_at?: string;
-          reviewed_at?: string | null;
-        };
-        Update: Record<string, never>;
-        Relationships: [];
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
-    CompositeTypes: Record<string, never>;
-  };
-};
 
 function nullable(value: string) {
   const normalized = value.trim();
