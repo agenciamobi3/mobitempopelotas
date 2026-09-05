@@ -7,6 +7,7 @@ import {
   FLOOD_2015_TIMELINE,
 } from "@/lib/content/flood-2015-pelotas";
 
+import "./Flood2015HistoricalPage.css";
 import "./Flood2024HistoricalPage.css";
 
 export function Flood2015Hero() {
@@ -93,12 +94,12 @@ export function Flood2015HistoricalPage() {
       >
         <header>
           <span>Linha do tempo documentada</span>
-          <h2 id="tp-flood-2015-timeline-title">Dos dias mais críticos à estabilização, com as leituras publicadas</h2>
+          <h2 id="tp-flood-2015-timeline-title">Dos primeiros sinais à estabilização, com as leituras recuperadas</h2>
           <p>
             A Prefeitura publicou boletins diariamente, duas ou mais vezes segundo o balanço final.
-            Cada medição abaixo conserva a data, o horário ou a referência temporal dada pela própria
-            fonte. Quando o boletim informa apenas uma variação, mostramos a variação sem inventar
-            uma cota absoluta.
+            Cada medição abaixo conserva a data, o horário ou a referência temporal dada pela fonte.
+            Quando um valor sobrevive apenas em reportagem contemporânea que cita a Defesa Civil,
+            essa origem aparece explicitamente. Variações não são convertidas em cotas inventadas.
           </p>
         </header>
 
@@ -168,8 +169,8 @@ export function Flood2015HistoricalPage() {
           </div>
           <p className="tp-flood-archive__caveat">
             Quando o corpo de um boletim não está disponível, a página não completa medições por
-            interpolação, memória secundária ou semelhança de horários. O índice prova que a edição
-            existiu; não prova quais números ela continha.
+            interpolação, memória secundária ou semelhança de horários. Uma fonte contemporânea pode
+            recuperar um dado da Defesa Civil, mas não transforma essa fonte no boletim municipal perdido.
           </p>
         </div>
       </section>
@@ -214,11 +215,13 @@ export function Flood2015HistoricalPage() {
             reforço de um dique emergencial com aproximadamente 2 km no Valverde.
           </p>
           <p>
-            Na noite do decreto de emergência, o G1 também registrou aproximadamente 400 militares
-            ajudando a operação e o desabamento do trapiche do Laranjal. Esses pontos permanecem
-            identificados como informação jornalística contemporânea, não como medição hidrológica.
+            A imprensa contemporânea complementa lacunas pontuais do arquivo. G1 documenta fatos do
+            dia do decreto; GZH preserva medições atribuídas à Defesa Civil em 27 e 28 de outubro.
+            Esses registros permanecem identificados como jornalísticos e não substituem boletins
+            municipais que não foram recuperados.
           </p>
           <ul>
+            <li>Prefeitura em alerta e evacuações na Z3 já em 14 de outubro;</li>
             <li>pico crítico retrospectivamente situado entre 18 e 19 de outubro;</li>
             <li>Situação de Emergência decretada em 20 de outubro;</li>
             <li>acesso de ônibus à Z3 retomado em 23 de outubro após baixa da Lagoa;</li>
@@ -249,6 +252,11 @@ export function Flood2015HistoricalPage() {
             transformar o registro em uma cota máxima exata acima de 1,80 m.
           </p>
           <p>
+            A leitura de 2,10 m da Casa de Bombas do Porto em 14 de outubro também permanece na sua
+            referência original. Ela é uma profundidade registrada naquela régua local e não é
+            tratada como se fosse a mesma cota das séries posteriores da Lagoa ou do São Gonçalo.
+          </p>
+          <p>
             Esses números não são convertidos automaticamente para as estações atuais. Uma comparação
             direta exige saber estação, datum, zero da régua e referência vertical de cada medição.
           </p>
@@ -269,8 +277,10 @@ export function Flood2015HistoricalPage() {
         <div>
           <p>
             A espinha dorsal desta reconstrução é a série “Cheias 2015” da Prefeitura de Pelotas.
-            O G1 é usado apenas como fonte complementar contemporânea para fatos do dia do decreto.
-            Níveis e totais consolidados permanecem vinculados ao boletim ou balanço que os publicou.
+            G1 e GZH entram como fontes jornalísticas contemporâneas complementares, sempre com a
+            atribuição preservada. Quando a GZH reproduz uma medição da Defesa Civil, o dado pode
+            preencher a cronologia daquele instante, mas não é apresentado como corpo recuperado do
+            boletim municipal perdido.
           </p>
           <div className="tp-flood-related__links">
             {FLOOD_2015_SOURCES.map((source) => (
