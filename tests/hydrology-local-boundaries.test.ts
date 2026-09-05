@@ -16,15 +16,16 @@ test("hydrology overview isolates regional sections from the root route boundary
   assert.match(route, /recoverWeatherAfterHydration=\{false\}/);
 });
 
-test("interactive hydrology maps require an explicit user request", () => {
-  assert.match(deferredMap, /const \[requested, setRequested\] = useState\(false\)/);
-  assert.match(deferredMap, /Carregar mapa/);
+test("interactive hydrology maps mount automatically behind a local boundary", () => {
+  assert.doesNotMatch(deferredMap, /useState\(false\)/);
+  assert.doesNotMatch(deferredMap, /Carregar mapa/);
   assert.match(deferredMap, /HydrologyMapErrorBoundary/);
+  assert.match(deferredMap, /return \(\s*<HydrologyMapErrorBoundary/);
   assert.match(saceContext, /<HydrologyMapDeferred/);
   assert.match(defesaCivil, /<HydrologyMapDeferred/);
 });
 
-test("MapLibre callbacks remain locally contained after opt-in", () => {
+test("MapLibre callbacks remain locally contained during automatic mount", () => {
   assert.match(saceMap, /Mapa SACE isolado após falha no carregamento/);
   assert.match(saceMap, /Mapa SACE isolado após falha de atualização/);
   assert.match(defesaMap, /Mapa da Defesa Civil isolado após falha no carregamento/);
