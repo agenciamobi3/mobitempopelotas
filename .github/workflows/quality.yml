@@ -98,6 +98,9 @@ jobs:
       - name: Hidrologia diferida da Home
         run: node --test tests/home-deferred-hydrology.test.ts
 
+      - name: Semântica dos estados degradados da hidrologia
+        run: node --test tests/hydrology-degraded-state-semantics.test.ts
+
       - name: Inventário Defesa Civil RS
         run: node --test tests/defesa-civil-inventory.test.ts
 
