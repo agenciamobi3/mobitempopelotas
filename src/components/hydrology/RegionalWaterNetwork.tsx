@@ -199,6 +199,14 @@ export function RegionalWaterNetwork({
   variant = "home",
 }: RegionalWaterNetworkProps) {
   const full = variant === "full";
+  const hasLagoonObservations = lagoon.observations.length > 0;
+  const lagoonHeading =
+    lagoon.status === "unavailable"
+      ? "Dados temporariamente indisponíveis nesta consulta"
+      : `${lagoon.available}/${lagoon.total} estações com leitura nesta consulta`;
+  const lagoonFooter = lagoon.latestUpdatedAt
+    ? `Última leitura regional: ${formatDateTime(lagoon.latestUpdatedAt)}`
+    : `Consulta do portal: ${formatDateTime(lagoon.source.fetchedAt)}`;
 
   return (
     <section
@@ -219,109 +227,124 @@ export function RegionalWaterNetwork({
       <div className="regional-water-layout">
         <GuaibaPanel data={guaiba} full={full} />
 
-        <div className={`regional-water-lagoon is-${lagoon.status}`}>
+        <div
+          className={`regional-water-lagoon is-${lagoon.status}${hasLagoonObservations ? "" : " is-empty"}`}
+          style={hasLagoonObservations ? undefined : { alignSelf: "start" }}
+        >
           <div className="regional-water-lagoon-heading">
             <div>
               <span>FURG & Portos RS</span>
               <h3>Rede da Lagoa dos Patos</h3>
-              <p>
-                {lagoon.available}/{lagoon.total} estações com leitura nesta consulta
-              </p>
+              <p>{lagoonHeading}</p>
             </div>
             <Waves aria-hidden="true" />
           </div>
 
-          <div className="regional-water-stations">
-            {lagoon.observations.map((observation) => {
-              const available = observation.currentLevelCm !== null;
-              const status = stationStatus(observation);
-              const trend = trendState(observation.trendCmPerHour);
-              const TrendIcon = trend.icon;
-              const progress =
-                observation.floodThresholdPercentage === null
-                  ? null
-                  : Math.max(0, Math.min(observation.floodThresholdPercentage, 100));
+          {hasLagoonObservations ? (
+            <div className="regional-water-stations">
+              {lagoon.observations.map((observation) => {
+                const available = observation.currentLevelCm !== null;
+                const status = stationStatus(observation);
+                const trend = trendState(observation.trendCmPerHour);
+                const TrendIcon = trend.icon;
+                const progress =
+                  observation.floodThresholdPercentage === null
+                    ? null
+                    : Math.max(0, Math.min(observation.floodThresholdPercentage, 100));
 
-              return (
-                <article
-                  className={`regional-water-station ${status.className}`}
-                  key={observation.station.id}
-                >
-                  <header>
-                    <div>
-                      <small>{observation.station.city}</small>
-                      <h4>{observation.station.name}</h4>
-                    </div>
-                    <span>{status.label}</span>
-                  </header>
+                return (
+                  <article
+                    className={`regional-water-station ${status.className}`}
+                    key={observation.station.id}
+                  >
+                    <header>
+                      <div>
+                        <small>{observation.station.city}</small>
+                        <h4>{observation.station.name}</h4>
+                      </div>
+                      <span>{status.label}</span>
+                    </header>
 
-                  {available ? (
-                    <>
-                      <div className="regional-water-station-reading">
-                        <strong>{formatNumber(observation.currentLevelCm)}</strong>
-                        <span>cm</span>
-                      </div>
-                      <div className={`regional-water-trend ${trend.className}`}>
-                        <TrendIcon aria-hidden="true" />
-                        <span>{trend.label}</span>
-                      </div>
-                      <p>{distanceLabel(observation)}</p>
-                      {progress !== null ? (
-                        <div
-                          className="regional-water-progress"
-                          aria-label={`${formatNumber(observation.floodThresholdPercentage)}% da cota local`}
-                        >
-                          <span style={{ width: `${progress}%` }} />
+                    {available ? (
+                      <>
+                        <div className="regional-water-station-reading">
+                          <strong>{formatNumber(observation.currentLevelCm)}</strong>
+                          <span>cm</span>
                         </div>
-                      ) : null}
-                      <dl>
-                        <div>
-                          <dt>Cota local</dt>
-                          <dd>
-                            {observation.floodLevelCm === null
-                              ? "Não publicada"
-                              : `${formatNumber(observation.floodLevelCm)} cm`}
-                          </dd>
+                        <div className={`regional-water-trend ${trend.className}`}>
+                          <TrendIcon aria-hidden="true" />
+                          <span>{trend.label}</span>
                         </div>
-                        <div>
-                          <dt>Variação 24h</dt>
-                          <dd>{formatNumber(observation.change24hCm)} cm</dd>
-                        </div>
-                        {full ? (
-                          <div>
-                            <dt>Máxima mai/2024</dt>
-                            <dd>
-                              {observation.may2024MaximumCm === null
-                                ? "—"
-                                : `${formatNumber(observation.may2024MaximumCm)} cm`}
-                            </dd>
+                        <p>{distanceLabel(observation)}</p>
+                        {progress !== null ? (
+                          <div
+                            className="regional-water-progress"
+                            aria-label={`${formatNumber(observation.floodThresholdPercentage)}% da cota local`}
+                          >
+                            <span style={{ width: `${progress}%` }} />
                           </div>
                         ) : null}
-                      </dl>
-                      {full ? (
-                        <p className="regional-water-role">{observation.station.role}</p>
-                      ) : null}
-                    </>
-                  ) : (
-                    <div className="regional-water-unavailable" role="status">
-                      <Activity aria-hidden="true" />
-                      <div>
-                        <strong>Leitura indisponível</strong>
-                        <p>{observation.error}</p>
+                        <dl>
+                          <div>
+                            <dt>Cota local</dt>
+                            <dd>
+                              {observation.floodLevelCm === null
+                                ? "Não publicada"
+                                : `${formatNumber(observation.floodLevelCm)} cm`}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>Variação 24h</dt>
+                            <dd>{formatNumber(observation.change24hCm)} cm</dd>
+                          </div>
+                          {full ? (
+                            <div>
+                              <dt>Máxima mai/2024</dt>
+                              <dd>
+                                {observation.may2024MaximumCm === null
+                                  ? "—"
+                                  : `${formatNumber(observation.may2024MaximumCm)} cm`}
+                              </dd>
+                            </div>
+                          ) : null}
+                        </dl>
+                        {full ? (
+                          <p className="regional-water-role">{observation.station.role}</p>
+                        ) : null}
+                      </>
+                    ) : (
+                      <div className="regional-water-unavailable" role="status">
+                        <Activity aria-hidden="true" />
+                        <div>
+                          <strong>Leitura indisponível</strong>
+                          <p>{observation.error}</p>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  <footer>
-                    <small>{formatDateTime(observation.updatedAt)}</small>
-                  </footer>
-                </article>
-              );
-            })}
-          </div>
+                    <footer>
+                      <small>{formatDateTime(observation.updatedAt)}</small>
+                    </footer>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="regional-water-unavailable" role="status" style={{ margin: "1rem" }}>
+              <Activity aria-hidden="true" />
+              <div>
+                <strong>Rede da Lagoa sem leituras nesta atualização</strong>
+                <p>
+                  A integração do Tempo Pelotas não recebeu leituras válidas nesta consulta. Isso não
+                  significa que a rede original esteja sem medições; consulte a fonte oficial para o
+                  estado mais recente.
+                </p>
+              </div>
+            </div>
+          )}
 
           <footer className="regional-water-lagoon-footer">
-            <span>Última atualização regional: {formatDateTime(lagoon.latestUpdatedAt)}</span>
+            <span>{lagoonFooter}</span>
             <a href={lagoon.source.url} target="_blank" rel="noreferrer">
               Abrir rede original <ExternalLink aria-hidden="true" />
             </a>
