@@ -114,9 +114,9 @@ test("sol entre nuvens alterna entre os dois registros locais pela cobertura de 
   const denser = resolveHeroPhoto({ weather: partlyCloudyWeather(68), icon: "partly-cloudy" });
 
   assert.equal(lighter.kind, "partly-cloudy-light");
-  assert.equal(lighter.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
+  assert.equal(lighter.src, "/weather/hero/pelotas parcialmente nublado centro.jpg");
   assert.equal(denser.kind, "partly-cloudy-dense");
-  assert.equal(denser.src, "/weather/hero/pelotas parcialmente nublado centro.jpg");
+  assert.equal(denser.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
 });
 
 test("a narrativa de chuva futura não troca uma foto de sol entre nuvens por chuva", () => {
@@ -127,6 +127,7 @@ test("a narrativa de chuva futura não troca uma foto de sol entre nuvens por ch
   });
 
   assert.equal(photo.kind, "partly-cloudy-dense");
+  assert.equal(photo.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
   assert.notEqual(photo.src, "/weather/hero/pelotas-laranjal-chuva.webp");
 });
 

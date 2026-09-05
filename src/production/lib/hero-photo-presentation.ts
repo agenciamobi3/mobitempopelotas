@@ -43,15 +43,15 @@ const heroPhotos = {
   },
   "partly-cloudy-light": {
     kind: "partly-cloudy-light",
-    src: "/weather/hero/pelotas-parcialmente-nublado.avif",
-    position: "center 50%",
-    credit: "Acervo Tempo Pelotas",
-  },
-  "partly-cloudy-dense": {
-    kind: "partly-cloudy-dense",
     src: "/weather/hero/pelotas parcialmente nublado centro.jpg",
     position: "center 50%",
     credit: "Acervo Tempo Pelotas · Centro de Pelotas",
+  },
+  "partly-cloudy-dense": {
+    kind: "partly-cloudy-dense",
+    src: "/weather/hero/pelotas-parcialmente-nublado.avif",
+    position: "center 50%",
+    credit: "Acervo Tempo Pelotas",
   },
   cloudy: {
     kind: "cloudy",
