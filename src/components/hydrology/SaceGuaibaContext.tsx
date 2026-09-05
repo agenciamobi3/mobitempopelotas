@@ -37,6 +37,10 @@ function formatDateTime(value: string) {
   }).format(date);
 }
 
+function displayCount(data: SaceGuaibaData, value: number) {
+  return data.status === "unavailable" ? "—" : value;
+}
+
 function isAboveNormal(station: SaceGuaibaStation) {
   return station.transmitting && station.alertType.toUpperCase() !== "NORMAL";
 }
@@ -120,25 +124,25 @@ export function SaceGuaibaContext({ data }: { data: SaceGuaibaData }) {
         <article>
           <Database aria-hidden="true" />
           <span>Estações publicadas</span>
-          <strong>{data.counts.total || "—"}</strong>
+          <strong>{displayCount(data, data.counts.total)}</strong>
           <small>Pontos retornados pela rede pública do SACE.</small>
         </article>
         <article>
           <RadioTower aria-hidden="true" />
           <span>Com transmissão</span>
-          <strong>{data.counts.transmitting || "—"}</strong>
+          <strong>{displayCount(data, data.counts.transmitting)}</strong>
           <small>Estações sem a categoria oficial “Sem transmissão”.</small>
         </article>
-        <article className={data.counts.aboveNormal > 0 ? "is-attention" : ""}>
+        <article className={data.status !== "unavailable" && data.counts.aboveNormal > 0 ? "is-attention" : ""}>
           <Activity aria-hidden="true" />
           <span>Acima de normal</span>
-          <strong>{data.counts.aboveNormal}</strong>
+          <strong>{displayCount(data, data.counts.aboveNormal)}</strong>
           <small>Categorias de atenção, alerta ou inundação informadas pelo SACE.</small>
         </article>
         <article>
           <WifiOff aria-hidden="true" />
           <span>Sem transmissão</span>
-          <strong>{data.counts.withoutTransmission}</strong>
+          <strong>{displayCount(data, data.counts.withoutTransmission)}</strong>
           <small>Ausência de dado não significa nível normal.</small>
         </article>
       </div>
