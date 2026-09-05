@@ -44,6 +44,9 @@ jobs:
       - name: Contratos rápidos
         run: npm run test:contracts
 
+      - name: Histórico documentado da cheia de 2015
+        run: node --test tests/flood-2015-historical-page.test.ts
+
       - name: Histórico do status de dados
         run: node --test tests/data-status-history.test.ts
 
