@@ -15,7 +15,20 @@ const AUTH_ERRORS: Record<string, string> = {
   oauth: "Não foi possível concluir o acesso. Tente novamente.",
 };
 
-export function GoogleLoginCard({ nextPath, errorCode }: { nextPath: string; errorCode?: string }) {
+export function GoogleLoginCard({
+  nextPath,
+  errorCode,
+  eyebrow = "Conta Tempo Pelotas",
+  title = "Personalize alertas sem perder o acesso público",
+  description =
+    "A conta serve apenas para preferências opcionais. Previsão, imagens de satélite, câmeras, níveis das águas e avisos oficiais continuam disponíveis para todos.",
+}: {
+  nextPath: string;
+  errorCode?: string;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+}) {
   const buttonHostRef = useRef<HTMLDivElement>(null);
   const supabaseConfigured = isSupabaseBrowserConfigured();
   const googleClientId = getGoogleWebClientId();
@@ -113,12 +126,9 @@ export function GoogleLoginCard({ nextPath, errorCode }: { nextPath: string; err
 
   return (
     <section className="login-card" aria-labelledby="login-card-title">
-      <span className="eyebrow">Conta Tempo Pelotas</span>
-      <h1 id="login-card-title">Personalize alertas sem perder o acesso público</h1>
-      <p>
-        A conta serve apenas para preferências opcionais. Previsão, imagens de satélite, câmeras,
-        níveis das águas e avisos oficiais continuam disponíveis para todos.
-      </p>
+      <span className="eyebrow">{eyebrow}</span>
+      <h1 id="login-card-title">{title}</h1>
+      <p>{description}</p>
 
       <div
         className={`login-card__google${loading ? " is-loading" : ""}`}
