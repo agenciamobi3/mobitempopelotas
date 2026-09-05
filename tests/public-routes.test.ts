@@ -18,6 +18,7 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
   "/enchente-1941-pelotas",
+  "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/cameras-ao-vivo-pelotas",
   "/tempo-na-regiao-sul-rs",
@@ -118,5 +119,6 @@ test("mantém atualização frequente nas páginas operacionais", () => {
 test("mantém páginas históricas com cadência editorial mensal", () => {
   const routeMap = new Map(PUBLIC_ROUTES.map((route) => [route.path, route]));
   assert.equal(routeMap.get("/enchente-1941-pelotas")?.changeFrequency, "monthly");
+  assert.equal(routeMap.get("/enchente-2015-pelotas")?.changeFrequency, "monthly");
   assert.equal(routeMap.get("/enchente-2024-pelotas-laranjal")?.changeFrequency, "monthly");
 });
