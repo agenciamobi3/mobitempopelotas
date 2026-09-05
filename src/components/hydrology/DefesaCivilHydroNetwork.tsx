@@ -18,6 +18,7 @@ import type {
 } from "@/lib/hydrology/defesa-civil-rs.server";
 
 import { DefesaCivilHydroMap } from "./DefesaCivilHydroMap";
+import { HydrologyMapDeferred } from "./HydrologyMapDeferred";
 import "./DefesaCivilHydroNetwork.css";
 import "./DefesaCivilHydroInventory.css";
 
@@ -334,7 +335,14 @@ export function DefesaCivilHydroNetwork({ data }: { data: DefesaCivilHydroData }
                 </span>
               </div>
             </div>
-            <DefesaCivilHydroMap stations={data.stations} />
+            <HydrologyMapDeferred
+              label="Mapa da Rede da Defesa Civil RS"
+              title="Carregue o mapa somente quando precisar explorar as estações."
+              description="As leituras e os cartões das estações têm prioridade e continuam visíveis sem iniciar o MapLibre automaticamente."
+              fallbackDescription="As leituras oficiais e a lista de estações continuam disponíveis nesta página."
+            >
+              <DefesaCivilHydroMap stations={data.stations} />
+            </HydrologyMapDeferred>
           </div>
 
           <div className="defesa-civil-hydro__stations-heading">
