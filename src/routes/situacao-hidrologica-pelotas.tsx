@@ -9,6 +9,7 @@ import {
   HydrologyOverviewV2,
 } from "@/components/hydrology/HydrologyOverviewV2";
 import "@/components/hydrology/HydrologyOverviewHomeContract.css";
+import { HydrologySectionBoundary } from "@/components/hydrology/HydrologySectionBoundary";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { HYDROLOGY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { loadHydrologyOverviewPageData } from "@/lib/hydrology/public-hydrology-page-loader";
@@ -181,14 +182,18 @@ function SituacaoHidrologicaPage() {
             lagoon={data.lagoon}
             sace={data.sace}
           />
-          <HydrologyOverviewV2
-            weather={recoveredWeather}
-            level={data.level}
-            guaiba={data.guaiba}
-            lagoon={data.lagoon}
-            sace={data.sace}
-          />
-          <DefesaCivilHydroNetwork data={data.defesaCivil} />
+          <HydrologySectionBoundary label="Painel regional de hidrologia">
+            <HydrologyOverviewV2
+              weather={recoveredWeather}
+              level={data.level}
+              guaiba={data.guaiba}
+              lagoon={data.lagoon}
+              sace={data.sace}
+            />
+          </HydrologySectionBoundary>
+          <HydrologySectionBoundary label="Rede da Defesa Civil RS">
+            <DefesaCivilHydroNetwork data={data.defesaCivil} />
+          </HydrologySectionBoundary>
           <OfficialDataAccessNotice scope="hydrology" />
           <EditorialContentSection
             id="como-interpretar-situacao-das-aguas"
