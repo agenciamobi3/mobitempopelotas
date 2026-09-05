@@ -41,18 +41,35 @@ type InternalWeatherPageShellProps = {
   hero?: (context: InternalWeatherShellContext) => ReactNode;
   showOfficialAlerts?: boolean;
   pageClassName?: string;
+  recoverWeatherAfterHydration?: boolean;
 };
 
-export function InternalWeatherPageShell({
-  data,
+type ResolvedInternalWeatherPageShellProps = InternalWeatherPageShellProps & {
+  resolvedData: WeatherIntelligenceData;
+};
+
+export function InternalWeatherPageShell(props: InternalWeatherPageShellProps) {
+  if (props.recoverWeatherAfterHydration === false) {
+    return <ResolvedInternalWeatherPageShell {...props} resolvedData={props.data} />;
+  }
+
+  return <RecoveringInternalWeatherPageShell {...props} />;
+}
+
+function RecoveringInternalWeatherPageShell(props: InternalWeatherPageShellProps) {
+  const recoveredData = useWeatherIntelligenceBrowserRecovery(props.data);
+  return <ResolvedInternalWeatherPageShell {...props} resolvedData={recoveredData} />;
+}
+
+function ResolvedInternalWeatherPageShell({
   children,
   hero,
   showOfficialAlerts = true,
   pageClassName = "",
-}: InternalWeatherPageShellProps) {
-  const recoveredData = useWeatherIntelligenceBrowserRecovery(data);
-  const productionWeather = toProductionWeatherData(recoveredData.weather);
-  const inmetAlerts = toProductionAlerts(recoveredData.weather);
+  resolvedData,
+}: ResolvedInternalWeatherPageShellProps) {
+  const productionWeather = toProductionWeatherData(resolvedData.weather);
+  const inmetAlerts = toProductionAlerts(resolvedData.weather);
   const advisory = getWeatherAdvisory(productionWeather);
   const pelotasOfficialAlerts = inmetAlerts.alerts.filter(
     (alert) => alert.relevance === "pelotas",
@@ -96,13 +113,13 @@ export function InternalWeatherPageShell({
     .filter(Boolean)
     .join(" ");
   const shellContext: InternalWeatherShellContext = {
-    data: recoveredData,
+    data: resolvedData,
     weather: productionWeather,
     advisoryLevel,
     officialAlertCount: pelotasOfficialAlerts.length,
   };
   const renderedChildren =
-    typeof children === "function" ? children(recoveredData) : children;
+    typeof children === "function" ? children(resolvedData) : children;
 
   return (
     <div className={shellClassName} data-internal-weather-style="home-editorial">
