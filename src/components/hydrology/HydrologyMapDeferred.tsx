@@ -1,6 +1,6 @@
 "use client";
 
-import { Component, useState, type ErrorInfo, type ReactNode } from "react";
+import { Component, type ErrorInfo, type ReactNode } from "react";
 import { MapPinned } from "lucide-react";
 
 import "./HydrologyMapDeferred.css";
@@ -71,32 +71,12 @@ class HydrologyMapErrorBoundary extends Component<
 
 export function HydrologyMapDeferred({
   label,
-  title,
-  description,
   fallbackDescription,
   children,
 }: HydrologyMapDeferredProps) {
-  const [requested, setRequested] = useState(false);
-
-  if (requested) {
-    return (
-      <HydrologyMapErrorBoundary label={label} fallbackDescription={fallbackDescription}>
-        {children}
-      </HydrologyMapErrorBoundary>
-    );
-  }
-
   return (
-    <div className="hydrology-map-deferred__placeholder" role="region" aria-label={label}>
-      <MapPinned aria-hidden="true" />
-      <div>
-        <span>{label}</span>
-        <strong>{title}</strong>
-        <small>{description}</small>
-        <button type="button" onClick={() => setRequested(true)}>
-          Carregar mapa
-        </button>
-      </div>
-    </div>
+    <HydrologyMapErrorBoundary label={label} fallbackDescription={fallbackDescription}>
+      {children}
+    </HydrologyMapErrorBoundary>
   );
 }
