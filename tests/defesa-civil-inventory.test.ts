@@ -54,6 +54,13 @@ test("regional inventory counts each dynamic station classification", () => {
   assert.match(area, /data\.inventory\.UNKNOWN/);
 });
 
+test("live Defesa Civil station cards keep number formatting and sensor semantics safe", () => {
+  assert.match(area, /const maximumFractionDigits = Math\.max\(0, digits\)/);
+  assert.match(area, /Math\.min\(1, maximumFractionDigits\)/);
+  assert.match(area, /const hasHydrology = station\.capabilities\.riverLevel/);
+  assert.doesNotMatch(area, /station\.capabilities\.riverLevel \|\| station\.river\.levelM !== null/);
+});
+
 test("public UI explains capability classification without converting it into risk", () => {
   assert.match(area, /Inventário regional por capacidade/);
   assert.match(area, /Classificação automática baseada nas capacidades e variáveis/);
