@@ -29,6 +29,7 @@ const internalWeatherStandaloneRoutes = [
   "/mapa-de-geadas-rio-grande-do-sul",
   "/nivel-do-guaiba",
   "/enchente-1941-pelotas",
+  "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/quem-somos",
 ] as const;
