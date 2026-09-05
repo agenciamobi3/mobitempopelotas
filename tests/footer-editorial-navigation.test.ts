@@ -26,6 +26,7 @@ const footerRoutes = [
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
   "/enchente-1941-pelotas",
+  "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/tempo-na-regiao-sul-rs",
   "/clima-em-pelotas",
