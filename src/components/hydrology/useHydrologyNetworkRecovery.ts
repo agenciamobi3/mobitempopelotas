@@ -13,6 +13,10 @@ function canReplaceDefesaCivil(data: DefesaCivilHydroData) {
   return data.status === "live" || data.status === "partial" || data.status === "disabled";
 }
 
+function runRecovery<T>(run: () => Promise<T>) {
+  return Promise.resolve().then(run);
+}
+
 export function useHydrologyNetworkRecovery(
   baselineSace: SaceGuaibaData,
   baselineDefesaCivil: DefesaCivilHydroData,
@@ -30,13 +34,13 @@ export function useHydrologyNetworkRecovery(
       };
     }
 
-    void getSaceGuaibaData()
+    void runRecovery(() => getSaceGuaibaData())
       .then((nextData) => {
         if (!active || !canReplaceSace(nextData)) return;
         setSace(nextData);
       })
       .catch(() => {
-        // A página preserva o fallback inicial sem transformar falha de integração em normalidade.
+        // A página preserva o fallback inicial mesmo quando a server function falha antes de devolver Promise.
       });
 
     return () => {
@@ -54,13 +58,13 @@ export function useHydrologyNetworkRecovery(
       };
     }
 
-    void getDefesaCivilHydroData()
+    void runRecovery(() => getDefesaCivilHydroData())
       .then((nextData) => {
         if (!active || !canReplaceDefesaCivil(nextData)) return;
         setDefesaCivil(nextData);
       })
       .catch(() => {
-        // A recuperação é independente; falha aqui não afeta SACE, meteorologia ou demais blocos.
+        // A recuperação é independente; falha síncrona ou assíncrona não afeta os demais blocos.
       });
 
     return () => {
