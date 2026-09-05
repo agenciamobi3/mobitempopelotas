@@ -52,6 +52,23 @@ export const FLOOD_2015_KEY_FACTS = [
 
 export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
   {
+    date: "14 de outubro · tarde",
+    title: "A Prefeitura entra em alerta antes do auge da cheia",
+    stage: "lagoa",
+    stageLabel: "Prelúdio documentado",
+    paragraphs: [
+      "Cinco dias antes do período mais crítico, a Prefeitura já relacionava a subida da Lagoa dos Patos ao escoamento para o sul das águas do Guaíba e mantinha as secretarias envolvidas em alerta.",
+      "A Defesa Civil retirava famílias do Cedrinho, na Z3. No Santo Antônio, a água alcançava a área do shopping Mar de Dentro e, no Valverde, o trapiche estava praticamente submerso.",
+      "Até 13 de outubro, o acumulado mensal de chuva era de 170 mm, diante da média de 101 mm citada pelo Município. A régua da Casa de Bombas do Porto marcava 2,10 m de profundidade naquela tarde.",
+    ],
+    measurements: [
+      { label: "Chuva em outubro até 13/10", value: "170 mm", detail: "média de outubro citada pela Prefeitura: 101 mm" },
+      { label: "Casa de Bombas do Porto", value: "2,10 m", detail: "profundidade na régua local; não é cota diretamente comparável à série Lagoa/São Gonçalo" },
+    ],
+    highlight:
+      "A cheia já apresentava sinais operacionais antes do auge de 18-19/10; a régua do Porto é preservada como referência própria.",
+  },
+  {
     date: "18-19 de outubro de 2015",
     title: "O período mais crítico da cheia",
     stage: "pelotas",
@@ -178,25 +195,43 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
     ],
   },
   {
+    date: "27 de outubro · manhã",
+    title: "Lagoa recua 40 cm, mas Defesa Civil ainda desaconselha o retorno",
+    stage: "lagoa",
+    stageLabel: "Corroboração contemporânea da Defesa Civil",
+    paragraphs: [
+      "Como os corpos dos boletins municipais de 27/10 continuam inacessíveis, esta leitura foi resgatada em reportagem contemporânea da GZH que atribui os dados à Defesa Civil de Pelotas.",
+      "A Lagoa dos Patos havia baixado 40 cm naquela manhã e media 1,60 m. A água recuava nas ruas e nenhuma família havia sido resgatada nas horas anteriores, mas a orientação ainda era não retornar às casas por causa da previsão de ventos fortes.",
+      "Ainda havia 137 pessoas em abrigos. A CEEE já havia restabelecido a energia em 1.270 casas e avaliava outros 686 pontos sem luz. O dique provisório do Valverde seguia em construção.",
+    ],
+    measurements: [
+      { label: "Lagoa dos Patos", value: "1,60 m", detail: "manhã de 27/10; GZH citando Defesa Civil de Pelotas" },
+      { label: "Variação da Lagoa", value: "-40 cm", detail: "na manhã de 27/10, segundo a mesma fonte" },
+      { label: "Pessoas em abrigos", value: "137", detail: "registro contemporâneo da Defesa Civil reproduzido pela GZH" },
+    ],
+    highlight:
+      "Corroboração contemporânea: a leitura não substitui os boletins municipais de 11h e 19h, cujos corpos continuam perdidos.",
+  },
+  {
     date: "27 de outubro · fim da tarde",
     title: "A série oficial registra 2,02 m no São Gonçalo e 1,80 m na Lagoa",
     stage: "lagoa",
-    stageLabel: "Níveis ainda elevados",
+    stageLabel: "Níveis restatados pelo boletim seguinte",
     paragraphs: [
-      "O arquivo municipal lista boletins às 11h e às 19h em 27 de outubro. O corpo dessas duas páginas antigas não está sendo recuperado de forma confiável pelo arquivo público atual.",
+      "O arquivo municipal lista boletins às 11h e às 19h em 27 de outubro, mas os corpos dessas duas páginas antigas ainda não foram recuperados.",
       "Há, porém, uma referência oficial inequívoca no boletim de 28 de outubro: a Prefeitura informa que as leituras daquela manhã eram as mesmas do final da tarde do dia anterior.",
       "Por isso, os valores abaixo podem ser associados ao fim da tarde de 27 sem reconstruir o restante das leituras daquele dia.",
     ],
     measurements: [
-      { label: "Canal São Gonçalo", value: "2,02 m", detail: "fim da tarde de 27/10, restatado no boletim de 28/10" },
-      { label: "Lagoa dos Patos", value: "1,80 m", detail: "fim da tarde de 27/10, restatado no boletim de 28/10" },
+      { label: "Canal São Gonçalo", value: "2,02 m", detail: "fim da tarde de 27/10, restatado no boletim oficial de 28/10" },
+      { label: "Lagoa dos Patos", value: "1,80 m", detail: "fim da tarde de 27/10, restatado no boletim oficial de 28/10" },
     ],
   },
   {
     date: "28 de outubro · 11h",
     title: "Chuva e vento mantêm os níveis do fim da tarde anterior",
     stage: "pelotas",
-    stageLabel: "Resposta e reconhecimento federal",
+    stageLabel: "Boletim oficial",
     paragraphs: [
       "A Prefeitura informou que os fortes ventos da madrugada e a chuva até as 2h mantiveram inalterados os níveis da Lagoa e do São Gonçalo em relação ao fim da tarde anterior.",
       "Ainda permaneciam 137 pessoas em abrigos oficiais: 123 da Z3 e 14 de Novo Valverde, Pontal da Barra e Valverde.",
@@ -205,7 +240,26 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
     measurements: [
       { label: "Canal São Gonçalo", value: "2,02 m", detail: "inalterado frente ao fim da tarde de 27/10" },
       { label: "Lagoa dos Patos", value: "1,80 m", detail: "inalterada frente ao fim da tarde de 27/10" },
+      { label: "Pessoas em abrigos oficiais", value: "137", detail: "123 da Z3 e 14 de Novo Valverde, Pontal da Barra e Valverde" },
     ],
+  },
+  {
+    date: "28 de outubro · cerca de 14h",
+    title: "Nova medição mostra o São Gonçalo em 2,04 m",
+    stage: "lagoa",
+    stageLabel: "Corroboração contemporânea da Defesa Civil",
+    paragraphs: [
+      "Uma reportagem da GZH publicada às 14h01 registrou a medição mais recente da Defesa Civil naquele momento: a Lagoa permanecia em 1,80 m e o Canal São Gonçalo aparecia em 2,04 m.",
+      "A leitura intermediária mostra uma oscilação de 2 cm no canal em relação ao boletim municipal das 11h, enquanto a Lagoa permanecia no mesmo valor.",
+      "A mesma reportagem registrou 137 pessoas ainda em abrigos e reproduziu a estimativa municipal de mais de 3 mil casas e cerca de 10 mil pessoas atingidas, com levantamento ainda não finalizado.",
+    ],
+    measurements: [
+      { label: "Canal São Gonçalo", value: "2,04 m", detail: "última medição da Defesa Civil citada pela GZH às 14h01" },
+      { label: "Lagoa dos Patos", value: "1,80 m", detail: "última medição da Defesa Civil citada pela GZH às 14h01" },
+      { label: "Variação do São Gonçalo", value: "+2 cm", detail: "comparação com o boletim oficial das 11h; não substitui o boletim perdido das 18h" },
+    ],
+    highlight:
+      "O boletim municipal das 18h continua sem corpo recuperado; esta medição documenta apenas o meio da tarde.",
   },
   {
     date: "29 de outubro",
@@ -214,7 +268,8 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
     stageLabel: "Arquivo municipal",
     paragraphs: [
       "A listagem histórica da Prefeitura confirma uma nova edição de “Cheias 2015 - Boletim atualizado às 11h” em 29 de outubro.",
-      "O corpo dessa notícia não está sendo entregue de forma confiável pelo arquivo público atual. Por isso, esta linha do tempo registra a existência do boletim, mas não atribui a ele níveis, totais ou tendência que não tenham sido recuperados do texto original.",
+      "O corpo dessa notícia não está sendo entregue de forma confiável pelo arquivo público atual. A GZH também preserva no seu índice uma matéria daquele dia sobre a queda do número de desabrigados em Pelotas e Rio Grande, mas o corpo dessa reportagem tampouco foi recuperado nesta pesquisa.",
+      "Por isso, esta linha do tempo registra a existência documental das publicações, mas não atribui a elas níveis, totais ou tendência que não tenham sido recuperados do texto original.",
     ],
     highlight: "Boletim identificado; medições não preenchidas sem o corpo documental.",
   },
@@ -282,19 +337,19 @@ export const FLOOD_2015_ARCHIVE: Flood2015ArchiveEntry[] = [
     date: "27/10",
     publications: ["Boletim atualizado às 11h", "Boletim atualizado às 19h"],
     retrieval: "indexed",
-    note: "As duas edições aparecem no índice oficial. Os valores do fim da tarde foram recuperados apenas porque o boletim de 28/10 os repete explicitamente.",
+    note: "As duas edições aparecem no índice oficial, com URLs históricas terminadas em 39270 e 39279. Os corpos seguem indisponíveis; a leitura da manhã foi resgatada pela GZH citando a Defesa Civil e os valores do fim da tarde são restatados pelo boletim oficial de 28/10.",
   },
   {
     date: "28/10",
     publications: ["Boletim atualizado às 11h", "Boletim atualizado às 18h", "União reconhece Situação de Emergência de Pelotas"],
     retrieval: "full",
-    note: "A edição das 11h e o registro do reconhecimento federal foram recuperados; o índice também preserva a edição das 18h.",
+    note: "A edição das 11h e o reconhecimento federal foram recuperados. A edição das 18h, URL histórica terminada em 39294, segue sem corpo; uma medição intermediária por volta de 14h foi resgatada pela GZH citando a Defesa Civil.",
   },
   {
     date: "29/10",
     publications: ["Boletim atualizado às 11h"],
     retrieval: "indexed",
-    note: "A existência da edição está comprovada pelo índice municipal, mas o corpo antigo não é entregue de forma confiável pelo arquivo atual.",
+    note: "A existência da edição está comprovada pelo índice municipal, mas o corpo antigo não é entregue de forma confiável pelo arquivo atual. Um índice contemporâneo da GZH comprova notícia sobre queda de desabrigados, também sem corpo recuperado.",
   },
   {
     date: "03/11",
@@ -305,6 +360,13 @@ export const FLOOD_2015_ARCHIVE: Flood2015ArchiveEntry[] = [
 ] as const;
 
 export const FLOOD_2015_SOURCES: Flood2015Source[] = [
+  {
+    name: "Nível da Lagoa dos Patos sobe e põe prefeitura em alerta",
+    organization: "Prefeitura Municipal de Pelotas",
+    date: "14/10/2015",
+    url: "https://www.pelotas.com.br/noticia/nivel-da-lagoa-dos-patos-sobe-e-poe-prefeitura-em-alerta",
+    role: "Registra o prelúdio da cheia, 170 mm acumulados até 13/10, evacuações na Z3 e a régua local da Casa de Bombas do Porto.",
+  },
   {
     name: "Enchentes 2015",
     organization: "Prefeitura Municipal de Pelotas",
@@ -362,6 +424,13 @@ export const FLOOD_2015_SOURCES: Flood2015Source[] = [
     role: "Registra leituras da manhã e tarde, restabelecimento de energia, drenagem e continuidade da assistência à Barra.",
   },
   {
+    name: "Nível da Lagoa dos Patos diminui mas moradores ainda não devem retornar às casas",
+    organization: "GZH",
+    date: "27/10/2015",
+    url: "https://gauchazh.clicrbs.com.br/geral/noticia/2015/10/nivel-da-lagoa-dos-patos-diminui-mas-moradores-ainda-nao-devem-retornar-as-casas-cj5w4c09l1aj4xbj0f6wchaut.html",
+    role: "Corroboração jornalística contemporânea que atribui à Defesa Civil a leitura de 1,60 m da Lagoa, queda de 40 cm, 137 abrigados e situação da energia.",
+  },
+  {
     name: "Arquivo municipal de Segurança Pública - página 84",
     organization: "Prefeitura Municipal de Pelotas",
     date: "25-29/10/2015",
@@ -374,6 +443,13 @@ export const FLOOD_2015_SOURCES: Flood2015Source[] = [
     date: "28/10/2015",
     url: "https://www.pelotas.rs.gov.br/index.php/noticia/cheias-2015-boletim-atualizado-as-11h",
     role: "Fonte para os níveis de 28/10 e para os mesmos valores registrados no fim da tarde de 27/10, além do número de pessoas ainda em abrigos.",
+  },
+  {
+    name: "Prejuízos públicos em Pelotas ultrapassam R$ 40 milhões",
+    organization: "GZH",
+    date: "28/10/2015",
+    url: "https://gauchazh.clicrbs.com.br/geral/noticia/2015/10/prejuizos-publicos-em-pelotas-ultrapassam-r-40-milhoes-cj5w4d3cf1akrxbj0i844scuk.html",
+    role: "Corroboração jornalística contemporânea que reproduz a última medição da Defesa Civil por volta das 14h: Lagoa 1,80 m e São Gonçalo 2,04 m.",
   },
   {
     name: "União reconhece Situação de Emergência de Pelotas",
