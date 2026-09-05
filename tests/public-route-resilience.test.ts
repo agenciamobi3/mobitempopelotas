@@ -8,6 +8,10 @@ const weatherFunctions = readFileSync(
   "src/lib/weather/weather-intelligence.functions.ts",
   "utf8",
 );
+const browserWeatherRecovery = readFileSync(
+  "src/production/lib/weather-intelligence-browser-recovery.ts",
+  "utf8",
+);
 const sourcePolicy = readFileSync("src/lib/weather/source-policy.ts", "utf8");
 const openMeteoDirect = readFileSync("src/lib/weather/open-meteo.server.ts", "utf8");
 const openMeteoResilient = readFileSync(
@@ -67,6 +71,13 @@ test("server fn meteorologica possui ultima barreira sem confundir latencia norm
   assert.match(weatherFunctions, /fetchWeatherIntelligence\(\)/);
   assert.match(weatherFunctions, /createUnavailableWeatherIntelligence\(\)/);
   assert.match(weatherFunctions, /catch \(error\)/);
+});
+
+test("recuperacao meteorologica no navegador captura falha sincrona da server function", () => {
+  assert.match(browserWeatherRecovery, /function runServerRecovery<T>\(run: \(\) => Promise<T>\)/);
+  assert.match(browserWeatherRecovery, /Promise\.resolve\(\)\.then\(run\)/);
+  assert.match(browserWeatherRecovery, /runServerRecovery\(\(\) => getWeatherIntelligence\(\)\)/);
+  assert.doesNotMatch(browserWeatherRecovery, /void getWeatherIntelligence\(\)/);
 });
 
 test("fontes oficiais possuem budgets individuais abaixo da barreira global", () => {
