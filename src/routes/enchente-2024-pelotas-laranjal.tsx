@@ -6,6 +6,7 @@ import {
 } from "@/components/history/Flood2024HistoricalPage";
 import "@/components/history/Flood2024HomeContract.css";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
+import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
@@ -41,7 +42,10 @@ export const Route = createFileRoute("/enchente-2024-pelotas-laranjal")({
 
 function Enchente2024PelotasPage() {
   return (
-    <ContentPageShell pageClassName="internal-weather-shell--flood-history">
+    <ContentPageShell
+      pageClassName="internal-weather-shell--flood-history"
+      historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
+    >
       <Flood2024Hero />
       <Flood2024HistoricalPage />
     </ContentPageShell>
