@@ -1,6 +1,8 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { getVerifiedRequestUser } from "@/lib/auth/request-user.server";
+import type { ContributionDatabase } from "@/lib/history/contribution-database";
 import {
   createSupabaseAdminClient,
   getSupabaseServerConfig,
@@ -113,6 +115,36 @@ async function loadNotificationDevices(admin: AccountAdminClient, userId: string
   }
 }
 
+async function loadHistoricalContributions(admin: AccountAdminClient, userId: string) {
+  const client = admin as unknown as SupabaseClient<ContributionDatabase>;
+  const records: ContributionDatabase["public"]["Tables"]["historical_contributions"]["Row"][] = [];
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await client
+      .from("historical_contributions")
+      .select(
+        "id,page_path,page_title,event_year,kind,title,description,location_text,date_label,source_url,credit_name,publish_anonymously,attachments,rights_confirmed,publication_authorized,status,moderation_note,created_at,reviewed_at,user_id",
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + EXPORT_PAGE_SIZE - 1)
+      .abortSignal(timeoutSignal());
+
+    if (error) {
+      throw new Error(`Falha ao consultar contribuições históricas: ${error.message}`);
+    }
+
+    const page = data ?? [];
+    if (page.length === 0) return records;
+
+    records.push(...page);
+    if (page.length < EXPORT_PAGE_SIZE) return records;
+    offset += page.length;
+  }
+}
+
 async function exportAccountData(request: Request) {
   try {
     const account = await getVerifiedRequestUser(request);
@@ -146,6 +178,7 @@ async function exportAccountData(request: Request) {
       accessResult,
       consentHistory,
       notificationDevices,
+      historicalContributions,
     ] = await Promise.all([
       admin
         .from("profiles")
@@ -169,6 +202,7 @@ async function exportAccountData(request: Request) {
         .maybeSingle(),
       loadConsentHistory(admin, account.user.id),
       loadNotificationDevices(admin, account.user.id),
+      loadHistoricalContributions(admin, account.user.id),
     ]);
 
     const error = profileResult.error ?? preferencesResult.error ?? accessResult.error;
@@ -185,7 +219,7 @@ async function exportAccountData(request: Request) {
 
     const exportedAt = new Date();
     const document = {
-      export_version: "1.1",
+      export_version: "1.2",
       exported_at: exportedAt.toISOString(),
       portal: "Tempo Pelotas",
       account: {
@@ -199,8 +233,9 @@ async function exportAccountData(request: Request) {
       },
       consent_history: consentHistory,
       notification_devices: notificationDevices,
+      historical_contributions: historicalContributions,
       security_note:
-        "Chaves criptográficas de entrega e credenciais de sessão não fazem parte da exportação por segurança.",
+        "Chaves criptográficas de entrega, credenciais de sessão e o conteúdo binário dos anexos privados não fazem parte desta exportação. Metadados e caminhos dos anexos vinculados às contribuições são incluídos.",
     };
 
     const date = exportedAt.toISOString().slice(0, 10);
