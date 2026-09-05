@@ -16,6 +16,7 @@ type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
   | "/enchente-1941-pelotas"
+  | "/enchente-2015-pelotas"
   | "/enchente-2024-pelotas-laranjal"
   | "/previsao-15-dias-pelotas"
   | "/status-dos-dados"
@@ -142,6 +143,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       "/nivel-da-lagoa-dos-patos-laranjal",
       "/nivel-do-guaiba",
       "/enchente-1941-pelotas",
+      "/enchente-2015-pelotas",
       "/enchente-2024-pelotas-laranjal",
     ],
     featured: {
@@ -178,6 +180,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             label: "Enchente de 1941",
             to: "/enchente-1941-pelotas",
             description: "Registro documental da cheia histórica em Pelotas e no São Gonçalo.",
+          },
+          {
+            label: "Enchente de 2015",
+            to: "/enchente-2015-pelotas",
+            description: "Linha do tempo dos boletins oficiais, níveis, impactos e resposta pública.",
           },
           {
             label: "Enchente de 2024",
