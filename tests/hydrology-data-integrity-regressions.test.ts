@@ -68,6 +68,15 @@ test("SACE and Defesa Civil recover independently after an initial deadline fall
   assert.doesNotMatch(networkRecovery, /setInterval\(|setTimeout\(/);
 });
 
+test("client hydrology recovery contains synchronous server function failures", () => {
+  assert.match(networkRecovery, /function runRecovery<T>\(run: \(\) => Promise<T>\)/);
+  assert.match(networkRecovery, /Promise\.resolve\(\)\.then\(run\)/);
+  assert.match(networkRecovery, /runRecovery\(\(\) => getSaceGuaibaData\(\)\)/);
+  assert.match(networkRecovery, /runRecovery\(\(\) => getDefesaCivilHydroData\(\)\)/);
+  assert.doesNotMatch(networkRecovery, /void getSaceGuaibaData\(\)/);
+  assert.doesNotMatch(networkRecovery, /void getDefesaCivilHydroData\(\)/);
+});
+
 test("public hydrology loader still isolates source failures rather than rejecting the route", () => {
   assert.match(publicLoader, /Promise\.allSettled/);
   assert.match(publicLoader, /settledValueOrFallback/);
