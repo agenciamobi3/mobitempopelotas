@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import {
+  FLOOD_2015_ARCHIVE,
   FLOOD_2015_KEY_FACTS,
   FLOOD_2015_SOURCES,
   FLOOD_2015_TIMELINE,
@@ -42,7 +43,8 @@ export function Flood2015HistoricalPage() {
       <nav className="tp-flood-history__index" aria-label="Nesta página">
         <span>Nesta página</span>
         <a href="#como-a-cheia-se-formou">Como a cheia se formou</a>
-        <a href="#linha-do-tempo-2015">Linha do tempo</a>
+        <a href="#linha-do-tempo-2015">Linha do tempo e medições</a>
+        <a href="#arquivo-boletins-2015">Arquivo de boletins</a>
         <a href="#por-que-nao-drenava">Por que a água não drenava</a>
         <a href="#impactos-e-resposta">Impactos e resposta</a>
         <a href="#como-ler-os-niveis">Como ler os níveis</a>
@@ -91,11 +93,12 @@ export function Flood2015HistoricalPage() {
       >
         <header>
           <span>Linha do tempo documentada</span>
-          <h2 id="tp-flood-2015-timeline-title">Dos dias mais críticos à estabilização</h2>
+          <h2 id="tp-flood-2015-timeline-title">Dos dias mais críticos à estabilização, com as leituras publicadas</h2>
           <p>
             A Prefeitura publicou boletins diariamente, duas ou mais vezes segundo o balanço final.
-            Por isso, cada valor abaixo conserva a data e o contexto em que foi divulgado, sem
-            combinar leituras de horários diferentes para fabricar uma série que as fontes não deram.
+            Cada medição abaixo conserva a data, o horário ou a referência temporal dada pela própria
+            fonte. Quando o boletim informa apenas uma variação, mostramos a variação sem inventar
+            uma cota absoluta.
           </p>
         </header>
 
@@ -112,10 +115,62 @@ export function Flood2015HistoricalPage() {
                 {item.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
+                {item.measurements?.length ? (
+                  <dl className="tp-flood-event__measurements" aria-label={`Medições de ${item.date}`}>
+                    {item.measurements.map((measurement) => (
+                      <div key={`${measurement.label}-${measurement.value}`}>
+                        <dt>{measurement.label}</dt>
+                        <dd>{measurement.value}</dd>
+                        {measurement.detail ? <small>{measurement.detail}</small> : null}
+                      </div>
+                    ))}
+                  </dl>
+                ) : null}
                 {item.highlight ? <b className="tp-flood-event__highlight">{item.highlight}</b> : null}
               </div>
             </section>
           ))}
+        </div>
+      </section>
+
+      <section
+        className="tp-flood-sources"
+        id="arquivo-boletins-2015"
+        aria-labelledby="tp-flood-2015-archive-title"
+      >
+        <div>
+          <span>Arquivo oficial localizado</span>
+          <h2 id="tp-flood-2015-archive-title">A Prefeitura chegou a publicar mais de um boletim por dia</h2>
+        </div>
+        <div>
+          <p>
+            O índice histórico municipal preserva a sequência de atualizações mesmo quando alguns
+            endereços antigos já não entregam o corpo completo da notícia. Isso permite distinguir o
+            que foi integralmente recuperado do que apenas permanece comprovado no inventário.
+          </p>
+          <div className="tp-flood-archive" role="list" aria-label="Boletins de 2015 localizados no arquivo municipal">
+            {FLOOD_2015_ARCHIVE.map((entry) => (
+              <section className="tp-flood-archive__entry" role="listitem" key={entry.date}>
+                <div>
+                  <strong>{entry.date}</strong>
+                  <span className={`is-${entry.retrieval}`}>
+                    {entry.retrieval === "full" ? "conteúdo recuperado" : "apenas índice recuperado"}
+                  </span>
+                </div>
+                <ul>
+                  {entry.publications.map((publication) => (
+                    <li key={publication}>{publication}</li>
+                  ))}
+                </ul>
+                <p>{entry.note}</p>
+              </section>
+            ))}
+          </div>
+          <p className="tp-flood-archive__caveat">
+            Quando o corpo de um boletim não está disponível, a página não completa medições por
+            interpolação, memória secundária ou semelhança de horários. O índice prova que a edição
+            existiu; não prova quais números ela continha.
+          </p>
         </div>
       </section>
 
@@ -166,8 +221,11 @@ export function Flood2015HistoricalPage() {
           <ul>
             <li>pico crítico retrospectivamente situado entre 18 e 19 de outubro;</li>
             <li>Situação de Emergência decretada em 20 de outubro;</li>
-            <li>reconhecimento federal em 28 de outubro;</li>
+            <li>acesso de ônibus à Z3 retomado em 23 de outubro após baixa da Lagoa;</li>
+            <li>dique emergencial iniciado no Pontal da Barra em 25 de outubro;</li>
+            <li>divulgação municipal do reconhecimento federal em 28 de outubro;</li>
             <li>plantão especial da Defesa Civil encerrado em 4 de novembro;</li>
+            <li>abrigos desativados e limpeza intensificada em 5 de novembro;</li>
             <li>balanço consolidado publicado em 6 de novembro.</li>
           </ul>
         </div>
@@ -184,6 +242,11 @@ export function Flood2015HistoricalPage() {
             ser preservados como fotografias daquele instante. O balanço de 6 de novembro é a fonte
             usada para identificar retrospectivamente o período crítico e o valor de 2,20 m do São
             Gonçalo.
+          </p>
+          <p>
+            Para a Lagoa, o mesmo balanço informa que a régua de 1,80 m ficou submersa durante o
+            evento. Isso prova que a água ultrapassou o alcance daquele instrumento, mas não autoriza
+            transformar o registro em uma cota máxima exata acima de 1,80 m.
           </p>
           <p>
             Esses números não são convertidos automaticamente para as estações atuais. Uma comparação
