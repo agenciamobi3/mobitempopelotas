@@ -15,6 +15,7 @@ type MegaMenuId = "forecast" | "water" | "region" | "explore";
 type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
+  | "/nivel-da-lagoa-dos-patos"
   | "/historia-das-enchentes-pelotas"
   | "/enchente-1941-pelotas"
   | "/enchente-2001-pelotas"
@@ -142,6 +143,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
     summary: "Lagoa dos Patos, Guaíba, rede regional e memória das cheias.",
     activePaths: [
       "/situacao-hidrologica-pelotas",
+      "/nivel-da-lagoa-dos-patos",
       "/nivel-da-lagoa-dos-patos-laranjal",
       "/nivel-do-guaiba",
       "/historia-das-enchentes-pelotas",
@@ -160,6 +162,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       {
         title: "Agora",
         links: [
+          {
+            label: "Nível da Lagoa dos Patos",
+            to: "/nivel-da-lagoa-dos-patos",
+            description: "Panorama dos cinco pontos locais monitorados entre Itapuã e o estuário.",
+          },
           {
             label: "Nível no Laranjal",
             to: "/nivel-da-lagoa-dos-patos-laranjal",
