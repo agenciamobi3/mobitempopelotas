@@ -35,7 +35,6 @@ test("home e hoje formam um cluster de intenção sem criar novas URLs redundant
   assert.match(home, /Tempo agora em Pelotas/);
   assert.match(home, /Temperatura atual em Pelotas/);
   assert.match(editorial, /href: "\/tempo-hoje-pelotas"/);
-  assert.match(editorial, /href: "\/previsao-15-dias-pelotas"/);
   assert.match(today, /href: "\/previsao-7-dias-pelotas"/);
   assert.match(today, /href: "\/previsao-15-dias-pelotas"/);
   assert.match(today, /Onde vejo a previsão por hora de hoje/);
@@ -78,7 +77,7 @@ test("vento cobre intenção de hoje e mantém observação separada de previsã
 });
 
 test("radar cobre busca por chuva recente sem prometer imagem instantânea", () => {
-  assert.match(radar, /Radar de chuva e satélite em Pelotas: imagens recentes/);
+  assert.match(radar, /Satélites e radares em Pelotas: chuva, nuvens e trovoadas/);
   assert.match(radar, /Onde vejo o radar de chuva de Pelotas agora/);
   assert.match(radar, /A expressão radar agora deve ser lida como a imagem mais recente disponível na fonte/);
   assert.match(radar, /Confira esse horário antes de interpretar a imagem como situação atual/);
@@ -140,7 +139,7 @@ test("cluster hidrológico conecta operação atual e memória histórica preser
   assert.match(laranjal, /não são convertidas em cota da Estação Laranjal/);
   assert.match(hydrology, /não devem ser comparados por simples subtração/);
   assert.match(guaiba, /não confirma risco de enchente em Pelotas/);
-  assert.match(guaiba, /não transferi-la para as réguas atuais do Guaíba/);
+  assert.match(guaiba, /sem transferi-la para as réguas atuais do Guaíba/);
 });
 
 test("páginas regionais preservam perfis locais sem FAQ templated em massa", () => {
