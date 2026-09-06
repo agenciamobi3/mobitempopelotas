@@ -4,10 +4,12 @@ import type { EditorialInternalPath } from "@/lib/editorial-content";
 
 import "./HomeExplorePortal.css";
 
+type ExplorePath = EditorialInternalPath | "/nivel-da-lagoa-dos-patos";
+
 type ExploreGroup = {
   eyebrow: string;
   title: string;
-  links: ReadonlyArray<{ label: string; to: EditorialInternalPath }>;
+  links: ReadonlyArray<{ label: string; to: ExplorePath }>;
 };
 
 const exploreGroups: ReadonlyArray<ExploreGroup> = [
@@ -44,6 +46,7 @@ const exploreGroups: ReadonlyArray<ExploreGroup> = [
     title: "Aprofunde Lagoa, hidrologia e metodologia",
     links: [
       { label: "Situação das águas", to: "/situacao-hidrologica-pelotas" },
+      { label: "Nível da Lagoa dos Patos", to: "/nivel-da-lagoa-dos-patos" },
       { label: "Nível no Laranjal", to: "/nivel-da-lagoa-dos-patos-laranjal" },
       { label: "Fontes e metodologia", to: "/metodologia" },
     ],
