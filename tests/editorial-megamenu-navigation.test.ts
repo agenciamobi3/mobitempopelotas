@@ -25,7 +25,9 @@ const requiredPublicNavigationPaths = [
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
+  "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
+  "/enchente-2001-pelotas",
   "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/tempo-na-regiao-sul-rs",
@@ -48,6 +50,9 @@ test("megamenu groups the public weather inventory into editorial areas", () => 
   for (const path of requiredPublicNavigationPaths) {
     assert.match(header, new RegExp(escapeRegExp(path)), `Menu deve expor ${path}`);
   }
+
+  assert.match(header, /label: "História das enchentes"/);
+  assert.match(header, /Índice de pesquisa com os registros de 1941, 2001, 2015 e 2024/);
 });
 
 test("satélites e radares ficam em página dedicada e navegação direta", () => {
