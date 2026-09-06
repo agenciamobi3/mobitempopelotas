@@ -47,7 +47,8 @@ test("core search intents remain distinct and internally connected", () => {
   assert.match(rain, /\/situacao-hidrologica-pelotas/);
   assert.match(rain, /\/nivel-da-lagoa-dos-patos-laranjal/);
   assert.match(laranjal, /O nível da Lagoa dos Patos está em tempo real\?/);
-  assert.match(laranjal, /atrasada ou indisponível/);
+  assert.match(laranjal, /última medição válida identificada como last-known/);
+  assert.match(laranjal, /sem apresentá-la como leitura atual/);
   assert.match(laranjal, /\/nivel-do-guaiba/);
   assert.match(laranjal, /\/enchente-1941-pelotas/);
   assert.match(laranjal, /\/enchente-2024-pelotas-laranjal/);
@@ -74,7 +75,7 @@ test("alert page distinguishes unavailable INMET data from an all-clear state", 
   const page = read("src/components/weather/WeatherAlertsPage.tsx");
   const refinements = read("src/components/weather/WeatherAlertsRefinements.css");
 
-  assert.match(route, /Alertas meteorológicos em Pelotas e região/);
+  assert.match(route, /Alertas do INMET em Pelotas e região/);
   assert.match(route, /createFaqPageJsonLd/);
   assert.match(route, /como-interpretar-alertas/);
   assert.match(page, /Não foi possível confirmar os alertas do INMET/);
@@ -113,8 +114,7 @@ test("radar and camera images avoid unnecessary synchronous decoding", () => {
   const redemet = read("src/components/redemet/RedemetOverview.tsx");
   const cameras = read("src/components/cameras/CameraExplorer.tsx");
 
-  assert.match(redemet, /decoding="async"/);
-  assert.match(redemet, /fetchPriority=\{kind === "radar" \? "high" : "auto"\}/);
+  assert.match(redemet, /loading="lazy"[\s\S]*decoding="async"/);
   assert.match(cameras, /loading="lazy"[\s\S]*decoding="async"/);
 });
 
