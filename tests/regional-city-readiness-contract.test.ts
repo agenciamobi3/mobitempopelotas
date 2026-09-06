@@ -42,7 +42,7 @@ test("basic exige IBGE, coordenadas e meteorologia validados", () => {
   );
 });
 
-test("complete exige contexto hidrológico, conteúdo, SEO e imagens além do basic", () => {
+test("complete exige contexto e evidência hidrológica, conteúdo, SEO e imagens além do basic", () => {
   assert.equal(
     isRegionalCityReadyForComplete({
       ...baseCity,
@@ -51,6 +51,7 @@ test("complete exige contexto hidrológico, conteúdo, SEO e imagens além do ba
         coordinatesValidated: true,
         weatherValidated: true,
         hydrologicalContextValidated: true,
+        hydrologyEvidenceValidated: true,
         editorialReady: true,
         seoReady: true,
         imageryReady: true,
@@ -66,11 +67,13 @@ test("complete exige contexto hidrológico, conteúdo, SEO e imagens além do ba
         ibgeValidated: true,
         coordinatesValidated: true,
         weatherValidated: true,
+        hydrologicalContextValidated: true,
         editorialReady: true,
         seoReady: true,
         imageryReady: true,
       },
     }),
     false,
+    "contexto hidrológico sem evidência validada não deve liberar coverage complete",
   );
 });
