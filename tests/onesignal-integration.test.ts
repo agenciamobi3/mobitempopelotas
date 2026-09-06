@@ -14,11 +14,14 @@ test("não carrega SDK externo de notificações na raiz da aplicação", async 
   assert.doesNotMatch(rootRoute, /dangerouslySetInnerHTML=\{\{ __html: ONESIGNAL/);
 });
 
-test("mantém somente o service worker PWA controlado pelo portal", async () => {
+test("mantém o service worker do portal fora do caminho crítico enquanto suspenso", async () => {
   const pwaManager = await readFile(PWA_MANAGER_PATH, "utf8");
 
-  assert.match(pwaManager, /navigator\.serviceWorker\.register\("\/sw\.js", \{/);
-  assert.match(pwaManager, /scope: "\/"/);
+  assert.match(pwaManager, /TEMPO_SERVICE_WORKER_PATH = "\/sw\.js"/);
+  assert.match(pwaManager, /navigator\.serviceWorker\.getRegistrations\(\)/);
+  assert.match(pwaManager, /registration\.unregister\(\)/);
+  assert.doesNotMatch(pwaManager, /navigator\.serviceWorker\.register\(/);
+  assert.doesNotMatch(pwaManager, /OneSignal|cdn\.onesignal\.com/);
 });
 
 test("não monta gerenciadores paralelos de notificações", async () => {
