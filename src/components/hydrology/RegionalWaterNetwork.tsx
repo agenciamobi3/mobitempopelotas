@@ -10,6 +10,10 @@ import {
   Waves,
 } from "lucide-react";
 
+import {
+  findHydrologyLocalityByStationId,
+  hydrologyLocalityPath,
+} from "@/lib/hydrology/hydrology-localities";
 import type { GuaibaObservationData } from "@/lib/hydrology/guaiba.server";
 import type {
   LagoonMonitoringNetworkData,
@@ -27,9 +31,10 @@ type RegionalWaterNetworkProps = {
 function formatNumber(value: number | null, maximumFractionDigits = 1) {
   if (value === null) return "—";
 
+  const safeMaximumFractionDigits = Math.max(0, maximumFractionDigits);
   return new Intl.NumberFormat("pt-BR", {
-    maximumFractionDigits,
-    minimumFractionDigits: value % 1 === 0 ? 0 : 1,
+    maximumFractionDigits: safeMaximumFractionDigits,
+    minimumFractionDigits: value % 1 === 0 ? 0 : Math.min(1, safeMaximumFractionDigits),
   }).format(value);
 }
 
@@ -185,8 +190,11 @@ function GuaibaPanel({ data, full }: { data: GuaibaObservationData; full: boolea
       )}
 
       <footer>
+        <Link to="/nivel-do-guaiba">
+          Ver nível e histórico do Guaíba <ArrowRight aria-hidden="true" />
+        </Link>
         <a href={data.source.url} target="_blank" rel="noreferrer">
-          Acompanhamento completo <ExternalLink aria-hidden="true" />
+          Abrir fonte original <ExternalLink aria-hidden="true" />
         </a>
       </footer>
     </article>
@@ -251,12 +259,10 @@ export function RegionalWaterNetwork({
                   observation.floodThresholdPercentage === null
                     ? null
                     : Math.max(0, Math.min(observation.floodThresholdPercentage, 100));
-
-                return (
-                  <article
-                    className={`regional-water-station ${status.className}`}
-                    key={observation.station.id}
-                  >
+                const locality = findHydrologyLocalityByStationId(observation.station.id);
+                const localPath = locality ? hydrologyLocalityPath(locality) : null;
+                const cardContent = (
+                  <>
                     <header>
                       <div>
                         <small>{observation.station.city}</small>
@@ -324,7 +330,29 @@ export function RegionalWaterNetwork({
 
                     <footer>
                       <small>{formatDateTime(observation.updatedAt)}</small>
+                      {localPath ? (
+                        <span className="regional-water-station-action">
+                          Ver detalhes <ArrowRight aria-hidden="true" />
+                        </span>
+                      ) : null}
                     </footer>
+                  </>
+                );
+                const cardClassName = `regional-water-station ${status.className}${localPath ? " is-link" : ""}`;
+
+                return localPath ? (
+                  <a
+                    className={cardClassName}
+                    href={localPath}
+                    aria-label={`Ver nível, tendência e histórico da água em ${locality!.name}`}
+                    key={observation.station.id}
+                    style={{ color: "inherit", textDecoration: "none" }}
+                  >
+                    {cardContent}
+                  </a>
+                ) : (
+                  <article className={cardClassName} key={observation.station.id}>
+                    {cardContent}
                   </article>
                 );
               })}
@@ -345,6 +373,9 @@ export function RegionalWaterNetwork({
 
           <footer className="regional-water-lagoon-footer">
             <span>{lagoonFooter}</span>
+            <Link to="/nivel-da-lagoa-dos-patos">
+              Ver panorama da Lagoa <ArrowRight aria-hidden="true" />
+            </Link>
             <a href={lagoon.source.url} target="_blank" rel="noreferrer">
               Abrir rede original <ExternalLink aria-hidden="true" />
             </a>
