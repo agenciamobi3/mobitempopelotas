@@ -38,7 +38,7 @@ const createContributionSchema = z.object({
   publishAnonymously: z.boolean().default(false),
   attachments: z.array(attachmentSchema).max(5),
   rightsConfirmed: z.literal(true),
-  publicationAuthorized: z.literal(true),
+  publicationAuthorized: z.boolean().default(false),
 });
 
 export type HistoricalContributionKind = z.infer<typeof contributionKindSchema>;
@@ -104,7 +104,7 @@ export const createHistoricalContribution = createServerFn({ method: "POST" })
       publish_anonymously: data.publishAnonymously,
       attachments: data.attachments,
       rights_confirmed: true,
-      publication_authorized: true,
+      publication_authorized: data.publicationAuthorized,
       status: "pending",
       moderation_note: null,
       reviewed_at: null,
