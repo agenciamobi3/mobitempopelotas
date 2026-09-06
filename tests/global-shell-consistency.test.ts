@@ -18,6 +18,10 @@ const globalFooter = readFileSync(
   new URL("../src/components/layout/Footer.tsx", import.meta.url),
   "utf8",
 );
+const publicSourceLinks = readFileSync(
+  new URL("../src/lib/public-source-links.ts", import.meta.url),
+  "utf8",
+);
 
 test("telas standalone reutilizam o mesmo header e rodapé globais", () => {
   assert.match(headerWrapper, /import \{ HomeEditorialHeader \}/);
@@ -50,12 +54,29 @@ test("navegação institucional existe em definições canônicas do shell", () 
     "Enchente de 2024",
     "Tempo na Zona Sul",
     "Clima de Pelotas",
-    "Embrapa Clima Temperado",
-    "REDEMET/DECEA",
-    "Defesa Civil RS / Casa Militar / MKS",
     "Ecossistema MOBI",
   ]) {
     assert.match(globalFooter, new RegExp(label));
+  }
+});
+
+test("fontes institucionais do footer vêm do registro canônico compartilhado", () => {
+  assert.match(globalFooter, /import \{ FOOTER_SOURCE_GROUPS \}/);
+  assert.match(globalFooter, /FOOTER_SOURCE_GROUPS\.map/);
+  assert.match(globalFooter, /<FooterSourceMap \/>/);
+
+  for (const label of [
+    "Embrapa Clima Temperado",
+    "REDEMET/DECEA",
+    "Defesa Civil RS",
+    "Casa Militar RS",
+    "MKS / Qualle Control",
+    "LabHidroSens/UFPel",
+    "Rede Lagoa dos Patos",
+    "FURG",
+    "Portos RS",
+  ]) {
+    assert.match(publicSourceLinks, new RegExp(label.replace("/", "\\/")));
   }
 });
 
