@@ -15,6 +15,7 @@ type MegaMenuId = "forecast" | "water" | "region" | "explore";
 type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
+  | "/historia-das-enchentes-pelotas"
   | "/enchente-1941-pelotas"
   | "/enchente-2001-pelotas"
   | "/enchente-2015-pelotas"
@@ -143,6 +144,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       "/situacao-hidrologica-pelotas",
       "/nivel-da-lagoa-dos-patos-laranjal",
       "/nivel-do-guaiba",
+      "/historia-das-enchentes-pelotas",
       "/enchente-1941-pelotas",
       "/enchente-2001-pelotas",
       "/enchente-2015-pelotas",
@@ -178,6 +180,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       {
         title: "Memória e contexto",
         links: [
+          {
+            label: "História das enchentes",
+            to: "/historia-das-enchentes-pelotas",
+            description: "Índice de pesquisa com os registros de 1941, 2001, 2015 e 2024.",
+          },
           {
             label: "Enchente de 1941",
             to: "/enchente-1941-pelotas",
