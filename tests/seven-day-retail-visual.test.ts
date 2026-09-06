@@ -19,7 +19,7 @@ test("seven day route uses the retail shell with a dedicated hero", () => {
   assert.match(route, /SevenDayForecastPageV2/);
   assert.match(route, /pageClassName="internal-weather-shell--seven-day"/);
   assert.match(route, /hero=\{\(\{ weather: productionWeather, advisoryLevel, officialAlertCount \}\)/);
-  assert.match(route, /Veja a previsão de 7 dias para Pelotas/);
+  assert.match(route, /Veja a previsão do tempo para 7 dias e a semana em Pelotas/);
   assert.match(route, /SEVEN_DAY_PAGE_CONTENT/);
   assert.match(route, /Como interpretar a previsão dos próximos 7 dias/);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, SEVEN_DAY_PAGE_CONTENT\.faqs\)/);
@@ -30,7 +30,7 @@ test("seven day route uses the retail shell with a dedicated hero", () => {
 test("weekly hero uses a useful search-oriented headline and clear metrics", () => {
   assert.match(hero, /weather\.daily\.slice\(0, 7\)/);
   assert.match(hero, /getRetailWeatherPhoto/);
-  assert.match(hero, /Previsão de 7 dias para Pelotas/);
+  assert.match(hero, /Previsão de <span>7 dias<\/span> para Pelotas/);
   assert.match(hero, /chance e volume de chuva e rajadas previstos/);
   assert.match(hero, /Menor mínima/);
   assert.match(hero, /Maior chance de chuva/);
