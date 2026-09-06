@@ -38,12 +38,19 @@ test("hydrology route loads six independent sources through the resilient shared
   assert.match(loader, /getDefesaCivilHydroData\(\)/);
   assert.match(loader, /Promise\.allSettled/);
   assert.doesNotMatch(loader, /await Promise\.all\(/);
-  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
-  assert.match(loader, /createUnavailableLaranjalLevelData\(\)/);
-  assert.match(loader, /createUnavailableGuaibaObservationData\(\)/);
-  assert.match(loader, /createUnavailableLagoonMonitoringNetworkData\(\)/);
-  assert.match(loader, /createUnavailableSaceGuaibaData\(\)/);
-  assert.match(loader, /createUnavailableDefesaCivilHydroData\(\)/);
+  assert.match(
+    loader,
+    /settlePageDependency\(\(\) => getWeatherIntelligence\(\), createUnavailableWeatherIntelligence\)/,
+  );
+  assert.match(loader, /createUnavailableLaranjalLevelData/);
+  assert.match(loader, /createUnavailableGuaibaObservationData/);
+  assert.match(loader, /createUnavailableLagoonMonitoringNetworkData/);
+  assert.match(loader, /createUnavailableSaceGuaibaData/);
+  assert.match(loader, /createUnavailableDefesaCivilHydroData/);
+  assert.match(
+    loader,
+    /settledValueOrFallback\(weatherResult, createUnavailableWeatherIntelligence\)/,
+  );
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /HydrologyOverviewHero/);
   assert.match(route, /HydrologyOverviewV2/);
@@ -166,7 +173,7 @@ test("local station distinguishes live, stale and unavailable readings", () => {
 test("measurement time, age and portal update remain separate", () => {
   assert.match(page, /Horário da medição/);
   assert.match(page, /Tempo desde a leitura/);
-  assert.match(page, /Última atualização/);
+  assert.match(page, /Consulta do portal/);
   assert.match(page, /formatDateTime\(level\.updatedAt\)/);
   assert.match(page, /ageLabel\(level\.ageMinutes\)/);
   assert.match(page, /formatDateTime\(level\.source\.fetchedAt\)/);
