@@ -68,7 +68,11 @@ test("painel exige autenticação server-side e permanece fora do índice", () =
   assert.match(dashboardRoute, /name:\s*["']robots["'], content:\s*["']noindex, nofollow["']/);
   assert.match(dashboardRoute, /const snapshot = await getAccountSnapshot\(\)/);
   assert.match(dashboardRoute, /snapshot\.status === ["']unauthenticated["']/);
-  assert.match(dashboardRoute, /redirect\(\{ to: ["']\/conta["'], search: \{ next: ["']\/painel["'] \} \}\)/);
+  assert.match(
+    dashboardRoute,
+    /throw redirect\(\{[\s\S]*to: ["']\/conta["'],[\s\S]*search: \{ erro: undefined, next: ["']\/painel["'] \}[\s\S]*\}\)/,
+  );
+  assert.match(dashboardRoute, /snapshot\.status === ["']authenticated["'][\s\S]*getHistoricalModerationSnapshot\(\)/);
 });
 
 test("exportação exige sessão, inclui camada de acesso e omite secrets", () => {
@@ -80,10 +84,14 @@ test("exportação exige sessão, inclui camada de acesso e omite secrets", () =
   assert.match(exportRoute, /\.from\("account_access"\)/);
   assert.match(exportRoute, /\.select\("tier,status,source,valid_until,created_at,updated_at"\)/);
   assert.match(exportRoute, /access:\s*accessResult\.data/);
-  assert.match(exportRoute, /export_version:\s*["']1\.1["']/);
+  assert.match(exportRoute, /export_version:\s*["']1\.2["']/);
+  assert.match(exportRoute, /historical_contributions:\s*historicalContributions/);
   assert.match(exportRoute, /\.select\(["']endpoint,user_agent,topics,created_at,updated_at,last_seen_at["']\)/);
   assert.doesNotMatch(exportRoute, /\.select\(["'][^"']*(?:p256dh|auth|access_token|refresh_token|service_role)[^"']*["']\)/);
-  assert.match(exportRoute, /Chaves criptográficas de entrega e credenciais de sessão não fazem parte da exportação/);
+  assert.match(
+    exportRoute,
+    /Chaves criptográficas de entrega, credenciais de sessão e o conteúdo binário dos anexos privados não fazem parte desta exportação/,
+  );
 });
 
 test("exclusão exige origem, frase exata, sessão revalidada e cascata administrativa", () => {
