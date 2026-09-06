@@ -102,6 +102,11 @@ const footerGroups = [
         to: "/nivel-do-guaiba",
       },
       {
+        label: "História das enchentes",
+        ariaLabel: "Consultar o arquivo histórico das enchentes de Pelotas em 1941, 2001, 2015 e 2024",
+        to: "/historia-das-enchentes-pelotas",
+      },
+      {
         label: "Enchente de 1941",
         ariaLabel: "Consultar o registro histórico da enchente de 1941 em Pelotas",
         to: "/enchente-1941-pelotas",
