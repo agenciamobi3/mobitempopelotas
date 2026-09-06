@@ -33,16 +33,21 @@ test("source hierarchy does not attribute cyclone classification to the municipa
   assert.match(page, /“nordestão”/);
 });
 
-test("UFPel analysis adds event-specific meteorology without becoming a contemporary bulletin", () => {
+test("UFPel analysis has its own editorial section without becoming a contemporary bulletin", () => {
   assert.match(content, /https:\/\/anais-siiepe\.ufpel\.edu\.br\/2013\/CE_02822\.pdf/);
   assert.match(content, /Análise acadêmica posterior específica do evento de 08\/10\/2001/);
   assert.match(content, /dados NCEP e da Praticagem da Barra de Rio Grande entre 05 e 08\/10/);
-  assert.match(page, /análise acadêmica posterior da Faculdade de Meteorologia da UFPel/);
+  assert.match(page, /href="#mecanismo-vento-2001"/);
+  assert.match(page, /id="mecanismo-vento-2001"/);
+  assert.match(page, /Como os ventos de leste e nordeste ajudaram a represar a Lagoa/);
+  assert.match(page, /Análise Final do NCEP/);
+  assert.match(page, /resolução de 1° x 1°/);
+  assert.match(page, /Praticagem da Barra de Rio Grande entre 5 e 8 de outubro/);
   assert.match(page, /Alta Subtropical do Atlântico Sul/);
   assert.match(page, /baixa pressão sobre o norte da Argentina/);
-  assert.match(page, /ventos\s+de leste-nordeste/);
-  assert.match(page, /redução do escoamento para o oceano e à inundação da costa oeste da Lagoa dos Patos/);
-  assert.match(page, /não substitui um boletim\s+meteorológico operacional contemporâneo/);
+  assert.match(page, /dificultado a\s+saída das águas da Lagoa dos Patos para o Oceano Atlântico/);
+  assert.match(page, /não fornece uma nova cota do\s+Laranjal/);
+  assert.match(page, /Análise acadêmica posterior específica não é boletim operacional contemporâneo/);
 });
 
 test("posterior Lagoa wind context explains mechanism without becoming evidence of the 2001 event", () => {
