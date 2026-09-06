@@ -2,6 +2,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { AccountDashboard } from "@/components/auth/AccountDashboard";
 import { getAccountSnapshot } from "@/lib/auth/account.functions";
+import { getHistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import { absoluteUrl, SITE_NAME } from "@/lib/site-config";
 
 export const Route = createFileRoute("/painel")({
@@ -18,19 +19,25 @@ export const Route = createFileRoute("/painel")({
   }),
   loader: async () => {
     const snapshot = await getAccountSnapshot();
+
     if (snapshot.status === "unauthenticated") {
       throw redirect({
         to: "/conta",
         search: { erro: undefined, next: "/painel" },
       });
     }
-    return snapshot;
+
+    const moderation = snapshot.status === "authenticated"
+      ? await getHistoricalModerationSnapshot()
+      : { status: "unavailable" as const };
+
+    return { snapshot, moderation };
   },
   component: PainelPage,
 });
 
 function PainelPage() {
-  const snapshot = Route.useLoaderData();
+  const { snapshot, moderation } = Route.useLoaderData();
 
   if (snapshot.status === "unavailable") {
     return (
@@ -59,5 +66,5 @@ function PainelPage() {
   }
 
   if (snapshot.status !== "authenticated") return null;
-  return <AccountDashboard snapshot={snapshot} />;
+  return <AccountDashboard snapshot={snapshot} moderation={moderation} />;
 }

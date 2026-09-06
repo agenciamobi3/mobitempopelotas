@@ -48,6 +48,7 @@ Regras permanentes:
 | SEO técnico | **60 URLs indexáveis = 37 fixas + 23 municipais** no inventário da `main`, com canonical/sitemap/robots/Schema/BreadcrumbList conforme a superfície |
 | Arquivo de enchentes | Hub `/historia-das-enchentes-pelotas` + páginas dedicadas de 1941, 2001, 2015 e 2024 |
 | Colaboração histórica | Fluxo autenticado e moderado para fontes, fotos, documentos, relatos, medições e correções |
+| Moderação histórica | V1 dentro de `/painel`, fail-closed por allowlist server-side; revisa fila e anexos privados sem publicar automaticamente |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis ainda pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
 | GitHub Actions | Bloqueado antes dos steps em runs recentes; não declarar suíte/build/typecheck executados quando o job vier com `steps: null` |
@@ -187,6 +188,8 @@ A navegação pública mantém separação entre previsão, águas e memória. O
 
 As páginas de Jaguarão e São Gonçalo já estão no inventário público/sitemap da `main`. A confirmação de propagação no domínio canônico continua pendente e deve ser tratada separadamente do estado do GitHub.
 
+O smoke externo em 06/09 encontrou a rede regional da Lagoa ativa em snapshot público, mas buscas exatas ainda não retornaram as cinco URLs locais do cluster. Isso é tratado como pendência de descoberta/indexação, não como prova de 404 ou motivo para criar URLs substitutas.
+
 ## 6. Arquivo histórico de enchentes
 
 Núcleo público:
@@ -209,11 +212,11 @@ Regras editoriais:
 
 Boletins de 2015 ainda sem corpo recuperado: 27/10 às 11h e 19h, 28/10 às 18h e 29/10 às 11h.
 
-## 7. Arquivo colaborativo de enchentes
+## 7. Arquivo colaborativo e moderação
 
 As páginas de 1941, 2001, 2015 e 2024 usam o componente reutilizável de colaboração.
 
-Fluxo:
+Fluxo do colaborador:
 
 1. visitante lê o registro;
 2. pode enviar contribuição contextualizada;
@@ -236,6 +239,37 @@ Migrations relevantes:
 
 - `20260905203358_create_historical_contributions`;
 - `allow_review_without_publication_consent` em 05/09/2026.
+
+### 7.1 Moderação V1
+
+A V1 operacional está integrada ao `/painel`, sem criar rota indexável separada.
+
+Autorização:
+
+- sessão Supabase normal obrigatória;
+- allowlist `MOBI_PORTAL_ADMIN_EMAILS` lida somente no servidor;
+- `createSupabaseAdminClient()` somente é criado após autorização;
+- ausência da allowlist ou do secret administrativo resulta em `unavailable` e o módulo não aparece;
+- usuário autenticado fora da allowlist recebe `forbidden` e o componente retorna `null`.
+
+Fila:
+
+- busca somente `pending` e `reviewing`;
+- mostra os 50 itens ativos mais recentes;
+- anexos permanecem privados e recebem URL assinada por 10 minutos somente para operador autorizado;
+- o painel não precisa expor e-mail/UUID do colaborador.
+
+Decisões permitidas:
+
+- `reviewing`;
+- `accepted` para pesquisa;
+- `rejected`.
+
+A ação administrativa altera somente `status`, `moderation_note` e `reviewed_at`. Ela não altera `publication_authorized`, `rights_confirmed`, anexos ou conteúdo enviado.
+
+`accepted` não significa publicação. Nenhuma contribuição modifica as páginas de enchentes automaticamente.
+
+Documento: `docs/HISTORICAL_MODERATION_V1.md`.
 
 ## 8. Meteorologia e monitor operacional
 
@@ -327,6 +361,17 @@ Na onda da Defesa Civil RS, os contratos também protegem:
 - descoberta por `stationCode` exato nos cartões da rede;
 - ausência de links dedicados para as cinco candidatas não promovidas.
 
+Na moderação histórica V1, os contratos protegem:
+
+- allowlist exclusivamente server-side e fail-closed;
+- cliente administrativo somente depois da autorização;
+- fila restrita a `pending`/`reviewing`;
+- links de anexos assinados por 10 minutos;
+- decisões limitadas a `reviewing`, `accepted`, `rejected`;
+- nenhum update de moderação em `publication_authorized`, `rights_confirmed` ou conteúdo enviado;
+- painel invisível para snapshot não autorizado;
+- `/painel` permanece `noindex, nofollow`.
+
 `src/routeTree.gen.ts` inclui as duas páginas dedicadas e o inventário `src/lib/public-routes.ts` inclui ambas no sitemap.
 
 GitHub Actions continua apresentando runs que terminam antes dos steps (`steps: null`). Nessa condição, não declarar testes, build, typecheck, lint, `routes:check` ou browser E2E como executados.
@@ -336,21 +381,23 @@ O Lovable pode sincronizar/publicar commits mesmo quando o workflow do GitHub n�
 ## 14. Próximas prioridades
 
 1. Confirmar propagação no domínio canônico de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo status HTTP, canonical, Schema, sitemap e links internos.
-2. Confirmar também o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais se ainda não houver evidência posterior de runtime.
-3. Executar `routes:check`, testes da Lagoa e da Defesa Civil, build e typecheck assim que houver executor funcional.
-4. Observar Search Console antes de promover outra estação da Defesa Civil; não abrir novas URLs apenas por disponibilidade de sensor.
+2. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais quando houver ferramenta capaz de abrir as URLs diretamente; buscas exatas ainda não as retornaram em 06/09.
+3. Executar `routes:check`, testes da Lagoa/Defesa Civil/moderação, build e typecheck assim que houver executor funcional.
+4. Observar Search Console antes de promover outra estação da Defesa Civil; o conector GSC Wizard está bloqueado por assinatura expirada nesta rodada.
 5. Manter Turuçu, Cristal, Arroio Grande, Bagé e Santa Vitória do Palmar somente com módulo meteorológico/hidrometeorológico até novo gate editorial.
-6. Continuar resgate dos corpos perdidos dos boletins de 27–29/10/2015.
-7. Continuar pesquisa documental da enchente de 2001.
-8. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.
-9. Criar superfície administrativa de moderação das contribuições sem edição automática do arquivo público.
-10. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-11. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+6. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar a Moderação V1 com conta autorizada e contribuição descartável antes de uso editorial real.
+7. Continuar resgate dos corpos perdidos dos boletins de 27–29/10/2015.
+8. Continuar pesquisa documental da enchente de 2001.
+9. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.
+10. Depois da validação da moderação V1, adicionar paginação/filtros e um fluxo editorial separado de publicação para materiais autorizados.
+11. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+12. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
 - `docs/DEFESA_CIVIL_DEDICATED_PAGE_GATE_2026-09-05.md` — gate editorial das páginas dedicadas da Defesa Civil;
 - `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração da Rede da Defesa Civil RS;
+- `docs/HISTORICAL_MODERATION_V1.md` — autorização, fila, anexos privados e decisões da moderação;
 - `docs/FLOODS_2001_2015_RESEARCH_2026-09-05.md` — base documental das cheias de 2001 e 2015;
 - `docs/FLOOD_2015_OFFICIAL_BULLETIN_INVENTORY_2026-09-05.md` — inventário dos boletins de 2015;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;

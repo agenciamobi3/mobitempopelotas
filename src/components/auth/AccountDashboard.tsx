@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 
+import { HistoricalModerationPanel } from "@/components/history/HistoricalModerationPanel";
 import type { AccountSnapshot } from "@/lib/auth/account.functions";
+import type { HistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
 import type { WeatherData } from "@/production/lib/weather-data";
@@ -32,7 +34,13 @@ function moduleStateLabel(state: DashboardModule["state"]) {
   return "Em preparação";
 }
 
-export function AccountDashboard({ snapshot }: { snapshot: AuthenticatedAccount }) {
+export function AccountDashboard({
+  snapshot,
+  moderation,
+}: {
+  snapshot: AuthenticatedAccount;
+  moderation: HistoricalModerationSnapshot;
+}) {
   const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const modules: DashboardModule[] = [
@@ -161,6 +169,8 @@ export function AccountDashboard({ snapshot }: { snapshot: AuthenticatedAccount 
             ))}
           </div>
         </section>
+
+        <HistoricalModerationPanel snapshot={moderation} />
       </main>
 
       <SiteFooter source={dashboardFooterSource} />
