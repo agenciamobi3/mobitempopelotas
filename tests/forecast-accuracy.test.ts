@@ -20,6 +20,7 @@ const functions = readFileSync("src/lib/weather/forecast-accuracy.functions.ts",
 const cronRoute = readFileSync("src/routes/api/cron/forecast-accuracy.ts", "utf8");
 const panel = readFileSync("src/components/methodology/ForecastAccuracyPanel.tsx", "utf8");
 const methodologyRoute = readFileSync("src/routes/metodologia.tsx", "utf8");
+const methodologyLoader = readFileSync("src/lib/methodology/methodology-page-loader.ts", "utf8");
 const weatherTypes = readFileSync("src/lib/weather/types.ts", "utf8");
 
 test("arquiva previsões por provedor, ciclo, data alvo e antecedência", () => {
@@ -132,6 +133,9 @@ test("resumo público separa provedor e antecedência sem expor credenciais", ()
   assert.match(panel, /Acerto de ocorrência/);
   assert.match(panel, /Dias incompletos são descartados/);
   assert.doesNotMatch(panel, /collector_token|collectorToken|CRON_SECRET/);
-  assert.match(methodologyRoute, /getForecastAccuracySummary\(\)/);
+  assert.match(methodologyRoute, /loadMethodologyPageData\(\)/);
+  assert.match(methodologyLoader, /getForecastAccuracySummary\(\)/);
+  assert.match(methodologyLoader, /Promise\.allSettled/);
+  assert.match(methodologyLoader, /accuracyResult\.status === "fulfilled"/);
   assert.match(methodologyRoute, /<ForecastAccuracyPanel summary=\{data\.accuracy\} \/>/);
 });
