@@ -28,12 +28,23 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/privacidade-e-dados",
 ] as const;
 
-function routeModuleUrl(path: string) {
+function routeModuleUrls(path: string) {
   if (path.startsWith("/tempo-em/")) {
-    return new URL("../src/routes/tempo-em/$citySlug.tsx", import.meta.url);
+    return [new URL("../src/routes/tempo-em/$citySlug.tsx", import.meta.url)];
   }
-  const filename = path === "/" ? "index.tsx" : `${path.slice(1)}.tsx`;
-  return new URL(`../src/routes/${filename}`, import.meta.url);
+  if (path === "/") {
+    return [new URL("../src/routes/index.tsx", import.meta.url)];
+  }
+
+  const relativePath = path.slice(1);
+  return [
+    new URL(`../src/routes/${relativePath}.tsx`, import.meta.url),
+    new URL(`../src/routes/${relativePath}/index.tsx`, import.meta.url),
+  ];
+}
+
+function normalizeGeneratedRoutePath(path: string) {
+  return path === "/" ? path : path.replace(/\/+$/, "");
 }
 
 function generatedRoutePath(path: string) {
@@ -44,7 +55,9 @@ function generatedRoutePaths() {
   const routeTree = readFileSync(new URL("../src/routeTree.gen.ts", import.meta.url), "utf8");
 
   return new Set(
-    Array.from(routeTree.matchAll(/\bpath:\s*["']([^"']+)["']/g), (match) => match[1]),
+    Array.from(routeTree.matchAll(/\bpath:\s*["']([^"']+)["']/g), (match) =>
+      normalizeGeneratedRoutePath(match[1]),
+    ),
   );
 }
 
@@ -71,7 +84,7 @@ test("mantém prioridades de sitemap dentro do intervalo válido", () => {
 test("cada URL do sitemap possui um módulo de rota real", () => {
   for (const route of PUBLIC_ROUTES) {
     assert.equal(
-      existsSync(routeModuleUrl(route.path)),
+      routeModuleUrls(route.path).some((routeModule) => existsSync(routeModule)),
       true,
       `módulo de rota ausente para ${route.path}`,
     );

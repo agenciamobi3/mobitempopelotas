@@ -61,9 +61,13 @@ function expectedRoutePath(filePath) {
     .replace(/\.(?:ts|tsx)$/, "")
     .replaceAll("[.]", ".");
   const segments = routeRelative.split("/").filter(Boolean);
+  const isIndexRoute = segments.at(-1) === "index";
 
-  if (segments.at(-1) === "index") segments.pop();
-  return segments.length === 0 ? "/" : `/${segments.join("/")}`;
+  if (isIndexRoute) segments.pop();
+  if (segments.length === 0) return "/";
+
+  const basePath = `/${segments.join("/")}`;
+  return isIndexRoute ? `${basePath}/` : basePath;
 }
 
 function displayPath(filePath) {
@@ -96,9 +100,9 @@ async function discoverRoutes() {
     }
 
     routes.push({
-      path: match[2],
+      path: expectedPath,
       importPath: importPath(file),
-      identifier: routeIdentifier(match[2]),
+      identifier: routeIdentifier(expectedPath),
       file,
     });
   }

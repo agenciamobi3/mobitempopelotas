@@ -79,6 +79,8 @@ test("route generator discovers all exported file routes recursively", () => {
   assert.match(generator, /CREATE_FILE_ROUTE_CALL_PATTERN/);
   assert.match(generator, /ROUTE_PATTERN/);
   assert.match(generator, /expectedRoutePath/);
+  assert.match(generator, /const isIndexRoute = segments\.at\(-1\) === "index"/);
+  assert.match(generator, /return isIndexRoute \? `\$\{basePath\}\/` : basePath/);
   assert.match(generator, /deve declarar createFileRoute com um caminho literal/);
   assert.match(generator, /Caminho incompatível/);
   assert.match(generator, /Rota duplicada detectada/);
