@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  REGIONAL_DEFESA_CIVIL_DEDICATED_PAGES,
   REGIONAL_DEFESA_CIVIL_STATIONS,
+  regionalDefesaCivilDedicatedPage,
   regionalDefesaCivilStationCodes,
 } from "../src/lib/hydrology/defesa-civil-regional-pages.ts";
 
@@ -30,7 +32,7 @@ test("Arroio Grande preserva as duas estações candidatas sem escolher uma por 
   ]);
 });
 
-test("página regional carrega a Defesa Civil de forma independente e sem criar nova rota", () => {
+test("página regional carrega Defesa Civil de forma independente e promove só intenções aprovadas", () => {
   const page = readFileSync("src/components/regional/RegionalCityWeatherPage.tsx", "utf8");
   const module = readFileSync("src/components/regional/RegionalCityDefesaCivil.tsx", "utf8");
 
@@ -41,5 +43,28 @@ test("página regional carrega a Defesa Civil de forma independente e sem criar 
   assert.match(module, /não substitui esse vazio por uma estação vizinha/);
   assert.match(module, /referência própria deste ponto/);
   assert.match(module, /não usa esse valor como cota de inundação local/);
+  assert.match(module, /regionalDefesaCivilDedicatedPage\(citySlug\)/);
+  assert.match(module, /regional-defesa-civil__dedicated-link/);
   assert.doesNotMatch(module, /levelM\s*\?\?\s*0/);
+
+  assert.deepEqual(Object.keys(REGIONAL_DEFESA_CIVIL_DEDICATED_PAGES), [
+    "jaguarao-rs",
+    "capao-do-leao-rs",
+  ]);
+  assert.equal(regionalDefesaCivilDedicatedPage("jaguarao-rs")?.path, "/nivel-do-rio-jaguarao");
+  assert.equal(
+    regionalDefesaCivilDedicatedPage("capao-do-leao-rs")?.path,
+    "/nivel-do-canal-sao-goncalo",
+  );
+
+  for (const slug of [
+    "turucu-rs",
+    "cristal-rs",
+    "arroio-grande-rs",
+    "bage-rs",
+    "santa-vitoria-do-palmar-rs",
+    "pelotas-rs",
+  ]) {
+    assert.equal(regionalDefesaCivilDedicatedPage(slug), null);
+  }
 });
