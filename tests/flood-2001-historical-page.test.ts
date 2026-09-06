@@ -51,7 +51,7 @@ test("2018 consistency history is visible without inventing the reason for the 1
   assert.match(page, /29\/06\/2018/);
   assert.match(page, /Contrato ANA nº 10\/2015/);
   assert.match(page, /análise de consistência de dados fluviométricos/);
-  assert.match(page, /não transforma esse registro geral em uma justificativa técnica inventada/);
+  assert.match(page, /não\s+transforma esse registro geral em uma justificativa técnica inventada/);
   assert.match(content, /relatório técnico que explique especificamente a revisão de 290 cm bruto para 190 cm consistido\/estimado/);
 });
 
