@@ -60,73 +60,122 @@ Esse material funciona apenas como contexto hidrodinâmico geral e ajuda a inter
 
 ## 3. Série histórica do Laranjal — ANA 87955000
 
-A pesquisa hidrológica localizou uma série histórica específica para a estação **Laranjal 87955000**.
+A série histórica da estação **Laranjal 87955000** foi recuperada diretamente dos arquivos Hidro fornecidos para auditoria em 06/09/2026.
 
-O **Relatório de Caracterização Municipal do Plano Municipal de Saneamento Básico de Rio Grande** recompila dados da ANA e informa para `87955000`:
+As exportações CSV e TXT são idênticas e o próprio cabeçalho do Hidro define:
 
-- nome: Laranjal;
-- município: Pelotas;
-- responsável: ANA;
-- operação: CPRM;
-- dado disponível: cota;
-- período no inventário: 1984–2012;
-- cerca de 2% de falhas;
-- série detalhada de 13/09/1984 a 30/06/2012;
-- cota média aproximada: 0,63 m;
-- **cota máxima de 2,90 m em 08/10/2001**.
+- `NivelConsistencia=1` = Bruto;
+- `NivelConsistencia=2` = Consistido;
+- `MediaDiaria=1` = média diária;
+- `TipoMedicaoCotas=1` = Escala;
+- `Status=1` = Real;
+- `Status=2` = Estimado.
 
-A própria ANA, em comunicado sobre a cheia de maio de 2024, identificou Pelotas na Lagoa dos Patos como **estação Laranjal, código 87955000**.
+### 3.1 08/10/2001: bruto e consistido divergem
 
-Documentação recente do Serviço Geológico do Brasil também identifica `87955000` como LARANJAL/Pelotas e classifica a cota como **não nivelada**, com leitura feita diretamente na seção de réguas existente.
+Para o dia 8 de outubro de 2001:
+
+| Camada | Registro | Cota | Status |
+| --- | --- | ---: | --- |
+| Bruto | 07:00 | 300 cm | Real |
+| Bruto | 17:00 | 280 cm | Real |
+| Bruto | média diária | **290 cm** | Real |
+| Consistido | média diária | **190 cm** | **Estimado** |
+
+Na linha consistida, a máxima mensal também é 190 cm, o dia da máxima é 8 e os campos de status de máxima/mínima/média estão marcados como estimados.
+
+O **Relatório de Caracterização Municipal do Plano Municipal de Saneamento Básico de Rio Grande**, publicado em 2013, recompila a série ANA e registra **2,90 m em 08/10/2001**. Depois da recuperação dos arquivos Hidro atuais, esse valor deve ser apresentado como compatível com a **camada bruta** da série, e não como uma cota definitiva já consistida.
 
 Consequência editorial:
 
-- `2,90 m` é uma leitura da régua histórica `87955000`;
-- não é altitude de 2,90 m sobre o nível do mar;
-- não é automaticamente “2,90 m acima do normal”;
-- não é cota de inundação universal para todo o Laranjal;
-- não deve ser comparada por simples subtração com outras réguas ou anos sem comprovar zero, RN, datum e continuidade do referencial.
+- `2,90 m` permanece publicado como valor bruto;
+- `1,90 m` é publicado como valor consistido atualmente exportado;
+- `1,90 m` é explicitamente marcado como **estimado**;
+- o portal não escolhe silenciosamente uma das camadas como “a cota verdadeira”;
+- bruto e consistido não são sobrescritos um pelo outro na documentação histórica.
 
-### 3.1 O código atual 87955001 não é unido à série histórica
+### 3.2 A consistência de 2018 é rastreável, mas a correção específica ainda não
 
-O adapter de readiness atual do Tempo Pelotas consulta a camada pública `CotasReferencia2` do SNIRH para **LARANJAL 87955001**, cujo payload validado no projeto informa UFPel como responsável e operadora.
+O MDB da `87955000` registra em **29/06/2018** que os dados fluviométricos da estação foram alterados no âmbito do **Contrato ANA nº 10/2015**, cujo objeto era a análise de consistência de dados fluviométricos.
 
-A pesquisa desta rodada encontrou documentação oficial para `87955000` e evidência pública atual do projeto para `87955001`, mas **não encontrou documento oficial que declare relação de continuidade entre os dois códigos**.
+Isso comprova que houve uma etapa formal de consistência sobre a série. O histórico textual consultado, porém, não explica por que o dia 08/10/2001 foi alterado de 290 cm bruto para 190 cm consistido.
 
-Até prova documental:
+Próxima fonte desejada: relatório/entregável do Contrato ANA nº 10/2015 ou outra memória técnica que documente a correção aplicada a outubro de 2001.
 
-- `87955000` = régua histórica usada para 2001;
-- `87955001` = estação pública atual usada para readiness/cross-check;
-- não transferir histórico, zero, datum, RN ou cota classificatória entre elas;
-- não usar proximidade numérica para inferir equivalência.
+### 3.3 Pista sobre o zero da régua
+
+O histórico do MDB registra em **05/10/2017** alteração do campo altitude de `5,00 m` para **`-0,02 m`**, descrita como a altitude correspondente ao zero da régua levantado em campo pela entidade operadora.
+
+Em **30/03/2018**, o histórico registra substituição das réguas e numeração dos lances `0–1`, `1–2` e `2–3 m`.
+
+Por isso, `-0,02 m` é uma pista cadastral importante, mas **não é retroprojetado para 2001**. Sem os levantamentos de RN/nivelamento e a cadeia de continuidade do referencial, o portal não converte 190 ou 290 cm em altitude absoluta.
+
+Documentação recente do SGB também identifica `87955000` como LARANJAL/Pelotas e classifica a cota como **não nivelada**, com leitura feita diretamente na seção de réguas existente.
+
+## 4. Relação 87955000 ↔ 87955001
+
+Os arquivos fornecidos permitem refinar a relação operacional sem fundir os códigos.
+
+### 87955000
+
+O histórico registra em **30/04/2026** solicitação da CPLAR/SGH para corrigir o tipo/coleta para **F apenas**, retirando `T`, a data da coleta telemétrica e a descrição `TELEMÉTRICA`.
+
+### 87955001
+
+O MDB registra:
+
+- cadastro em **08/06/2026**;
+- nome `LARANJAL`;
+- descrição `TELEMÉTRICA`.
+
+Os ZIPs CSV e TXT fornecidos para `87955001` estão vazios, sem arquivo de série `Cotas` dentro deles.
+
+### Interpretação adotada
+
+- `87955000` = identidade convencional/histórica da régua e da série de cotas;
+- `87955001` = identidade telemétrica recente usada pelo adapter atual de readiness/cross-check;
+- a sucessão operacional é compatível com a separação de papéis convencional e telemétrico no Laranjal;
+- nenhum arquivo analisado demonstra que os dois códigos compartilham o mesmo zero, RN ou datum vertical.
+
+Portanto:
+
+- não concatenar as séries automaticamente;
+- não transferir zero/datum/RN entre códigos;
+- não usar `87955001` para recalibrar 2001;
+- não usar proximidade numérica para inferir equivalência vertical.
 
 Documento operacional complementar: `docs/ANA_RHN_INTEGRATION.md`.
 
-## 4. O que as fontes NÃO autorizam afirmar
+Documento da auditoria dos arquivos: `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
 
-Mesmo com a análise específica da UFPel, o contexto POPA e a cota histórica localizada, não se deve:
+## 5. O que as fontes NÃO autorizam afirmar
+
+Mesmo com a análise específica da UFPel, o contexto POPA e a série Hidro recuperada, não se deve:
 
 - substituir a velocidade de 105 km/h publicada contemporaneamente pela Folha por estimativa posterior;
-- transformar `2,90 m` em altitude ou nível acima do mar;
-- inventar o zero/datum da régua `87955000`;
+- chamar `2,90 m` de valor consistido;
+- esconder que `1,90 m` está marcado como estimado;
+- transformar 190 ou 290 cm em altitude ou nível acima do mar;
+- aplicar retroativamente o `-0,02 m` de 2017 à leitura de 2001 sem cadeia de nivelamento;
 - presumir continuidade de referencial entre `87955000` e `87955001`;
 - calcular quanto do avanço de aproximadamente 600 m foi produzido por cada mecanismo;
 - afirmar que “nordestão” é sinônimo técnico de “ciclone extratropical”;
 - tratar análise posterior como boletim operacional emitido em 08/10/2001.
 
-## 5. Hierarquia editorial atual
+## 6. Hierarquia editorial atual
 
 1. **Folha de S.Paulo, 09/10/2001** — registro contemporâneo do sistema e dos principais números do episódio;
 2. **Prefeitura de Pelotas, 22/10/2001** — registro municipal contemporâneo dos impactos e da recuperação;
-3. **ANA 87955000, recompilada no PMSB de Rio Grande** — evidência hidrológica posterior da série histórica e do pico de 2,90 m em 08/10/2001;
-4. **SGB** — confirmação moderna da identidade `87955000` e da natureza não nivelada da cota;
-5. **Prefeitura de Pelotas, 18/10/2002** — memória municipal retrospectiva que usa o termo local “nordestão”;
-6. **UFPel/SIIEPE, análise posterior específica** — reconstrução acadêmica do mecanismo de 05 a 08/10/2001 com dados NCEP e da Praticagem de Rio Grande;
-7. **POPA, 10/02/2005** — contexto hidrodinâmico geral sobre a influência do vento Nordeste no balanço de nível da Lagoa.
+3. **ANA/Hidro 87955000** — série bruta e consistida recuperada para 08/10/2001, preservando 290 cm bruto e 190 cm consistido/estimado;
+4. **PMSB de Rio Grande, 2013** — recompilação anterior da série ANA, útil para documentar o valor de 2,90 m disponível à época;
+5. **SGB** — confirmação moderna da identidade `87955000` e da natureza não nivelada da cota;
+6. **Prefeitura de Pelotas, 18/10/2002** — memória municipal retrospectiva que usa o termo local “nordestão”;
+7. **UFPel/SIIEPE, análise posterior específica** — reconstrução acadêmica do mecanismo de 05 a 08/10/2001 com dados NCEP e da Praticagem de Rio Grande;
+8. **POPA, 10/02/2005** — contexto hidrodinâmico geral sobre a influência do vento Nordeste no balanço de nível da Lagoa.
 
-## 6. Trilhas de recuperação meteorológica/acadêmica
+## 7. Trilhas de recuperação meteorológica/acadêmica
 
-### 6.1 Acosta et al. — XII CBMet, 2002
+### 7.1 Acosta et al. — XII CBMet, 2002
 
 Referência confirmada:
 
@@ -142,25 +191,25 @@ O hash específico de Acosta não foi localizado. Não adivinhar o identificador
 
 Próximos caminhos: SBMet, CD-ROM do XII CBMet em bibliotecas universitárias, acervo dos autores, UFPel/UFSM e captura histórica somente quando índice/caminho exato for recuperado.
 
-### 6.2 Cruz et al. — XIV CBMet, 2006
+### 7.2 Cruz et al. — XIV CBMet, 2006
 
 **CRUZ, P.; FARIAS, J.; CARVALHO, M. H.; FOSTER, P. Estudo sinótico do sistema meteorológico ocorrido no extremo sul do Brasil no dia 08/10/2001. XIV Congresso Brasileiro de Meteorologia, Florianópolis, 2006.**
 
 O título identifica explicitamente 08/10/2001, mas o corpo integral não foi recuperado. Nenhuma conclusão adicional é atribuída a Cruz et al. sem o texto.
 
-### 6.3 Noble, Pinto e Campos — XI CIC/UFPel, 2002
+### 7.3 Noble, Pinto e Campos — XI CIC/UFPel, 2002
 
 **NOBLE, D. V.; PINTO, L. B.; CAMPOS, C. R. J. Ocorrência de fenômenos meteorológicos observados na costa brasileira: um estudo de caso de ressaca ocorrido na região sudeste da Lagoa dos Patos. XI Congresso de Iniciação Científica da UFPel, Pelotas, 2002.**
 
 O corpo não foi recuperado e o registro bibliográfico consultado não informa a data da ressaca. É apenas **candidato de acervo** e não é associado automaticamente a 08/10/2001.
 
-### 6.4 Fernandes, Pinto e Campos — I SIBRADEN, 2004
+### 7.4 Fernandes, Pinto e Campos — I SIBRADEN, 2004
 
 **FERNANDES, D. S.; PINTO, L. B.; CAMPOS, C. R. J. Análise sinótica de um ciclone extratropical que atingiu a cidade de Pelotas-RS. I Simpósio Brasileiro de Desastres Naturais, Florianópolis, 2004, p. 697-703.**
 
 O corpo integral não foi recuperado e a referência bibliográfica não identifica a data do ciclone analisado. O artigo não é tratado como estudo de outubro de 2001 sem essa prova.
 
-### 6.5 CPTEC/INPE — Climanálise de outubro de 2001
+### 7.5 CPTEC/INPE — Climanálise de outubro de 2001
 
 Edição identificada:
 
@@ -173,55 +222,23 @@ Endereços históricos:
 
 Um artigo de 2024 registra acesso ao índice em 25/04/2023. Na pesquisa de 06/09/2026, índice e PDF não entregaram o corpo. Uma compilação baseada no Climanálise contabiliza seis sistemas frontais no Brasil em outubro de 2001, mas esse número mensal não identifica o sistema de 08/10 em Pelotas e não é usado como explicação específica.
 
-### 6.6 Falsa pista resolvida — Carvalho e Frassoni, 2003
+### 7.6 Falsa pista resolvida — Carvalho e Frassoni, 2003
 
 **CARVALHO, Maria Helena de; FRASSONI DOS SANTOS, Ariane. Estudo de um caso de chuvas intensas em Pelotas-RS. XI SBSR, Belo Horizonte, 2003, p. 439-446.**
 
 O trabalho original mostra que o caso ocorreu entre **31/08 e 03/09/2001**, com 147,4 mm em Pelotas, CCM e posterior ciclogênese no Atlântico. Ele não pertence à cronologia de 08/10/2001 e permanece separado.
 
-## 7. Recuperação do arquivo bruto ANA 87955000
-
-A cota histórica foi localizada em recompilação oficial/municipal da série ANA, mas o objetivo de proveniência é obter a resposta bruta/consistida da própria base HIDRO e a ficha de estação.
-
-### 7.1 API moderna
-
-A ANA documenta a rota:
-
-`GET /EstacoesTelemetricas/HidroSerieCotas/v1`
-
-para séries de cota de estações convencionais, informando código e período de até 366 dias.
-
-O acesso automatizado moderno exige autorização. O manual orienta solicitar credenciais em `hidro@ana.gov.br`, com identificação do usuário/instituição, CPF/CNPJ e e-mail.
-
-Quando houver credencial oficial, a consulta desejada é:
-
-- estação: `87955000`;
-- período: outubro de 2001;
-- recuperar versões bruta e consistida quando disponíveis;
-- preservar flags de consistência e datas originais;
-- recuperar também inventário/ficha da estação e metadados de lances de régua/zero/RN.
-
-Nenhuma credencial deve ser colocada em código, docs, logs ou Git.
-
-### 7.2 Serviço legado
-
-O `ServiceANA` ainda publica a definição de `HidroSerieHistorica`, que aceita código, período, `tipoDados=1` para cota e `nivelConsistencia=1|2` para bruto/consistido.
-
-A própria ANA informa que esse serviço, tecnologicamente defasado e apoiado em base secundária, teve suporte prorrogado apenas até **30/06/2026**. Em 06/09/2026 suas páginas de definição ainda são rastreáveis, mas ele não deve virar dependência nova do Tempo Pelotas.
-
-Pode servir apenas como pista arquivística/manual caso a ANA ainda o mantenha acessível, nunca como runtime novo.
-
 ## 8. Lacunas que permanecem abertas
 
-A pesquisa resolveu a antiga lacuna genérica de “não existe série local”: há uma série histórica `87955000` e um pico documentado de 2,90 m no próprio 08/10/2001.
+A antiga lacuna “não existe série local” foi encerrada. Os arquivos Hidro bruto e consistido da `87955000` foram recuperados.
 
 Restam:
 
-1. arquivo bruto/consistido original da ANA para outubro de 2001;
-2. ficha histórica da `87955000`, especialmente zero da régua, RN/datum, lances e eventuais mudanças de referencial;
-3. relação documental entre `87955000` e `87955001`, se houver;
+1. relatório/entregável da consistência que explique especificamente a revisão de 290 cm para 190 cm em 08/10/2001;
+2. ficha histórica da `87955000`, RNs, lances e nivelamentos que permitam saber qual referencial é aplicável a 2001;
+3. relação documental vertical entre `87955000` e `87955001`, se existir;
 4. boletins meteorológicos contemporâneos de outubro de 2001, especialmente o corpo do Climanálise v.16 n.10 e cartas/boletins de 07 a 09/10;
 5. textos integrais de Acosta 2002 e Cruz 2006;
 6. identificação temporal dos candidatos Noble 2002 e Fernandes 2004.
 
-Nenhuma referência bibliográfica sem corpo e nenhuma relação entre códigos sem documento oficial são promovidas à página pública como fato.
+Nenhuma relação entre códigos sem documento, nenhuma conversão vertical sem nivelamento e nenhuma referência bibliográfica sem corpo são promovidas à página pública como fato.

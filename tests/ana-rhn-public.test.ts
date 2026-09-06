@@ -14,6 +14,10 @@ const statusProbeWrapper = readFileSync(
   "utf8",
 );
 const integrationDoc = readFileSync("docs/ANA_RHN_INTEGRATION.md", "utf8");
+const exportAuditDoc = readFileSync(
+  "docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md",
+  "utf8",
+);
 
 const sanitizedLaranjalPayload = {
   displayFieldName: "Parametro",
@@ -81,25 +85,50 @@ test("ANA RHN public query is fixed to the official HTTPS ArcGIS host and contai
   assert.equal(url.password, "");
 });
 
-test("historical 87955000 and current 87955001 remain separate station identities", () => {
-  assert.match(integrationDoc, /código histórico: `87955000`/);
-  assert.match(integrationDoc, /código: `87955001`/);
-  assert.match(integrationDoc, /Nenhuma fonte oficial localizada[\s\S]*declara que `87955001` é renumeração, substituição, sensor filho ou continuação com o mesmo zero da régua `87955000`/);
+test("historical 87955000 and current 87955001 stay separate while their operational split is documented", () => {
+  assert.match(integrationDoc, /`87955000` = identidade convencional\/histórica da régua/);
+  assert.match(integrationDoc, /`87955001` = identidade telemétrica recente/);
+  assert.match(integrationDoc, /30\/04\/2026/);
+  assert.match(integrationDoc, /retirando `T`/);
+  assert.match(integrationDoc, /08\/06\/2026/);
+  assert.match(integrationDoc, /descrição: `TELEMÉTRICA`/);
   assert.match(integrationDoc, /não unir as duas séries automaticamente/);
   assert.match(integrationDoc, /não transferir zero, datum, RN, cota de referência ou histórico entre os códigos/);
-  assert.match(integrationDoc, /pico de 2001 da `87955000`[\s\S]*não[\s\S]*referência classificatória da `87955001`/);
+  assert.match(integrationDoc, /não concatenar as séries apenas porque o nome da estação é o mesmo/);
   assert.match(integrationDoc, /`87955000` apenas como \*\*régua histórica\*\*/);
   assert.match(integrationDoc, /`87955001` apenas para \*\*readiness\/cross-check atual\*\*/);
 });
 
-test("historical raw series recovery uses authorized modern API and never turns legacy service into runtime", () => {
+test("Hidro export audit locks raw versus consistent values for 08 October 2001", () => {
+  assert.match(exportAuditDoc, /`NivelConsistencia=1` = \*\*Bruto\*\*/);
+  assert.match(exportAuditDoc, /`NivelConsistencia=2` = \*\*Consistido\*\*/);
+  assert.match(exportAuditDoc, /Bruto \| leitura 07:00 \| 300 cm/);
+  assert.match(exportAuditDoc, /Bruto \| leitura 17:00 \| 280 cm/);
+  assert.match(exportAuditDoc, /Bruto \| média diária \| \*\*290 cm\*\*/);
+  assert.match(exportAuditDoc, /Consistido \| média diária \| \*\*190 cm\*\* \| \*\*2 = Estimado\*\*/);
+  assert.match(exportAuditDoc, /não escolhe silenciosamente um dos dois/);
+});
+
+test("2018 consistency intervention and 2017 zero clue do not become an invented 2001 datum", () => {
+  assert.match(exportAuditDoc, /05\/10\/2017/);
+  assert.match(exportAuditDoc, /5,00 m.*-0,02 m/s);
+  assert.match(exportAuditDoc, /30\/03\/2018/);
+  assert.match(exportAuditDoc, /29\/06\/2018/);
+  assert.match(exportAuditDoc, /Contrato ANA nº 10\/2015/);
+  assert.match(exportAuditDoc, /não autoriza aplicar retroativamente `-0,02 m` à série de 2001/);
+  assert.match(integrationDoc, /não é aplicado retroativamente a 2001/);
+});
+
+test("historical series is recovered without turning a legacy service or raw files into runtime dependencies", () => {
+  assert.match(integrationDoc, /antiga prioridade de “recuperar o arquivo bruto\/consistido” foi concluída/);
+  assert.match(integrationDoc, /290 cm/);
+  assert.match(integrationDoc, /190 cm/);
+  assert.match(integrationDoc, /status \*\*Estimado\*\*/);
   assert.match(integrationDoc, /HidroSerieCotas\/v1/);
-  assert.match(integrationDoc, /acesso automatizado à API moderna exige cadastro\/autorização/);
-  assert.match(integrationDoc, /hidro@ana\.gov\.br/);
   assert.match(integrationDoc, /HidroSerieHistorica/);
   assert.match(integrationDoc, /suporte prorrogado somente até \*\*30\/06\/2026\*\*/);
-  assert.match(integrationDoc, /não deve ser adotado como dependência nova de runtime/);
-  assert.match(integrationDoc, /extrair `87955000` para outubro de 2001 em bruto e consistido/);
+  assert.match(integrationDoc, /não deve virar dependência nova de runtime/);
+  assert.match(integrationDoc, /arquivos MDB\/CSV\/TXT recebidos para pesquisa não são versionados/);
   assert.doesNotMatch(source, /HidroSerieHistorica/);
   assert.doesNotMatch(source, /87955000/);
 });

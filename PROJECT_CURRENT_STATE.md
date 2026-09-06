@@ -40,7 +40,7 @@ Regras permanentes:
 | Radar / satélite / STSC | Probes independentes e copy pública sanitizada |
 | Hidrologia | Laranjal, Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
 | Localidades da Lagoa | Hub `/nivel-da-lagoa-dos-patos` + páginas verificadas de Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
-| ANA / SNIRH / RHN | Readiness/cross-check somente para o Laranjal; sem terceira ingestão nesta fase |
+| ANA / SNIRH / RHN | `87955001` permanece readiness/cross-check atual; série histórica `87955000` foi recuperada em bruto e consistido para pesquisa, sem terceira ingestão de runtime |
 | Historical Data Layer | Ativo; classes `observation`, `forecast`, `reanalysis`, `derived` separadas |
 | Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços |
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets responsivos por token público |
@@ -183,20 +183,32 @@ Regras editoriais:
 
 - fonte histórica é identificada por origem e contexto;
 - cotas de anos diferentes não são comparadas sem estação, datum, zero e referência vertical;
+- camada bruta e camada consistida são preservadas separadamente quando ambas existem;
+- valor consistido marcado como estimado continua identificado como estimado;
 - lacuna documental permanece declarada, nunca estimada para “fechar” cronologia;
 - análise posterior não é convertida em boletim contemporâneo.
 
 ### 6.1 Evento de 2001
 
-`/enchente-2001-pelotas` permanece marcado como pesquisa em andamento, mas a explicação meteorológica avançou substancialmente.
-
-Camadas atuais:
+`/enchente-2001-pelotas` permanece marcado como pesquisa em andamento. A pesquisa meteorológica e hidrológica agora possui seis camadas principais:
 
 1. **Folha de S.Paulo, 09/10/2001**: registro contemporâneo para classificação como ciclone extratropical, vento de 105 km/h em Pelotas, avanço aproximado de 600 m no Laranjal e cerca de 3 mil pessoas isoladas na Z3;
 2. **Prefeitura de Pelotas, 22/10/2001**: registro municipal contemporâneo de fortes ventos, invasão das águas, danos e recuperação;
-3. **Prefeitura de Pelotas, 18/10/2002**: memória retrospectiva que preserva o termo local “nordestão”;
-4. **Faculdade de Meteorologia da UFPel, análise posterior específica**: estudo do evento de 08/10/2001 com Análise Final NCEP 1° x 1° em intervalos de 6 h e dados horários de pressão, direção e velocidade do vento da Praticagem da Barra de Rio Grande entre 05 e 08/10/2001;
-5. **POPA, 10/02/2005**: contexto hidrodinâmico geral posterior sobre influência do vento Nordeste nos níveis da Lagoa.
+3. **ANA/Hidro 87955000**: exportação direta da série de cotas, com 08/10/2001 preservado como 300 cm às 07h, 280 cm às 17h e média diária bruta de 290 cm; na camada consistida, o mesmo dia aparece com 190 cm e status Estimado;
+4. **PMSB de Rio Grande, 2013**: recompilação anterior da série ANA que registra 2,90 m no dia 08/10/2001; após a recuperação do Hidro, esse número é tratado como compatível com a camada bruta, não como cota consistida definitiva;
+5. **Faculdade de Meteorologia da UFPel, análise posterior específica**: estudo do evento de 08/10/2001 com Análise Final NCEP 1° x 1° em intervalos de 6 h e dados horários de pressão, direção e velocidade do vento da Praticagem da Barra de Rio Grande entre 05 e 08/10/2001;
+6. **POPA, 10/02/2005**: contexto hidrodinâmico geral posterior sobre influência do vento Nordeste nos níveis da Lagoa.
+
+O MDB da `87955000` registra em 29/06/2018 que os dados fluviométricos foram alterados no âmbito do Contrato ANA nº 10/2015 para análise de consistência. Esse histórico prova uma intervenção formal de consistência, mas não explica tecnicamente a correção específica de 290 cm para 190 cm em 08/10/2001.
+
+O mesmo MDB registra em 05/10/2017 alteração do campo altitude para `-0,02 m`, descrita como altitude do zero da régua levantado em campo, e em março de 2018 registra substituição/renumeração de lances de régua. Por isso, `-0,02 m` não é retroprojetado para 2001 sem a cadeia de nivelamento/RNs aplicável ao período.
+
+A relação operacional dos códigos também avançou:
+
+- em 30/04/2026, a `87955000` teve o tipo telemétrico retirado, mantendo a identidade F/convecional;
+- o MDB da `87955001` registra cadastro em 08/06/2026 como `LARANJAL` / `TELEMÉTRICA`;
+- os ZIPs CSV/TXT fornecidos para `87955001` não contêm série `Cotas`;
+- isso sustenta papéis distintos de régua histórica e telemetria atual, mas não prova compartilhamento de zero, RN ou datum.
 
 A análise UFPel associa a interação da Alta Subtropical do Atlântico Sul com baixa pressão sobre o norte da Argentina ao aumento do gradiente de pressão e ao fortalecimento dos ventos de leste/nordeste. O trabalho relaciona a sequência desses ventos à redução do escoamento da Lagoa para o oceano, ao deslocamento de água para a costa oeste e à inundação. Essa camada é acadêmica e posterior, não boletim operacional contemporâneo.
 
@@ -204,11 +216,17 @@ Acosta et al., **Análise sinótica do evento ocorrido em 08/10/2001 na região 
 
 Lacunas que permanecem:
 
+- relatório/entregável técnico que explique a revisão de 290 cm bruto para 190 cm consistido/estimado em 08/10/2001;
+- ficha histórica, RNs e nivelamentos da `87955000` que permitam definir o referencial aplicável a 2001;
+- relação documental vertical entre `87955000` e `87955001`, se existir;
 - boletins meteorológicos operacionais contemporâneos de outubro de 2001;
-- série local de nível/cota da Lagoa ou do São Gonçalo com estação e referência vertical identificadas;
 - corpos integrais de Acosta 2002 e Cruz 2006.
 
-Documento: `docs/FLOOD_2001_WIND_CONTEXT_2026-09-06.md`.
+Documentos:
+
+- `docs/FLOOD_2001_WIND_CONTEXT_2026-09-06.md`;
+- `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`;
+- `docs/ANA_RHN_INTEGRATION.md`.
 
 ### 6.2 Evento de 2015
 
@@ -283,7 +301,7 @@ Radar, STSC, satélite REDEMET e GOES/INMET têm probes independentes. Falha da 
 
 O Laranjal já possui duas fontes de coleta do projeto. ANA/RHN não será adicionada como terceira fonte nesta fase.
 
-Estação ANA/RHN LARANJAL `87955001`:
+### 9.1 Estação atual 87955001
 
 - parâmetro `Nivel`;
 - unidade confirmada `cm`;
@@ -297,6 +315,17 @@ Estação ANA/RHN LARANJAL `87955001`:
 - `coveredByExistingSourceCount=2`;
 - zero medições ANA/RHN no Historical Data Layer.
 
+### 9.2 Estação histórica 87955000
+
+- arquivos Hidro bruto/consistido recuperados para pesquisa;
+- 08/10/2001: 290 cm bruto e 190 cm consistido/estimado;
+- histórico de consistência formal registrado em 29/06/2018;
+- pista cadastral de zero da régua em `-0,02 m` em 2017 não é retroprojetada para 2001;
+- tipo telemétrico retirado em 30/04/2026;
+- série não é anexada ao station key `ana-rhn-laranjal-87955001`.
+
+A `87955001`, cadastrada como telemétrica em 08/06/2026, permanece separada da série histórica até documentação de zero/RN/datum que autorize qualquer junção.
+
 Documento: `docs/ANA_RHN_INTEGRATION.md`.
 
 ## 10. Historical Data Layer
@@ -304,6 +333,8 @@ Documento: `docs/ANA_RHN_INTEGRATION.md`.
 O arquivo canônico separa `observation`, `forecast`, `reanalysis` e `derived`. Fontes novas entram com governança explícita antes de ingestão.
 
 `historical-events-capture` roda pelo `cron.job` 8 a cada 10 minutos. A versão 2 deduplica eventos STSC pela chave `(source_key,event_type,source_record_id)` antes do upsert.
+
+Se a série histórica ANA 87955000 for importada futuramente, bruto e consistido devem permanecer distinguíveis por proveniência/status; um não deve sobrescrever silenciosamente o outro.
 
 ## 11. Widget Builder e conta
 
@@ -350,6 +381,17 @@ Na Defesa Civil RS, os contratos protegem:
 - descoberta por `stationCode` exato;
 - ausência de links dedicados para as cinco candidatas não promovidas.
 
+Na enchente de 2001, os contratos agora protegem:
+
+- 300 cm às 07h e 280 cm às 17h na camada bruta de 08/10/2001;
+- média diária bruta de 290 cm;
+- média diária consistida de 190 cm com status Estimado;
+- proibição de voltar a apresentar 2,90 m como única cota definitiva;
+- rastreabilidade do processo de consistência de 2018 sem inventar a justificativa específica da correção;
+- `-0,02 m` de 2017 como pista de zero, sem retroprojeção automática para 2001;
+- separação operacional `87955000` histórica/convecional versus `87955001` telemétrica atual;
+- proibição de usar `87955001` para recalibrar o histórico.
+
 Na moderação histórica V1, os contratos protegem:
 
 - allowlist server-only e fail-closed;
@@ -362,23 +404,15 @@ Na moderação histórica V1, os contratos protegem:
 - painel invisível para snapshot não autorizado;
 - `/painel` permanece `noindex, nofollow`.
 
-`.github/workflows/quality.yml` agora chama explicitamente:
-
-- `tests/historical-moderation.test.ts`;
-- `tests/regional-defesa-civil-module.test.ts`;
-- `tests/defesa-civil-dedicated-links.test.ts`.
-
-Também continua chamando os contratos editoriais de navegação/rodapé e o teste da enchente de 2001.
+`.github/workflows/quality.yml` chama explicitamente contratos de moderação, Defesa Civil, navegação/rodapé e enchente de 2001.
 
 GitHub Actions segue apresentando runs que terminam antes do checkout/steps (`steps: null`). Nessa condição, não declarar testes, build, typecheck, lint, `routes:check` ou browser E2E como executados.
 
 ### 13.1 Lovable e propagação
 
-O Lovable sincronizou como `completed` os commits funcionais recentes, incluindo `af7f5c2d64ea092bc5af9ee5f30ef763d58dd0ae` (`feat(history): add UFPel analysis of 2001 flood mechanism`).
+O Lovable sincroniza os commits funcionais da `main`; estado de Git, build Lovable, propagação no domínio canônico e indexação continuam tratados separadamente.
 
-Uma publicação explícita foi acionada depois desse corte (`deployment_id` `0308cb58-c5aa-4aa4-9f3d-54d0bee0b4a6`), com retorno inicial `pending`.
-
-Isso comprova sincronização/build do projeto Lovable, não valida sozinho o domínio canônico. Devem permanecer separados:
+Devem permanecer distintos:
 
 1. código versionado na `main`;
 2. commit absorvido/buildado pelo Lovable;
@@ -395,36 +429,6 @@ Isso comprova sincronização/build do projeto Lovable, não valida sozinho o do
 6. Recuperar os quatro corpos perdidos de 2015 por acervo institucional, backup do CMS/banco municipal, Defesa Civil, Sanep ou hemeroteca; não repetir inferência web já esgotada.
 7. Localizar boletins meteorológicos contemporâneos de outubro de 2001.
 8. Tentar recuperar os textos integrais de Acosta et al. 2002 e Cruz et al. 2006.
-9. Buscar série local de nível/cota de 2001 com estação, zero/datum e referência vertical identificados.
-10. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.
-11. Depois da validação da moderação V1, adicionar paginação/filtros e fluxo editorial separado de publicação.
-12. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-13. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
-
-## 15. Documentos principais
-
-- `docs/DEFESA_CIVIL_DEDICATED_PAGE_GATE_2026-09-05.md` — gate editorial das páginas dedicadas da Defesa Civil;
-- `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração da Rede da Defesa Civil RS;
-- `docs/HISTORICAL_MODERATION_V1.md` — autorização, fila, anexos privados e decisões da moderação;
-- `docs/FLOODS_2001_2015_RESEARCH_2026-09-05.md` — base documental das cheias de 2001 e 2015;
-- `docs/FLOOD_2001_WIND_CONTEXT_2026-09-06.md` — análise UFPel do evento de 2001, contexto POPA, hierarquia e lacunas;
-- `docs/FLOOD_2015_OFFICIAL_BULLETIN_INVENTORY_2026-09-05.md` — inventário dos boletins de 2015;
-- `docs/FLOOD_2015_BULLETIN_RECOVERY_ATTEMPT_2026-09-06.md` — tentativa de recuperação dos quatro corpos ainda ausentes;
-- `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
-- `docs/WIDGET_BUILDER_ARCHITECTURE.md` — widgets, RLS e embeds;
-- `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket e canário P1;
-- `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets;
-- `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação;
-- `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
-- `docs/ANA_RHN_INTEGRATION.md` — política readiness-only da ANA/RHN;
-- `docs/REDEMET_OPERATIONS.md` — REDEMET;
-- `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências;
-- `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` — previsão de 15 dias;
-- `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` — SEO;
-- `docs/PRODUCTION_CUTOVER.md` — runbook de produção.
-
-## 16. Regra de manutenção
-
-Este arquivo deve responder rapidamente: o que existe na `main`, o que foi confirmado no runtime, quais fontes alimentam o portal, o que está parcial/suspenso, quais decisões de produto limitam integrações e qual é o próximo trabalho real.
-
-Não confundir estado de código, build/sincronização, deploy canônico e descoberta/indexação. Histórico detalhado permanece nos documentos especializados.
+9. Localizar o relatório/entregável da consistência da `87955000` que explique a revisão de 290 cm bruto para 190 cm consistido/estimado em 08/10/2001 e recuperar os nivelamentos/RNs aplicáveis ao período.
+10. Obter documento oficial que esclareça a continuidade operacional/vertical entre `87955000` e `87955001`, se existir, sem fundir as séries antes disso.
+11. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.

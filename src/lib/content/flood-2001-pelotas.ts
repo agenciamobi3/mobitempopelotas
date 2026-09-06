@@ -46,9 +46,9 @@ export const FLOOD_2001_TIMELINE: Flood2001TimelineItem[] = [
       "A Folha de S.Paulo publicou no dia seguinte, atribuindo a classificação a meteorologistas, que um ciclone extratropical atingiu o Rio Grande do Sul durante a madrugada de 8 de outubro.",
       "Em Pelotas, a reportagem registrou vento de 105 km/h. Na Lagoa dos Patos, as ondas chegavam a aproximadamente um metro durante o episódio.",
       "No Laranjal, as águas avançaram seis quadras, cerca de 600 metros, para dentro da área urbana. Na Colônia de Pescadores Z3, aproximadamente 3 mil pessoas ficaram isoladas.",
-      "Uma reconstrução hidrológica posterior do Plano Municipal de Saneamento de Rio Grande, baseada na série da ANA, registra que a estação Laranjal 87955000 atingiu cota de 2,90 m em 08/10/2001, o maior valor da série disponível entre setembro de 1984 e junho de 2012. Essa medida pertence à referência própria daquela régua e não representa altitude de 2,90 m acima do nível do mar.",
+      "Os arquivos Hidro exportados para a estação Laranjal 87955000 preservam duas camadas para 08/10/2001. Na série bruta, as leituras são 300 cm às 07h e 280 cm às 17h, com média diária de 290 cm. Na série consistida, a média diária do mesmo dia é 190 cm e o status do valor é 2, Estimado. O Tempo Pelotas mantém as duas versões explícitas em vez de escolher silenciosamente uma delas.",
     ],
-    highlight: "105 km/h em Pelotas · avanço de aproximadamente 600 m no Laranjal · cota histórica de 2,90 m na régua ANA 87955000 · cerca de 3 mil isolados na Z3",
+    highlight: "105 km/h em Pelotas · avanço de aproximadamente 600 m no Laranjal · régua 87955000: 2,90 m bruto e 1,90 m consistido/estimado · cerca de 3 mil isolados na Z3",
   },
   {
     date: "9 de outubro de 2001",
@@ -91,8 +91,9 @@ export const FLOOD_2001_TIMELINE: Flood2001TimelineItem[] = [
 ];
 
 export const FLOOD_2001_RESEARCH_GAPS = [
-  "A cota de 2,90 m em 08/10/2001 foi localizada para a estação histórica Laranjal 87955000, mas ainda buscamos o arquivo bruto original da ANA e os metadados do zero/referência da régua usados naquele período.",
-  "A documentação recente do SGB classifica a cota da estação Laranjal como não nivelada, lida diretamente na seção de réguas. Por isso, o valor histórico não é tratado como altitude e não é comparado por simples subtração com outras réguas ou anos sem comprovar continuidade do referencial.",
+  "A série bruta e a série consistida da estação 87955000 foram recuperadas. Ainda falta o relatório técnico que explique especificamente a revisão de 290 cm bruto para 190 cm consistido/estimado em 08/10/2001.",
+  "O histórico cadastral registra altitude do zero da régua em -0,02 m em 2017, substituição de réguas em março de 2018 e consistência de dados em junho de 2018. Sem a documentação de nivelamento aplicável ao período de 2001, esse -0,02 m não é retroprojetado para converter a cota histórica em altitude.",
+  "A 87955000 teve o tipo telemétrico retirado em 30/04/2026 e a 87955001 foi cadastrada como LARANJAL TELEMÉTRICA em 08/06/2026. Ainda falta documento que estabeleça se existe continuidade de zero, RN ou datum entre os códigos.",
   "Ainda buscamos boletins meteorológicos oficiais contemporâneos que detalhem operacionalmente o sistema atmosférico sobre Pelotas e a Lagoa dos Patos.",
   "Acervos da Biblioteca Pública, Defesa Civil, Sanep, UFPel, Embrapa, FURG, ANA/SNIRH, SGB, Marinha e imprensa local podem ampliar a cronologia, os metadados da régua e a documentação fotográfica.",
 ] as const;
@@ -113,11 +114,18 @@ export const FLOOD_2001_SOURCES: Flood2001Source[] = [
     role: "Fonte contemporânea para classificação como ciclone extratropical, vento de 105 km/h, isolamento da Z3 e avanço das águas no Laranjal.",
   },
   {
+    name: "Exportação de cotas da estação Laranjal 87955000",
+    organization: "ANA · Sistema de Informações Hidrológicas / Hidro",
+    date: "exportada em 06/09/2026",
+    url: "https://www.snirh.gov.br/hidroweb/",
+    role: "Origem dos arquivos Hidro que preservam bruto e consistido: em 08/10/2001, 290 cm bruto e 190 cm consistido, este último marcado como estimado.",
+  },
+  {
     name: "Relatório de Caracterização Municipal · Plano Municipal de Saneamento Básico",
     organization: "Prefeitura Municipal do Rio Grande · dados ANA",
     date: "2013",
     url: "https://www.riogrande.rs.gov.br/planosaneamento/arquivos/home/%282.1%29_Relatorio_de_Caracterizacao_Municipal.pdf",
-    role: "Compila a série histórica ANA da estação Laranjal 87955000 e registra cota máxima de 2,90 m em 08/10/2001; a medida pertence à referência própria da régua.",
+    role: "Recompila a série histórica ANA da estação Laranjal 87955000 e registra 2,90 m em 08/10/2001; a exportação Hidro atual mostra que esse valor corresponde à camada bruta, enquanto a camada consistida registra 1,90 m estimado.",
   },
   {
     name: "Inundação de maio de 2024 no Rio Grande do Sul: levantamento dos níveis máximos em estações fluviométricas",

@@ -17,10 +17,10 @@ export function Flood2001Hero() {
           <span>Registro histórico · outubro de 2001 · pesquisa em andamento</span>
           <h1 id="tp-flood-2001-hero-title">Enchente de 2001 em Pelotas e no Laranjal</h1>
           <p>
-            Fontes contemporâneas e séries hidrológicas históricas já permitem documentar o ciclone
-            extratropical, o vento extremo, o avanço das águas sobre o Laranjal, o isolamento da Z3 e
-            a cota registrada na régua local. A página permanece aberta a novas fontes porque o zero
-            histórico da régua e parte importante do acervo operacional ainda precisam ser recuperados.
+            Fontes contemporâneas, análise acadêmica e os próprios arquivos Hidro da estação
+            87955000 permitem documentar o evento sem esconder as revisões da série. Para 8 de
+            outubro, o arquivo bruto e o consistido não têm o mesmo valor, e essa diferença passa a
+            ser mostrada explicitamente em vez de ser resolvida por escolha editorial.
           </p>
         </div>
 
@@ -63,8 +63,8 @@ export function Flood2001HistoricalPage() {
             A reconstrução combina fontes contemporâneas com evidências hidrológicas e acadêmicas
             posteriores claramente identificadas. A Folha de S.Paulo registra a classificação
             meteorológica e os principais números do dia. A Prefeitura de Pelotas documenta danos,
-            invasão das águas e recuperação. Uma série histórica da ANA permite ainda situar a leitura
-            da régua do Laranjal no mesmo 8 de outubro.
+            invasão das águas e recuperação. Os arquivos Hidro da ANA acrescentam a série da régua
+            Laranjal 87955000 e permitem separar a camada bruta da camada consistida.
           </p>
           <p>
             Na madrugada de 8 de outubro de 2001, a reportagem publicada no dia seguinte registrou
@@ -85,9 +85,9 @@ export function Flood2001HistoricalPage() {
             da Lagoa → isolamento, inundação e danos no Laranjal e na Z3
           </strong>
           <p>
-            Essa cadeia resume apenas o que as fontes atuais sustentam. A medição histórica da régua e
-            a análise acadêmica acrescentam contexto, mas não autorizam converter uma referência local
-            em altitude nem preencher lacunas operacionais por estimativa.
+            Essa cadeia resume apenas o que as fontes atuais sustentam. A série hidrológica e a análise
+            acadêmica acrescentam contexto, mas não autorizam converter uma referência local em
+            altitude nem apagar a diferença entre dado bruto, dado consistido e valor estimado.
           </p>
         </div>
       </section>
@@ -95,33 +95,54 @@ export function Flood2001HistoricalPage() {
       <section className="tp-flood-explanation" id="regua-laranjal-2001">
         <div>
           <span>Régua histórica ANA · estação 87955000</span>
-          <h2>O Laranjal registrou 2,90 m na régua em 8 de outubro de 2001</h2>
+          <h2>No mesmo 8 de outubro, o Hidro preserva 2,90 m bruto e 1,90 m consistido</h2>
         </div>
         <div>
           <p>
-            O Relatório de Caracterização Municipal do Plano Municipal de Saneamento Básico de Rio
-            Grande recompila dados da Agência Nacional de Águas para a estação Laranjal, código
-            87955000. O documento informa uma série de 13 de setembro de 1984 a 30 de junho de 2012,
-            com poucas falhas, e identifica o maior valor do período justamente em 08/10/2001:
-            <strong> 2,90 m</strong>.
+            O cabeçalho da exportação Hidro define <strong>NivelConsistencia 1 como Bruto</strong> e
+            <strong> NivelConsistencia 2 como Consistido</strong>. Para outubro de 2001, a camada bruta
+            registra no dia 8 uma leitura de <strong>300 cm às 07h</strong>, outra de
+            <strong> 280 cm às 17h</strong> e uma <strong>média diária de 290 cm</strong>.
           </p>
           <p>
-            O mesmo relatório registra cota média de aproximadamente 0,63 m para essa série. Esse dado
-            ajuda a dimensionar quão excepcional foi a leitura de 2001 dentro do histórico daquela
-            estação, mas não transforma 2,90 m em “metros acima do normal” nem em altitude sobre o
-            nível do mar.
+            Na camada consistida do mesmo mês, a cota do dia 8 é <strong>190 cm</strong>. O próprio
+            arquivo marca esse valor com <strong>status 2 = Estimado</strong>. Nessa linha, a máxima
+            mensal também é 190 cm e o dia da máxima é 8. Portanto, 2,90 m e 1,90 m não são duas
+            réguas diferentes: são duas camadas de tratamento da série 87955000 para a mesma data.
           </p>
           <p>
-            Documentação recente do Serviço Geológico do Brasil descreve a cota da estação Laranjal
-            87955000 como <strong>não nivelada</strong>, com leitura feita diretamente na seção de
-            réguas existente. Por isso, o Tempo Pelotas preserva o valor como leitura da referência
-            própria daquele ponto. Não o compara por simples subtração com outras estações, com cotas
-            publicadas para 2015/2024 ou com qualquer datum vertical sem comprovar que o zero e o
-            referencial permaneceram equivalentes.
+            O MDB da estação ajuda a rastrear por que a série pode ter mudado sem, contudo, explicar a
+            correção específica de 100 cm. Em <strong>29/06/2018</strong>, o histórico informa que os
+            dados fluviométricos da 87955000 foram alterados no âmbito do Contrato ANA nº 10/2015,
+            cujo objeto era a análise de consistência de dados fluviométricos. O Tempo Pelotas não
+            transforma esse registro geral em uma justificativa técnica inventada para o dia 8.
+          </p>
+          <p>
+            O relatório municipal de 2013 continua relevante porque recompila a série ANA disponível à
+            época e registra 2,90 m em 08/10/2001. Depois da recuperação dos arquivos Hidro atuais,
+            porém, esse número passa a ser identificado como compatível com a <strong>camada bruta</strong>,
+            enquanto a camada consistida atualmente exportada preserva 1,90 m como estimado.
+          </p>
+          <p>
+            O histórico cadastral também exige cautela com altitude. Em <strong>05/10/2017</strong>, o
+            campo altitude foi alterado de 5,00 m para <strong>-0,02 m</strong>, descrito como a altitude
+            correspondente ao zero da régua levantado em campo. Em março de 2018, entretanto, o mesmo
+            histórico registra substituição e renumeração de lances de régua. Sem o nivelamento que
+            demonstre continuidade até 2001, o portal não retroprojeta -0,02 m para converter as cotas
+            de 2001 em altitude sobre um datum.
+          </p>
+          <p>
+            Há ainda uma separação operacional recente entre os códigos. Em <strong>30/04/2026</strong>,
+            o histórico da 87955000 registra a retirada do tipo telemétrico, mantendo a estação como F.
+            O MDB da <strong>87955001</strong> registra cadastro em <strong>08/06/2026</strong> com o nome
+            LARANJAL e a descrição TELEMÉTRICA. Isso sustenta papéis distintos para a régua histórica e
+            a telemetria atual, mas não prova que as duas identidades compartilham o mesmo zero, RN ou
+            datum vertical.
           </p>
           <blockquote>
-            2,90 m é a cota registrada na régua histórica Laranjal 87955000 em 08/10/2001. Não é uma
-            altitude de 2,90 m e não é, por si só, uma cota de inundação universal do Laranjal.
+            Em 08/10/2001, a 87955000 tem 290 cm na camada bruta e 190 cm na camada consistida,
+            marcada como estimada. Ambos são valores de régua, não altitudes. A 87955001 não é usada
+            para recalibrar a série histórica.
           </blockquote>
         </div>
       </section>
@@ -192,7 +213,7 @@ export function Flood2001HistoricalPage() {
       <section className="tp-flood-explanation" id="fontes-e-limites-2001">
         <div>
           <span>Hierarquia das fontes</span>
-          <h2>“Ciclone extratropical”, “nordestão” e cota de régua são camadas diferentes</h2>
+          <h2>“Ciclone extratropical”, “nordestão” e camadas da régua são evidências diferentes</h2>
         </div>
         <div>
           <p>
@@ -207,10 +228,10 @@ export function Flood2001HistoricalPage() {
             automático do sistema atmosférico em escala maior.
           </p>
           <p>
-            A cota de 2,90 m vem de uma reconstrução posterior da série ANA da estação Laranjal
-            87955000. Ela documenta uma leitura hidrológica do mesmo dia, mas pertence à referência
-            própria daquela régua e não deve ser fundida com as expressões jornalísticas sobre avanço
-            das águas nem com cotas de outras estações.
+            A série Hidro da 87955000 acrescenta outra camada documental. O bruto preserva 2,90 m
+            como média diária de 08/10/2001; o consistido preserva 1,90 m para a mesma data e marca o
+            valor como estimado. A divergência fica visível porque consistência de dado não é sinônimo
+            de apagar o registro bruto.
           </p>
           <p>
             A análise acadêmica da UFPel é específica do episódio e ajuda a explicar a dinâmica
@@ -225,8 +246,9 @@ export function Flood2001HistoricalPage() {
             mas não documenta o episódio de 2001.
           </p>
           <blockquote>
-            O portal preserva quem afirmou cada coisa e qual referência cada número usa. Uma fonte
-            local de impacto não vira, por aproximação, uma fonte meteorológica ou um datum vertical.
+            O portal preserva quem afirmou cada coisa, a camada de consistência de cada medição e a
+            referência de cada régua. Uma correção posterior não é escondida, e uma régua não vira
+            altitude por aproximação.
           </blockquote>
         </div>
       </section>
@@ -257,9 +279,10 @@ export function Flood2001HistoricalPage() {
         </div>
         <div>
           <p>
-            A descoberta da série ANA resolveu uma lacuna importante, mas não encerra a pesquisa. O
-            zero histórico da régua, o arquivo bruto e a continuidade do referencial ainda precisam de
-            documentação antes de qualquer comparação entre enchentes.
+            Os arquivos bruto e consistido da ANA já foram recuperados. A lacuna agora é mais
+            específica: explicar tecnicamente a revisão de 290 para 190 cm, fechar o referencial da
+            régua aplicável a 2001 e documentar a relação entre a régua histórica 87955000 e a
+            identidade telemétrica 87955001 sem presumir continuidade vertical.
           </p>
           <ul>
             {FLOOD_2001_RESEARCH_GAPS.map((gap) => (
