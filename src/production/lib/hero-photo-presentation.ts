@@ -67,6 +67,12 @@ const partlyCloudyDayAlternate = {
   credit: "Acervo Tempo Pelotas · Pelotas · dia",
 } as const;
 
+const partlyCloudyFimDeTardeAlternate = {
+  src: "/weather/hero/pelotas-fim-de-tarde-poucas-nuvens.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · fim de tarde",
+} as const;
+
 const partlyCloudyMadrugadaAlternate = {
   src: "/weather/hero/pelotas-madrugada-parcialmente-nublado.png",
   position: "center 50%",
@@ -75,6 +81,8 @@ const partlyCloudyMadrugadaAlternate = {
 
 const PELOTAS_TIME_ZONE = "America/Sao_Paulo";
 const MADRUGADA_END_HOUR = 7;
+const FIM_DE_TARDE_START_HOUR = 16;
+const FIM_DE_TARDE_END_HOUR = 19;
 
 function normalizeText(value: string | null | undefined) {
   return (value ?? "")
@@ -124,7 +132,36 @@ function usesAlternateRotationSlot(weather: WeatherData) {
   return hour !== null && hour % 2 === 0;
 }
 
-function partlyCloudyDayPhoto(weather: WeatherData, legacy: HeroPhotoPresentation) {
+function partlyCloudyDayPhoto(
+  weather: WeatherData,
+  legacy: HeroPhotoPresentation,
+  cloudCover: number | null,
+) {
+  const hour = currentPelotasHour(weather);
+  const isFewCloudsLateAfternoon =
+    hour !== null &&
+    cloudCover !== null &&
+    cloudCover < 50 &&
+    hour >= FIM_DE_TARDE_START_HOUR &&
+    hour < FIM_DE_TARDE_END_HOUR;
+
+  if (isFewCloudsLateAfternoon) {
+    const lateAfternoonSlot = (hour - FIM_DE_TARDE_START_HOUR) % 3;
+    if (lateAfternoonSlot === 1) {
+      return {
+        kind: legacy.kind,
+        ...partlyCloudyFimDeTardeAlternate,
+      } satisfies HeroPhotoPresentation;
+    }
+    if (lateAfternoonSlot === 2) {
+      return {
+        kind: legacy.kind,
+        ...partlyCloudyDayAlternate,
+      } satisfies HeroPhotoPresentation;
+    }
+    return legacy;
+  }
+
   if (!usesAlternateRotationSlot(weather)) return legacy;
   return {
     kind: legacy.kind,
@@ -193,7 +230,7 @@ export function resolveHeroPhoto({
       cloudCover !== null && cloudCover >= 50
         ? heroPhotos["partly-cloudy-dense"]
         : heroPhotos["partly-cloudy-light"];
-    return partlyCloudyDayPhoto(weather, legacy);
+    return partlyCloudyDayPhoto(weather, legacy, cloudCover);
   }
 
   if (icon === "partly-cloudy-night") {
