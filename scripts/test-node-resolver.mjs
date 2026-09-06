@@ -13,19 +13,20 @@ function resolveExistingModule(candidateUrl) {
     return candidateUrl.href;
   }
 
-  if (extname(candidatePath)) {
+  const extension = extname(candidatePath);
+  if (MODULE_EXTENSIONS.includes(extension)) {
     return null;
   }
 
-  for (const extension of MODULE_EXTENSIONS) {
-    const filePath = `${candidatePath}${extension}`;
+  for (const moduleExtension of MODULE_EXTENSIONS) {
+    const filePath = `${candidatePath}${moduleExtension}`;
     if (existsSync(filePath)) {
       return pathToFileURL(filePath).href;
     }
   }
 
-  for (const extension of MODULE_EXTENSIONS) {
-    const indexPath = `${candidatePath}/index${extension}`;
+  for (const moduleExtension of MODULE_EXTENSIONS) {
+    const indexPath = `${candidatePath}/index${moduleExtension}`;
     if (existsSync(indexPath)) {
       return pathToFileURL(indexPath).href;
     }
