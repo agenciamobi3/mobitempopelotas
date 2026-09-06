@@ -25,7 +25,7 @@ const remValues = [...styles.matchAll(/font-size:\s*(0\.\d+)rem/g)].map((match) 
 );
 
 test("radar route uses direct SEO copy and page-specific editorial content", () => {
-  assert.match(route, /Radar de chuva e satélite em Pelotas: imagens recentes/);
+  assert.match(route, /Satélites e radares em Pelotas: chuva, nuvens e trovoadas/);
   assert.match(route, /janela temporal/);
   assert.match(route, /cadência/);
   assert.match(route, /RADAR_PAGE_CONTENT/);
@@ -116,8 +116,9 @@ test("latest radar image is compared with the nearest forecast hour without coup
   assert.match(route, /loadRadarPageData/);
   assert.match(loader, /getRedemetOverview\(\)/);
   assert.match(loader, /getWeatherIntelligence\(\)/);
-  assert.match(loader, /Promise\.allSettled/);
-  assert.doesNotMatch(loader, /await Promise\.all\(/);
+  assert.match(loader, /settlePageDependency/);
+  assert.match(loader, /Promise\.all\(/);
+  assert.doesNotMatch(loader, /Promise\.allSettled/);
   assert.match(loader, /createUnavailableRedemetOverview\(\)/);
   assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
   assert.match(fallback, /available: false/);
