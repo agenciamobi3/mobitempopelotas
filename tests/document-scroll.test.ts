@@ -31,7 +31,8 @@ test("garante wheel e teclas de navegação no viewport dedicado", () => {
 
 test("reseta a rota nova no topo do viewport real sem restauração concorrente", () => {
   assert.match(router, /scrollRestoration:\s*false/);
-  assert.match(router, /defaultPreloadDelay:\s*0/);
+  assert.match(router, /defaultPreload:\s*false/);
+  assert.doesNotMatch(router, /defaultPreloadDelay/);
   assert.match(scrollRoot, /useLayoutEffect/);
   assert.match(scrollRoot, /window\.history\.scrollRestoration = "manual"/);
   assert.match(scrollRoot, /root\.scrollTop = 0/);
