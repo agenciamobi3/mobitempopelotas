@@ -28,6 +28,7 @@ const internalWeatherStandaloneRoutes = [
   "/situacao-hidrologica-pelotas",
   "/mapa-de-geadas-rio-grande-do-sul",
   "/nivel-do-guaiba",
+  "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
   "/enchente-2001-pelotas",
   "/enchente-2015-pelotas",
