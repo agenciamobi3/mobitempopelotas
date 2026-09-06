@@ -44,6 +44,7 @@ export function Flood2001HistoricalPage() {
       <nav className="tp-flood-history__index" aria-label="Nesta página">
         <span>Nesta página</span>
         <a href="#o-que-sabemos-2001">O que sabemos</a>
+        <a href="#mecanismo-vento-2001">Mecanismo do vento</a>
         <a href="#linha-do-tempo-2001">Linha do tempo</a>
         <a href="#fontes-e-limites-2001">Fontes e limites</a>
         <a href="#nao-confundir-setembro-2001">Outro evento em setembro</a>
@@ -85,6 +86,38 @@ export function Flood2001HistoricalPage() {
             Essa cadeia resume apenas o que as fontes atuais sustentam. Ela não substitui uma análise
             meteorológica oficial detalhada que ainda possa ser recuperada em acervos da época.
           </p>
+        </div>
+      </section>
+
+      <section className="tp-flood-explanation" id="mecanismo-vento-2001">
+        <div>
+          <span>Análise acadêmica do evento</span>
+          <h2>Como os ventos de leste e nordeste ajudaram a represar a Lagoa</h2>
+        </div>
+        <div>
+          <p>
+            Um trabalho da Faculdade de Meteorologia da UFPel analisa especificamente a inundação da
+            costa oeste da Lagoa dos Patos em 8 de outubro de 2001. O estudo usa Análise Final do NCEP
+            com resolução de 1° x 1° em intervalos de seis horas e dados horários de pressão,
+            velocidade e direção do vento da Praticagem da Barra de Rio Grande entre 5 e 8 de outubro.
+          </p>
+          <p>
+            A reconstrução identifica a Alta Subtropical do Atlântico Sul estacionária sobre o oceano
+            e uma baixa pressão sobre o norte da Argentina. A interação entre os sistemas aumentou o
+            gradiente de pressão sobre o Rio Grande do Sul e fortaleceu os ventos do quadrante
+            leste-nordeste nos dias que antecederam o evento extremo.
+          </p>
+          <p>
+            Segundo as conclusões do trabalho, os ventos de leste e nordeste podem ter dificultado a
+            saída das águas da Lagoa dos Patos para o Oceano Atlântico. O atrito do vento com a
+            superfície também deslocou água em direção à costa oeste, contribuindo para a inundação.
+            Essa análise explica o mecanismo físico do episódio, mas não fornece uma nova cota do
+            Laranjal e não substitui as medições ou os relatos contemporâneos.
+          </p>
+          <blockquote>
+            Análise acadêmica posterior específica não é boletim operacional contemporâneo. O Tempo
+            Pelotas usa cada camada para aquilo que ela realmente documenta.
+          </blockquote>
         </div>
       </section>
 
@@ -137,15 +170,10 @@ export function Flood2001HistoricalPage() {
             automático do sistema atmosférico em escala maior.
           </p>
           <p>
-            Uma análise acadêmica posterior da Faculdade de Meteorologia da UFPel estudou
-            especificamente o evento de 8 de outubro com dados NCEP e observações de pressão,
-            direção e velocidade do vento da Praticagem da Barra de Rio Grande entre 5 e 8 de
-            outubro. O trabalho identificou a interação da Alta Subtropical do Atlântico Sul com uma
-            baixa pressão sobre o norte da Argentina, fortalecendo o gradiente de pressão e os ventos
-            de leste-nordeste. Os autores associam a sequência desses ventos ao represamento das águas,
-            à redução do escoamento para o oceano e à inundação da costa oeste da Lagoa dos Patos.
-            É uma análise específica do episódio, mas posterior, e não substitui um boletim
-            meteorológico operacional contemporâneo.
+            A análise acadêmica da UFPel apresentada acima é específica do episódio e ajuda a explicar
+            a dinâmica atmosférica e hidrodinâmica, mas foi produzida posteriormente. Ela não é
+            reclassificada como boletim emitido durante a emergência e não altera a atribuição dos
+            números contemporâneos publicados em 2001.
           </p>
           <p>
             Um texto náutico publicado em 2005 por Danilo Chagas Ribeiro descreve, de forma geral,
