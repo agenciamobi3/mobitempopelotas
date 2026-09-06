@@ -14,6 +14,16 @@ const PAGE_TITLE = "Nível do Canal São Gonçalo hoje: Eclusa em Capão do Leã
 const PAGE_DESCRIPTION =
   "Veja o nível do Canal São Gonçalo hoje na estação da Eclusa em Capão do Leão, com horário da leitura, tendência, chuva e referência da Defesa Civil RS.";
 const PAGE_PATH = "/nivel-do-canal-sao-goncalo";
+const PAGE_LOCATION = {
+  "@type": "Place",
+  name: "Eclusa do Canal São Gonçalo, Capão do Leão, Rio Grande do Sul",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Capão do Leão",
+    addressRegion: "RS",
+    addressCountry: "BR",
+  },
+};
 
 const PAGE_CONFIG: DefesaCivilStationPageConfig = {
   stationCode: "DCRS-00063",
@@ -94,6 +104,7 @@ export const Route = createFileRoute("/nivel-do-canal-sao-goncalo")({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
         path: PAGE_PATH,
+        location: PAGE_LOCATION,
         breadcrumbs: [
           { name: "Início", path: "/" },
           { name: "Situação das águas", path: "/situacao-hidrologica-pelotas" },

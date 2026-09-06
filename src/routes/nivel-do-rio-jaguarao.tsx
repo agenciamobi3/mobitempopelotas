@@ -14,6 +14,16 @@ const PAGE_TITLE = "Nível do Rio Jaguarão hoje: leitura da Defesa Civil RS";
 const PAGE_DESCRIPTION =
   "Acompanhe o nível do Rio Jaguarão hoje pela estação da Defesa Civil RS em Jaguarão, com horário da leitura, tendência, chuva e referência da própria estação.";
 const PAGE_PATH = "/nivel-do-rio-jaguarao";
+const PAGE_LOCATION = {
+  "@type": "Place",
+  name: "Jaguarão, Rio Grande do Sul",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Jaguarão",
+    addressRegion: "RS",
+    addressCountry: "BR",
+  },
+};
 
 const PAGE_CONFIG: DefesaCivilStationPageConfig = {
   stationCode: "DCRS-00115",
@@ -94,6 +104,7 @@ export const Route = createFileRoute("/nivel-do-rio-jaguarao")({
         name: PAGE_TITLE,
         description: PAGE_DESCRIPTION,
         path: PAGE_PATH,
+        location: PAGE_LOCATION,
         breadcrumbs: [
           { name: "Início", path: "/" },
           { name: "Tempo na Região Sul", path: "/tempo-na-regiao-sul-rs" },

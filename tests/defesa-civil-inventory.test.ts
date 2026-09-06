@@ -128,12 +128,16 @@ test("Jaguarão and Canal São Gonçalo routes are indexable, source-backed and 
   assert.match(jaguaraoRoute, /loader: \(\) => getDefesaCivilHydroData\(\)/);
   assert.match(jaguaraoRoute, /weatherPath: "\/tempo-em\/jaguarao-rs"/);
   assert.match(jaguaraoRoute, /Nível do Rio Jaguarão hoje/);
+  assert.match(jaguaraoRoute, /location: PAGE_LOCATION/);
+  assert.match(jaguaraoRoute, /addressLocality: "Jaguarão"/);
 
   assert.match(saoGoncaloRoute, /createFileRoute\("\/nivel-do-canal-sao-goncalo"\)/);
   assert.match(saoGoncaloRoute, /stationCode: "DCRS-00063"/);
   assert.match(saoGoncaloRoute, /loader: \(\) => getDefesaCivilHydroData\(\)/);
   assert.match(saoGoncaloRoute, /weatherPath: "\/tempo-em\/capao-do-leao-rs"/);
   assert.match(saoGoncaloRoute, /não deve ser confundido com a régua do Cais do Porto em Pelotas/);
+  assert.match(saoGoncaloRoute, /location: PAGE_LOCATION/);
+  assert.match(saoGoncaloRoute, /addressLocality: "Capão do Leão"/);
 
   assert.match(publicRoutes, /path: "\/nivel-do-rio-jaguarao", changeFrequency: "hourly"/);
   assert.match(publicRoutes, /path: "\/nivel-do-canal-sao-goncalo", changeFrequency: "hourly"/);
