@@ -176,7 +176,7 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
       "O projeto previa aproximadamente 2 km de extensão e 3 m de largura, com duas frentes de trabalho em sentidos opostos.",
       "O texto municipal voltou a atribuir a enchente ao somatório entre o grande volume no São Gonçalo, a Lagoa dos Patos elevada pela contribuição do Guaíba e ventos desfavoráveis ao escoamento para o mar.",
     ],
-    highlight: "Dique emergencial: aproximadamente 2 km de extensão e 3 m de largura.",
+    highlight: "Projeto anunciado em 25/10: aproximadamente 2 km de extensão e 3 m de largura.",
   },
   {
     date: "26 de outubro",
@@ -274,6 +274,19 @@ export const FLOOD_2015_TIMELINE: Flood2015TimelineItem[] = [
     highlight: "Boletim identificado; medições não preenchidas sem o corpo documental.",
   },
   {
+    date: "30 de outubro · fim da tarde",
+    title: "Sanep conclui o dique emergencial no Valverde",
+    stage: "pelotas",
+    stageLabel: "Obra emergencial concluída",
+    paragraphs: [
+      "A Prefeitura informou que o Sanep concluiu no fim da tarde de 30 de outubro a barreira de contenção no limite da área habitada do Valverde com o banhado.",
+      "Na configuração concluída, o Município descreveu o dique com 1,8 km de comprimento e 3 m de altura, além de uma comporta móvel de 6 m destinada a bloquear a entrada de água e, conforme o vento, permitir a saída para o banhado.",
+      "Ao final daquela tarde, a própria notícia registrava os primeiros sinais positivos: as águas começavam a baixar nas áreas alagadas do Valverde e do Novo Valverde. A obra foi apresentada como medida paliativa, não como solução definitiva para o Laranjal.",
+    ],
+    highlight:
+      "Projeto de 25/10 e obra concluída de 30/10 usam dimensões diferentes: o primeiro previa ~2 km de extensão e 3 m de largura; o registro final descreve 1,8 km de comprimento e 3 m de altura, com comporta de 6 m.",
+  },
+  {
     date: "3 de novembro · manhã",
     title: "A Defesa Civil encerra o plantão especial no Laranjal",
     stage: "pelotas",
@@ -350,6 +363,12 @@ export const FLOOD_2015_ARCHIVE: Flood2015ArchiveEntry[] = [
     publications: ["Boletim atualizado às 11h"],
     retrieval: "indexed",
     note: "A existência da edição está comprovada pelo índice municipal, mas o corpo antigo não é entregue de forma confiável pelo arquivo atual. Um índice contemporâneo da GZH comprova notícia sobre queda de desabrigados, também sem corpo recuperado.",
+  },
+  {
+    date: "30/10",
+    publications: ["Sanep conclui dique de contenção emergencial no Laranjal"],
+    retrieval: "full",
+    note: "O texto oficial foi recuperado integralmente e documenta a configuração concluída da obra, a comporta móvel e o início da baixa da água no Valverde e Novo Valverde.",
   },
   {
     date: "03/11",
@@ -457,6 +476,13 @@ export const FLOOD_2015_SOURCES: Flood2015Source[] = [
     date: "28/10/2015",
     url: "https://pelotashomolog.coinpel.com.br/noticia/uniao-reconhece-situacao-de-emergencia-de-pelotas",
     role: "Registra a divulgação municipal do reconhecimento federal e a estratégia do dique emergencial.",
+  },
+  {
+    name: "Sanep conclui dique de contenção emergencial no Laranjal",
+    organization: "Prefeitura Municipal de Pelotas",
+    date: "30/10/2015",
+    url: "https://www.pelotas.com.br/noticia/sanep-conclui-dique-de-contencao-emergencial-no-laranjal",
+    role: "Documenta a conclusão do dique no Valverde: 1,8 km de comprimento, 3 m de altura, comporta móvel de 6 m e início da baixa das águas no fim da tarde.",
   },
   {
     name: "Defesa Civil encerra operações na Administração do Laranjal",
