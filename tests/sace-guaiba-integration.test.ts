@@ -286,13 +286,17 @@ test("SACE retries one transient failure on the station endpoint before declarin
   }
 });
 
-test("hydrology page identifies SACE as upstream context and keeps local refresh cadence", () => {
+test("hydrology page identifies SACE as complementary upstream context in the resilient SSR composition", () => {
   assert.match(route, /loadHydrologyOverviewPageData/);
-  assert.match(route, /useHydrologyNetworkRecovery\(data\.sace, data\.defesaCivil\)/);
-  assert.match(route, /sace=\{recoveredNetworks\.sace\}/);
-  assert.doesNotMatch(route, /sace=\{data\.sace\}/);
+  assert.doesNotMatch(route, /useHydrologyNetworkRecovery/);
+  assert.match(route, /<SaceGuaibaRenderScope render=\{false\}>/);
+  assert.match(route, /<HydrologySectionBoundary label="Rede da Defesa Civil RS">/);
+  assert.match(route, /<HydrologySectionBoundary label="Contexto complementar · SACE Guaíba">/);
+  assert.match(route, /<SaceGuaibaContext data=\{data\.sace\} \/>/);
   assert.match(route, /staleTime: 60 \* 1_000/);
   assert.match(route, /SACE Guaíba do Serviço Geológico do Brasil/);
+  assert.match(route, /Qual é o papel do SACE Guaíba nesta página/);
+  assert.match(route, /O SACE é usado como contexto complementar a montante/);
   assert.match(route, /Uma estação elevada no SACE significa que o Laranjal vai subir/);
   assert.match(route, /sem transformá-la em risco para Pelotas/);
   assert.match(route, /Ausência de transmissão significa que o rio está normal/);
@@ -301,7 +305,9 @@ test("hydrology page identifies SACE as upstream context and keeps local refresh
 
 test("SACE experience offers map filters, source transparency and explicit interpretation limits", () => {
   assert.match(context, /O que acontece nos rios que alimentam o Guaíba/);
-  assert.match(context, /Leitura regional, não previsão para o Laranjal/);
+  assert.match(context, /Contexto complementar a montante · SGB/);
+  assert.match(context, /Leitura regional complementar, não previsão para o Laranjal/);
+  assert.match(context, /essa rede complementa o quadro regional depois das leituras da[\s\S]*Defesa Civil RS/);
   assert.match(context, /Ausência de dado não significa nível normal/);
   assert.match(context, /Acima de normal/);
   assert.match(context, /Transmitindo/);
