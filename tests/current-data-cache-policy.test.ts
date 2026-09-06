@@ -25,8 +25,10 @@ test("política de dados correntes proíbe cache stale de resposta", () => {
   }
 });
 
-test("API da Embrapa preserva a amostra central e apenas muda a política HTTP", () => {
-  assert.match(embrapaApi, /getCentralEmbrapaObservation/);
+test("API da Embrapa usa snapshot fresco e recusa publicar observação velha como agora", () => {
+  assert.match(embrapaApi, /getFreshEmbrapaObservation/);
+  assert.match(embrapaApi, /isPublishableEmbrapaObservation/);
   assert.match(embrapaApi, /JSON\.stringify\(observation\)/);
+  assert.match(embrapaApi, /status: publishable \? 200 : 503/);
   assert.doesNotMatch(embrapaApi, /fetchEmbrapaObservation/);
 });
