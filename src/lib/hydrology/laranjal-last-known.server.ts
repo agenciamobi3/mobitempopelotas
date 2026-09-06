@@ -14,6 +14,7 @@ const SOURCE_KEY = "labhidrosens-ufpel";
 const STATION_KEY = "labhidrosens-laranjal";
 const VARIABLE_KEY = "water_level";
 const ARCHIVE_LIMIT = 300;
+const ARCHIVE_READ_TIMEOUT_MS = 900;
 
 type HistoricalRow = {
   source_key: string;
@@ -90,7 +91,8 @@ export async function fetchLastKnownLaranjalLevelData(): Promise<LaranjalLevelDa
       .eq("data_class", "observation")
       .not("value_numeric", "is", null)
       .order("observed_at", { ascending: false })
-      .limit(ARCHIVE_LIMIT);
+      .limit(ARCHIVE_LIMIT)
+      .abortSignal(AbortSignal.timeout(ARCHIVE_READ_TIMEOUT_MS));
 
     if (error) {
       throw new Error(`Falha ao consultar o last-known do Laranjal: ${error.message}`);
