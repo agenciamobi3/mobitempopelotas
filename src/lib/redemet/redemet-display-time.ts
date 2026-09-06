@@ -7,10 +7,23 @@ type ObservedFrame = {
   observedAt: string | null;
 };
 
+type ParsedObservedFrame = {
+  observedAt: string;
+  timestamp: number;
+};
+
 function parsedObservedDate(value: string | null) {
   if (!value) return null;
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parsedObservedFrames(frames: readonly ObservedFrame[]): ParsedObservedFrame[] {
+  return frames.flatMap((frame) => {
+    if (!frame.observedAt) return [];
+    const date = parsedObservedDate(frame.observedAt);
+    return date ? [{ observedAt: frame.observedAt, timestamp: date.getTime() }] : [];
+  });
 }
 
 export function isUsableRedemetObservedAt(value: string | null, now = Date.now()) {
@@ -36,32 +49,22 @@ export function formatRedemetDateTime(value: string | null, now = Date.now()) {
 }
 
 export function latestReportedRedemetFrameTime(frames: readonly ObservedFrame[]) {
-  const values = frames
-    .map((frame) => frame.observedAt)
-    .filter((value): value is string => Boolean(value))
-    .map((value) => new Date(value))
-    .filter((value) => !Number.isNaN(value.getTime()))
-    .sort((first, second) => second.getTime() - first.getTime());
+  const values = parsedObservedFrames(frames).sort(
+    (first, second) => second.timestamp - first.timestamp,
+  );
 
-  return values[0]?.toISOString() ?? null;
+  return values[0]?.observedAt ?? null;
 }
 
 export function latestUsableRedemetFrameTime(
   frames: readonly ObservedFrame[],
   now = Date.now(),
 ) {
-  const values = frames
-    .map((frame) => frame.observedAt)
-    .filter((value): value is string => Boolean(value))
-    .map((value) => new Date(value))
-    .filter(
-      (value) =>
-        !Number.isNaN(value.getTime()) &&
-        value.getTime() <= now + REDEMET_FUTURE_TOLERANCE_MS,
-    )
-    .sort((first, second) => second.getTime() - first.getTime());
+  const values = parsedObservedFrames(frames)
+    .filter((value) => value.timestamp <= now + REDEMET_FUTURE_TOLERANCE_MS)
+    .sort((first, second) => second.timestamp - first.timestamp);
 
-  return values[0]?.toISOString() ?? null;
+  return values[0]?.observedAt ?? null;
 }
 
 export function getRedemetFreshness(value: string | null, now = Date.now()): {
