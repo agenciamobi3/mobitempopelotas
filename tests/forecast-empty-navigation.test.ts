@@ -69,15 +69,14 @@ test("weekly hero does not keep page anchors when daily forecast is absent", () 
   assert.match(sevenDayHero, /Sem rajadas/);
 });
 
-test("rain hero chooses only anchors backed by the available forecast series", () => {
+test("rain hero keeps only anchors backed by rendered sections and routes elsewhere on missing data", () => {
   assert.match(rainHero, /const hasHourlyForecast = hours\.length > 0/);
   assert.match(rainHero, /const hasDailyForecast = days\.length > 0/);
+  assert.match(rainHero, /href="#chuva-acumulada"/);
   assert.match(rainHero, /hasHourlyForecast \? \(/);
   assert.match(rainHero, /href="#chuva-por-hora"/);
-  assert.match(rainHero, /hasDailyForecast \? \(/);
-  assert.match(rainHero, /href="#chuva-na-semana"/);
-  assert.match(rainHero, /to="\/tempo-hoje-pelotas"/);
   assert.match(rainHero, /to="\/previsao-7-dias-pelotas"/);
+  assert.doesNotMatch(rainHero, /href="#chuva-na-semana"/);
   assert.match(rainHero, /hour\.windGust !== null/);
   assert.doesNotMatch(rainHero, /hour\.windGust \?\? hour\.windSpeed/);
 });
