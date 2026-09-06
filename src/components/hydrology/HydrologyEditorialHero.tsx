@@ -39,11 +39,12 @@ export function HydrologyEditorialHero({
   variant: "overview" | "detail";
 }) {
   const overview = variant === "overview";
+  const stale = level.status === "stale";
   const statusLabel =
     level.status === "live"
       ? "Leitura atualizada"
-      : level.status === "stale"
-        ? "Última leitura conhecida"
+      : stale
+        ? "Sem nova leitura"
         : "Leitura indisponível";
 
   return (
@@ -109,7 +110,10 @@ export function HydrologyEditorialHero({
 
           <div className="hydrology-editorial-trend">
             <Activity aria-hidden="true" />
-            <div><span>Mudança recente</span><strong>{trendLabel(level.trendCmPerHour)}</strong></div>
+            <div>
+              <span>{stale ? "Até a última medição" : "Mudança recente"}</span>
+              <strong>{trendLabel(level.trendCmPerHour)}</strong>
+            </div>
           </div>
 
           <dl>
@@ -120,7 +124,7 @@ export function HydrologyEditorialHero({
 
           <footer>
             <Clock3 aria-hidden="true" />
-            <span>Leitura de {formatDateTime(level.updatedAt)}</span>
+            <span>{stale ? "Última medição: " : "Leitura de "}{formatDateTime(level.updatedAt)}</span>
           </footer>
         </article>
 
