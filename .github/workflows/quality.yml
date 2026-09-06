@@ -42,7 +42,13 @@ jobs:
         run: npm run runtime:check:example
 
       - name: Contratos rápidos
-        run: npm run test:contracts
+        run: |
+          mkdir -p artifacts/contract-tests
+          set +e
+          npm run test:contracts 2>&1 | tee artifacts/contract-tests/test-contracts.log
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "$status"
 
       - name: Histórico documentado da cheia de 2001
         run: node --test tests/flood-2001-historical-page.test.ts
@@ -178,6 +184,7 @@ jobs:
           path: |
             artifacts/build-assets
             artifacts/browser-quality
+            artifacts/contract-tests
           if-no-files-found: warn
           retention-days: 14
 
