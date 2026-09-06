@@ -56,6 +56,9 @@ jobs:
       - name: Colaboração comunitária do arquivo histórico
         run: node --test tests/historical-collaboration.test.ts
 
+      - name: Moderação do arquivo histórico
+        run: node --test tests/historical-moderation.test.ts
+
       - name: Histórico do status de dados
         run: node --test tests/data-status-history.test.ts
 
@@ -115,6 +118,12 @@ jobs:
 
       - name: Inventário Defesa Civil RS
         run: node --test tests/defesa-civil-inventory.test.ts
+
+      - name: Módulo regional Defesa Civil RS
+        run: node --test tests/regional-defesa-civil-module.test.ts
+
+      - name: Links dedicados Defesa Civil RS
+        run: node --test tests/defesa-civil-dedicated-links.test.ts
 
       - name: Arquivo rico de previsões
         run: node --test tests/forecast-rich-runs.test.ts
