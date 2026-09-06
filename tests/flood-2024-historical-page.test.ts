@@ -64,7 +64,7 @@ test("page explains why Pelotas flooded later and links history to current monit
   assert.match(page, /Onde estava o problema/);
   assert.match(page, /Situação atual das águas/);
   assert.match(page, /Nível e histórico do Laranjal/);
-  assert.match(page, /referências altimétricas distintas/);
+  assert.match(page, /referências altimétricas\s+distintas/);
 });
 
 test("timeline is responsive and uses an explicit stage layer", () => {
