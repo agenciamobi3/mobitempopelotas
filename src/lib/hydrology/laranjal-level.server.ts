@@ -45,6 +45,15 @@ type ParsedPoint = LaranjalLevelPoint & {
   epoch: number;
 };
 
+type SeriesOptions = {
+  forceStale?: boolean;
+  error?: string | null;
+};
+
+type FetchLaranjalOptions = {
+  deadlineMs?: number;
+};
+
 function round(value: number, digits = 2) {
   const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
@@ -142,37 +151,39 @@ function reduceSeries(points: ParsedPoint[]) {
   return reduced;
 }
 
-export function normalizeLaranjalTelemetry(
-  payload: unknown,
-  fetchedAt = new Date(),
-): LaranjalLevelData {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return unavailableData("A medição do Laranjal retornou um formato inesperado.");
-  }
-
-  const rawPoints = (payload as Record<string, unknown>)[TELEMETRY_KEY];
-  if (!Array.isArray(rawPoints)) {
-    return unavailableData("Nenhuma leitura do nível foi encontrada.");
-  }
-
+function parseSeriesPoints(series: LaranjalLevelPoint[]) {
   const validPoints = new Map<number, ParsedPoint>();
 
-  for (const rawPoint of rawPoints) {
-    if (!rawPoint || typeof rawPoint !== "object" || Array.isArray(rawPoint)) continue;
-
-    const point = rawPoint as Record<string, unknown>;
-    const epoch = Number(point.ts);
-    const level = calculateLevel(point.value);
-    if (!Number.isFinite(epoch) || epoch <= 0 || level === null) continue;
+  for (const point of series) {
+    const epoch = Date.parse(point.timestamp);
+    if (!Number.isFinite(epoch) || !Number.isFinite(point.level) || point.level < 0) continue;
 
     validPoints.set(epoch, {
       epoch,
       timestamp: new Date(epoch).toISOString(),
-      level,
+      level: round(point.level),
     });
   }
 
-  const points = [...validPoints.values()].sort((a, b) => a.epoch - b.epoch);
+  const sorted = [...validPoints.values()].sort((first, second) => first.epoch - second.epoch);
+  const current = sorted.at(-1);
+  if (!current) return [];
+
+  const windowStart = current.epoch - HISTORY_WINDOW_MS;
+  return sorted.filter((point) => point.epoch >= windowStart && point.epoch <= current.epoch);
+}
+
+/**
+ * Constrói o mesmo contrato público a partir de medições já convertidas para
+ * metros. É usado tanto pela telemetria ao vivo quanto pelo last-known
+ * persistido da própria Estação Laranjal.
+ */
+export function createLaranjalLevelDataFromSeries(
+  series: LaranjalLevelPoint[],
+  fetchedAt = new Date(),
+  options: SeriesOptions = {},
+): LaranjalLevelData {
+  const points = parseSeriesPoints(series);
   const current = points.at(-1);
   if (!current) return unavailableData("A estação não enviou uma leitura válida neste período.");
 
@@ -182,7 +193,7 @@ export function normalizeLaranjalTelemetry(
   const trendSource = change6h ?? change1h;
   const values = points.map((point) => point.level);
   const ageMinutes = Math.max(0, (fetchedAt.getTime() - current.epoch) / 60_000);
-  const stale = ageMinutes > STALE_AFTER_MINUTES;
+  const stale = options.forceStale === true || ageMinutes > STALE_AFTER_MINUTES;
 
   return {
     status: stale ? "stale" : "live",
@@ -206,8 +217,40 @@ export function normalizeLaranjalTelemetry(
       url: LARANJAL_DASHBOARD_URL,
       fetchedAt: fetchedAt.toISOString(),
     },
-    error: stale ? "A estação deixou de enviar novas medições." : null,
+    error: options.error ?? (stale ? "A estação deixou de enviar novas medições." : null),
   };
+}
+
+export function normalizeLaranjalTelemetry(
+  payload: unknown,
+  fetchedAt = new Date(),
+): LaranjalLevelData {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return unavailableData("A medição do Laranjal retornou um formato inesperado.");
+  }
+
+  const rawPoints = (payload as Record<string, unknown>)[TELEMETRY_KEY];
+  if (!Array.isArray(rawPoints)) {
+    return unavailableData("Nenhuma leitura do nível foi encontrada.");
+  }
+
+  const validPoints = new Map<number, LaranjalLevelPoint>();
+
+  for (const rawPoint of rawPoints) {
+    if (!rawPoint || typeof rawPoint !== "object" || Array.isArray(rawPoint)) continue;
+
+    const point = rawPoint as Record<string, unknown>;
+    const epoch = Number(point.ts);
+    const level = calculateLevel(point.value);
+    if (!Number.isFinite(epoch) || epoch <= 0 || level === null) continue;
+
+    validPoints.set(epoch, {
+      timestamp: new Date(epoch).toISOString(),
+      level,
+    });
+  }
+
+  return createLaranjalLevelDataFromSeries([...validPoints.values()], fetchedAt);
 }
 
 async function getPublicAccessToken(signal: AbortSignal) {
@@ -287,8 +330,10 @@ async function fetchTelemetry(
   return response.json();
 }
 
-export async function fetchLaranjalLevelData(): Promise<LaranjalLevelData> {
-  const signal = AbortSignal.timeout(REQUEST_DEADLINE_MS);
+export async function fetchLaranjalLevelData(
+  options: FetchLaranjalOptions = {},
+): Promise<LaranjalLevelData> {
+  const signal = AbortSignal.timeout(options.deadlineMs ?? REQUEST_DEADLINE_MS);
 
   try {
     const token = await getPublicAccessToken(signal);
