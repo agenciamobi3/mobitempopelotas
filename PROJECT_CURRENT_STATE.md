@@ -37,12 +37,14 @@ Regras permanentes:
 | INMET meteorológico | Avisos/previsão integrados com semântica oficial preservada |
 | Radar / satélite / STSC | Probes independentes e copy pública sanitizada |
 | Hidrologia | Laranjal, Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
+| Localidades da Lagoa | Hub `/nivel-da-lagoa-dos-patos` + páginas próprias verificadas para Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
+| Meteorologia + hidrologia regional | Rio Grande, São Lourenço do Sul e São José do Norte preservam a página meteorológica e recebem módulo de águas independente com link para a página hidrológica |
 | ANA / SNIRH / RHN | Readiness/cross-check somente, sem terceira ingestão do Laranjal nesta fase |
 | Historical Data Layer | Ativo; classes `observation`, `forecast`, `reanalysis`, `derived` separadas |
 | Monitor de status | Supabase `pg_cron` + `pg_net`, a cada 10 min; 14 serviços |
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets responsivos por token público |
 | Central Regional | Pelotas + 23 páginas municipais indexáveis |
-| SEO técnico | **51 URLs indexáveis** no inventário da `main`, com canonical/sitemap/robots/Schema/BreadcrumbList |
+| SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** no inventário da `main`, com canonical/sitemap/robots/Schema/BreadcrumbList |
 | Arquivo de enchentes | Hub `/historia-das-enchentes-pelotas` + páginas dedicadas para **1941, 2001, 2015 e 2024** |
 | 2001 | Página pública marcada como **pesquisa em andamento**; lacunas permanecem explícitas |
 | 2015 | Diário documental com medições por data/horário, inventário dos boletins, fontes municipais e imprensa contemporânea complementar |
@@ -96,7 +98,50 @@ Correções permanentes:
 
 ## 5. Navegação, rotas, SEO e arquivo histórico
 
-`src/lib/public-routes.ts` mantém **51 URLs indexáveis = 28 fixas + 23 municipais**. Nenhuma nova cidade entra sem publication gate.
+`src/lib/public-routes.ts` mantém **58 URLs indexáveis = 35 fixas + 23 municipais**. Nenhuma nova cidade ou estação entra sem publication gate ou associação editorial verificada.
+
+### 5.1 Cluster público da Lagoa dos Patos
+
+O núcleo hidrológico indexável da Lagoa é:
+
+```text
+/nivel-da-lagoa-dos-patos
+  ├─ /nivel-da-lagoa-dos-patos/rio-grande
+  ├─ /nivel-da-lagoa-dos-patos/sao-lourenco-do-sul
+  ├─ /nivel-da-lagoa-dos-patos/arambare
+  ├─ /nivel-da-lagoa-dos-patos/sao-jose-do-norte
+  └─ /nivel-da-lagoa-dos-patos/itapua-viamao
+```
+
+Regras do cluster:
+
+- registry canônico: `src/lib/hydrology/hydrology-localities.ts`;
+- cada página local nasce de associação verificada com uma estação da Rede de Monitoramento do Nível da Lagoa dos Patos;
+- cards da rede regional só recebem link quando `station.id` possui localidade no registry; estação sem mapeamento continua visível sem destino inventado;
+- Guaíba permanece no destino canônico `/nivel-do-guaiba` e não ganha páginas duplicadas por régua;
+- referências locais, cotas e máximas históricas permanecem ligadas à própria estação e não são convertidas entre cidades;
+- o hub `/nivel-da-lagoa-dos-patos` explica que não existe um único “nível da Lagoa” aplicável a todos os pontos.
+
+Integração com meteorologia:
+
+- `/tempo-em/rio-grande-rs`, `/tempo-em/sao-lourenco-do-sul-rs` e `/tempo-em/sao-jose-do-norte-rs` continuam respondendo à intenção meteorológica;
+- title/H1 meteorológicos permanecem focados em previsão, chuva e vento;
+- um módulo de águas é carregado separadamente e aponta para a página hidrológica própria;
+- falha da consulta hidrológica não deve bloquear nem redefinir a previsão meteorológica;
+- Arambaré e Itapuã/Viamão possuem páginas hidrológicas sem criar artificialmente páginas meteorológicas nesta rodada.
+
+Descoberta pública do cluster:
+
+- menu `Águas → Agora` inclui “Nível da Lagoa dos Patos”;
+- Home `Explore o portal` inclui o panorama da Lagoa;
+- rodapé “Águas” inclui o panorama;
+- cards da Rede da Lagoa são navegáveis quando a localidade é verificada;
+- card do Guaíba aponta para `/nivel-do-guaiba`;
+- `src/routeTree.gen.ts` foi reconciliado com o hub e a rota dinâmica local.
+
+A próxima onda da hidrologia regional é a Rede da Defesa Civil RS. Não criar páginas nominais em massa antes de confirmar `estação → município/localidade → rio/bacia → utilidade editorial`. Proximidade geográfica isolada não é critério suficiente.
+
+### 5.2 Arquivo histórico de enchentes
 
 O núcleo histórico público é:
 
@@ -262,7 +307,14 @@ Na rodada de 05/09 foram adicionados/atualizados contratos para:
 - colaboração histórica moderada;
 - separação entre consentimento para análise e autorização de reprodução pública;
 - resiliência da página hidrológica e cartões live da Defesa Civil;
-- mapas SACE/Defesa Civil automáticos com isolamento local.
+- mapas SACE/Defesa Civil automáticos com isolamento local;
+- registry de cinco localidades verificadas da Lagoa dos Patos;
+- hub e páginas hidrológicas locais indexáveis;
+- links dos cards regionais apenas para estações mapeadas;
+- associação independente entre páginas meteorológicas e páginas hidrológicas de Rio Grande, São Lourenço do Sul e São José do Norte;
+- descoberta do panorama da Lagoa no menu Águas e na Home.
+
+`src/routeTree.gen.ts` foi reconciliado com `/nivel-da-lagoa-dos-patos` e `/nivel-da-lagoa-dos-patos/$localitySlug` usando o contrato do gerador versionado. O comando `routes:check` não foi executado nesta rodada por falta de executor funcional.
 
 **Importante:** o GitHub Actions continua apresentando runs que terminam antes de iniciar os steps (`steps: null`). Nessa condição, não declarar testes, build, typecheck, lint, routes check ou browser E2E como executados. Contrato versionado não equivale a suíte executada.
 
@@ -270,21 +322,23 @@ O Lovable pode sincronizar/publicar commits mesmo quando o workflow do GitHub n�
 
 ## 14. Próximas prioridades
 
-1. Regenerar e versionar `src/routeTree.gen.ts` para incluir `/historia-das-enchentes-pelotas`, se o gerador ainda não tiver materializado a nova rota.
-2. Executar `routes:check`, contratos históricos, build e typecheck assim que houver executor funcional.
-3. Fazer smoke do hub histórico, 1941, 2001, 2015, 2024 e `/contribuir` no domínio canônico.
-4. Continuar resgate dos corpos perdidos dos boletins de 27–29/10/2015 e registrar qualquer nova leitura apenas quando documentalmente sustentada.
-5. Continuar a pesquisa de 2001 em Biblioteca Pública, imprensa local, Prefeitura/Defesa Civil, Sanep, UFPel, Embrapa, FURG, Marinha e acervos particulares.
-6. Incorporar galerias documentais de fotos por enchente com autoria, origem, data/local aproximados e situação de autorização.
-7. Criar superfície administrativa de moderação das contribuições, sem permitir edição automática do arquivo público.
-8. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-9. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+1. Fazer smoke no domínio canônico de `/nivel-da-lagoa-dos-patos` e das cinco páginas locais após propagação do deploy.
+2. Executar `routes:check`, `tests/hydrology-localities.test.ts`, build e typecheck assim que houver executor funcional.
+3. Auditar a fotografia live das estações da Defesa Civil RS e montar uma matriz explícita `estação → município/localidade → rio/bacia → capacidades → página meteorológica existente → elegível ou não a SEO`.
+4. Não publicar páginas automáticas da Defesa Civil sem associação editorial verificada; proximidade a uma cidade não basta.
+5. Continuar resgate dos corpos perdidos dos boletins de 27–29/10/2015 e registrar qualquer nova leitura apenas quando documentalmente sustentada.
+6. Continuar a pesquisa de 2001 em Biblioteca Pública, imprensa local, Prefeitura/Defesa Civil, Sanep, UFPel, Embrapa, FURG, Marinha e acervos particulares.
+7. Incorporar galerias documentais de fotos por enchente com autoria, origem, data/local aproximados e situação de autorização.
+8. Criar superfície administrativa de moderação das contribuições, sem permitir edição automática do arquivo público.
+9. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+10. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
 - `docs/FLOODS_2001_2015_RESEARCH_2026-09-05.md` — base documental das cheias de 2001 e 2015 e limites editoriais;
 - `docs/FLOOD_2015_OFFICIAL_BULLETIN_INVENTORY_2026-09-05.md` — inventário de boletins oficiais de 2015 e lacunas de recuperação;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
+- `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração e critérios de publicação da Rede da Defesa Civil RS;
 - `docs/WIDGET_BUILDER_ARCHITECTURE.md` — gerador de widgets, RLS, embed e evolução por módulos;
 - `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket, fallback P0 e canário P1;
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets;
