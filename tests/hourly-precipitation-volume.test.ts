@@ -43,13 +43,14 @@ test("production home keeps chance and hourly millimetres in the same compact ra
 });
 
 test("rain probability remains visible separately from hourly volume", () => {
-  assert.match(forecastStory, /<strong>\{rain\.chance\}%<\/strong>/);
-  assert.match(forecastStory, /style=\{\{ width: `\$\{rain\.chance\}%` \}\}/);
+  assert.match(forecastStory, /<strong>\{formatChance\(rain\.chance\)\}<\/strong>/);
+  assert.match(forecastStory, /style=\{\{ width: `\$\{rain\.chance \?\? 0\}%` \}\}/);
+  assert.match(forecastStory, /hourlyVolumeLabel\(hour\.precipitationMm\)/);
 });
 
 test("página de chuva separa acumulado observado de volume previsto", () => {
-  assert.match(rainRoute, /<RainAccumulationContext data=\{weather\}/);
-  assert.match(rainRoute, /observedRainDaily=\{observedRainDaily\}/);
+  assert.match(rainRoute, /<RainAccumulationContext data=\{recoveredWeather\} \/>/);
+  assert.match(rainRoute, /observedRainDaily=\{getObservedRainDaily\(recoveredWeather\)\}/);
   assert.match(rainHero, /Chuva em Pelotas hoje:/);
   assert.match(rainAccumulation, /observation\.accumulated\.rainDaily/);
   assert.match(rainAccumulation, /observation\.accumulated\.rainMonthly/);
