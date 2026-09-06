@@ -23,10 +23,7 @@
   margin: 0 auto clamp(2rem, 4vw, 3.5rem);
 }
 
-.regional-water-heading > div {
-  max-width: 46rem;
-}
-
+.regional-water-heading > div { max-width: 46rem; }
 .regional-water-heading > div > span,
 .regional-water-guaiba header > div > span,
 .regional-water-lagoon-heading > div > span {
@@ -141,12 +138,7 @@
   border-block: 1px solid rgb(8 35 50 / 8%);
 }
 
-.regional-water-guaiba-reading > div:first-child {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.4rem;
-}
-
+.regional-water-guaiba-reading > div:first-child { display: flex; align-items: flex-end; gap: 0.4rem; }
 .regional-water-guaiba-reading strong {
   color: #082332;
   font-size: clamp(3.4rem, 7vw, 5.6rem);
@@ -154,7 +146,6 @@
   letter-spacing: -0.08em;
   line-height: 0.85;
 }
-
 .regional-water-guaiba-reading > div:first-child span {
   margin-bottom: 0.4rem;
   color: #5e747e;
@@ -170,29 +161,11 @@
   font-size: 0.74rem;
   font-weight: 750;
 }
-
-.regional-water-trend svg {
-  width: 1rem;
-  height: 1rem;
-}
-
-.regional-water-trend.is-rising {
-  color: #b84b22;
-}
-
-.regional-water-trend.is-falling {
-  color: #0b8695;
-}
-
-.regional-water-trend.is-stable {
-  color: #5e2ced;
-}
-
-.regional-water-updated {
-  margin: 0.9rem 0 0;
-  color: #70848d;
-  font-size: 0.72rem;
-}
+.regional-water-trend svg { width: 1rem; height: 1rem; }
+.regional-water-trend.is-rising { color: #b84b22; }
+.regional-water-trend.is-falling { color: #0b8695; }
+.regional-water-trend.is-stable { color: #5e2ced; }
+.regional-water-updated { margin: 0.9rem 0 0; color: #70848d; font-size: 0.72rem; }
 
 .regional-water-reference {
   margin: 1rem 0 0;
@@ -220,23 +193,16 @@
   border-radius: 0.8rem;
   background: rgb(247 251 251 / 88%);
 }
-
 .regional-water-guaiba dt,
-.regional-water-station dt {
-  color: #71858e;
-  font-size: 0.64rem;
-  line-height: 1.3;
-}
-
+.regional-water-station dt { color: #71858e; font-size: 0.64rem; line-height: 1.3; }
 .regional-water-guaiba dd,
-.regional-water-station dd {
-  margin: 0.35rem 0 0;
-  color: #082332;
-  font-size: 0.84rem;
-  font-weight: 800;
-}
+.regional-water-station dd { margin: 0.35rem 0 0; color: #082332; font-size: 0.84rem; font-weight: 800; }
 
 .regional-water-guaiba > footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem 1rem;
   margin-top: auto;
   padding-top: 1.25rem;
 }
@@ -251,17 +217,10 @@
   font-weight: 800;
   text-decoration: none;
 }
-
 .regional-water-guaiba > footer a svg,
-.regional-water-lagoon-footer a svg {
-  width: 0.9rem;
-  height: 0.9rem;
-}
+.regional-water-lagoon-footer a svg { width: 0.9rem; height: 0.9rem; }
 
-.regional-water-lagoon {
-  overflow: hidden;
-}
-
+.regional-water-lagoon { overflow: hidden; }
 .regional-water-lagoon-heading {
   display: flex;
   align-items: center;
@@ -270,7 +229,6 @@
   padding: clamp(1.25rem, 2.5vw, 2rem);
   border-bottom: 1px solid rgb(8 35 50 / 8%);
 }
-
 .regional-water-lagoon-heading > svg {
   width: clamp(2.4rem, 4vw, 3.5rem);
   height: clamp(2.4rem, 4vw, 3.5rem);
@@ -278,11 +236,7 @@
   opacity: 0.85;
 }
 
-.regional-water-stations {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
+.regional-water-stations { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .regional-water-station {
   min-width: 0;
   padding: 1rem;
@@ -290,19 +244,25 @@
   border-bottom: 1px solid rgb(8 35 50 / 7%);
   background: #fff;
 }
-
-.regional-water-station:nth-child(2n) {
-  border-right: 0;
+.regional-water-station.is-link {
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
-
-.regional-water-station:nth-last-child(-n + 2) {
-  border-bottom: 0;
+.regional-water-station.is-link:hover {
+  position: relative;
+  z-index: 1;
+  background: #f8fcfc;
+  box-shadow: inset 0 0 0 1px rgb(11 134 149 / 22%);
 }
-
-.regional-water-station:last-child:nth-child(odd) {
-  grid-column: 1 / -1;
-  border-right: 0;
+.regional-water-station.is-link:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 3px solid rgb(23 189 204 / 34%);
+  outline-offset: -3px;
 }
+.regional-water-station:nth-child(2n) { border-right: 0; }
+.regional-water-station:nth-last-child(-n + 2) { border-bottom: 0; }
+.regional-water-station:last-child:nth-child(odd) { grid-column: 1 / -1; border-right: 0; }
 
 .regional-water-station > header {
   display: flex;
@@ -310,19 +270,8 @@
   justify-content: space-between;
   gap: 0.75rem;
 }
-
-.regional-water-station > header small {
-  color: #71858e;
-  font-size: 0.62rem;
-}
-
-.regional-water-station h4 {
-  margin: 0.18rem 0 0;
-  color: #082332;
-  font-size: 0.96rem;
-  line-height: 1.2;
-}
-
+.regional-water-station > header small { color: #71858e; font-size: 0.62rem; }
+.regional-water-station h4 { margin: 0.18rem 0 0; color: #082332; font-size: 0.96rem; line-height: 1.2; }
 .regional-water-station > header > span {
   max-width: 8.5rem;
   padding: 0.35rem 0.5rem;
@@ -334,30 +283,12 @@
   line-height: 1.25;
   text-align: center;
 }
-
 .regional-water-station.is-stale > header > span,
-.regional-water-station.is-attention > header > span {
-  background: #fff1e9;
-  color: #a94c23;
-}
+.regional-water-station.is-attention > header > span { background: #fff1e9; color: #a94c23; }
+.regional-water-station.is-flooding > header > span { background: #fdeaf4; color: #b20868; }
+.regional-water-station.is-unavailable > header > span { background: #eef1f2; color: #687b84; }
 
-.regional-water-station.is-flooding > header > span {
-  background: #fdeaf4;
-  color: #b20868;
-}
-
-.regional-water-station.is-unavailable > header > span {
-  background: #eef1f2;
-  color: #687b84;
-}
-
-.regional-water-station-reading {
-  display: flex;
-  align-items: baseline;
-  gap: 0.3rem;
-  margin-top: 1rem;
-}
-
+.regional-water-station-reading { display: flex; align-items: baseline; gap: 0.3rem; margin-top: 1rem; }
 .regional-water-station-reading strong {
   color: #082332;
   font-size: clamp(2rem, 3vw, 2.7rem);
@@ -365,64 +296,35 @@
   letter-spacing: -0.06em;
   line-height: 0.9;
 }
+.regional-water-station-reading span { color: #647983; font-size: 0.72rem; font-weight: 750; }
+.regional-water-station > .regional-water-trend { margin-top: 0.65rem; }
+.regional-water-station > p:not(.regional-water-role) { margin: 0.65rem 0 0; color: #607681; font-size: 0.68rem; line-height: 1.45; }
 
-.regional-water-station-reading span {
-  color: #647983;
-  font-size: 0.72rem;
-  font-weight: 750;
-}
-
-.regional-water-station > .regional-water-trend {
-  margin-top: 0.65rem;
-}
-
-.regional-water-station > p:not(.regional-water-role) {
-  margin: 0.65rem 0 0;
-  color: #607681;
-  font-size: 0.68rem;
-  line-height: 1.45;
-}
-
-.regional-water-progress {
-  height: 0.35rem;
-  margin-top: 0.75rem;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #edf2f3;
-}
-
-.regional-water-progress > span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: #17bdcc;
-}
-
-.regional-water-station.is-attention .regional-water-progress > span {
-  background: #f27035;
-}
-
-.regional-water-station.is-flooding .regional-water-progress > span {
-  background: #e70b85;
-}
-
-.regional-water-role {
-  margin: 0.8rem 0 0;
-  color: #5c737d;
-  font-size: 0.7rem;
-  line-height: 1.5;
-}
+.regional-water-progress { height: 0.35rem; margin-top: 0.75rem; overflow: hidden; border-radius: 999px; background: #edf2f3; }
+.regional-water-progress > span { display: block; height: 100%; border-radius: inherit; background: #17bdcc; }
+.regional-water-station.is-attention .regional-water-progress > span { background: #f27035; }
+.regional-water-station.is-flooding .regional-water-progress > span { background: #e70b85; }
+.regional-water-role { margin: 0.8rem 0 0; color: #5c737d; font-size: 0.7rem; line-height: 1.5; }
 
 .regional-water-station > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin-top: 0.75rem;
   padding-top: 0.65rem;
   border-top: 1px solid rgb(8 35 50 / 6%);
 }
-
-.regional-water-station > footer small {
-  color: #7c8f97;
-  font-size: 0.62rem;
+.regional-water-station > footer small { color: #7c8f97; font-size: 0.62rem; }
+.regional-water-station-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #0b7180;
+  font-size: 0.64rem;
+  font-weight: 800;
 }
+.regional-water-station-action svg { width: 0.8rem; height: 0.8rem; }
 
 .regional-water-unavailable {
   display: flex;
@@ -434,40 +336,21 @@
   background: #f1f4f5;
   color: #536a74;
 }
-
-.regional-water-unavailable svg {
-  width: 1.1rem;
-  height: 1.1rem;
-  flex: 0 0 auto;
-  color: #748890;
-}
-
-.regional-water-unavailable strong {
-  display: block;
-  color: #233f4c;
-  font-size: 0.78rem;
-}
-
-.regional-water-unavailable p {
-  margin: 0.35rem 0 0;
-  font-size: 0.68rem;
-  line-height: 1.45;
-}
+.regional-water-unavailable svg { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; color: #748890; }
+.regional-water-unavailable strong { display: block; color: #233f4c; font-size: 0.78rem; }
+.regional-water-unavailable p { margin: 0.35rem 0 0; font-size: 0.68rem; line-height: 1.45; }
 
 .regional-water-lagoon-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.7rem 1rem;
   padding: 0.9rem 1rem;
   border-top: 1px solid rgb(8 35 50 / 8%);
   background: #f8fbfb;
 }
-
-.regional-water-lagoon-footer > span {
-  color: #71858e;
-  font-size: 0.65rem;
-}
+.regional-water-lagoon-footer > span { color: #71858e; font-size: 0.65rem; }
 
 .regional-water-note {
   display: flex;
@@ -480,27 +363,10 @@
   border-radius: 1rem;
   background: rgb(255 255 255 / 72%);
 }
+.regional-water-note svg { width: 1.1rem; height: 1.1rem; flex: 0 0 auto; color: #f27035; }
+.regional-water-note p { margin: 0; color: #5e747e; font-size: 0.74rem; line-height: 1.55; }
 
-.regional-water-note svg {
-  width: 1.1rem;
-  height: 1.1rem;
-  flex: 0 0 auto;
-  color: #f27035;
-}
-
-.regional-water-note p {
-  margin: 0;
-  color: #5e747e;
-  font-size: 0.74rem;
-  line-height: 1.55;
-}
-
-.regional-water-action {
-  width: min(100%, 86rem);
-  margin: 1.25rem auto 0;
-  text-align: right;
-}
-
+.regional-water-action { width: min(100%, 86rem); margin: 1.25rem auto 0; text-align: right; }
 .regional-water-action a {
   display: inline-flex;
   align-items: center;
@@ -513,22 +379,12 @@
   font-weight: 800;
   text-decoration: none;
 }
-
-.regional-water-action a svg {
-  width: 0.95rem;
-  height: 0.95rem;
-}
+.regional-water-action a svg { width: 0.95rem; height: 0.95rem; }
 
 .regional-water-network-full .regional-water-layout,
 .regional-water-network-full .regional-water-note,
-.regional-water-network-full .regional-water-heading {
-  width: 100%;
-}
-
-.regional-water-network-full .regional-water-stations {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
+.regional-water-network-full .regional-water-heading { width: 100%; }
+.regional-water-network-full .regional-water-stations { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .regional-water-network-full .regional-water-station:nth-child(2n),
 .regional-water-network-full .regional-water-station:nth-last-child(-n + 2),
 .regional-water-network-full .regional-water-station:last-child:nth-child(odd) {
@@ -536,44 +392,20 @@
   border-right: 1px solid rgb(8 35 50 / 7%);
   border-bottom: 1px solid rgb(8 35 50 / 7%);
 }
-
-.regional-water-network-full .regional-water-station:nth-child(3n) {
-  border-right: 0;
-}
-
-.regional-water-network-full .regional-water-station:nth-last-child(-n + 2) {
-  border-bottom: 0;
-}
+.regional-water-network-full .regional-water-station:nth-child(3n) { border-right: 0; }
+.regional-water-network-full .regional-water-station:nth-last-child(-n + 2) { border-bottom: 0; }
 
 @media (max-width: 1080px) {
-  .regional-water-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .regional-water-network-full .regional-water-stations {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .regional-water-network-full .regional-water-station:nth-child(3n) {
-    border-right: 1px solid rgb(8 35 50 / 7%);
-  }
-
-  .regional-water-network-full .regional-water-station:nth-child(2n) {
-    border-right: 0;
-  }
+  .regional-water-layout { grid-template-columns: 1fr; }
+  .regional-water-network-full .regional-water-stations { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .regional-water-network-full .regional-water-station:nth-child(3n) { border-right: 1px solid rgb(8 35 50 / 7%); }
+  .regional-water-network-full .regional-water-station:nth-child(2n) { border-right: 0; }
 }
 
 @media (max-width: 760px) {
-  .regional-water-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
+  .regional-water-heading { align-items: flex-start; flex-direction: column; }
   .regional-water-stations,
-  .regional-water-network-full .regional-water-stations {
-    grid-template-columns: 1fr;
-  }
-
+  .regional-water-network-full .regional-water-stations { grid-template-columns: 1fr; }
   .regional-water-station,
   .regional-water-network-full .regional-water-station,
   .regional-water-network-full .regional-water-station:nth-child(2n),
@@ -584,40 +416,18 @@
     border-right: 0;
     border-bottom: 1px solid rgb(8 35 50 / 7%);
   }
-
   .regional-water-station:last-child,
-  .regional-water-network-full .regional-water-station:last-child {
-    border-bottom: 0;
-  }
-
-  .regional-water-lagoon-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+  .regional-water-network-full .regional-water-station:last-child { border-bottom: 0; }
+  .regional-water-lagoon-footer { align-items: flex-start; flex-direction: column; }
 }
 
 @media (max-width: 520px) {
-  .regional-water-network {
-    padding: 4rem 1rem;
-  }
-
-  .regional-water-network-full {
-    padding: 0;
-  }
-
+  .regional-water-network { padding: 4rem 1rem; }
+  .regional-water-network-full { padding: 0; }
   .regional-water-guaiba > header,
   .regional-water-guaiba-reading,
-  .regional-water-station > header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
+  .regional-water-station > header { align-items: flex-start; flex-direction: column; }
   .regional-water-guaiba dl,
-  .regional-water-station dl {
-    grid-template-columns: 1fr;
-  }
-
-  .regional-water-action {
-    text-align: left;
-  }
+  .regional-water-station dl { grid-template-columns: 1fr; }
+  .regional-water-action { text-align: left; }
 }
