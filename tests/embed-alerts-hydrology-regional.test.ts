@@ -134,7 +134,9 @@ test("hydrology pages preserve their approved data-led heroes", () => {
   assert.match(hydrologyRouteStyles, /display:\s*none/);
   assert.match(hydrologyRefinements, /min-height:\s*clamp\(470px/);
   assert.match(hydrologyRefinements, /#hydrology-level-title/);
-  assert.match(levelRoute, /HydrologyEditorialHero level=\{data\.level\} variant="detail"/);
+  assert.match(levelRoute, /const level = useLaranjalLevelRefresh\(data\.level\)/);
+  assert.match(levelRoute, /HydrologyEditorialHero level=\{level\} variant="detail"/);
+  assert.match(levelRoute, /LaranjalLevelPage weather=\{data\.weather\} level=\{level\}/);
   assert.match(overviewRoute, /HydrologyOverviewHero/);
   assert.match(levelRoute, /LaranjalEmbedGuide/);
 });
