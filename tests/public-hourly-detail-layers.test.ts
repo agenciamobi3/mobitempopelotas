@@ -4,6 +4,7 @@ import test from "node:test";
 
 const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
 const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
+const publicWeatherLoader = readFileSync("src/lib/weather/public-weather-page-loader.ts", "utf8");
 const rainDetail = readFileSync("src/components/weather/RainHourlyVolumeContext.tsx", "utf8");
 const rainStyles = readFileSync("src/components/weather/RainHourlyVolumeContext.css", "utf8");
 const windDetail = readFileSync("src/components/weather/WindDirectionContext.tsx", "utf8");
@@ -16,14 +17,18 @@ const todayHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "ut
 const todayResources = readFileSync("src/components/weather/TodayWeatherResources.tsx", "utf8");
 const meteogram = readFileSync("src/lib/weather/meteogram.server.ts", "utf8");
 
-test("rain and wind routes reuse the structured 48-hour meteogram in parallel", () => {
+test("rain and wind routes reuse the shared resilient 48-hour meteogram loader", () => {
   for (const route of [rainRoute, windRoute]) {
-    assert.match(route, /getPelotasMeteogram/);
-    assert.match(route, /Promise\.all/);
-    assert.match(route, /getWeatherIntelligence\(\)/);
-    assert.match(route, /getPelotasMeteogram\(\)/);
+    assert.match(route, /loadPublicWeatherWithMeteogram/);
+    assert.doesNotMatch(route, /getWeatherIntelligence\(\)/);
+    assert.doesNotMatch(route, /getPelotasMeteogram\(\)/);
   }
 
+  assert.match(publicWeatherLoader, /loadPublicWeatherWithMeteogram/);
+  assert.match(publicWeatherLoader, /getWeatherIntelligence\(\)/);
+  assert.match(publicWeatherLoader, /getPelotasMeteogram\(\)/);
+  assert.match(publicWeatherLoader, /Promise\.all\(/);
+  assert.match(publicWeatherLoader, /settlePageDependency/);
   assert.match(rainRoute, /RainHourlyVolumeContext meteogram=\{meteogram\}/);
   assert.match(windRoute, /WindDirectionContext meteogram=\{meteogram\}/);
 });
@@ -35,7 +40,7 @@ test("hourly rain detail keeps probability and model volume separate from measur
   assert.match(rainDetail, /Maior volume em uma hora/);
   assert.match(rainDetail, /São valores de previsão, não chuva já medida em Pelotas/);
   assert.match(rainRoute, /O volume por hora desta página é uma previsão do modelo/);
-  assert.match(rainPage, /href="#volume-de-chuva-por-hora"/);
+  assert.match(rainPage, /href:\s*"#volume-de-chuva-por-hora"/);
   assert.doesNotMatch(`${rainDetail}\n${rainRoute}`, /OCR|extrair pixels|chuva medida pelo modelo/i);
 });
 
