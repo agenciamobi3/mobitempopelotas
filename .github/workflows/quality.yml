@@ -119,6 +119,13 @@ jobs:
       - name: Snapshot estável da página hidrológica
         run: node --test tests/hydrology-loader-stable-weather.test.ts
 
+      - name: Fonte local do Laranjal e contingência CIEX/FURG
+        run: >-
+          node --import ./scripts/test-node-resolver.mjs --test
+          tests/laranjal-ciex-furg-fallback.test.ts
+          tests/laranjal-last-known-fallback.test.ts
+          tests/laranjal-public-provenance.test.ts
+
       - name: Localidades hidrológicas da Lagoa
         run: node --test tests/hydrology-localities.test.ts
 
