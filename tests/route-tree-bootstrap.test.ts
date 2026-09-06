@@ -41,11 +41,11 @@ test("route tree is generated before development, build, tests and typecheck", (
   );
   assert.match(
     packageJson.scripts?.test ?? "",
-    /^node scripts\/generate-route-tree\.mjs && node --test tests\/\*\*\/\*\.test\.ts$/,
+    /^node scripts\/generate-route-tree\.mjs && node --import \.\/scripts\/test-node-resolver\.mjs --test tests\/\*\*\/\*\.test\.ts$/,
   );
   assert.match(
     packageJson.scripts?.["test:routes"] ?? "",
-    /^node scripts\/generate-route-tree\.mjs && node --test tests\/public-routes\.test\.ts$/,
+    /^node scripts\/generate-route-tree\.mjs && node --import \.\/scripts\/test-node-resolver\.mjs --test tests\/public-routes\.test\.ts$/,
   );
   assert.match(
     packageJson.scripts?.typecheck ?? "",
