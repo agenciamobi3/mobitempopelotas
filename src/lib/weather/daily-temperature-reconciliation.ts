@@ -64,7 +64,7 @@ function officialRanges(periods: InmetForecastPeriod[]) {
 
 export function reconcileDailyTemperatures<T extends DailyTemperatureRange>(
   daily: T[],
-  periods: InmetForecastPeriod[],
+  periods: InmetForecastPeriod[] = [],
   now = new Date(),
 ): T[] {
   if (daily.length === 0 || periods.length === 0) return daily;
