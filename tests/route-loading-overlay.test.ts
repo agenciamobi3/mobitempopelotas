@@ -7,13 +7,14 @@ const styles = readFileSync("src/components/navigation/RouteLoadingOverlay.css",
 const root = readFileSync("src/routes/__root.tsx", "utf8");
 const router = readFileSync("src/router.tsx", "utf8");
 
-test("route loading overlay observes foreground navigation without replacing preload behavior", () => {
+test("route loading overlay observes foreground navigation without speculative preload", () => {
   assert.match(overlay, /useRouterState\(\{ select: \(state\) => state\.isLoading \}\)/);
   assert.match(overlay, /SHOW_DELAY_MS = 190/);
   assert.match(overlay, /MIN_VISIBLE_MS = 280/);
   assert.match(overlay, /hasSettledInitialLoadRef/);
-  assert.match(router, /defaultPreload: "intent"/);
-  assert.match(router, /defaultPreloadDelay: 0/);
+  assert.match(router, /defaultPreload: false/);
+  assert.doesNotMatch(router, /defaultPreload: "intent"/);
+  assert.doesNotMatch(router, /defaultPreloadDelay:/);
 });
 
 test("route loading overlay uses the official portal brand and accessible status copy", () => {
