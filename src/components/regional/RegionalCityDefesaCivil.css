@@ -1,0 +1,244 @@
+.regional-defesa-civil {
+  margin-top: 1.25rem;
+  padding: 1.35rem;
+  border: 1px solid rgba(24, 86, 104, .14);
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(242, 249, 250, .98), rgba(255, 255, 255, .98));
+  box-shadow: 0 16px 42px rgba(32, 67, 86, .07);
+}
+
+.regional-defesa-civil__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr);
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.regional-defesa-civil__heading > div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: #28758a;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.regional-defesa-civil__heading h2 {
+  margin: .4rem 0 0;
+  color: #203744;
+}
+
+.regional-defesa-civil__heading p,
+.regional-defesa-civil__state,
+.regional-defesa-civil__partial,
+.regional-defesa-civil__reference-note p {
+  margin: 0;
+  color: #647681;
+  line-height: 1.6;
+}
+
+.regional-defesa-civil__state {
+  margin-top: 1.1rem;
+  padding: .9rem 1rem;
+  border-radius: 14px;
+  background: rgba(38, 111, 133, .07);
+}
+
+.regional-defesa-civil__state.is-unavailable {
+  background: rgba(118, 91, 49, .07);
+}
+
+.regional-defesa-civil__stations {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-top: 1.15rem;
+}
+
+.regional-defesa-civil__station {
+  padding: 1rem;
+  border: 1px solid rgba(31, 75, 91, .11);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, .88);
+}
+
+.regional-defesa-civil__station > header {
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  align-items: flex-start;
+}
+
+.regional-defesa-civil__station header span {
+  color: #75858d;
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+}
+
+.regional-defesa-civil__station h3 {
+  margin: .25rem 0 .2rem;
+  color: #203744;
+  font-size: 1.05rem;
+}
+
+.regional-defesa-civil__station header p {
+  margin: 0;
+  color: #75858d;
+  font-size: .82rem;
+}
+
+.regional-defesa-civil__station header > strong {
+  flex: 0 0 auto;
+  padding: .35rem .55rem;
+  border-radius: 999px;
+  background: rgba(39, 116, 138, .09);
+  color: #28748a;
+  font-size: .68rem;
+}
+
+.regional-defesa-civil__station header > strong.is-delayed,
+.regional-defesa-civil__station header > strong.is-old {
+  background: rgba(143, 101, 47, .09);
+  color: #7f6238;
+}
+
+.regional-defesa-civil__station header > strong.is-unknown {
+  background: rgba(101, 112, 119, .09);
+  color: #68767d;
+}
+
+.regional-defesa-civil__reading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .8rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(31, 75, 91, .09);
+}
+
+.regional-defesa-civil__level,
+.regional-defesa-civil__time {
+  display: flex;
+  gap: .65rem;
+  align-items: flex-start;
+}
+
+.regional-defesa-civil__level > svg,
+.regional-defesa-civil__time > svg,
+.regional-defesa-civil__trend > svg {
+  width: 1rem;
+  height: 1rem;
+  margin-top: .15rem;
+  color: #28758a;
+  flex: 0 0 auto;
+}
+
+.regional-defesa-civil__level span,
+.regional-defesa-civil__time span {
+  display: grid;
+  gap: .18rem;
+}
+
+.regional-defesa-civil__level small,
+.regional-defesa-civil__time small {
+  color: #77868e;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.regional-defesa-civil__level strong,
+.regional-defesa-civil__time strong {
+  color: #263c48;
+}
+
+.regional-defesa-civil__level strong {
+  font-size: 1.35rem;
+}
+
+.regional-defesa-civil__level em {
+  color: #647781;
+  font-size: .76rem;
+  font-style: normal;
+}
+
+.regional-defesa-civil__trend {
+  display: flex;
+  gap: .55rem;
+  align-items: flex-start;
+  margin: .9rem 0 0;
+  color: #516872;
+  line-height: 1.5;
+  font-size: .84rem;
+}
+
+.regional-defesa-civil__capabilities {
+  margin: .75rem 0 0;
+  color: #7a888f;
+  font-size: .75rem;
+}
+
+.regional-defesa-civil__partial {
+  margin-top: .9rem;
+  font-size: .82rem;
+}
+
+.regional-defesa-civil__reference-note {
+  margin-top: 1.15rem;
+  padding: 1rem;
+  border-left: 3px solid rgba(38, 111, 133, .48);
+  background: rgba(38, 111, 133, .05);
+}
+
+.regional-defesa-civil__reference-note strong {
+  display: block;
+  margin-bottom: .3rem;
+  color: #294553;
+}
+
+.regional-defesa-civil footer {
+  display: flex;
+  justify-content: space-between;
+  gap: .9rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: .9rem;
+  border-top: 1px solid rgba(31, 75, 91, .09);
+  color: #6d7d84;
+  font-size: .76rem;
+}
+
+.regional-defesa-civil footer div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .8rem;
+}
+
+.regional-defesa-civil footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  color: #28748a;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.regional-defesa-civil footer a svg {
+  width: .78rem;
+  height: .78rem;
+}
+
+@media (max-width: 760px) {
+  .regional-defesa-civil__heading,
+  .regional-defesa-civil__reading {
+    grid-template-columns: 1fr;
+  }
+
+  .regional-defesa-civil__station > header,
+  .regional-defesa-civil footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

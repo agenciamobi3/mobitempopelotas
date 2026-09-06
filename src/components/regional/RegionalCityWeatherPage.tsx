@@ -25,6 +25,7 @@ import {
   selectPriorityRegionalAlert,
 } from "@/lib/weather/regional-alert-priority";
 import type { RegionalCityWeatherData } from "@/lib/weather/regional-city-weather.types";
+import { RegionalCityDefesaCivil } from "./RegionalCityDefesaCivil";
 import { RegionalCityHero } from "./RegionalCityHero";
 import { RegionalCityHydrologyLink } from "./RegionalCityHydrologyLink";
 import { toRegionalForecastStory } from "./regional-city-forecast-story";
@@ -113,6 +114,7 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
     <RegionalOfficialAlertPanel data={data} />
     <InternalPageChapters items={pageSections} label={`Navegação da previsão para ${city.name}`} />
     <div className="internal-forecast-widget regional-city-shared-forecast"><HomeForecastStory data={forecastStory} context="regional-page" locationName={city.name} showLinks={false} /></div>
+    <RegionalCityDefesaCivil citySlug={city.slug} cityName={city.name} />
     {hydrologyLocality ? <RegionalCityHydrologyLink citySlug={city.slug} /> : null}
     <section id="como-interpretar-previsao-regional" className={`${styles.context} regional-city-context`}><div><span className={styles.eyebrow}>{editorial ? "Previsão local" : "Leitura local"}</span><h2>{editorial?.sectionTitle ?? `Como interpretar o tempo em ${city.name}`}</h2><p>{editorial?.introduction ?? `A previsão representa a grade meteorológica correspondente às coordenadas centrais de ${city.name}, ${city.descriptor}. Bairros, áreas rurais, litoral, serras e baixadas podem registrar condições diferentes, principalmente em chuva localizada, vento, nevoeiro e temperatura mínima.`}</p></div><ul>{contextFacts.map((fact) => <li key={fact}>{fact}</li>)}</ul></section>
     <section id="cidades-proximas" className={`${styles.related} regional-city-related`} aria-labelledby="related-cities-title"><header><div><span className={styles.eyebrow}>Proximidade geográfica</span><h2 id="related-cities-title">Consulte cidades próximas</h2></div><Link to="/tempo-na-regiao-sul-rs">Ver todas as cidades <ArrowRight aria-hidden="true" /></Link></header><div>{related.map((item) => <CityLink city={item.city} distanceKm={item.distanceKm} key={item.city.slug} />)}</div></section>
