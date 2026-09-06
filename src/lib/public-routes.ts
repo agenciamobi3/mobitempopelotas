@@ -1,3 +1,7 @@
+import {
+  HYDROLOGY_LOCALITIES,
+  hydrologyLocalityPath,
+} from "./hydrology/hydrology-localities.ts";
 import { INDEXABLE_REGIONAL_CITIES, regionalCityPath } from "./regional-cities.ts";
 
 export type PublicRouteEntry = {
@@ -20,7 +24,13 @@ export const PUBLIC_ROUTES: PublicRouteEntry[] = [
   { path: "/radar-e-satelite-pelotas", changeFrequency: "hourly", priority: 0.8 },
   { path: "/mapa-de-geadas-rio-grande-do-sul", changeFrequency: "daily", priority: 0.8 },
   { path: "/situacao-hidrologica-pelotas", changeFrequency: "hourly", priority: 0.8 },
+  { path: "/nivel-da-lagoa-dos-patos", changeFrequency: "hourly", priority: 0.82 },
   { path: "/nivel-da-lagoa-dos-patos-laranjal", changeFrequency: "hourly", priority: 0.8 },
+  ...HYDROLOGY_LOCALITIES.map((locality) => ({
+    path: hydrologyLocalityPath(locality),
+    changeFrequency: "hourly" as const,
+    priority: 0.74,
+  })),
   { path: "/nivel-do-guaiba", changeFrequency: "hourly", priority: 0.8 },
   { path: "/estacao-embrapa-pelotas", changeFrequency: "hourly", priority: 0.7 },
   { path: "/clima-em-pelotas", changeFrequency: "daily", priority: 0.78 },
