@@ -17,12 +17,32 @@ test("2001 flood record is a canonical public route marked as ongoing research",
   assert.match(publicRoutes, /\/enchente-2001-pelotas/);
 });
 
-test("2001 page preserves the documented quantitative facts", () => {
+test("2001 page preserves the documented contemporary quantitative facts", () => {
   assert.match(content, /8 de outubro de 2001/);
   assert.match(content, /105 km\/h/);
   assert.match(content, /600 metros/);
   assert.match(content, /3 mil pessoas/);
   assert.match(content, /ondas.*aproximadamente um metro/i);
+});
+
+test("historical Laranjal gauge documents the 2001 peak without inventing a vertical datum", () => {
+  assert.match(content, /estação Laranjal 87955000 atingiu cota de 2,90 m em 08\/10\/2001/);
+  assert.match(content, /maior valor da série disponível entre setembro de 1984 e junho de 2012/);
+  assert.match(content, /não representa altitude de 2,90 m acima do nível do mar/);
+  assert.match(content, /Prefeitura Municipal do Rio Grande · dados ANA/);
+  assert.match(content, /Serviço Geológico do Brasil · SGB/);
+  assert.match(content, /cota é não nivelada/);
+
+  assert.match(page, /href="#regua-laranjal-2001"/);
+  assert.match(page, /id="regua-laranjal-2001"/);
+  assert.match(page, /Régua histórica ANA · estação 87955000/);
+  assert.match(page, /O Laranjal registrou 2,90 m na régua em 8 de outubro de 2001/);
+  assert.match(page, /13 de setembro de 1984 a 30 de junho de 2012/);
+  assert.match(page, /cota média de aproximadamente 0,63 m/);
+  assert.match(page, /cota da estação Laranjal\s+87955000 como <strong>não nivelada<\/strong>/);
+  assert.match(page, /Não o compara por simples subtração com outras estações/);
+  assert.match(page, /não é uma cota de inundação universal do Laranjal/);
+  assert.doesNotMatch(page, /2,90 m acima do normal/);
 });
 
 test("source hierarchy does not attribute cyclone classification to the municipality", () => {
@@ -31,6 +51,7 @@ test("source hierarchy does not attribute cyclone classification to the municipa
   assert.match(page, /A classificação “ciclone extratropical” vem da reportagem contemporânea da Folha/);
   assert.match(page, /A Prefeitura de 22 de outubro não usa esse termo/);
   assert.match(page, /“nordestão”/);
+  assert.match(page, /cota de 2,90 m vem de uma reconstrução posterior da série ANA/);
 });
 
 test("UFPel analysis has its own editorial section without becoming a contemporary bulletin", () => {
@@ -46,7 +67,7 @@ test("UFPel analysis has its own editorial section without becoming a contempora
   assert.match(page, /Alta Subtropical do Atlântico Sul/);
   assert.match(page, /baixa pressão sobre o norte da Argentina/);
   assert.match(page, /dificultado a\s+saída das águas da Lagoa dos Patos para o Oceano Atlântico/);
-  assert.match(page, /não fornece uma nova cota do\s+Laranjal/);
+  assert.match(page, /não redefine a referência da régua\s+histórica/);
   assert.match(page, /Análise acadêmica posterior específica não é boletim operacional contemporâneo/);
 });
 
@@ -57,13 +78,13 @@ test("posterior Lagoa wind context explains mechanism without becoming evidence 
   assert.match(page, /texto náutico publicado em 2005 por Danilo Chagas Ribeiro/);
   assert.match(page, /vento Nordeste pode elevar o nível das águas na porção sul da Lagoa dos Patos/);
   assert.match(page, /não documenta o episódio de 2001/);
-  assert.match(page, /não é usado para reconstruir a velocidade, a\s+ duração do vento ou uma cota de 8 de outubro de 2001/);
 });
 
 test("September intense-rain episode remains separate until continuity is documented", () => {
   assert.match(page, /31 de agosto e 3 de\s+setembro de 2001/);
   assert.match(page, /não autoriza transformar os dois eventos\s+em uma única enchente/);
-  assert.match(content, /Não há, nesta fase, uma cota máxima calibrada/);
+  assert.match(content, /ainda buscamos o arquivo bruto original da ANA/);
+  assert.match(content, /não é tratado como altitude/);
 });
 
 test("2001 is discoverable between 1941 and 2015 in public navigation", () => {

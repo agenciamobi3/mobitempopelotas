@@ -46,8 +46,9 @@ export const FLOOD_2001_TIMELINE: Flood2001TimelineItem[] = [
       "A Folha de S.Paulo publicou no dia seguinte, atribuindo a classificação a meteorologistas, que um ciclone extratropical atingiu o Rio Grande do Sul durante a madrugada de 8 de outubro.",
       "Em Pelotas, a reportagem registrou vento de 105 km/h. Na Lagoa dos Patos, as ondas chegavam a aproximadamente um metro durante o episódio.",
       "No Laranjal, as águas avançaram seis quadras, cerca de 600 metros, para dentro da área urbana. Na Colônia de Pescadores Z3, aproximadamente 3 mil pessoas ficaram isoladas.",
+      "Uma reconstrução hidrológica posterior do Plano Municipal de Saneamento de Rio Grande, baseada na série da ANA, registra que a estação Laranjal 87955000 atingiu cota de 2,90 m em 08/10/2001, o maior valor da série disponível entre setembro de 1984 e junho de 2012. Essa medida pertence à referência própria daquela régua e não representa altitude de 2,90 m acima do nível do mar.",
     ],
-    highlight: "105 km/h em Pelotas · avanço de aproximadamente 600 m no Laranjal · cerca de 3 mil isolados na Z3",
+    highlight: "105 km/h em Pelotas · avanço de aproximadamente 600 m no Laranjal · cota histórica de 2,90 m na régua ANA 87955000 · cerca de 3 mil isolados na Z3",
   },
   {
     date: "9 de outubro de 2001",
@@ -90,10 +91,10 @@ export const FLOOD_2001_TIMELINE: Flood2001TimelineItem[] = [
 ];
 
 export const FLOOD_2001_RESEARCH_GAPS = [
-  "Ainda não foi localizada uma série diária de níveis da Lagoa dos Patos ou do Canal São Gonçalo comparável aos boletins disponíveis para 2015.",
-  "Não há, nesta fase, uma cota máxima calibrada e documentada que possa ser comparada diretamente às réguas atuais.",
+  "A cota de 2,90 m em 08/10/2001 foi localizada para a estação histórica Laranjal 87955000, mas ainda buscamos o arquivo bruto original da ANA e os metadados do zero/referência da régua usados naquele período.",
+  "A documentação recente do SGB classifica a cota da estação Laranjal como não nivelada, lida diretamente na seção de réguas. Por isso, o valor histórico não é tratado como altitude e não é comparado por simples subtração com outras réguas ou anos sem comprovar continuidade do referencial.",
   "Ainda buscamos boletins meteorológicos oficiais contemporâneos que detalhem operacionalmente o sistema atmosférico sobre Pelotas e a Lagoa dos Patos.",
-  "Acervos da Biblioteca Pública, Defesa Civil, Sanep, UFPel, Embrapa, FURG, Marinha e imprensa local podem ampliar a cronologia, os impactos e a documentação fotográfica.",
+  "Acervos da Biblioteca Pública, Defesa Civil, Sanep, UFPel, Embrapa, FURG, ANA/SNIRH, SGB, Marinha e imprensa local podem ampliar a cronologia, os metadados da régua e a documentação fotográfica.",
 ] as const;
 
 export const FLOOD_2001_SOURCES: Flood2001Source[] = [
@@ -110,6 +111,20 @@ export const FLOOD_2001_SOURCES: Flood2001Source[] = [
     date: "09/10/2001",
     url: "https://www1.folha.uol.com.br/fsp/cotidian/ff0910200111.htm",
     role: "Fonte contemporânea para classificação como ciclone extratropical, vento de 105 km/h, isolamento da Z3 e avanço das águas no Laranjal.",
+  },
+  {
+    name: "Relatório de Caracterização Municipal · Plano Municipal de Saneamento Básico",
+    organization: "Prefeitura Municipal do Rio Grande · dados ANA",
+    date: "2013",
+    url: "https://www.riogrande.rs.gov.br/planosaneamento/arquivos/home/%282.1%29_Relatorio_de_Caracterizacao_Municipal.pdf",
+    role: "Compila a série histórica ANA da estação Laranjal 87955000 e registra cota máxima de 2,90 m em 08/10/2001; a medida pertence à referência própria da régua.",
+  },
+  {
+    name: "Inundação de maio de 2024 no Rio Grande do Sul: levantamento dos níveis máximos em estações fluviométricas",
+    organization: "Serviço Geológico do Brasil · SGB",
+    date: "2025",
+    url: "https://rigeo.sgb.gov.br/handle/doc/25517",
+    role: "Documenta a estação Laranjal 87955000 e explicita que sua cota é não nivelada, com leitura feita diretamente na seção de réguas existente.",
   },
   {
     name: "Prefeitura trabalha para conter a invasão das águas da Lagoa dos Patos",

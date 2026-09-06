@@ -17,10 +17,10 @@ export function Flood2001Hero() {
           <span>Registro histórico · outubro de 2001 · pesquisa em andamento</span>
           <h1 id="tp-flood-2001-hero-title">Enchente de 2001 em Pelotas e no Laranjal</h1>
           <p>
-            Fontes contemporâneas já permitem documentar o ciclone extratropical, o vento extremo,
-            o avanço das águas sobre o Laranjal, o isolamento da Z3 e a recuperação posterior. Esta
-            página permanece aberta a novas fontes porque parte importante do acervo local ainda está
-            fora da internet ou depende de arquivos históricos.
+            Fontes contemporâneas e séries hidrológicas históricas já permitem documentar o ciclone
+            extratropical, o vento extremo, o avanço das águas sobre o Laranjal, o isolamento da Z3 e
+            a cota registrada na régua local. A página permanece aberta a novas fontes porque o zero
+            histórico da régua e parte importante do acervo operacional ainda precisam ser recuperados.
           </p>
         </div>
 
@@ -44,6 +44,7 @@ export function Flood2001HistoricalPage() {
       <nav className="tp-flood-history__index" aria-label="Nesta página">
         <span>Nesta página</span>
         <a href="#o-que-sabemos-2001">O que sabemos</a>
+        <a href="#regua-laranjal-2001">Régua do Laranjal</a>
         <a href="#mecanismo-vento-2001">Mecanismo do vento</a>
         <a href="#linha-do-tempo-2001">Linha do tempo</a>
         <a href="#fontes-e-limites-2001">Fontes e limites</a>
@@ -59,10 +60,11 @@ export function Flood2001HistoricalPage() {
         </div>
         <div className="tp-flood-history__lead-copy">
           <p>
-            A reconstrução atual usa duas camadas contemporâneas que se complementam. A Folha de
-            S.Paulo registra a classificação meteorológica do sistema e os principais números do dia.
-            A Prefeitura de Pelotas documenta oficialmente os danos locais, a invasão das águas e a
-            recuperação do Laranjal semanas depois.
+            A reconstrução combina fontes contemporâneas com evidências hidrológicas e acadêmicas
+            posteriores claramente identificadas. A Folha de S.Paulo registra a classificação
+            meteorológica e os principais números do dia. A Prefeitura de Pelotas documenta danos,
+            invasão das águas e recuperação. Uma série histórica da ANA permite ainda situar a leitura
+            da régua do Laranjal no mesmo 8 de outubro.
           </p>
           <p>
             Na madrugada de 8 de outubro de 2001, a reportagem publicada no dia seguinte registrou
@@ -83,9 +85,44 @@ export function Flood2001HistoricalPage() {
             da Lagoa → isolamento, inundação e danos no Laranjal e na Z3
           </strong>
           <p>
-            Essa cadeia resume apenas o que as fontes atuais sustentam. Ela não substitui uma análise
-            meteorológica oficial detalhada que ainda possa ser recuperada em acervos da época.
+            Essa cadeia resume apenas o que as fontes atuais sustentam. A medição histórica da régua e
+            a análise acadêmica acrescentam contexto, mas não autorizam converter uma referência local
+            em altitude nem preencher lacunas operacionais por estimativa.
           </p>
+        </div>
+      </section>
+
+      <section className="tp-flood-explanation" id="regua-laranjal-2001">
+        <div>
+          <span>Régua histórica ANA · estação 87955000</span>
+          <h2>O Laranjal registrou 2,90 m na régua em 8 de outubro de 2001</h2>
+        </div>
+        <div>
+          <p>
+            O Relatório de Caracterização Municipal do Plano Municipal de Saneamento Básico de Rio
+            Grande recompila dados da Agência Nacional de Águas para a estação Laranjal, código
+            87955000. O documento informa uma série de 13 de setembro de 1984 a 30 de junho de 2012,
+            com poucas falhas, e identifica o maior valor do período justamente em 08/10/2001:
+            <strong> 2,90 m</strong>.
+          </p>
+          <p>
+            O mesmo relatório registra cota média de aproximadamente 0,63 m para essa série. Esse dado
+            ajuda a dimensionar quão excepcional foi a leitura de 2001 dentro do histórico daquela
+            estação, mas não transforma 2,90 m em “metros acima do normal” nem em altitude sobre o
+            nível do mar.
+          </p>
+          <p>
+            Documentação recente do Serviço Geológico do Brasil descreve a cota da estação Laranjal
+            87955000 como <strong>não nivelada</strong>, com leitura feita diretamente na seção de
+            réguas existente. Por isso, o Tempo Pelotas preserva o valor como leitura da referência
+            própria daquele ponto. Não o compara por simples subtração com outras estações, com cotas
+            publicadas para 2015/2024 ou com qualquer datum vertical sem comprovar que o zero e o
+            referencial permaneceram equivalentes.
+          </p>
+          <blockquote>
+            2,90 m é a cota registrada na régua histórica Laranjal 87955000 em 08/10/2001. Não é uma
+            altitude de 2,90 m e não é, por si só, uma cota de inundação universal do Laranjal.
+          </blockquote>
         </div>
       </section>
 
@@ -111,8 +148,8 @@ export function Flood2001HistoricalPage() {
             Segundo as conclusões do trabalho, os ventos de leste e nordeste podem ter dificultado a
             saída das águas da Lagoa dos Patos para o Oceano Atlântico. O atrito do vento com a
             superfície também deslocou água em direção à costa oeste, contribuindo para a inundação.
-            Essa análise explica o mecanismo físico do episódio, mas não fornece uma nova cota do
-            Laranjal e não substitui as medições ou os relatos contemporâneos.
+            Essa análise explica o mecanismo físico do episódio, mas não redefine a referência da régua
+            histórica nem substitui os relatos contemporâneos.
           </p>
           <blockquote>
             Análise acadêmica posterior específica não é boletim operacional contemporâneo. O Tempo
@@ -155,7 +192,7 @@ export function Flood2001HistoricalPage() {
       <section className="tp-flood-explanation" id="fontes-e-limites-2001">
         <div>
           <span>Hierarquia das fontes</span>
-          <h2>“Ciclone extratropical” e “nordestão” não vêm da mesma fonte</h2>
+          <h2>“Ciclone extratropical”, “nordestão” e cota de régua são camadas diferentes</h2>
         </div>
         <div>
           <p>
@@ -170,22 +207,26 @@ export function Flood2001HistoricalPage() {
             automático do sistema atmosférico em escala maior.
           </p>
           <p>
-            A análise acadêmica da UFPel apresentada acima é específica do episódio e ajuda a explicar
-            a dinâmica atmosférica e hidrodinâmica, mas foi produzida posteriormente. Ela não é
-            reclassificada como boletim emitido durante a emergência e não altera a atribuição dos
-            números contemporâneos publicados em 2001.
+            A cota de 2,90 m vem de uma reconstrução posterior da série ANA da estação Laranjal
+            87955000. Ela documenta uma leitura hidrológica do mesmo dia, mas pertence à referência
+            própria daquela régua e não deve ser fundida com as expressões jornalísticas sobre avanço
+            das águas nem com cotas de outras estações.
+          </p>
+          <p>
+            A análise acadêmica da UFPel é específica do episódio e ajuda a explicar a dinâmica
+            atmosférica e hidrodinâmica, mas foi produzida posteriormente. Ela não é reclassificada como
+            boletim emitido durante a emergência e não altera a atribuição dos números contemporâneos.
           </p>
           <p>
             Um texto náutico publicado em 2005 por Danilo Chagas Ribeiro descreve, de forma geral,
             que o vento Nordeste pode elevar o nível das águas na porção sul da Lagoa dos Patos por
             represamento no Canal da Feitoria, ao mesmo tempo em que reduz o nível ao norte. Esse
             material posterior ajuda a explicar o mecanismo hidrodinâmico associado ao termo local,
-            mas não documenta o episódio de 2001 e não é usado para reconstruir a velocidade, a
-            duração do vento ou uma cota de 8 de outubro de 2001.
+            mas não documenta o episódio de 2001.
           </p>
           <blockquote>
-            O portal preserva quem afirmou cada coisa. Uma fonte local de impacto não vira, por
-            aproximação, uma fonte meteorológica.
+            O portal preserva quem afirmou cada coisa e qual referência cada número usa. Uma fonte
+            local de impacto não vira, por aproximação, uma fonte meteorológica ou um datum vertical.
           </blockquote>
         </div>
       </section>
@@ -212,13 +253,13 @@ export function Flood2001HistoricalPage() {
       <section className="tp-flood-lessons" id="lacunas-2001">
         <div>
           <span>Pesquisa em andamento</span>
-          <h2>O que ainda não encontramos</h2>
+          <h2>O que ainda falta documentar</h2>
         </div>
         <div>
           <p>
-            Uma página histórica também precisa dizer o que não sabe. As lacunas abaixo orientam a
-            próxima etapa de pesquisa e ajudam moradores, estudantes e pesquisadores a entender onde
-            uma nova fonte pode realmente acrescentar conhecimento.
+            A descoberta da série ANA resolveu uma lacuna importante, mas não encerra a pesquisa. O
+            zero histórico da régua, o arquivo bruto e a continuidade do referencial ainda precisam de
+            documentação antes de qualquer comparação entre enchentes.
           </p>
           <ul>
             {FLOOD_2001_RESEARCH_GAPS.map((gap) => (
