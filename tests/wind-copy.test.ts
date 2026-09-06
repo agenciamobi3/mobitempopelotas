@@ -17,7 +17,7 @@ test("wind route uses the deeper source-aware page", () => {
   assert.match(route, /WindForecastPageV3/);
   assert.match(route, /WindNavigationAvailability\.css/);
   assert.match(route, /pageClassName="internal-weather-shell--wind"/);
-  assert.match(route, /Veja o vento agora, direção observada, direção prevista por hora/);
+  assert.match(route, /Veja o vento em Pelotas hoje, direção observada, direção prevista por hora/);
   assert.match(route, /WIND_PAGE_CONTENT/);
   assert.match(route, /Como ler vento, direção e rajadas em Pelotas/);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, WIND_PAGE_CONTENT\.faqs\)/);
@@ -135,7 +135,7 @@ test("wind FAQ covers interpretation and provenance", () => {
 });
 
 test("wind page follows responsive retail and accessibility contracts", () => {
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /grid-template-columns:\s*76px 110px 110px 100px minmax\(180px, 1fr\)/);
   assert.match(styles, /content-visibility:\s*auto/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
   assert.match(styles, /@media \(max-width: 1220px\)/);
