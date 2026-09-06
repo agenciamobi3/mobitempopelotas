@@ -8,6 +8,7 @@ const panel = readFileSync("src/components/history/HistoricalModerationPanel.tsx
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
 const route = readFileSync("src/routes/painel.tsx", "utf8");
 const styles = readFileSync("src/components/history/HistoricalModerationPanel.css", "utf8");
+const envExample = readFileSync(".env.example", "utf8");
 
 test("historical moderation is fail-closed behind a server-only operator allowlist", () => {
   assert.match(authorization, /process\.env\.MOBI_PORTAL_ADMIN_EMAILS/);
@@ -18,6 +19,9 @@ test("historical moderation is fail-closed behind a server-only operator allowli
   assert.match(authorization, /user\.email_confirmed_at/);
   assert.match(authorization, /allowlist\.has\(email\)/);
   assert.doesNotMatch(authorization, /import\.meta\.env\.VITE_.*ADMIN/i);
+
+  assert.match(envExample, /^MOBI_PORTAL_ADMIN_EMAILS=$/m);
+  assert.doesNotMatch(envExample, /^VITE_.*PORTAL_ADMIN_EMAILS=/m);
 });
 
 test("moderation reads private queue only after authorization and signs attachments briefly", () => {
