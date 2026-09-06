@@ -47,11 +47,12 @@ test("Open-Meteo requests and normalizes atmospheric variables", () => {
 
 test("today page exposes atmospheric interpretation without replacing observed values", () => {
   assert.match(today, /TodayAtmosphericSignals/);
+  assert.match(today, /useOpenMeteoIntelligenceRecovery\(data\)/);
   assert.match(today, /href: "#atmosfera-hoje"/);
   assert.match(today, /label: "Neblina e nuvens"/);
   assert.match(today, /detail: "Orvalho e visibilidade"/);
-  assert.match(today, /<TodayAtmosphericSignals data=\{data\}/);
-  assert.doesNotMatch(today, /<TodayAtmosphericSignals data=\{recoveredData\}/);
+  assert.match(today, /<TodayAtmosphericSignals data=\{recoveredData\}/);
+  assert.match(today, /<InternalObservationWidget data=\{recoveredData\}/);
   assert.match(atmosphere, /data\.weather\.observation\.current\.dewPoint/);
   assert.match(atmosphere, /buildFogSignal/);
   assert.match(atmosphere, /Ponto de orvalho medido/);
