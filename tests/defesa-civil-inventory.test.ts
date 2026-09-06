@@ -117,7 +117,7 @@ test("dedicated Defesa Civil pages preserve local reference and never synthesize
   assert.match(dedicatedPage, /station\.rain\.h1Mm/);
   assert.match(dedicatedPage, /station\.rain\.h24Mm/);
   assert.match(dedicatedPage, /não substitui a ausência por zero/);
-  assert.match(dedicatedPage, /não significa que a leitura seja uma cota de inundação local/);
+  assert.match(dedicatedPage, /não\s+significa que a leitura seja uma cota de inundação local/);
   assert.match(dedicatedPage, /não o compara diretamente com\s+outras réguas/);
   assert.doesNotMatch(dedicatedPage, /\?\?\s*0\b/);
 });
