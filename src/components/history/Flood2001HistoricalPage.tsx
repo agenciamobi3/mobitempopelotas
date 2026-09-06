@@ -136,6 +136,14 @@ export function Flood2001HistoricalPage() {
             a percepção e a linguagem local do vento; não deve ser apresentado como sinônimo técnico
             automático do sistema atmosférico em escala maior.
           </p>
+          <p>
+            Um texto náutico publicado em 2005 por Danilo Chagas Ribeiro descreve, de forma geral,
+            que o vento Nordeste pode elevar o nível das águas na porção sul da Lagoa dos Patos por
+            represamento no Canal da Feitoria, ao mesmo tempo em que reduz o nível ao norte. Esse
+            material posterior ajuda a explicar o mecanismo hidrodinâmico associado ao termo local,
+            mas não documenta o episódio de 2001 e não é usado para reconstruir a velocidade, a
+            duração do vento ou uma cota de 8 de outubro de 2001.
+          </p>
           <blockquote>
             O portal preserva quem afirmou cada coisa. Uma fonte local de impacto não vira, por
             aproximação, uma fonte meteorológica.

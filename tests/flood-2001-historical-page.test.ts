@@ -33,6 +33,16 @@ test("source hierarchy does not attribute cyclone classification to the municipa
   assert.match(page, /“nordestão”/);
 });
 
+test("posterior Lagoa wind context explains mechanism without becoming evidence of the 2001 event", () => {
+  assert.match(content, /https:\/\/acervo\.popa\.com\.br\/diversos\/ventos_lpatos\.htm/);
+  assert.match(content, /Fonte posterior de contexto hidrodinâmico/);
+  assert.match(content, /não documenta o evento de 2001/);
+  assert.match(page, /texto náutico publicado em 2005 por Danilo Chagas Ribeiro/);
+  assert.match(page, /vento Nordeste pode elevar o nível das águas na porção sul da Lagoa dos Patos/);
+  assert.match(page, /não documenta o episódio de 2001/);
+  assert.match(page, /não é usado para reconstruir a velocidade, a\s+ duração do vento ou uma cota de 8 de outubro de 2001/);
+});
+
 test("September intense-rain episode remains separate until continuity is documented", () => {
   assert.match(page, /31 de agosto e 3 de\s+setembro de 2001/);
   assert.match(page, /não autoriza transformar os dois eventos\s+em uma única enchente/);

@@ -118,4 +118,11 @@ export const FLOOD_2001_SOURCES: Flood2001Source[] = [
     url: "https://www.pelotas.com.br/noticia/prefeitura-trabalha-para-conter-a-invasao-das-aguas-da-lagoa-os-patos",
     role: "Fonte retrospectiva que relembra o “nordestão” de 2001, o isolamento da Z3 e danos nos balneários.",
   },
+  {
+    name: "O balanço das águas da Lagoa dos Patos",
+    organization: "POPA / acervo náutico",
+    date: "10/02/2005",
+    url: "https://acervo.popa.com.br/diversos/ventos_lpatos.htm",
+    role: "Fonte posterior de contexto hidrodinâmico sobre a influência geral do vento Nordeste nos níveis da Lagoa dos Patos; não documenta o evento de 2001.",
+  },
 ] as const;
