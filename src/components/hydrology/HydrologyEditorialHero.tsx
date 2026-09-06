@@ -54,7 +54,7 @@ export function HydrologyEditorialHero({
           <ArrowLeft aria-hidden="true" /> {overview ? "Visão geral" : "Situação das águas"}
         </Link>
         <span className="hydrology-editorial-eyebrow">
-          {overview ? "Águas e segurança em Pelotas" : "Nível hoje · Estação Laranjal"}
+          {overview ? "Águas e segurança em Pelotas" : "Medição local · Estação Laranjal"}
         </span>
         <h1>
           {overview
