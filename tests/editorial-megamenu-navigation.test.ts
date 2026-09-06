@@ -65,8 +65,8 @@ test("approved Defesa Civil hydrology pages live under Águas and keep weather n
   assert.match(header, /label: "Capão do Leão"[\s\S]*path: "\/tempo-em\/capao-do-leao-rs"/);
 });
 
-test("satélites e radares ficam em página dedicada e navegação direta", () => {
-  assert.doesNotMatch(productionHome, /HomeRadarEditorial/);
+test("satélites e radares mantêm página dedicada e navegação direta", () => {
+  assert.match(productionHome, /<HomeRadarEditorial regionalWeather=\{weather\.regional\} \/>/);
   assert.doesNotMatch(header, /id: "monitoring"/);
   assert.match(header, /to="\/radar-e-satelite-pelotas"/);
   assert.match(header, />\s*Satélites e Radares\s*<\/Link>/);
