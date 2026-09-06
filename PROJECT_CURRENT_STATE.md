@@ -205,7 +205,7 @@ O mesmo MDB registra em 05/10/2017 alteração do campo altitude para `-0,02 m`,
 
 A relação operacional dos códigos também avançou:
 
-- em 30/04/2026, a `87955000` teve o tipo telemétrico retirado, mantendo a identidade F/convecional;
+- em 30/04/2026, a `87955000` teve o tipo telemétrico retirado, mantendo a identidade F/convencional;
 - o MDB da `87955001` registra cadastro em 08/06/2026 como `LARANJAL` / `TELEMÉTRICA`;
 - os ZIPs CSV/TXT fornecidos para `87955001` não contêm série `Cotas`;
 - isso sustenta papéis distintos de régua histórica e telemetria atual, mas não prova compartilhamento de zero, RN ou datum.
@@ -389,7 +389,7 @@ Na enchente de 2001, os contratos agora protegem:
 - proibição de voltar a apresentar 2,90 m como única cota definitiva;
 - rastreabilidade do processo de consistência de 2018 sem inventar a justificativa específica da correção;
 - `-0,02 m` de 2017 como pista de zero, sem retroprojeção automática para 2001;
-- separação operacional `87955000` histórica/convecional versus `87955001` telemétrica atual;
+- separação operacional `87955000` histórica/convencional versus `87955001` telemétrica atual;
 - proibição de usar `87955001` para recalibrar o histórico.
 
 Na moderação histórica V1, os contratos protegem:
@@ -432,3 +432,35 @@ Devem permanecer distintos:
 9. Localizar o relatório/entregável da consistência da `87955000` que explique a revisão de 290 cm bruto para 190 cm consistido/estimado em 08/10/2001 e recuperar os nivelamentos/RNs aplicáveis ao período.
 10. Obter documento oficial que esclareça a continuidade operacional/vertical entre `87955000` e `87955001`, se existir, sem fundir as séries antes disso.
 11. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.
+12. Depois da validação da moderação V1, adicionar paginação/filtros e fluxo editorial separado de publicação.
+13. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+14. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+
+## 15. Documentos principais
+
+- `docs/DEFESA_CIVIL_DEDICATED_PAGE_GATE_2026-09-05.md` — gate editorial das páginas dedicadas da Defesa Civil;
+- `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração da Rede da Defesa Civil RS;
+- `docs/HISTORICAL_MODERATION_V1.md` — autorização, fila, anexos privados e decisões da moderação;
+- `docs/FLOODS_2001_2015_RESEARCH_2026-09-05.md` — base documental das cheias de 2001 e 2015;
+- `docs/FLOOD_2001_WIND_CONTEXT_2026-09-06.md` — análise UFPel, série Hidro bruto/consistido, relação entre códigos e lacunas da enchente de 2001;
+- `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md` — auditoria sanitizada dos arquivos Hidro 87955000/87955001 recebidos em 06/09;
+- `docs/FLOOD_2015_OFFICIAL_BULLETIN_INVENTORY_2026-09-05.md` — inventário dos boletins de 2015;
+- `docs/FLOOD_2015_BULLETIN_RECOVERY_ATTEMPT_2026-09-06.md` — tentativa de recuperação dos quatro corpos ainda ausentes;
+- `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
+- `docs/WIDGET_BUILDER_ARCHITECTURE.md` — widgets, RLS e embeds;
+- `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket e canário P1;
+- `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets;
+- `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação;
+- `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
+- `docs/ANA_RHN_INTEGRATION.md` — política readiness-only da ANA/RHN e separação 87955000/87955001;
+- `docs/REDEMET_OPERATIONS.md` — REDEMET;
+- `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências;
+- `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` — previsão de 15 dias;
+- `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` — SEO;
+- `docs/PRODUCTION_CUTOVER.md` — runbook de produção.
+
+## 16. Regra de manutenção
+
+Este arquivo deve responder rapidamente: o que existe na `main`, o que foi confirmado no runtime, quais fontes alimentam o portal, o que está parcial/suspenso, quais decisões de produto limitam integrações e qual é o próximo trabalho real.
+
+Não confundir estado de código, build/sincronização, deploy canônico e descoberta/indexação. Histórico detalhado permanece nos documentos especializados.
