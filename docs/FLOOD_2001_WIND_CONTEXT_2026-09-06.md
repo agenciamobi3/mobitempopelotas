@@ -124,11 +124,43 @@ Também foi confirmada a referência:
 
 O corpo integral não foi recuperado e a referência bibliográfica não identifica a data do ciclone analisado. O artigo não é tratado como estudo de outubro de 2001 sem essa prova.
 
+### 5.5 CPTEC/INPE — Climanálise de outubro de 2001
+
+A edição mensal contemporânea foi identificada com precisão bibliográfica:
+
+**CLIMANÁLISE. Boletim de Monitoramento e Análise Climática. Cachoeira Paulista: INPE/CPTEC, v. 16, n. 10, out. 2001, p. 3-27.**
+
+Endereços históricos confirmados por referências acadêmicas recentes:
+
+- índice HTML: `http://climanalise.cptec.inpe.br/~rclimanl/boletim/1001/index.html`;
+- PDF histórico: `http://climanalise.cptec.inpe.br/~rclimanl/boletim/pdf/pdf01/out01.pdf`.
+
+Um artigo publicado em 2024 registra acesso ao índice HTML em **25/04/2023**, comprovando que a edição ainda estava disponível recentemente. Na pesquisa de 06/09/2026, o índice respondeu `502 Bad Gateway` e o PDF expirou por timeout, portanto o corpo do boletim não foi recuperado nesta rodada.
+
+Uma compilação climatológica baseada no Climanálise contabiliza **seis sistemas frontais no Brasil em outubro de 2001**. Esse dado é útil apenas para confirmar o contexto mensal. Ele não identifica, por si só, qual sistema corresponde ao evento de 08/10 em Pelotas e não é usado na página pública como explicação específica do ciclone.
+
+Prioridade de recuperação:
+
+1. cópia arquivada do índice `/boletim/1001/`;
+2. espelho do PDF `out01.pdf` em biblioteca/repositório acadêmico;
+3. acervo CPTEC/INPE ou biblioteca do INPE;
+4. cópia institucional citada por pesquisas que acessaram a edição em 2023.
+
+### 5.6 Falsa pista resolvida — Carvalho e Frassoni, 2003
+
+Uma referência secundária descrevia Carvalho et al. (2003) como análise de chuvas intensas em Pelotas “em outubro de 2001”, com NCEP/NCAR e GOES-8. O trabalho original foi localizado:
+
+**CARVALHO, Maria Helena de; FRASSONI DOS SANTOS, Ariane. Estudo de um caso de chuvas intensas em Pelotas-RS. XI SBSR, Belo Horizonte, 2003, p. 439-446.**
+
+O resumo e o corpo deixam claro que o caso estudado ocorreu entre **31/08 e 03/09/2001**, quando Pelotas acumulou 147,4 mm, com CCM e posterior ciclogênese no Atlântico.
+
+Portanto o trabalho continua relevante para a história meteorológica de 2001, mas **não pertence à cronologia da enchente de 08/10/2001**. A citação secundária que o deslocava para outubro não é usada para fundir os episódios.
+
 ## 6. Lacuna que permanece aberta
 
 A pesquisa acadêmica melhora substancialmente a explicação meteorológica do evento, mas permanecem abertas três lacunas principais:
 
-1. boletins meteorológicos **contemporâneos** de outubro de 2001;
+1. boletins meteorológicos **contemporâneos** de outubro de 2001, especialmente o corpo do Climanálise v.16 n.10 e eventuais cartas/boletins operacionais de 07 a 09/10;
 2. séries locais de nível/cota com estação, zero/datum e referência vertical identificados;
 3. recuperação dos corpos integrais de Acosta 2002 e Cruz 2006, além da identificação temporal dos candidatos Noble 2002 e Fernandes 2004.
 
