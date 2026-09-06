@@ -11,14 +11,14 @@ const dedicatedCss = readFileSync(
 const shellCss = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
 const shell = readFileSync("src/components/layout/InternalWeatherPageShell.tsx", "utf8");
 
-test("dedicated stabilization loads immediately before the final precedence barrier", () => {
+test("dedicated stabilization remains immediately before the editorial barrier and usability polish", () => {
   assert.match(
     cssEntry,
-    /standalone-home-surface-contract\.css";\s*@import "\.\/styles\/internal-dedicated-page-stabilization\.css";\s*@import "\.\/styles\/internal-editorial-precedence-barrier\.css";\s*$/,
+    /standalone-home-surface-contract\.css";\s*@import "\.\/styles\/internal-dedicated-page-stabilization\.css";\s*@import "\.\/styles\/internal-editorial-precedence-barrier\.css";\s*@import "\.\/styles\/portal-usability-polish\.css";\s*$/,
   );
   assert.match(
     tsEntry,
-    /standalone-home-surface-contract\.css";\s*import "\.\/styles\/internal-dedicated-page-stabilization\.css";\s*import "\.\/styles\/internal-editorial-precedence-barrier\.css";\s*$/,
+    /standalone-home-surface-contract\.css";\s*import "\.\/styles\/internal-dedicated-page-stabilization\.css";\s*import "\.\/styles\/internal-editorial-precedence-barrier\.css";\s*import "\.\/styles\/portal-usability-polish\.css";\s*$/,
   );
 });
 
