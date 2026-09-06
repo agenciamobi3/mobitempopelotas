@@ -19,6 +19,7 @@ const accountTables = new Map([
   ["profiles", "id"],
   ["user_preferences", "user_id"],
   ["account_consent_events", "user_id"],
+  ["historical_contributions", "user_id"],
 ]);
 
 function normalizeSql(sql: string) {
@@ -74,16 +75,50 @@ function policyRoles(statement: string) {
   return statement.match(/\bto\s+(.+?)(?:\s+using\b|\s+with\s+check\b|$)/)?.[1] ?? "";
 }
 
+function assertStorageObjectsPolicyIsOwnerScoped(statement: string) {
+  const roles = policyRoles(statement);
+  assert.match(
+    roles,
+    /^authenticated$/,
+    `Policy de storage deve ser exclusiva de authenticated: ${statement}`,
+  );
+  assert.match(
+    statement,
+    /bucket_id\s*=\s*'historical-contributions'/,
+    `Policy de storage deve permanecer no bucket historical-contributions: ${statement}`,
+  );
+  assert.match(
+    statement,
+    /\(storage\.foldername\(name\)\)\[1\]\s*=\s*auth\.uid\(\)::text/,
+    `Policy de storage deve restringir a pasta ao auth.uid(): ${statement}`,
+  );
+  assert.doesNotMatch(
+    statement,
+    /\b(?:using|with\s+check)\s*\(\s*true\s*\)/,
+    `Policy permissiva detectada em storage.objects: ${statement}`,
+  );
+}
+
 function assertPoliciesRemainAccountScoped(sql: string) {
   for (const statement of statements(sql)) {
     if (!statement.startsWith("create policy ")) continue;
 
     const tableMatch = statement.match(
-      /^create\s+policy\s+(?:"[^"]+"|[a-z0-9_]+)\s+on\s+(?:table\s+)?public\.([a-z0-9_]+)\b/,
+      /^create\s+policy\s+(?:"[^"]+"|[a-z0-9_]+)\s+on\s+(?:table\s+)?([a-z0-9_]+)\.([a-z0-9_]+)\b/,
     );
-    assert.ok(tableMatch, `Policy sem tabela pública reconhecida: ${statement}`);
+    assert.ok(tableMatch, `Policy sem tabela qualificada reconhecida: ${statement}`);
 
-    const table = tableMatch[1] ?? "";
+    const schema = tableMatch[1] ?? "";
+    const table = tableMatch[2] ?? "";
+
+    if (schema === "storage") {
+      assert.equal(table, "objects", `Policy inesperada no schema storage: ${statement}`);
+      assertStorageObjectsPolicyIsOwnerScoped(statement);
+      continue;
+    }
+
+    assert.equal(schema, "public", `Policy em schema não auditado: ${statement}`);
+
     if (serverOnlyTables.has(table)) {
       const roles = policyRoles(statement);
       if (/\b(?:public|anon|authenticated)\b/.test(roles)) {
@@ -218,7 +253,7 @@ test("descobre e examina todas as migrations SQL versionadas", async () => {
   assertFunctionIsNotPublic(allSql, "update_account_preferences");
 });
 
-test("perfis e preferências isolam cada conta com RLS e auth.uid", async () => {
+test("perfis, preferências e contribuições isolam cada conta com RLS e auth.uid", async () => {
   const migrations = await migrationsPromise;
   const profiles = migration(migrations, "20260721091214_create_user_profiles.sql");
   const secureProfileTrigger = migration(
@@ -226,6 +261,10 @@ test("perfis e preferências isolam cada conta com RLS e auth.uid", async () => 
     "20260721091245_secure_user_profile_trigger.sql",
   );
   const preferences = migration(migrations, "20260721170503_create_user_preferences.sql");
+  const contributions = migration(
+    migrations,
+    "20260905203000_create_historical_contributions.sql",
+  );
 
   assertIncludes(profiles, [
     "references auth.users(id) on delete cascade",
@@ -252,6 +291,14 @@ test("perfis e preferências isolam cada conta com RLS e auth.uid", async () => 
     "revoke execute on function public.handle_new_user_preferences() from authenticated",
     "grant execute on function public.handle_new_user_preferences() to supabase_auth_admin",
     "security definer set search_path = ''",
+  ]);
+
+  assertIncludes(contributions, [
+    "alter table public.historical_contributions enable row level security",
+    "using (user_id = auth.uid())",
+    "with check ( user_id = auth.uid()",
+    "bucket_id = 'historical-contributions'",
+    "(storage.foldername(name))[1] = auth.uid()::text",
   ]);
 });
 
