@@ -13,6 +13,7 @@ const expectedAssets = [
   "/weather/hero/pelotas-parcialmente-nublado.avif",
   "/weather/hero/pelotas parcialmente nublado centro.jpg",
   "/weather/hero/pelotas-dia-parcialmente-bulado.png",
+  "/weather/hero/pelotas-fim-de-tarde-poucas-nuvens.png",
   "/weather/hero/pelotas-madrugada-parcialmente-nublado.png",
 ];
 
@@ -35,7 +36,10 @@ test("o hero estático usa somente o acervo local de Pelotas", async () => {
   assert.match(resolver, /icon !== "partly-cloudy-night"/);
   assert.match(resolver, /if \(icon === "sun"\) \{\s*return heroPhotos\.clear;/);
   assert.match(resolver, /cloudCover >= 50/);
-  assert.match(resolver, /MAD[R]?UGADA_END_HOUR = 7/);
+  assert.match(resolver, /MADRUGADA_END_HOUR = 7/);
+  assert.match(resolver, /FIM_DE_TARDE_START_HOUR = 16/);
+  assert.match(resolver, /FIM_DE_TARDE_END_HOUR = 19/);
+  assert.match(resolver, /cloudCover < 50/);
   assert.match(resolver, /hour % 2 === 0/);
   assert.doesNotMatch(resolver, /Math\.random\(/);
   assert.match(resolver, /Acervo Tempo Pelotas · Praia do Laranjal · noite/);
