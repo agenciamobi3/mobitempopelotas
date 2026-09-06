@@ -1,0 +1,27 @@
+.regional-city-water {
+  margin-top: 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(32, 83, 105, .14);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(238, 248, 250, .96), rgba(255, 255, 255, .96));
+  box-shadow: 0 14px 38px rgba(32, 67, 86, .07);
+}
+
+.regional-city-water header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+.regional-city-water header span { display: block; color: #2b7890; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.regional-city-water h2 { margin: .35rem 0 0; color: #233745; }
+.regional-city-water__loading,
+.regional-city-water__unavailable { margin: 1rem 0 0; color: #62727e; line-height: 1.55; }
+.regional-city-water__reading { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(32, 83, 105, .1); }
+.regional-city-water__reading > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; }
+.regional-city-water__reading strong { font-size: 2.5rem; line-height: 1; color: #203847; }
+.regional-city-water__reading span { font-weight: 800; }
+.regional-city-water__reading small { width: 100%; margin-top: .45rem; color: #71808a; }
+.regional-city-water__trend { display: inline-flex; align-items: center; gap: .4rem; color: #697780; font-weight: 800; }
+.regional-city-water__trend.is-rising { color: #9b535c; }
+.regional-city-water__trend.is-falling { color: #28748a; }
+.regional-city-water > a { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; color: #266f85; font-weight: 800; text-decoration: none; }
+
+@media (max-width: 640px) {
+  .regional-city-water__reading { align-items: flex-start; flex-direction: column; }
+}
