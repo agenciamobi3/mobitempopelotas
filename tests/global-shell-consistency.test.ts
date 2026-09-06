@@ -10,8 +10,8 @@ const footerWrapper = readFileSync(
   new URL("../src/production/components/site-footer.tsx", import.meta.url),
   "utf8",
 );
-const globalHeader = readFileSync(
-  new URL("../src/components/layout/Header.tsx", import.meta.url),
+const canonicalHeader = readFileSync(
+  new URL("../src/production/components/home-editorial-header.tsx", import.meta.url),
   "utf8",
 );
 const globalFooter = readFileSync(
@@ -20,7 +20,10 @@ const globalFooter = readFileSync(
 );
 
 test("telas standalone reutilizam o mesmo header e rodapé globais", () => {
-  assert.match(headerWrapper, /<Header advisoryLevel=/);
+  assert.match(headerWrapper, /import \{ HomeEditorialHeader \}/);
+  assert.match(headerWrapper, /<HomeEditorialHeader/);
+  assert.match(headerWrapper, /advisoryLevel=\{advisoryLevel\}/);
+  assert.match(headerWrapper, /officialAlertSeverity=\{officialAlertSeverity\}/);
   assert.doesNotMatch(headerWrapper, /megaMenus|mobileNavItems|footerGroups/);
   assert.match(footerWrapper, /<Footer source=\{source\} \/>/);
   assert.doesNotMatch(footerWrapper, /footerGroups|Fontes e proveniência|variant=/);
@@ -34,10 +37,10 @@ test("navegação institucional existe em definições canônicas do shell", () 
     "Estação Embrapa",
     "Radar e satélite",
     "Câmeras ao vivo",
-    "Situação das águas",
-    "Avisos oficiais",
+    "Nível no Laranjal",
+    "História das enchentes",
   ]) {
-    assert.match(globalHeader, new RegExp(label));
+    assert.match(canonicalHeader, new RegExp(label));
   }
 
   for (const label of [
