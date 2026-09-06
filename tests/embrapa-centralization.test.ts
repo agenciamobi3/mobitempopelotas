@@ -30,6 +30,7 @@ const historyFunction = readFileSync("src/lib/weather/embrapa-history.functions.
 const healthPanel = readFileSync("src/components/embrapa/EmbrapaDataHealthPanel.tsx", "utf8");
 const historyCharts = readFileSync("src/components/embrapa/EmbrapaHistoryCharts.tsx", "utf8");
 const stationRoute = readFileSync("src/routes/estacao-embrapa-pelotas.tsx", "utf8");
+const stationLoader = readFileSync("src/lib/weather/embrapa-station-page-loader.ts", "utf8");
 const officialSources = readFileSync("src/lib/weather/official-sources.server.ts", "utf8");
 const sourceCollector = readFileSync("src/lib/weather/embrapa.server.ts", "utf8");
 const cronRoute = readFileSync("src/routes/api/cron/embrapa.ts", "utf8");
@@ -201,11 +202,15 @@ test("chuva histórica é derivada por incremento e trata reinício do acumulado
   assert.match(historyServer, /rainTotal: rainValues\.length/);
 });
 
-test("página da estação carrega medições, gráficos e saúde no mesmo ciclo", () => {
-  assert.match(stationRoute, /Promise\.all/);
-  assert.match(stationRoute, /getWeatherIntelligence\(\)/);
-  assert.match(stationRoute, /getEmbrapaHealthSnapshot\(\)/);
-  assert.match(stationRoute, /getEmbrapaHistory24h\(\)/);
+test("página da estação carrega medições, gráficos e saúde no mesmo ciclo resiliente", () => {
+  assert.match(stationRoute, /loader: \(\) => loadEmbrapaStationPageData\(\)/);
+  assert.match(stationLoader, /Promise\.allSettled/);
+  assert.match(stationLoader, /getWeatherIntelligence\(\)/);
+  assert.match(stationLoader, /getEmbrapaHealthSnapshot\(\)/);
+  assert.match(stationLoader, /getEmbrapaHistory24h\(\)/);
+  assert.match(stationLoader, /createUnavailableWeatherIntelligence/);
+  assert.match(stationLoader, /createUnavailableEmbrapaHealthSnapshot/);
+  assert.match(stationLoader, /createUnavailableEmbrapaHistorySnapshot/);
   assert.match(stationRoute, /<EmbrapaHistoryCharts snapshot=\{history\} \/>/);
   assert.match(stationRoute, /<EmbrapaDataHealthPanel snapshot=\{health\} \/>/);
   assert.match(historyCharts, /id="historico-24-horas"/);
