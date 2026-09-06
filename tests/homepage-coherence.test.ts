@@ -54,7 +54,7 @@ test("the homepage radar shortcut resolves to the isolated regional monitor", ()
 
 test("the homepage radar is isolated as a civic-tech monitoring console", () => {
   assert.match(radar, /className="tp-home-radar"/);
-  assert.match(radar, /Monitoramento em tempo real/);
+  assert.match(radar, /Monitoramento meteorológico/);
   assert.match(radar, /Radar e satélite para acompanhar chuva, nebulosidade e trovoadas/);
   assert.match(radar, /Abrir monitoramento completo/);
   assert.match(radarCss, /\.tp-home-radar\s*\{[\s\S]*content-visibility:\s*auto/);
@@ -79,7 +79,9 @@ test("the Lagoa section is isolated as local civic-tech data", () => {
   assert.match(water, /className="tp-home-water"/);
   assert.match(water, /id="situacao-das-aguas"/);
   assert.match(water, /Praia do Laranjal/);
-  assert.match(water, /HOME_LAGOON_STATION_PRIORITY/);
+  assert.match(water, /HOME_LOCAL_ESTUARY_STATION_PRIORITY/);
+  assert.match(water, /HOME_REGIONAL_STATION_PRIORITY/);
+  assert.match(water, /Rio Grande e São José do Norte/);
   assert.match(waterCss, /\.tp-home-water__layout\s*\{[\s\S]*grid-template-columns:/);
   assert.match(waterCss, /\.tp-home-water__rows article/);
   assert.doesNotMatch(waterCss, /!important/);
@@ -215,7 +217,7 @@ test("the homepage hero is isolated from the historical first-fold cascade", () 
 test("the home targets now while the dedicated route targets today's forecast", () => {
   assert.match(weatherHero, /Tempo agora em Pelotas/);
   assert.doesNotMatch(weatherHero, /Tempo em Pelotas hoje/);
-  assert.match(todayRoute, /Tempo hoje em Pelotas: previsão por hora/);
+  assert.match(todayRoute, /Tempo hoje em Pelotas: temperatura e previsão por hora/);
 });
 
 test("the hero does not credit a static photo while the live camera is visible", () => {
