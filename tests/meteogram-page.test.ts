@@ -108,15 +108,15 @@ test("meteogram normalizer preserves hourly volume and atmospheric variables", a
   }
 });
 
-test("meteogram route exposes SEO, FAQ and separate forecast loading", () => {
+test("meteogram route exposes SEO, FAQ and independently resilient forecast loading", () => {
   assert.match(route, /createFileRoute\("\/meteograma-pelotas"\)/);
   assert.match(route, /MeteogramRefinement\.css/);
   assert.match(route, /MeteogramHomeContract\.css/);
   assert.ok(route.indexOf("MeteogramHomeContract.css") > route.indexOf("MeteogramRefinement.css"));
   assert.match(route, /getWeatherIntelligence\(\)/);
   assert.match(route, /getPelotasMeteogram\(\)/);
-  assert.match(route, /Promise\.all/);
-  assert.match(route, /Previsão hora a hora em Pelotas/);
+  assert.match(route, /Promise\.allSettled/);
+  assert.match(route, /Meteograma de Pelotas: previsão hora a hora por 48h/);
   assert.match(route, /temperatura, chuva, nuvens, visibilidade, pressão, vento, rajadas e possibilidade de tempestade/i);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, METEOGRAM_CONTENT\.faqs\)/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
