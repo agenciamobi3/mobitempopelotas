@@ -108,11 +108,13 @@ test("open meteo publico prioriza origem direta validada e curta antes da contin
 test("contingencia Open-Meteo lê cache persistido antes de configuração e Edge", () => {
   assert.match(openMeteoEdge, /CACHE_READ_TIMEOUT_MS = 1_200/);
   assert.match(openMeteoEdge, /SETTINGS_READ_TIMEOUT_MS = 1_200/);
-  assert.match(openMeteoEdge, /EDGE_REQUEST_TIMEOUT_MS = 1_600/);
+  assert.match(openMeteoEdge, /EDGE_REQUEST_TIMEOUT_MS = 2_200/);
   assert.match(openMeteoEdge, /weather_provider_payload_cache/);
-  assert.match(openMeteoEdge, /readPersistedPayload/);
-  assert.match(openMeteoEdge, /forecastPayloadSchema\.safeParse\(data\.payload\)/);
+  assert.match(openMeteoEdge, /readAdminPersistedPayload/);
+  assert.match(openMeteoEdge, /readPublicPersistedPayload/);
+  assert.match(openMeteoEdge, /forecastPayloadSchema\.safeParse\(row\.payload\)/);
   assert.match(openMeteoEdge, /if \(persisted\) return persisted/);
+  assert.match(openMeteoEdge, /return fetchViaEdge\(admin, config\.url\)/);
   assert.doesNotMatch(openMeteoEdge, /REQUEST_TIMEOUT_MS = 35_000/);
 });
 
@@ -161,15 +163,18 @@ test("cliente recupera bundles antigos com documento fresco e cache buster", () 
   assert.match(rootRoute, /recoverClientNavigationFailure\(error\)/);
 });
 
-test("qualquer falha de runtime hidratado recebe no maximo uma tentativa fresca", () => {
+test("falhas recuperáveis do runtime hidratado recebem no máximo uma tentativa fresca", () => {
   assert.match(staleClientRecovery, /TRANSIENT_NAVIGATION_PATTERNS/);
   assert.match(staleClientRecovery, /server function/i);
   assert.match(staleClientRecovery, /serverfn/i);
   assert.match(staleClientRecovery, /failed to fetch/i);
-  assert.match(staleClientRecovery, /clientRuntimeReady/);
+  assert.match(staleClientRecovery, /RECOVERY_WINDOW_MS = 60_000/);
+  assert.match(staleClientRecovery, /previous\?\.href === href/);
+  assert.match(staleClientRecovery, /Date\.now\(\) - previous\.attemptedAt < RECOVERY_WINDOW_MS/);
+  assert.match(staleClientRecovery, /if \(attemptedRecently\) return false/);
+  assert.match(staleClientRecovery, /window\.sessionStorage\.setItem/);
   assert.match(staleClientRecovery, /navigator\.onLine === false/);
-  assert.match(staleClientRecovery, /"asset" \| "navigation" \| "runtime"/);
-  assert.match(staleClientRecovery, /navigateToFreshDocument/);
+  assert.match(staleClientRecovery, /return navigateToFreshDocument\("navigation"\)/);
   assert.doesNotMatch(staleClientRecovery, /while\s*\(/);
 });
 
@@ -184,13 +189,18 @@ test("navegacao publica usa documento completo e preserva areas autenticadas", (
   assert.match(publicNavigationGuard, /data-spa-navigation/);
 });
 
-test("boundary global nao exibe mais a tela fatal ao publico", () => {
+test("boundary global tenta recuperar falhas transitórias sem mascarar exceções reais", () => {
   assert.doesNotMatch(rootRoute, /Não foi possível carregar esta página/);
   assert.doesNotMatch(rootRoute, /Erro inesperado/);
-  assert.match(rootRoute, /Carregando a versão mais recente do Tempo Pelotas/);
+  assert.match(rootRoute, /recoverClientNavigationFailure\(error\)/);
+  assert.match(rootRoute, /Falha de navegação/);
+  assert.match(rootRoute, /Não foi possível concluir esta página/);
+  assert.match(rootRoute, /Tentar novamente/);
   assert.match(rootRoute, /href="\/tempo-na-regiao-sul-rs"/);
   assert.match(rootRoute, /href="\/situacao-hidrologica-pelotas"/);
   assert.match(rootRoute, /reportLovableError/);
+  assert.match(staleClientRecovery, /Exceções reais de runtime não são/);
+  assert.match(staleClientRecovery, /permanecem no boundary para diagnóstico/);
 });
 
 test("mapa regional e opcional e nao pode derrubar a rota", () => {
