@@ -77,6 +77,77 @@
   font-size: 0.72rem;
 }
 
+.tp-contribution-form__kind {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tp-contribution-form__kind legend {
+  margin-bottom: 10px;
+  color: #173847;
+  font-size: 0.78rem;
+  font-weight: 840;
+}
+
+.tp-contribution-form__kind-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tp-contribution-form__kind-grid label {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 92px;
+  padding: 14px 15px;
+  border: 1px solid rgb(7 30 47 / 12%);
+  border-radius: 12px;
+  background: #fbfcfc;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.tp-contribution-form__kind-grid label:hover,
+.tp-contribution-form__kind-grid label:focus-within {
+  border-color: rgb(94 44 237 / 45%);
+  background: #fff;
+  box-shadow: 0 8px 24px rgb(7 30 47 / 5%);
+}
+
+.tp-contribution-form__kind-grid label.is-selected {
+  border-color: #5e2ced;
+  background: rgb(94 44 237 / 5%);
+  box-shadow: 0 0 0 2px rgb(94 44 237 / 8%);
+}
+
+.tp-contribution-form__kind-grid input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tp-contribution-form__kind-grid span {
+  display: grid;
+  gap: 5px;
+}
+
+.tp-contribution-form__kind-grid strong {
+  color: #173847;
+  font-size: 0.79rem;
+}
+
+.tp-contribution-form__kind-grid small {
+  color: #6f838d;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
 .tp-contribution-form__row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -141,7 +212,7 @@
 
 .tp-contribution-form__consents {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   padding: 18px;
   border-radius: 12px;
   background: #f5f8f8;
@@ -165,6 +236,14 @@
   accent-color: #5e2ced;
 }
 
+.tp-contribution-form__check span {
+  display: block;
+}
+
+.tp-contribution-form__check span strong {
+  color: #173847;
+}
+
 .tp-contribution-form__check--compact {
   align-self: end;
   min-height: 46px;
@@ -172,6 +251,15 @@
   border: 1px solid rgb(7 30 47 / 10%);
   border-radius: 10px;
   align-items: center;
+}
+
+.tp-contribution-form__consent-note {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  color: #6f838d;
+  font-size: 0.7rem;
+  line-height: 1.55;
 }
 
 .tp-contribution-form__message {
@@ -243,6 +331,7 @@
     padding: 20px 16px;
   }
 
+  .tp-contribution-form__kind-grid,
   .tp-contribution-form__row {
     grid-template-columns: 1fr;
   }
