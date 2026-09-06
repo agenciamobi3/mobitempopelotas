@@ -66,6 +66,16 @@ function PrivacyDataPage() {
           </section>
 
           <section className="privacy-card">
+            <span className="eyebrow">Medição de audiência</span>
+            <h2>Google Analytics 4 sem vínculo com a identidade da conta</h2>
+            <p>
+              O portal usa o Google Analytics 4, propriedade <strong>G-97YX7HPD90</strong>, para
+              compreender uso agregado das páginas. A configuração não envia e-mail, nome ou o ID da
+              conta ao Analytics e mantém Google Signals e personalização de anúncios desativados.
+            </p>
+          </section>
+
+          <section className="privacy-card">
             <span className="eyebrow">Colaborações históricas</span>
             <h2>Anexos ficam privados durante a revisão</h2>
             <p>
