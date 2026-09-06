@@ -8,6 +8,7 @@ import "@/components/hydrology/HydrologyEditorialRefinements.css";
 import "@/components/hydrology/HydrologyEditorialRoute.css";
 import { LaranjalLevelPage } from "@/components/hydrology/HydrologyPages";
 import "@/components/hydrology/HydrologyDetailHomeContract.css";
+import { useLaranjalLevelRefresh } from "@/components/hydrology/useLaranjalLevelRefresh";
 import { LARANJAL_LEVEL_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { loadLaranjalHydrologyPageData } from "@/lib/hydrology/public-hydrology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
@@ -27,7 +28,7 @@ const LARANJAL_PAGE_CONTENT = {
   facts: [
     "O Tempo Pelotas possui acesso autorizado à plataforma integrada da ANA para incorporar, de forma gradual, informações da Rede Hidrometeorológica Nacional ao acompanhamento regional.",
     "Dados da ANA/RHN só devem ser apresentados como leitura de uma estação depois de validar sua unidade, referência, horário e estado de atualização; valores de referências diferentes não são convertidos automaticamente para o Laranjal.",
-    "A estação pode ficar sem nova medição ou sofrer interrupções; sempre confira o horário e o aviso de atualização.",
+    "Quando a estação fica sem nova medição, o portal mantém a última medição válida da própria Estação Laranjal, com horário e estado de atualização explícitos, até receber um ponto novo.",
     "Uma mudança curta pode resultar de vento, oscilação local ou ruído. A sequência de medições é mais útil do que um único ponto.",
     "O nível do Guaíba ajuda a compor o contexto regional, mas não deve ser subtraído nem comparado diretamente com a régua do Laranjal.",
     "As marcas históricas de 1941 e 2024 pertencem aos referenciais documentados em cada evento e não são convertidas em cota da Estação Laranjal.",
@@ -42,7 +43,7 @@ const LARANJAL_PAGE_CONTENT = {
     {
       question: "O nível da Lagoa dos Patos está em tempo real?",
       answer:
-        "A página mostra a leitura mais recente recebida da fonte, sempre com horário e estado de atualização. Se a transmissão estiver atrasada ou indisponível, o dado é identificado dessa forma e não é apresentado como uma medição atual em tempo real.",
+        "A página mostra a leitura mais recente recebida da fonte, sempre com horário e estado de atualização. Se não houver nova medição no momento da visita, o portal mantém a última medição válida identificada como last-known e continua tentando atualizar sem apresentá-la como leitura atual.",
     },
     {
       question: "A medição exibida no Laranjal já vem da ANA/RHN?",
@@ -57,7 +58,7 @@ const LARANJAL_PAGE_CONTENT = {
     {
       question: "Com que frequência o nível é atualizado?",
       answer:
-        "A frequência depende da estação e da disponibilidade da transmissão. A página mostra o horário da última medição válida e avisa quando o dado está atrasado ou indisponível.",
+        "A frequência depende da estação e da disponibilidade da transmissão. Enquanto a página estiver aberta, o Tempo Pelotas tenta atualizar a leitura do Laranjal a cada minuto e também quando a aba volta a ficar visível. Até chegar uma medição nova, permanece visível a última medição válida com seu horário original.",
     },
     {
       question: "Um valor alto confirma inundação no Laranjal?",
@@ -143,11 +144,12 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
 
 function NivelLagoaPage() {
   const data = Route.useLoaderData();
+  const level = useLaranjalLevelRefresh(data.level);
 
   return (
     <div className="hydrology-editorial-route">
-      <HydrologyEditorialHero level={data.level} variant="detail" />
-      <LaranjalLevelPage weather={data.weather} level={data.level} />
+      <HydrologyEditorialHero level={level} variant="detail" />
+      <LaranjalLevelPage weather={data.weather} level={level} />
       <OfficialDataAccessNotice scope="hydrology" />
       <LaranjalEmbedGuide />
       <EditorialContentSection id="como-interpretar-nivel-laranjal" content={LARANJAL_PAGE_CONTENT} />
