@@ -237,3 +237,7 @@ O resultado útil da busca foi indireto, mas documentalmente forte:
 - portanto, esses horários permanecem no inventário, mas sem valores inventados;
 - as medições da GZH de 27 e 28 de outubro são identificadas como reprodução contemporânea de dados da Defesa Civil, não como boletins municipais;
 - a expressão jornalística “2,25 m acima do normal” continua fora da série municipal calibrada porque não informa estação, zero da régua ou definição operacional de “normal”.
+
+## Fontes adicionais recuperadas
+
+- 30/10/2015 — Sanep conclui dique de contenção emergencial no Laranjal: `https://www.pelotas.com.br/noticia/sanep-conclui-dique-de-contencao-emergencial-no-laranjal`
