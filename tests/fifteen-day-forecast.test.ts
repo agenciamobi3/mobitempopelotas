@@ -58,21 +58,19 @@ test("loader público de 15 dias degrada as duas consultas de forma independente
   assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800/);
   assert.match(extendedPageLoader, /settlePageDependency/);
   assert.match(extendedPageLoader, /Promise\.race/);
-  assert.match(extendedPageLoader, /Promise\.allSettled/);
-  assert.match(extendedPageLoader, /getWeatherIntelligence\(\)/);
-  assert.match(extendedPageLoader, /getPelotasExtendedForecast\(\)/);
+  assert.match(extendedPageLoader, /Promise\.all\(/);
+  assert.match(extendedPageLoader, /settlePageDependency\([\s\S]*getWeatherIntelligence\(\)/);
+  assert.match(extendedPageLoader, /settlePageDependency\(getPelotasExtendedForecast\(\), unavailableForecast\)/);
   assert.match(extendedPageLoader, /createUnavailableWeatherIntelligence/);
   assert.match(extendedPageLoader, /status:\s*"unavailable"/);
   assert.match(extendedPageLoader, /days:\s*\[\]/);
   assert.match(extendedPageLoader, /requestedDays:\s*15/);
-  assert.doesNotMatch(extendedPageLoader, /Promise\.all\(/);
 });
 
 test("rota de 15 dias usa loader resiliente e preserva o shell meteorológico", () => {
   assert.match(route, /createFileRoute\("\/previsao-15-dias-pelotas"\)/);
   assert.match(route, /Previsão do tempo em Pelotas para 15 dias/);
   assert.match(route, /loadPublicExtendedForecastPage\(\)/);
-  assert.doesNotMatch(route, /Promise\.all\(/);
   assert.doesNotMatch(route, /getWeatherIntelligence\(\)/);
   assert.doesNotMatch(route, /getPelotasExtendedForecast\(\)/);
   assert.match(route, /<InternalWeatherPageShell/);
