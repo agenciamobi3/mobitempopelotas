@@ -13,6 +13,7 @@ const statusProbeWrapper = readFileSync(
   "src/lib/status/data-status-redemet-probes.server.ts",
   "utf8",
 );
+const integrationDoc = readFileSync("docs/ANA_RHN_INTEGRATION.md", "utf8");
 
 const sanitizedLaranjalPayload = {
   displayFieldName: "Parametro",
@@ -37,7 +38,7 @@ const sanitizedLaranjalPayload = {
   ],
 };
 
-test("ANA RHN public adapter preserves the verified station identity and raw reading", () => {
+test("ANA RHN public adapter preserves the verified current station identity and raw reading", () => {
   const snapshot = parseAnaRhnPublicPayload(
     sanitizedLaranjalPayload,
     "87955001",
@@ -78,6 +79,29 @@ test("ANA RHN public query is fixed to the official HTTPS ArcGIS host and contai
   assert.equal(url.searchParams.has("api_key"), false);
   assert.equal(url.username, "");
   assert.equal(url.password, "");
+});
+
+test("historical 87955000 and current 87955001 remain separate station identities", () => {
+  assert.match(integrationDoc, /código histórico: `87955000`/);
+  assert.match(integrationDoc, /código: `87955001`/);
+  assert.match(integrationDoc, /Nenhuma fonte oficial localizada[\s\S]*declara que `87955001` é renumeração, substituição, sensor filho ou continuação com o mesmo zero da régua `87955000`/);
+  assert.match(integrationDoc, /não unir as duas séries automaticamente/);
+  assert.match(integrationDoc, /não transferir zero, datum, RN, cota de referência ou histórico entre os códigos/);
+  assert.match(integrationDoc, /pico de 2001 da `87955000`[\s\S]*não[\s\S]*referência classificatória da `87955001`/);
+  assert.match(integrationDoc, /`87955000` apenas como \*\*régua histórica\*\*/);
+  assert.match(integrationDoc, /`87955001` apenas para \*\*readiness\/cross-check atual\*\*/);
+});
+
+test("historical raw series recovery uses authorized modern API and never turns legacy service into runtime", () => {
+  assert.match(integrationDoc, /HidroSerieCotas\/v1/);
+  assert.match(integrationDoc, /acesso automatizado à API moderna exige cadastro\/autorização/);
+  assert.match(integrationDoc, /hidro@ana\.gov\.br/);
+  assert.match(integrationDoc, /HidroSerieHistorica/);
+  assert.match(integrationDoc, /suporte prorrogado somente até \*\*30\/06\/2026\*\*/);
+  assert.match(integrationDoc, /não deve ser adotado como dependência nova de runtime/);
+  assert.match(integrationDoc, /extrair `87955000` para outubro de 2001 em bruto e consistido/);
+  assert.doesNotMatch(source, /HidroSerieHistorica/);
+  assert.doesNotMatch(source, /87955000/);
 });
 
 test("ANA RHN adapter treats a missing expected station as unavailable without fabricating a zero", () => {
