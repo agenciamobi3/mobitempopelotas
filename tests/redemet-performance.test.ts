@@ -86,7 +86,10 @@ test("satélite REDEMET tenta somente a hora UTC anterior quando a resposta atua
   assert.match(satelliteServer, /url\.searchParams\.set\("data", referenceData\)/);
   assert.match(satelliteServer, /const referenceData = previousRedemetUtcHourToken\(\)/);
   assert.match(satelliteServer, /const previousHour = await requestSatellitePayload/);
-  assert.match(satelliteServer, /hora UTC\s*anterior, uma única vez/);
+  assert.equal(
+    [...satelliteServer.matchAll(/const referenceData = previousRedemetUtcHourToken\(\)/g)].length,
+    1,
+  );
   assert.doesNotMatch(satelliteServer, /for \([^\n]*previousRedemetUtcHourToken/);
 });
 

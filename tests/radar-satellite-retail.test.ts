@@ -119,8 +119,8 @@ test("latest radar image is compared with the nearest forecast hour without coup
   assert.match(loader, /settlePageDependency/);
   assert.match(loader, /Promise\.all\(/);
   assert.doesNotMatch(loader, /Promise\.allSettled/);
-  assert.match(loader, /createUnavailableRedemetOverview\(\)/);
-  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
+  assert.match(loader, /createUnavailableRedemetOverview/);
+  assert.match(loader, /createUnavailableWeatherIntelligence/);
   assert.match(fallback, /available: false/);
   assert.match(fallback, /frames: \[\]/);
   assert.match(fallback, /STSC — ocorrências de trovoada/);

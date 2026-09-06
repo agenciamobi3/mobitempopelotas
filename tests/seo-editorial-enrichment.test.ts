@@ -37,7 +37,7 @@ test("home e hoje formam um cluster de intenção sem criar novas URLs redundant
   assert.match(editorial, /href: "\/tempo-hoje-pelotas"/);
   assert.match(today, /href: "\/previsao-7-dias-pelotas"/);
   assert.match(today, /href: "\/previsao-15-dias-pelotas"/);
-  assert.match(today, /Onde vejo a previsão por hora de hoje/);
+  assert.match(today, /Previsão por hora em Pelotas/);
 });
 
 test("amanhã, 7 dias e 15 dias possuem papéis distintos e navegação progressiva", () => {

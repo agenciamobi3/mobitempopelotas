@@ -47,8 +47,10 @@ test("core search intents remain distinct and internally connected", () => {
   assert.match(rain, /\/situacao-hidrologica-pelotas/);
   assert.match(rain, /\/nivel-da-lagoa-dos-patos-laranjal/);
   assert.match(laranjal, /O nível da Lagoa dos Patos está em tempo real\?/);
-  assert.match(laranjal, /última medição válida identificada como last-known/);
-  assert.match(laranjal, /sem apresentá-la como leitura atual/);
+  assert.match(laranjal, /última medição válida arquivada da própria Estação Laranjal/);
+  assert.match(laranjal, /com horário e estado de atualização explícitos/);
+  assert.match(laranjal, /sensor Pelotas da rede CIEX\/FURG/);
+  assert.match(laranjal, /As duas séries permanecem separadas/);
   assert.match(laranjal, /\/nivel-do-guaiba/);
   assert.match(laranjal, /\/enchente-1941-pelotas/);
   assert.match(laranjal, /\/enchente-2024-pelotas-laranjal/);

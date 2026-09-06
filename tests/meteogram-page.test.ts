@@ -117,7 +117,7 @@ test("meteogram route exposes SEO, FAQ and independently resilient forecast load
   assert.match(route, /getPelotasMeteogram\(\)/);
   assert.match(route, /Promise\.allSettled/);
   assert.match(route, /Meteograma de Pelotas: previsão hora a hora por 48h/);
-  assert.match(route, /temperatura, chuva, nuvens, visibilidade, pressão, vento, rajadas e possibilidade de tempestade/i);
+  assert.match(route, /temperatura, chuva, nuvens, visibilidade, pressão, vento, rajadas e CAPE/i);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, METEOGRAM_CONTENT\.faqs\)/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
   assert.match(route, /Os gráficos mostram medições ou previsão/);
