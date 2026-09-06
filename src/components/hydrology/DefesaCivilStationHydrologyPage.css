@@ -1,0 +1,308 @@
+.defesa-civil-station-page {
+  display: grid;
+  gap: 1.35rem;
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.defesa-civil-station-page__hero,
+.defesa-civil-station-page__live,
+.defesa-civil-station-page__interpretation,
+.defesa-civil-station-page__source {
+  border: 1px solid rgba(29, 74, 91, .12);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .96);
+  box-shadow: 0 18px 48px rgba(28, 65, 79, .07);
+}
+
+.defesa-civil-station-page__hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, .65fr);
+  gap: 1.4rem;
+  align-items: end;
+  padding: clamp(1.35rem, 3vw, 2.4rem);
+  background: linear-gradient(145deg, rgba(232, 247, 249, .98), rgba(255, 255, 255, .98));
+}
+
+.defesa-civil-station-page__eyebrow,
+.defesa-civil-station-page__live header span,
+.defesa-civil-station-page__interpretation span {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: #28758a;
+  font-size: .72rem;
+  font-weight: 850;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.defesa-civil-station-page__eyebrow svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.defesa-civil-station-page__hero h1 {
+  max-width: 780px;
+  margin: .55rem 0 0;
+  color: #1f3542;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -.04em;
+}
+
+.defesa-civil-station-page__hero-copy > p {
+  max-width: 760px;
+  margin: 1rem 0 0;
+  color: #5d707b;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.defesa-civil-station-page__hero aside {
+  display: grid;
+  gap: .35rem;
+  padding: 1rem;
+  border: 1px solid rgba(38, 111, 133, .12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.defesa-civil-station-page__hero aside small,
+.defesa-civil-station-page__primary-reading small,
+.defesa-civil-station-page__live > header > small {
+  color: #71828b;
+  font-size: .72rem;
+  font-weight: 750;
+}
+
+.defesa-civil-station-page__hero aside strong {
+  color: #263e4a;
+  font-size: 1.05rem;
+}
+
+.defesa-civil-station-page__hero aside span {
+  color: #687a83;
+  line-height: 1.45;
+}
+
+.defesa-civil-station-page__live {
+  padding: clamp(1.2rem, 2.5vw, 1.8rem);
+}
+
+.defesa-civil-station-page__live > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.defesa-civil-station-page__live h2,
+.defesa-civil-station-page__interpretation h2 {
+  margin: .35rem 0 0;
+  color: #253d49;
+}
+
+.defesa-civil-station-page__status-row {
+  display: flex;
+  justify-content: space-between;
+  gap: .8rem;
+  align-items: center;
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(29, 74, 91, .09);
+  color: #73838b;
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.defesa-civil-station-page__freshness {
+  display: inline-flex;
+  align-items: center;
+  gap: .42rem;
+}
+
+.defesa-civil-station-page__freshness i {
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.defesa-civil-station-page__freshness.is-recent { color: #2d775d; }
+.defesa-civil-station-page__freshness.is-delayed { color: #8b6733; }
+.defesa-civil-station-page__freshness.is-old { color: #90565d; }
+.defesa-civil-station-page__freshness.is-unknown { color: #727d83; }
+
+.defesa-civil-station-page__primary-reading {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.defesa-civil-station-page__primary-reading > div {
+  display: flex;
+  gap: .75rem;
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(38, 111, 133, .055);
+}
+
+.defesa-civil-station-page__primary-reading svg,
+.defesa-civil-station-page__trend svg,
+.defesa-civil-station-page__rain svg {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #28758a;
+}
+
+.defesa-civil-station-page__primary-reading span {
+  display: grid;
+  gap: .25rem;
+}
+
+.defesa-civil-station-page__primary-reading strong {
+  color: #203744;
+  font-size: clamp(1.35rem, 3vw, 2.2rem);
+}
+
+.defesa-civil-station-page__primary-reading em {
+  color: #667982;
+  font-size: .8rem;
+  font-style: normal;
+}
+
+.defesa-civil-station-page__trend {
+  display: flex;
+  gap: .6rem;
+  margin: 1rem 0 0;
+  color: #506873;
+  line-height: 1.55;
+}
+
+.defesa-civil-station-page__rain {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem;
+  margin: 1rem 0 0;
+}
+
+.defesa-civil-station-page__rain > div {
+  padding: .9rem 1rem;
+  border: 1px solid rgba(29, 74, 91, .08);
+  border-radius: 16px;
+}
+
+.defesa-civil-station-page__rain dt {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  color: #667983;
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.defesa-civil-station-page__rain dd {
+  margin: .45rem 0 0;
+  color: #263f4b;
+  font-size: 1.25rem;
+  font-weight: 850;
+}
+
+.defesa-civil-station-page__unavailable {
+  margin-top: 1.15rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(127, 97, 52, .07);
+}
+
+.defesa-civil-station-page__unavailable strong { color: #644f30; }
+.defesa-civil-station-page__unavailable p {
+  margin: .45rem 0 0;
+  color: #6e675c;
+  line-height: 1.6;
+}
+
+.defesa-civil-station-page__interpretation {
+  display: grid;
+  grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr);
+  gap: 1.2rem;
+  padding: clamp(1.2rem, 2.5vw, 1.8rem);
+}
+
+.defesa-civil-station-page__interpretation p {
+  margin: 0;
+  color: #60727c;
+  line-height: 1.7;
+}
+
+.defesa-civil-station-page__links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: .75rem;
+}
+
+.defesa-civil-station-page__links a {
+  display: flex;
+  align-items: center;
+  min-height: 58px;
+  padding: .85rem 1rem;
+  border: 1px solid rgba(29, 74, 91, .12);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .9);
+  color: #276f85;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.defesa-civil-station-page__source {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+}
+
+.defesa-civil-station-page__source p {
+  max-width: 760px;
+  margin: .35rem 0 0;
+  color: #6a7a82;
+  line-height: 1.55;
+}
+
+.defesa-civil-station-page__source > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-content: flex-start;
+}
+
+.defesa-civil-station-page__source a {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: #28748a;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.defesa-civil-station-page__source a svg {
+  width: .8rem;
+  height: .8rem;
+}
+
+@media (max-width: 760px) {
+  .defesa-civil-station-page__hero,
+  .defesa-civil-station-page__interpretation,
+  .defesa-civil-station-page__primary-reading,
+  .defesa-civil-station-page__rain {
+    grid-template-columns: 1fr;
+  }
+
+  .defesa-civil-station-page__live > header,
+  .defesa-civil-station-page__source {
+    flex-direction: column;
+  }
+}

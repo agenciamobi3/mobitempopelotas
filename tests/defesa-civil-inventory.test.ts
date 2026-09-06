@@ -6,6 +6,12 @@ const server = readFileSync("src/lib/hydrology/defesa-civil-rs.server.ts", "utf8
 const area = readFileSync("src/components/hydrology/DefesaCivilHydroNetwork.tsx", "utf8");
 const styles = readFileSync("src/components/hydrology/DefesaCivilHydroInventory.css", "utf8");
 const endpoint = readFileSync("src/routes/api/defesa-civil/stations.ts", "utf8");
+const regionalRegistry = readFileSync("src/lib/hydrology/defesa-civil-regional-pages.ts", "utf8");
+const regionalModule = readFileSync("src/components/regional/RegionalCityDefesaCivil.tsx", "utf8");
+const dedicatedPage = readFileSync("src/components/hydrology/DefesaCivilStationHydrologyPage.tsx", "utf8");
+const jaguaraoRoute = readFileSync("src/routes/nivel-do-rio-jaguarao.tsx", "utf8");
+const saoGoncaloRoute = readFileSync("src/routes/nivel-do-canal-sao-goncalo.tsx", "utf8");
+const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 
 test("Defesa Civil station inventory preserves official capability flags", () => {
   assert.match(server, /filter:[\s\S]*relacao:/);
@@ -91,4 +97,44 @@ test("inventory UI remains responsive and readable", () => {
   assert.match(styles, /@media \(max-width: 680px\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(styles, /!important/);
+});
+
+test("only autonomous Defesa Civil intents are promoted to dedicated hydrology pages", () => {
+  assert.match(regionalRegistry, /"jaguarao-rs": \{[\s\S]*path: "\/nivel-do-rio-jaguarao"[\s\S]*stationCode: "DCRS-00115"/);
+  assert.match(regionalRegistry, /"capao-do-leao-rs": \{[\s\S]*path: "\/nivel-do-canal-sao-goncalo"[\s\S]*stationCode: "DCRS-00063"/);
+  assert.doesNotMatch(regionalRegistry, /"turucu-rs": \{\s*path:/);
+  assert.doesNotMatch(regionalRegistry, /"cristal-rs": \{\s*path:/);
+  assert.doesNotMatch(regionalRegistry, /"arroio-grande-rs": \{\s*path:/);
+  assert.doesNotMatch(regionalRegistry, /"bage-rs": \{\s*path:/);
+  assert.doesNotMatch(regionalRegistry, /"santa-vitoria-do-palmar-rs": \{\s*path:/);
+  assert.match(regionalModule, /regionalDefesaCivilDedicatedPage\(citySlug\)/);
+  assert.match(regionalModule, /className="regional-defesa-civil__dedicated-link"/);
+});
+
+test("dedicated Defesa Civil pages preserve local reference and never synthesize risk", () => {
+  assert.match(dedicatedPage, /station\.river\.levelM/);
+  assert.match(dedicatedPage, /station\.river\.trend/);
+  assert.match(dedicatedPage, /station\.rain\.h1Mm/);
+  assert.match(dedicatedPage, /station\.rain\.h24Mm/);
+  assert.match(dedicatedPage, /não substitui a ausência por zero/);
+  assert.match(dedicatedPage, /não significa que a leitura seja uma cota de inundação local/);
+  assert.match(dedicatedPage, /não o compara diretamente com\s+outras réguas/);
+  assert.doesNotMatch(dedicatedPage, /\?\?\s*0\b/);
+});
+
+test("Jaguarão and Canal São Gonçalo routes are indexable, source-backed and distinct from weather pages", () => {
+  assert.match(jaguaraoRoute, /createFileRoute\("\/nivel-do-rio-jaguarao"\)/);
+  assert.match(jaguaraoRoute, /stationCode: "DCRS-00115"/);
+  assert.match(jaguaraoRoute, /loader: \(\) => getDefesaCivilHydroData\(\)/);
+  assert.match(jaguaraoRoute, /weatherPath: "\/tempo-em\/jaguarao-rs"/);
+  assert.match(jaguaraoRoute, /Nível do Rio Jaguarão hoje/);
+
+  assert.match(saoGoncaloRoute, /createFileRoute\("\/nivel-do-canal-sao-goncalo"\)/);
+  assert.match(saoGoncaloRoute, /stationCode: "DCRS-00063"/);
+  assert.match(saoGoncaloRoute, /loader: \(\) => getDefesaCivilHydroData\(\)/);
+  assert.match(saoGoncaloRoute, /weatherPath: "\/tempo-em\/capao-do-leao-rs"/);
+  assert.match(saoGoncaloRoute, /não deve ser confundido com a régua do Cais do Porto em Pelotas/);
+
+  assert.match(publicRoutes, /path: "\/nivel-do-rio-jaguarao", changeFrequency: "hourly"/);
+  assert.match(publicRoutes, /path: "\/nivel-do-canal-sao-goncalo", changeFrequency: "hourly"/);
 });

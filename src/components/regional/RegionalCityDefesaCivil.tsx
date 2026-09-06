@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Clock3, ExternalLink, Gauge, RadioTower, Waves } from "lucide-react";
+import { ArrowRight, Clock3, ExternalLink, Gauge, RadioTower, Waves } from "lucide-react";
 
-import { regionalDefesaCivilStationCodes } from "@/lib/hydrology/defesa-civil-regional-pages";
+import {
+  regionalDefesaCivilDedicatedPage,
+  regionalDefesaCivilStationCodes,
+} from "@/lib/hydrology/defesa-civil-regional-pages";
 
 import "./RegionalCityDefesaCivil.css";
 
@@ -141,6 +144,7 @@ export function RegionalCityDefesaCivil({
   cityName: string;
 }) {
   const stationCodes = useMemo(() => regionalDefesaCivilStationCodes(citySlug), [citySlug]);
+  const dedicatedPage = useMemo(() => regionalDefesaCivilDedicatedPage(citySlug), [citySlug]);
   const [payload, setPayload] = useState<RegionalDefesaCivilPayload | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "unavailable">("loading");
 
@@ -234,6 +238,12 @@ export function RegionalCityDefesaCivil({
           diferentes e não converte a tendência da fonte em classificação de risco.
         </p>
       </div>
+
+      {dedicatedPage ? (
+        <a className="regional-defesa-civil__dedicated-link" href={dedicatedPage.path}>
+          {dedicatedPage.label} <ArrowRight aria-hidden="true" />
+        </a>
+      ) : null}
 
       {payload ? (
         <footer>

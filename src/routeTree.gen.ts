@@ -59,9 +59,11 @@ import { Route as MeteogramaPelotasRouteImport } from './routes/meteograma-pelot
 import { Route as MetodologiaRouteImport } from './routes/metodologia'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as NivelDaLagoaDosPatosRouteImport } from './routes/nivel-da-lagoa-dos-patos/index'
-import { Route as NivelDaLagoaDosPatosLocalitySlugRouteImport } from './routes/nivel-da-lagoa-dos-patos/$localitySlug'
 import { Route as NivelDaLagoaDosPatosLaranjalRouteImport } from './routes/nivel-da-lagoa-dos-patos-laranjal'
+import { Route as NivelDaLagoaDosPatosLocalitySlugRouteImport } from './routes/nivel-da-lagoa-dos-patos/$localitySlug'
+import { Route as NivelDoCanalSaoGoncaloRouteImport } from './routes/nivel-do-canal-sao-goncalo'
 import { Route as NivelDoGuaibaRouteImport } from './routes/nivel-do-guaiba'
+import { Route as NivelDoRioJaguaraoRouteImport } from './routes/nivel-do-rio-jaguarao'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as PelotasDotJsonRouteImport } from './routes/pelotas[.]json'
 import { Route as Previsao15DiasPelotasRouteImport } from './routes/previsao-15-dias-pelotas'
@@ -388,21 +390,33 @@ const NivelDaLagoaDosPatosRoute = NivelDaLagoaDosPatosRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 
-const NivelDaLagoaDosPatosLocalitySlugRoute = NivelDaLagoaDosPatosLocalitySlugRouteImport.update({
-  id: '/nivel-da-lagoa-dos-patos/$localitySlug',
-  path: '/nivel-da-lagoa-dos-patos/$localitySlug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
 const NivelDaLagoaDosPatosLaranjalRoute = NivelDaLagoaDosPatosLaranjalRouteImport.update({
   id: '/nivel-da-lagoa-dos-patos-laranjal',
   path: '/nivel-da-lagoa-dos-patos-laranjal',
   getParentRoute: () => rootRouteImport,
 } as any)
 
+const NivelDaLagoaDosPatosLocalitySlugRoute = NivelDaLagoaDosPatosLocalitySlugRouteImport.update({
+  id: '/nivel-da-lagoa-dos-patos/$localitySlug',
+  path: '/nivel-da-lagoa-dos-patos/$localitySlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const NivelDoCanalSaoGoncaloRoute = NivelDoCanalSaoGoncaloRouteImport.update({
+  id: '/nivel-do-canal-sao-goncalo',
+  path: '/nivel-do-canal-sao-goncalo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
 const NivelDoGuaibaRoute = NivelDoGuaibaRouteImport.update({
   id: '/nivel-do-guaiba',
   path: '/nivel-do-guaiba',
+  getParentRoute: () => rootRouteImport,
+} as any)
+
+const NivelDoRioJaguaraoRoute = NivelDoRioJaguaraoRouteImport.update({
+  id: '/nivel-do-rio-jaguarao',
+  path: '/nivel-do-rio-jaguarao',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -572,9 +586,11 @@ type RouteMap = {
   '/metodologia': typeof MetodologiaRoute
   '/minha-conta': typeof MinhaContaRoute
   '/nivel-da-lagoa-dos-patos': typeof NivelDaLagoaDosPatosRoute
-  '/nivel-da-lagoa-dos-patos/$localitySlug': typeof NivelDaLagoaDosPatosLocalitySlugRoute
   '/nivel-da-lagoa-dos-patos-laranjal': typeof NivelDaLagoaDosPatosLaranjalRoute
+  '/nivel-da-lagoa-dos-patos/$localitySlug': typeof NivelDaLagoaDosPatosLocalitySlugRoute
+  '/nivel-do-canal-sao-goncalo': typeof NivelDoCanalSaoGoncaloRoute
   '/nivel-do-guaiba': typeof NivelDoGuaibaRoute
+  '/nivel-do-rio-jaguarao': typeof NivelDoRioJaguaraoRoute
   '/painel': typeof PainelRoute
   '/pelotas.json': typeof PelotasDotJsonRoute
   '/previsao-15-dias-pelotas': typeof Previsao15DiasPelotasRoute
@@ -969,13 +985,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NivelDaLagoaDosPatosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/nivel-da-lagoa-dos-patos/$localitySlug': {
-      id: '/nivel-da-lagoa-dos-patos/$localitySlug'
-      path: '/nivel-da-lagoa-dos-patos/$localitySlug'
-      fullPath: '/nivel-da-lagoa-dos-patos/$localitySlug'
-      preLoaderRoute: typeof NivelDaLagoaDosPatosLocalitySlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/nivel-da-lagoa-dos-patos-laranjal': {
       id: '/nivel-da-lagoa-dos-patos-laranjal'
       path: '/nivel-da-lagoa-dos-patos-laranjal'
@@ -983,11 +992,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NivelDaLagoaDosPatosLaranjalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/nivel-da-lagoa-dos-patos/$localitySlug': {
+      id: '/nivel-da-lagoa-dos-patos/$localitySlug'
+      path: '/nivel-da-lagoa-dos-patos/$localitySlug'
+      fullPath: '/nivel-da-lagoa-dos-patos/$localitySlug'
+      preLoaderRoute: typeof NivelDaLagoaDosPatosLocalitySlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nivel-do-canal-sao-goncalo': {
+      id: '/nivel-do-canal-sao-goncalo'
+      path: '/nivel-do-canal-sao-goncalo'
+      fullPath: '/nivel-do-canal-sao-goncalo'
+      preLoaderRoute: typeof NivelDoCanalSaoGoncaloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nivel-do-guaiba': {
       id: '/nivel-do-guaiba'
       path: '/nivel-do-guaiba'
       fullPath: '/nivel-do-guaiba'
       preLoaderRoute: typeof NivelDoGuaibaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nivel-do-rio-jaguarao': {
+      id: '/nivel-do-rio-jaguarao'
+      path: '/nivel-do-rio-jaguarao'
+      fullPath: '/nivel-do-rio-jaguarao'
+      preLoaderRoute: typeof NivelDoRioJaguaraoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/painel': {
@@ -1178,9 +1208,11 @@ const rootRouteChildren = {
   MetodologiaRoute,
   MinhaContaRoute,
   NivelDaLagoaDosPatosRoute,
-  NivelDaLagoaDosPatosLocalitySlugRoute,
   NivelDaLagoaDosPatosLaranjalRoute,
+  NivelDaLagoaDosPatosLocalitySlugRoute,
+  NivelDoCanalSaoGoncaloRoute,
   NivelDoGuaibaRoute,
+  NivelDoRioJaguaraoRoute,
   PainelRoute,
   PelotasDotJsonRoute,
   Previsao15DiasPelotasRoute,

@@ -198,6 +198,24 @@
   color: #294553;
 }
 
+.regional-defesa-civil__dedicated-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: 1rem;
+  padding: .72rem .9rem;
+  border-radius: 12px;
+  background: rgba(38, 111, 133, .09);
+  color: #246b81;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.regional-defesa-civil__dedicated-link svg {
+  width: .95rem;
+  height: .95rem;
+}
+
 .regional-defesa-civil footer {
   display: flex;
   justify-content: space-between;
