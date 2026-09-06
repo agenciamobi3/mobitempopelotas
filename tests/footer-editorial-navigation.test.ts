@@ -25,7 +25,9 @@ const footerRoutes = [
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
+  "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
+  "/enchente-2001-pelotas",
   "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/tempo-na-regiao-sul-rs",
@@ -42,6 +44,8 @@ test("public footer condenses the main editorial discovery into four groups", ()
   for (const route of footerRoutes) {
     assert.ok(footer.includes(route), `footer deve expor ${route}`);
   }
+
+  assert.match(footer, /label: "História das enchentes"/);
 });
 
 test("footer provenance has one HTTPS link and accessible label for every declared provider", () => {
