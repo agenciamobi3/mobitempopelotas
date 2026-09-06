@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { CURRENT_DATA_NO_STORE_HEADERS } from "@/lib/current-data-cache";
-import { getCentralEmbrapaObservation } from "@/lib/weather/embrapa-central.server";
+import {
+  getFreshEmbrapaObservation,
+  isPublishableEmbrapaObservation,
+} from "@/lib/weather/embrapa-current.server";
 
 const RESPONSE_HEADERS = {
   ...CURRENT_DATA_NO_STORE_HEADERS,
@@ -11,9 +14,11 @@ const RESPONSE_HEADERS = {
 } as const;
 
 async function currentEmbrapaObservation() {
-  const observation = await getCentralEmbrapaObservation();
+  const observation = await getFreshEmbrapaObservation();
+  const publishable = isPublishableEmbrapaObservation(observation);
+
   return new Response(JSON.stringify(observation), {
-    status: observation.status === "unavailable" ? 503 : 200,
+    status: publishable ? 200 : 503,
     headers: RESPONSE_HEADERS,
   });
 }
