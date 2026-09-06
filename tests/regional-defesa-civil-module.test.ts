@@ -40,7 +40,7 @@ test("página regional carrega Defesa Civil de forma independente e promove só 
   assert.match(page, /citySlug=\{city\.slug\}/);
   assert.match(module, /fetch\("\/api\/defesa-civil\/stations"/);
   assert.match(module, /sem bloquear a previsão meteorológica/);
-  assert.match(module, /não substitui esse vazio por uma estação vizinha/);
+  assert.match(module, /não\s+substitui esse vazio por uma estação vizinha/);
   assert.match(module, /referência própria deste ponto/);
   assert.match(module, /não usa esse valor como cota de inundação local/);
   assert.match(module, /regionalDefesaCivilDedicatedPage\(citySlug\)/);
