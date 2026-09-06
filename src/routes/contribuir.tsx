@@ -22,7 +22,7 @@ export const Route = createFileRoute("/contribuir")({
   validateSearch,
   head: () => ({
     meta: [
-      { title: `Colabore com o arquivo histórico | ${SITE_NAME}` },
+      { title: `Ajude a completar a história | ${SITE_NAME}` },
       {
         name: "description",
         content:
@@ -41,7 +41,7 @@ function ContextSelector() {
     <section className="tp-contribution-page" aria-labelledby="contribution-selector-title">
       <header className="tp-contribution-page__header">
         <span>Arquivo histórico colaborativo</span>
-        <h1 id="contribution-selector-title">Qual registro você quer ajudar a documentar?</h1>
+        <h1 id="contribution-selector-title">Qual história você pode ajudar a completar?</h1>
         <p>
           Escolha uma enchente para enviar fotos, documentos, fontes, depoimentos, medições ou
           correções. Todo material passa por revisão antes de qualquer publicação.
@@ -53,7 +53,7 @@ function ContextSelector() {
             <strong>Enchente de {context.eventYear}</strong>
             <p>{context.pageTitle}</p>
             <a className="tp-history-collab-button" href={contributionPath(context)}>
-              Colaborar com {context.eventYear}
+              Enviar contribuição sobre {context.eventYear}
             </a>
           </article>
         ))}
@@ -103,7 +103,7 @@ function ContribuirPage() {
         <section className="tp-contribution-page">
           <header className="tp-contribution-page__header">
             <span>Colaboração comunitária</span>
-            <h1>Ajude a preservar a memória de {context.eventYear}</h1>
+            <h1>Ajude a completar a história de {context.eventYear}</h1>
             <p>
               Para proteger o acervo contra spam e manter a origem das contribuições auditável, o
               envio usa a conta gratuita do Tempo Pelotas. Após o acesso, você volta direto para este
@@ -115,7 +115,7 @@ function ContribuirPage() {
             errorCode={search.erro}
             eyebrow="Conta gratuita · Tempo Pelotas"
             title="Entre para enviar sua contribuição"
-            description="O acesso identifica quem enviou o material para fins de revisão. Seu nome só aparece publicamente como colaborador se o material for aprovado e você permitir essa identificação."
+            description="O acesso identifica quem enviou o material para fins de revisão. Seu nome só aparece publicamente como colaborador se o material for aprovado, houver autorização de publicação e você permitir essa identificação."
           />
           <a className="tp-contribution-page__back" href={context.pagePath}>
             ← Voltar para {context.pageTitle}
@@ -130,7 +130,7 @@ function ContribuirPage() {
       <section className="tp-contribution-page" aria-labelledby="contribution-form-title">
         <header className="tp-contribution-page__header">
           <span>Colaboração comunitária · revisão editorial</span>
-          <h1 id="contribution-form-title">Colabore com este registro</h1>
+          <h1 id="contribution-form-title">Ajude a completar esta história</h1>
           <p>
             Envie o que você tem sobre {context.eventYear}. Pode ser uma fonte perdida na internet,
             uma fotografia de família, um recorte de jornal, um documento, uma medição, uma correção
@@ -139,7 +139,8 @@ function ContribuirPage() {
         </header>
         <p className="tp-contribution-page__notice">
           A contribuição fica privada enquanto estiver em revisão. O envio não altera automaticamente
-          a página histórica e os anexos não são publicados sem análise editorial.
+          a página histórica. Você também pode compartilhar material apenas para análise, sem autorizar
+          sua reprodução pública.
         </p>
         <HistoricalContributionForm
           context={context}
