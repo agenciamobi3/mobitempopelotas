@@ -89,6 +89,18 @@ test("daily archive distinguishes full documents from index-only bulletins", () 
   assert.match(styles, /\.tp-flood-archive/);
 });
 
+test("completed Valverde dike keeps planned and final dimensions distinct", () => {
+  assert.match(content, /30 de outubro · fim da tarde/);
+  assert.match(content, /Sanep conclui o dique emergencial no Valverde/);
+  assert.match(content, /1,8 km de comprimento e 3 m de altura/);
+  assert.match(content, /comporta móvel de 6 m/);
+  assert.match(content, /águas começavam a baixar nas áreas alagadas do Valverde e do Novo Valverde/);
+  assert.match(content, /Projeto de 25\/10 e obra concluída de 30\/10 usam dimensões diferentes/);
+  assert.match(content, /30\/10/);
+  assert.match(content, /Sanep conclui dique de contenção emergencial no Laranjal/);
+  assert.match(content, /sanep-conclui-dique-de-contencao-emergencial-no-laranjal/);
+});
+
 test("regional mechanism keeps the hydrological branches and wind explicit", () => {
   for (const term of ["Lagoa Mirim", "Piratini", "Jaguarão", "Canal São Gonçalo", "Guaíba", "Lagoa dos Patos"]) {
     assert.match(content, new RegExp(term));
@@ -112,6 +124,8 @@ test("timeline includes operational recovery milestones already found in municip
   assert.match(content, /retoma atividade na Colônia Z3/i);
   assert.match(content, /25 de outubro/);
   assert.match(content, /dique no Pontal da Barra/i);
+  assert.match(content, /30 de outubro/);
+  assert.match(content, /dique emergencial no Valverde/i);
   assert.match(content, /5 de novembro/);
   assert.match(content, /19 cargas/);
   assert.match(content, /abrigos.*desativados/i);
