@@ -76,6 +76,60 @@ Mesmo com a análise específica da UFPel e o contexto POPA, não se deve:
 4. **UFPel/SIIEPE, análise posterior específica** — reconstrução acadêmica do mecanismo de 05 a 08/10/2001 com dados NCEP e da Praticagem de Rio Grande;
 5. **POPA, 10/02/2005** — contexto hidrodinâmico geral sobre a influência do vento Nordeste no balanço de nível da Lagoa.
 
-## 5. Lacuna que permanece aberta
+## 5. Trilhas de recuperação de fontes primárias/acadêmicas
 
-A pesquisa acadêmica melhora substancialmente a explicação meteorológica do evento, mas a lacuna operacional permanece: ainda é desejável localizar boletins meteorológicos **contemporâneos** de outubro de 2001, além de séries locais de nível/cota com estação e referência identificadas.
+### 5.1 Acosta et al. — XII CBMet, 2002
+
+A referência está confirmada por múltiplos registros curriculares e pelo próprio trabalho UFPel de 2013:
+
+**ACOSTA, R.; PINTO, L. B.; TATSCH, J. D.; SARAIVA, J. M. B.; CAMPOS, C. R. J. Análise sinótica do evento ocorrido em 08/10/2001 na região sudeste da Lagoa dos Patos. XII Congresso Brasileiro de Meteorologia, Foz do Iguaçu, 2002.**
+
+O portal UFSMPublica classifica a produção como **Trabalho em Evento - Completo**, reforçando que existiu texto integral nos anais/CD-ROM.
+
+Também foi confirmado, por referências preservadas de outros trabalhos do XII CBMet, que o antigo `cbmet.com` distribuía artigos individuais em URLs do padrão:
+
+`http://www.cbmet.com/cbm-files/<grupo>-<hash>.pdf`
+
+Nesta rodada não foi localizado o hash/URL específico do artigo de Acosta. Não adivinhar o identificador.
+
+Próximos caminhos:
+
+1. acervo histórico da Sociedade Brasileira de Meteorologia/SBMet;
+2. cópia do CD-ROM do XII CBMet 2002 em bibliotecas universitárias;
+3. acervo pessoal/institucional dos autores;
+4. UFPel/UFSM, já que o registro UFSMPublica preserva a produção como trabalho completo;
+5. captura histórica do `cbmet.com` somente quando o caminho exato ou índice do CD-ROM puder ser recuperado.
+
+### 5.2 Cruz et al. — XIV CBMet, 2006
+
+Referência confirmada no trabalho UFPel de 2013:
+
+**CRUZ, P.; FARIAS, J.; CARVALHO, M. H.; FOSTER, P. Estudo sinótico do sistema meteorológico ocorrido no extremo sul do Brasil no dia 08/10/2001. XIV Congresso Brasileiro de Meteorologia, Florianópolis, 2006.**
+
+O título identifica explicitamente 08/10/2001, mas o corpo integral não foi recuperado. Até que isso ocorra, nenhuma conclusão adicional é atribuída a Cruz et al.
+
+### 5.3 Noble, Pinto e Campos — XI CIC/UFPel, 2002
+
+Foi localizada de forma consistente em registros curriculares a referência:
+
+**NOBLE, D. V.; PINTO, L. B.; CAMPOS, C. R. J. Ocorrência de fenômenos meteorológicos observados na costa brasileira: um estudo de caso de ressaca ocorrido na região sudeste da Lagoa dos Patos. XI Congresso de Iniciação Científica da UFPel, Pelotas, 2002.**
+
+O corpo não foi recuperado e o registro bibliográfico consultado não informa a data da ressaca estudada. Portanto este trabalho é apenas **candidato de acervo** e não é associado automaticamente ao episódio de 08/10/2001.
+
+### 5.4 Fernandes, Pinto e Campos — I SIBRADEN, 2004
+
+Também foi confirmada a referência:
+
+**FERNANDES, D. S.; PINTO, L. B.; CAMPOS, C. R. J. Análise sinótica de um ciclone extratropical que atingiu a cidade de Pelotas-RS. I Simpósio Brasileiro de Desastres Naturais, Florianópolis, 2004, p. 697-703.**
+
+O corpo integral não foi recuperado e a referência bibliográfica não identifica a data do ciclone analisado. O artigo não é tratado como estudo de outubro de 2001 sem essa prova.
+
+## 6. Lacuna que permanece aberta
+
+A pesquisa acadêmica melhora substancialmente a explicação meteorológica do evento, mas permanecem abertas três lacunas principais:
+
+1. boletins meteorológicos **contemporâneos** de outubro de 2001;
+2. séries locais de nível/cota com estação, zero/datum e referência vertical identificados;
+3. recuperação dos corpos integrais de Acosta 2002 e Cruz 2006, além da identificação temporal dos candidatos Noble 2002 e Fernandes 2004.
+
+Nenhuma referência bibliográfica sem corpo é promovida à página pública como se tivesse sido lida.
