@@ -17,7 +17,12 @@ const liveBackground = readFileSync(
 test("homepage does not block SSR and defers camera discovery until browser idle", () => {
   assert.doesNotMatch(homeRoute, /getWeatherCameras/);
   assert.doesNotMatch(homeRoute, /cameraData/);
-  assert.match(homeRoute, /weather, laranjal, guaiba, lagoon/);
+  assert.match(homeRoute, /function createInitialHomeData\(\)/);
+  assert.match(homeRoute, /weather: createUnavailableWeatherIntelligence\(\)/);
+  assert.match(homeRoute, /const hydrology: Promise<HomeHydrologyResult> = Promise\.resolve\(\{/);
+  assert.match(homeRoute, /status: "unavailable" as const/);
+  assert.match(homeRoute, /loader: \(\) => createInitialHomeData\(\)/);
+  assert.doesNotMatch(homeRoute, /getLaranjalLevelData|getGuaibaLevelData|getLagoonNetworkData/);
   assert.match(productionHome, /getWeatherCameras/);
   assert.match(productionHome, /useEffect/);
   assert.match(productionHome, /useState<WeatherCameraData \| null>\(null\)/);
