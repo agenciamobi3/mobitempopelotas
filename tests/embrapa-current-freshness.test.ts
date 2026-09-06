@@ -14,10 +14,14 @@ function observation(options: {
   observationTime?: string | null;
   temperature?: number | null;
 }): EmbrapaObservation {
+  const temperature = Object.prototype.hasOwnProperty.call(options, "temperature")
+    ? (options.temperature ?? null)
+    : 12.8;
+
   return {
     status: "live",
     current: {
-      temperature: options.temperature ?? 12.8,
+      temperature,
       humidity: 88,
       feelsLike: 12.6,
       dewPoint: 10.8,
