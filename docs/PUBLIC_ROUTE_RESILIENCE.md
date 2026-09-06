@@ -49,9 +49,9 @@ A ausência temporária de valores dinâmicos é preferível a impedir a página
 O hook histórico `useOpenMeteoIntelligenceRecovery()` atualmente recupera duas camadas independentes:
 
 1. previsão Open-Meteo diretamente no navegador;
-2. observação atual em `/api/weather/embrapa`, que lê o centralizador read-only da Embrapa.
+2. observação atual em `/api/weather/embrapa`, protegida pelo gate de frescor do centralizador da Embrapa.
 
-As recuperações atualizam o estado com `setData(current => ...)`, de forma que previsão e observação podem chegar em qualquer ordem sem uma apagar a outra.
+As recuperações atualizam o estado de forma independente. Nenhuma resposta de cache pode ser tratada como observação atual apenas por possuir temperatura.
 
 ### 2.1. Open-Meteo
 
@@ -68,12 +68,24 @@ O cache privado preserva o timestamp real e não inventa previsão.
 
 ### 2.2. Embrapa
 
-`/api/weather/embrapa` usa `no-store` e chama `getCentralEmbrapaObservation()`. A visita não reivindica lease nem dispara coleta persistente.
+Em 06/09/2026 foi reproduzida uma regressão na Home: durante a hidratação, o Hero podia inicialmente mostrar a contingência/previsão correta e depois ser sobrescrito por uma leitura central antiga da Embrapa. O caso observado promoviu como `Agora` um snapshot de **05/09 às 08:56** no dia 06/09.
+
+A auditoria do Supabase mostrou que o cron permanecia ativo, porém a coleta estava em falha consecutiva por timeout. O registro central continuava com `fetched_at`/`last_success_at` de 05/09, enquanto novas tentativas seguiam ocorrendo. O bug de apresentação não era o cron estar desabilitado; era o pageview aceitar uma última leitura antiga como se ainda fosse atual.
+
+Contrato permanente após a correção:
+
+- `/api/weather/embrapa` usa `no-store`;
+- `src/lib/weather/embrapa-current.server.ts` aceita o snapshot central como caminho rápido somente por **75 segundos**;
+- snapshot central mais velho perde autoridade e a leitura cai para consulta direta da fonte;
+- essa consulta direta de pageview não reivindica lease, não chama `refreshCentralEmbrapaObservation()` e não persiste dados;
+- depois da obtenção, `getObservationAgeMinutes()` + `canUseEmbrapaObservation()` preservam o limite editorial de **30 minutos** para uma observação poder ser publicada como atual;
+- observação mais velha, ausente ou indisponível faz `/api/weather/embrapa` responder **503** e não pode ser promovida pelo navegador a `currentSource: embrapa`;
+- sem observação recente, a Home pode continuar com previsão, mas o Hero não deve rotular last-known como `Agora`.
 
 Na recuperação client-side:
 
 - timeout próprio: **3 s**;
-- só uma observação utilizável recebe `currentSource: embrapa`;
+- somente resposta HTTP publicável é transformada em observação atual;
 - `currentProvenance` registra a Embrapa apenas nos campos efetivamente fornecidos;
 - condição, rajada e visibilidade permanecem nulas quando não são fornecidas pela estação;
 - timestamp/idade da observação permanecem os da própria leitura;
@@ -158,6 +170,8 @@ O monitor operacional deve distinguir resposta da integração, timeout e payloa
 - Não criar loop de recuperação automática.
 - Não fazer uma fonte externa reter o documento público até o timeout da hospedagem.
 - Não disparar coleta, lease ou persistência apenas porque um visitante abriu uma página.
+- Não publicar cache central antigo como `Agora`.
+- Não promover observação Embrapa com mais de 30 minutos a leitura atual.
 - Não confundir budget de documento com budget da fonte oficial.
 - Não recolocar Home/Hoje/Amanhã/7 dias em um loader externo sem uma razão operacional comprovada.
 - Não remover o `errorComponent` global; ele permanece como contenção final, não como experiência normal.
@@ -175,6 +189,14 @@ O monitor operacional deve distinguir resposta da integração, timeout e payloa
 
 `tests/public-route-resilience.test.ts` protege a separação entre rotas shell-first e rotas que ainda usam o loader compartilhado.
 
+`tests/embrapa-current-freshness.test.ts` protege:
+
+- janela máxima de 75 segundos do snapshot central;
+- observação Embrapa com mais de 30 minutos não publicável como `Agora`;
+- temperatura ausente nunca publicável mesmo com timestamp recente.
+
+`tests/embrapa-centralization.test.ts` protege a separação entre coleta persistente do cron e fallback direto read-only do pageview.
+
 `tests/open-meteo-browser-recovery.test.ts` protege:
 
 - recuperação rica do Open-Meteo;
@@ -188,14 +210,15 @@ Os runners do GitHub Actions continuam precisando de execução real antes de qu
 
 ## 12. Operação e diagnóstico
 
-Quando uma página pública voltar a cair no boundary global, classificar nesta ordem:
+Quando uma página pública voltar a cair no boundary global ou mostrar dado atual suspeito, classificar nesta ordem:
 
 1. **release:** confirmar `/api/runtime-version`;
 2. **documento:** verificar se a rota shell-first entrega HTML antes de qualquer recuperação;
 3. **render:** procurar erro de componente ao receber contrato vazio;
-4. **recuperação client-side:** verificar Open-Meteo e `/api/weather/embrapa` separadamente;
-5. **rota secundária:** validar o budget local de 2,5–2,8 s;
-6. **asset/chunk:** verificar se ocorreu após deploy e corresponde a módulo/preload antigo;
-7. **infra/runtime:** verificar publicação, logs e disponibilidade da aplicação.
+4. **observação:** verificar idade do snapshot central e da amostra antes de aceitar o rótulo `Agora`;
+5. **recuperação client-side:** verificar Open-Meteo e `/api/weather/embrapa` separadamente;
+6. **rota secundária:** validar o budget local de 2,5–2,8 s;
+7. **asset/chunk:** verificar se ocorreu após deploy e corresponde a módulo/preload antigo;
+8. **infra/runtime:** verificar publicação, logs e disponibilidade da aplicação.
 
-A prioridade é manter o portal navegável. A ausência temporária de uma camada de dados é preferível a uma página pública inteira inacessível.
+A prioridade é manter o portal navegável e semanticamente correto. A ausência temporária de uma observação é preferível a publicar uma leitura antiga como atual.
