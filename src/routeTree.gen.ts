@@ -50,6 +50,7 @@ import { Route as Enchente2024PelotasLaranjalRouteImport } from './routes/enchen
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EstacaoEmbrapaPelotasRouteImport } from './routes/estacao-embrapa-pelotas'
 import { Route as FeedRouteImport } from './routes/feed'
+import { Route as HistoriaDasEnchentesPelotasRouteImport } from './routes/historia-das-enchentes-pelotas'
 import { Route as HistoricoClimaticoPelotasRouteImport } from './routes/historico-climatico-pelotas'
 import { Route as MapaDeGeadasRioGrandeDoSulRouteImport } from './routes/mapa-de-geadas-rio-grande-do-sul'
 import { Route as MeteogramaPelotasRouteImport } from './routes/meteograma-pelotas'
@@ -121,6 +122,7 @@ const Enchente2024PelotasLaranjalRoute = Enchente2024PelotasLaranjalRouteImport.
 const EntrarRoute = EntrarRouteImport.update({ id: '/entrar', path: '/entrar', getParentRoute: () => rootRouteImport } as any)
 const EstacaoEmbrapaPelotasRoute = EstacaoEmbrapaPelotasRouteImport.update({ id: '/estacao-embrapa-pelotas', path: '/estacao-embrapa-pelotas', getParentRoute: () => rootRouteImport } as any)
 const FeedRoute = FeedRouteImport.update({ id: '/feed', path: '/feed', getParentRoute: () => rootRouteImport } as any)
+const HistoriaDasEnchentesPelotasRoute = HistoriaDasEnchentesPelotasRouteImport.update({ id: '/historia-das-enchentes-pelotas', path: '/historia-das-enchentes-pelotas', getParentRoute: () => rootRouteImport } as any)
 const HistoricoClimaticoPelotasRoute = HistoricoClimaticoPelotasRouteImport.update({ id: '/historico-climatico-pelotas', path: '/historico-climatico-pelotas', getParentRoute: () => rootRouteImport } as any)
 const MapaDeGeadasRioGrandeDoSulRoute = MapaDeGeadasRioGrandeDoSulRouteImport.update({ id: '/mapa-de-geadas-rio-grande-do-sul', path: '/mapa-de-geadas-rio-grande-do-sul', getParentRoute: () => rootRouteImport } as any)
 const MeteogramaPelotasRoute = MeteogramaPelotasRouteImport.update({ id: '/meteograma-pelotas', path: '/meteograma-pelotas', getParentRoute: () => rootRouteImport } as any)
@@ -199,6 +201,7 @@ const rootRouteChildren = {
   EntrarRoute,
   EstacaoEmbrapaPelotasRoute,
   FeedRoute,
+  HistoriaDasEnchentesPelotasRoute,
   HistoricoClimaticoPelotasRoute,
   MapaDeGeadasRioGrandeDoSulRoute,
   MeteogramaPelotasRoute,
