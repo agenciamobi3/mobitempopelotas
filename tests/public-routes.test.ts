@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
+import {
+  HYDROLOGY_LOCALITIES,
+  hydrologyLocalityPath,
+} from "../src/lib/hydrology/hydrology-localities.ts";
 import { PUBLIC_ROUTES } from "../src/lib/public-routes.ts";
 
 const CRITICAL_PUBLIC_ROUTES = [
@@ -28,9 +32,21 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/privacidade-e-dados",
 ] as const;
 
+const HYDROLOGY_LOCALITY_PATHS = new Set<string>(
+  HYDROLOGY_LOCALITIES.map((locality) => hydrologyLocalityPath(locality)),
+);
+
 function routeModuleUrls(path: string) {
   if (path.startsWith("/tempo-em/")) {
     return [new URL("../src/routes/tempo-em/$citySlug.tsx", import.meta.url)];
+  }
+  if (HYDROLOGY_LOCALITY_PATHS.has(path)) {
+    return [
+      new URL(
+        "../src/routes/nivel-da-lagoa-dos-patos/$localitySlug.tsx",
+        import.meta.url,
+      ),
+    ];
   }
   if (path === "/") {
     return [new URL("../src/routes/index.tsx", import.meta.url)];
@@ -48,7 +64,11 @@ function normalizeGeneratedRoutePath(path: string) {
 }
 
 function generatedRoutePath(path: string) {
-  return path.startsWith("/tempo-em/") ? "/tempo-em/$citySlug" : path;
+  if (path.startsWith("/tempo-em/")) return "/tempo-em/$citySlug";
+  if (HYDROLOGY_LOCALITY_PATHS.has(path)) {
+    return "/nivel-da-lagoa-dos-patos/$localitySlug";
+  }
+  return path;
 }
 
 function generatedRoutePaths() {
