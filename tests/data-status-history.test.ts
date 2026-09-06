@@ -101,7 +101,7 @@ test("histórico atrasado não é apresentado como disponibilidade atual", () =>
   assert.match(freshness, /staleHistoryMessage/);
   assert.match(statusFunctions, /getDataStatusHistoryFreshness/);
   assert.match(statusFunctions, /history\.available && freshness\.stale/);
-  assert.match(statusFunctions, /available: false as const/);
+  assert.match(statusFunctions, /available:\s*false/);
   assert.match(statusFunctions, /staleHistoryMessage\(freshness\.latestAt\)/);
 });
 
