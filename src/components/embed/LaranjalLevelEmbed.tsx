@@ -71,7 +71,7 @@ function MiniChart({ data }: { data: LaranjalLevelData }) {
       <svg
         viewBox={`0 0 ${width} ${height}`}
         role="img"
-        aria-label="Evolução recente do nível da Lagoa dos Patos no Laranjal"
+        aria-label={`Evolução recente do nível da Lagoa dos Patos em ${data.source.location}`}
       >
         <defs>
           <linearGradient id="embed-laranjal-area" x1="0" y1="0" x2="0" y2="1">
@@ -117,6 +117,8 @@ export function LaranjalLevelEmbed({ data }: { data: LaranjalLevelData }) {
   const trend = trendPresentation(data.trendCmPerHour);
   const TrendIcon = trend.Icon;
   const live = data.status === "live";
+  const contingency = data.source.role === "contingency";
+  const locationLabel = contingency ? "Pelotas / RS" : "Praia do Laranjal · Pelotas/RS";
 
   useEffect(() => {
     const root = rootRef.current;
@@ -154,13 +156,15 @@ export function LaranjalLevelEmbed({ data }: { data: LaranjalLevelData }) {
               <Waves aria-hidden="true" />
             </span>
             <div>
-              <span className={styles.kicker}>Estação Laranjal · Pelotas/RS</span>
+              <span className={styles.kicker}>
+                {data.source.station} · {locationLabel}
+              </span>
               <h1 id="embed-laranjal-title">Nível da Lagoa dos Patos</h1>
             </div>
           </div>
           <span className={`${styles.status} ${live ? styles.live : styles.stale}`}>
             <i aria-hidden="true" />{" "}
-            {live ? "Tempo real" : data.status === "stale" ? "Última leitura" : "Indisponível"}
+            {live ? "Atualizada" : data.status === "stale" ? "Última leitura" : "Indisponível"}
           </span>
         </header>
 
@@ -193,7 +197,10 @@ export function LaranjalLevelEmbed({ data }: { data: LaranjalLevelData }) {
           </a>
         </footer>
 
-        <p className={styles.source}>Fonte: LabHidroSens / UFPel · Apresentação: Tempo Pelotas</p>
+        <p className={styles.source}>
+          Fonte: {data.source.name}
+          {data.source.reference ? ` · ${data.source.reference}` : ""} · Apresentação: Tempo Pelotas
+        </p>
       </article>
     </main>
   );

@@ -35,16 +35,16 @@ export function LaranjalEmbedGuide() {
     <section className="laranjal-embed-guide" aria-labelledby="laranjal-embed-guide-title">
       <div className="laranjal-embed-guide-copy">
         <span className="laranjal-embed-guide-eyebrow">Recurso público</span>
-        <h2 id="laranjal-embed-guide-title">Leve o nível do Laranjal para outro site.</h2>
+        <h2 id="laranjal-embed-guide-title">Leve o nível local da Lagoa para outro site.</h2>
         <p>
-          O widget é responsivo, atualiza a leitura automaticamente e mantém a fonte técnica
-          identificada. O conteúdo é carregado em um iframe isolado, sem interferir no CSS do portal
-          que o incorpora.
+          O widget é responsivo, atualiza a leitura automaticamente e mantém a fonte e a referência da
+          medição identificadas. O conteúdo é carregado em um iframe isolado, sem interferir no CSS do
+          portal que o incorpora.
         </p>
         <ul>
-          <li>Leitura atual, tendência e histórico recente.</li>
+          <li>Leitura atual, tendência e histórico recente da fonte selecionada.</li>
           <li>Altura ajustada automaticamente ao conteúdo.</li>
-          <li>Uso gratuito com atribuição ao Tempo Pelotas e à UFPel.</li>
+          <li>Uso gratuito com atribuição ao Tempo Pelotas e à fonte identificada no widget.</li>
         </ul>
         <a href="/api/widgets/nivel-laranjal" target="_blank" rel="noopener noreferrer">
           Consultar API JSON <ExternalLink aria-hidden="true" />
