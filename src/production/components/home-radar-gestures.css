@@ -1,0 +1,7 @@
+.tp-home-radar .map-canvas {
+  cursor: grab;
+}
+
+.tp-home-radar .map-canvas:active {
+  cursor: grabbing;
+}
