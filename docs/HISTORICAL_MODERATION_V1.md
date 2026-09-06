@@ -31,13 +31,14 @@ Nunca criar uma variável `VITE_*` para essa allowlist. Ela não pode entrar no 
 
 ## Fluxo de dados
 
-1. `/painel` carrega o snapshot normal da conta;
-2. em paralelo, `getHistoricalModerationSnapshot` verifica a autorização do operador;
-3. somente após `authorized`, o servidor cria `createSupabaseAdminClient()`;
-4. a consulta administrativa busca até 51 registros `pending`/`reviewing` para saber se a fila ultrapassa os 50 itens exibidos;
-5. anexos continuam no bucket privado `historical-contributions`;
-6. links de anexos são assinados por apenas 10 minutos;
-7. nenhuma URL assinada é criada para usuário não autorizado.
+1. `/painel` carrega primeiro o snapshot normal da conta;
+2. se a conta não estiver autenticada, o fluxo de login/redirect ocorre sem consultar a fila administrativa;
+3. somente depois de uma conta autenticada, `getHistoricalModerationSnapshot` verifica a autorização do operador;
+4. somente após `authorized`, o servidor cria `createSupabaseAdminClient()`;
+5. a consulta administrativa busca até 51 registros `pending`/`reviewing` para saber se a fila ultrapassa os 50 itens exibidos;
+6. anexos continuam no bucket privado `historical-contributions`;
+7. links de anexos são assinados por apenas 10 minutos;
+8. nenhuma URL assinada é criada para usuário não autorizado.
 
 ## Estados de moderação
 
@@ -73,6 +74,7 @@ Nenhuma ação da V1 publica conteúdo automaticamente em 1941, 2001, 2015, 2024
 - V1 não muda policies do colaborador;
 - cliente administrativo só roda após autorização server-side;
 - links assinados expiram em 10 minutos;
+- links de fonte informados pelo colaborador só são clicáveis quando usam `http:` ou `https:`;
 - o painel não precisa mostrar e-mail ou identificador interno do colaborador;
 - `credit_name` e a escolha de anonimato permanecem os únicos dados de crédito necessários para a decisão editorial inicial.
 
