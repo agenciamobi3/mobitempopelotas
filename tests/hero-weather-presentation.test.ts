@@ -25,7 +25,11 @@ function weatherWithCondition(condition: string | null): WeatherData {
   });
 }
 
-function partlyCloudyWeather(cloudCover: number): WeatherData {
+function partlyCloudyWeather(
+  cloudCover: number,
+  timestamp = "2026-09-06T09:00:00-03:00",
+  icon: "partly-cloudy" | "partly-cloudy-night" = "partly-cloudy",
+): WeatherData {
   return weatherWith({
     current: {
       ...fallbackWeatherData.current,
@@ -36,11 +40,12 @@ function partlyCloudyWeather(cloudCover: number): WeatherData {
     hourly: [
       {
         time: "Agora",
+        timestamp,
         temperature: 17,
         precipitation: 6,
         windSpeed: 6.4,
         windGust: null,
-        icon: "partly-cloudy",
+        icon,
         cloudCover,
       },
     ],
@@ -109,7 +114,7 @@ test("o hero usa o acervo local de Pelotas conforme a condição observada", () 
   );
 });
 
-test("sol entre nuvens alterna entre os dois registros locais pela cobertura de nuvens", () => {
+test("sol entre nuvens preserva a divisão de 50% nos slots do acervo anterior", () => {
   const lighter = resolveHeroPhoto({ weather: partlyCloudyWeather(34), icon: "partly-cloudy" });
   const denser = resolveHeroPhoto({ weather: partlyCloudyWeather(68), icon: "partly-cloudy" });
 
@@ -117,6 +122,36 @@ test("sol entre nuvens alterna entre os dois registros locais pela cobertura de 
   assert.equal(lighter.src, "/weather/hero/pelotas parcialmente nublado centro.jpg");
   assert.equal(denser.kind, "partly-cloudy-dense");
   assert.equal(denser.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
+});
+
+test("a nova foto diurna entra na rotação sem apagar a semântica de cobertura", () => {
+  const lighter = resolveHeroPhoto({
+    weather: partlyCloudyWeather(34, "2026-09-06T10:00:00-03:00"),
+    icon: "partly-cloudy",
+  });
+  const denser = resolveHeroPhoto({
+    weather: partlyCloudyWeather(68, "2026-09-06T10:00:00-03:00"),
+    icon: "partly-cloudy",
+  });
+
+  assert.equal(lighter.kind, "partly-cloudy-light");
+  assert.equal(denser.kind, "partly-cloudy-dense");
+  assert.equal(lighter.src, "/weather/hero/pelotas-dia-parcialmente-bulado.png");
+  assert.equal(denser.src, "/weather/hero/pelotas-dia-parcialmente-bulado.png");
+});
+
+test("a foto de madrugada só entra na rotação noturna durante a madrugada", () => {
+  const madrugada = resolveHeroPhoto({
+    weather: partlyCloudyWeather(68, "2026-09-06T04:00:00-03:00", "partly-cloudy-night"),
+    icon: "partly-cloudy-night",
+  });
+  const noite = resolveHeroPhoto({
+    weather: partlyCloudyWeather(68, "2026-09-06T20:00:00-03:00", "partly-cloudy-night"),
+    icon: "partly-cloudy-night",
+  });
+
+  assert.equal(madrugada.src, "/weather/hero/pelotas-madrugada-parcialmente-nublado.png");
+  assert.equal(noite.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
 });
 
 test("a narrativa de chuva futura não troca uma foto de sol entre nuvens por chuva", () => {
