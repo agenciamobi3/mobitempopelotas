@@ -41,6 +41,9 @@ jobs:
       - name: Validar template de ambiente
         run: npm run runtime:check:example
 
+      - name: Hierarquia Defesa Civil e SACE
+        run: node --test tests/hydrology-sace-complementary-order.test.ts
+
       - name: Contratos rápidos
         run: |
           mkdir -p artifacts/contract-tests

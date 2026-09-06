@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -25,6 +25,22 @@ import { SaceGuaibaMap } from "./SaceGuaibaMap";
 import "./SaceGuaibaContext.css";
 
 type StationFilter = "all" | "above-normal" | "transmitting" | SaceRiverSystem;
+
+const SaceGuaibaRenderContext = createContext(true);
+
+export function SaceGuaibaRenderScope({
+  render,
+  children,
+}: {
+  render: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <SaceGuaibaRenderContext.Provider value={render}>
+      {children}
+    </SaceGuaibaRenderContext.Provider>
+  );
+}
 
 function formatDateTime(value: string) {
   const date = new Date(value);
@@ -87,6 +103,7 @@ function SourceState({ data }: { data: SaceGuaibaData }) {
 }
 
 export function SaceGuaibaContext({ data }: { data: SaceGuaibaData }) {
+  const shouldRender = useContext(SaceGuaibaRenderContext);
   const [filter, setFilter] = useState<StationFilter>("all");
   const filteredStations = useMemo(
     () => filterStations(data.stations, filter),
@@ -94,18 +111,20 @@ export function SaceGuaibaContext({ data }: { data: SaceGuaibaData }) {
   );
   const stationCards = filter === "all" ? data.highlightedStations : filteredStations.slice(0, 12);
 
+  if (!shouldRender) return null;
+
   return (
     <section className="sace-context" id="bacia-do-guaiba" aria-labelledby="sace-context-title">
       <header className="sace-context-heading">
         <div>
-          <p className="hydrology-kicker">Contexto a montante · SGB</p>
+          <p className="hydrology-kicker">Contexto complementar a montante · SGB</p>
           <h2 id="sace-context-title">O que acontece nos rios que alimentam o Guaíba</h2>
         </div>
         <div>
           <p>
             O SACE acompanha estações nos rios Jacuí, Taquari-Antas, Caí, Sinos, Gravataí, no Delta
-            e no Guaíba. Essa rede amplia o contexto regional antes da água chegar à Lagoa dos
-            Patos.
+            e no Guaíba. Nesta página, essa rede complementa o quadro regional depois das leituras da
+            Defesa Civil RS e ajuda a observar o que acontece a montante da Lagoa dos Patos.
           </p>
           <SourceState data={data} />
         </div>
@@ -114,10 +133,10 @@ export function SaceGuaibaContext({ data }: { data: SaceGuaibaData }) {
       <div className="sace-boundary-note">
         <Route aria-hidden="true" />
         <p>
-          <strong>Leitura regional, não previsão para o Laranjal.</strong> Uma categoria elevada em
-          um afluente indica a situação oficial daquela estação. Vento, chuva, armazenamento no
-          Guaíba e na Lagoa, saída oceânica e drenagem local interferem no que será observado em
-          Pelotas.
+          <strong>Leitura regional complementar, não previsão para o Laranjal.</strong> Uma categoria
+          elevada em um afluente indica a situação oficial daquela estação. Vento, chuva,
+          armazenamento no Guaíba e na Lagoa, saída oceânica e drenagem local interferem no que será
+          observado em Pelotas.
         </p>
       </div>
 
@@ -290,8 +309,7 @@ export function SaceGuaibaContext({ data }: { data: SaceGuaibaData }) {
         <span>
           <Database aria-hidden="true" />
           <small>
-            Fonte: {data.source.name}. Consulta do portal em {formatDateTime(data.source.fetchedAt)}
-            .
+            Fonte: {data.source.name}. Consulta do portal em {formatDateTime(data.source.fetchedAt)}.
           </small>
         </span>
         <a href={data.source.url} target="_blank" rel="noopener noreferrer">
