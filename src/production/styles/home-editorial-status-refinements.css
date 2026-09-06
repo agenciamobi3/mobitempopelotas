@@ -167,6 +167,10 @@
   color: #b66b1f;
 }
 
+.tp-home-water__reading.is-stale dt::before {
+  content: "Sem nova leitura · ";
+}
+
 .tp-home-water__reading.is-unavailable dt {
   color: #9b5260;
 }
