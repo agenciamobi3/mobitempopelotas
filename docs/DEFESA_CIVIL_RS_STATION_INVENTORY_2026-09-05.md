@@ -24,6 +24,16 @@ Na captura utilizada nesta auditoria, o payload regional continha **36 estaçõe
 
 A classificação descreve capacidade de dados. Ela não representa risco, qualidade editorial, município canônico, conexão hidrológica com Pelotas ou aptidão automática a SEO.
 
+### Unidade oficial confirmada
+
+A documentação pública oficial da API da Defesa Civil RS define **nível do rio em metros (`m`)**. Portanto, o campo normalizado `river.levelM` pode ser apresentado como leitura em metros quando a estação declara capacidade de nível.
+
+Fonte oficial: `https://sistemas.defesacivil.rs.gov.br/api-redehidrometeorologica`
+
+Essa confirmação resolve a **unidade**, mas não resolve automaticamente o **zero da régua, datum/referência vertical, cota de inundação ou equivalência entre estações**. Até existir metadado específico da estação, a leitura deve ser descrita apenas como o nível informado na referência própria daquele ponto. Não usar o número para classificar risco nem para subtrair/comparar com outra estação.
+
+A própria documentação oficial também orienta consultar as condições de uso com a equipe responsável antes de utilizar os dados em produções públicas ou comerciais. A política de acesso/publicação do Tempo Pelotas continua sujeita a essa governança e não deve ser inferida apenas da disponibilidade técnica da API.
+
 ## 3. Correspondências fortes com cidades meteorológicas já publicadas
 
 As estações abaixo possuem nome igual ao município ou prefixo nominal suficientemente claro para iniciar revisão editorial. “Candidata” significa **candidata à avaliação**, não página autorizada.
@@ -44,7 +54,7 @@ As estações abaixo possuem nome igual ao município ou prefixo nominal suficie
 | `DCRS-00041` | Bagé | Rio Negro | BOTH | `/tempo-em/bage-rs` | CANDIDATA |
 | `DCRS-00049` | Santa Vitória do Palmar - Lagoa Mirim | Lagoa Mirim e Canal São Gonçalo | BOTH | `/tempo-em/santa-vitoria-do-palmar-rs` | CANDIDATA |
 
-Antes de qualquer publicação, cada candidata precisa validar: município/localidade real, corpo hídrico observado, unidade do nível, referência/zero da régua quando aplicável, consistência temporal, utilidade editorial e ausência de página canônica já melhor atendida por outra fonte.
+Antes de qualquer publicação, cada candidata precisa validar: município/localidade real, corpo hídrico observado, referência/zero da régua quando aplicável, consistência temporal, utilidade editorial e ausência de página canônica já melhor atendida por outra fonte. A unidade do campo `rio_nivel` já está documentada oficialmente como metros.
 
 ## 4. Nomes compostos que não podem ser atribuídos automaticamente
 
@@ -114,20 +124,23 @@ Uma estação só pode ser promovida quando todos os itens relevantes estiverem 
 2. município/localidade confirmados sem inferência por distância;
 3. rio, lagoa, canal ou reservatório identificado de forma suficientemente segura;
 4. capacidade hidrológica oficial presente;
-5. unidade do nível validada;
+5. unidade do nível confirmada pela documentação oficial como metros;
 6. referência/zero/cota tratados de forma correta quando usados publicamente;
 7. horário e estado de atualização preservados;
 8. página canônica existente verificada para evitar duplicação;
 9. intenção de busca distinta da página meteorológica;
 10. conteúdo suficiente para não produzir página rasa;
 11. fonte e créditos explícitos;
-12. ausência nunca convertida em zero ou normalidade.
+12. ausência nunca convertida em zero ou normalidade;
+13. condições de uso/publicação da fonte respeitadas conforme a governança aplicável.
 
 ## 8. Estratégia de publicação sugerida
 
 ### Onda A — enriquecer páginas meteorológicas sem criar novas URLs
 
 Após validação técnica da estação, candidatos naturais são Turuçu, Cristal, Jaguarão, Arroio Grande, Bagé, Capão do Leão e Santa Vitória do Palmar. O bloco hidrológico deve carregar de forma independente e não alterar title/H1 meteorológicos.
+
+Quando o nível for exibido, a copy deve deixar claro: **“nível informado pela estação, em metros, na referência própria deste ponto; o Tempo Pelotas ainda não usa esse valor como cota de inundação local.”**
 
 ### Onda B — páginas hidrológicas próprias quando houver intenção clara
 
@@ -141,7 +154,8 @@ Avaliar separadamente Arambaré/Viamão já cobertos pelo cluster da Lagoa e mun
 
 - é uma fotografia de uma consulta real, não catálogo permanente da rede;
 - estações podem entrar, sair, mudar nome, capacidade ou disponibilidade;
-- a classificação `BOTH` não valida a unidade nem a referência do campo de nível;
+- a classificação `BOTH` não valida a referência vertical, zero ou cota local do campo de nível;
+- a unidade `m` é documentada para nível de rio pela API oficial, mas isso não torna níveis de estações distintas diretamente comparáveis;
 - nomes compostos não são prova de jurisdição municipal;
 - valores numéricos capturados não são transcritos neste inventário porque a finalidade aqui é identidade/publicação, não criar uma série histórica paralela;
 - qualquer publicação futura deve usar o runtime atual e manter a fonte oficial como autoridade da leitura.
