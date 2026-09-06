@@ -10,14 +10,15 @@ A V1 vive dentro de `/painel`, que já é autenticado e `noindex`. O módulo som
 
 ## Autorização
 
-A autorização administrativa é fail-closed e usa duas condições independentes:
+A autorização administrativa é fail-closed e exige três condições de identidade:
 
 1. o usuário precisa estar autenticado no Supabase normal do portal;
-2. o e-mail autenticado precisa constar em `MOBI_PORTAL_ADMIN_EMAILS`, variável disponível somente no runtime do servidor.
+2. o e-mail da conta precisa estar confirmado no Supabase;
+3. o e-mail autenticado precisa constar em `MOBI_PORTAL_ADMIN_EMAILS`, variável disponível somente no runtime do servidor.
 
 Além disso, o cliente administrativo do Supabase precisa estar configurado (`MOBI_SUPABASE_SECRET_KEY` ou equivalente server-side já aceito pelo projeto).
 
-Se a allowlist estiver ausente, vazia, o secret administrativo não existir ou o usuário não corresponder, o módulo não é exibido e nenhuma consulta administrativa é executada.
+Se a allowlist estiver ausente, vazia, o secret administrativo não existir, o e-mail não estiver confirmado ou o usuário não corresponder, o módulo não é exibido e nenhuma consulta administrativa é executada.
 
 Formato da allowlist:
 
@@ -57,6 +58,8 @@ A ação de moderação pode alterar somente:
 
 Ela não altera título, descrição, anexos, autoria, consentimento ou autorização de publicação.
 
+O contrato server-side só permite moderar registros cujo estado atual ainda seja `pending` ou `reviewing`. Depois de `accepted` ou `rejected`, o item fica finalizado nesta V1 e não pode ser reaberto pela mesma ação administrativa.
+
 ## Aceito não significa publicado
 
 `accepted` significa apenas que o material foi considerado útil/confiável o suficiente para a pesquisa editorial.
@@ -83,6 +86,7 @@ Nenhuma ação da V1 publica conteúdo automaticamente em 1941, 2001, 2015, 2024
 - mostra no máximo os 50 itens ativos mais recentes;
 - não possui paginação ainda;
 - itens aceitos/rejeitados saem da fila ativa após a decisão;
+- itens finalizados não podem ser reabertos pela ação V1;
 - não há publicação automática;
 - não há comparação de versões ou trilha de auditoria separada por operador além de `moderation_note` e `reviewed_at`;
 - a allowlist precisa ser configurada no ambiente de produção para o módulo aparecer.
@@ -102,6 +106,6 @@ Depois que a V1 estiver validada em runtime com uma conta descartável/autorizad
 
 1. adicionar paginação e filtro por ano/status/tipo;
 2. registrar operador/revisor de forma auditável, se necessário;
-3. permitir reabrir itens aceitos/rejeitados em uma área de histórico;
+3. criar uma área de histórico com uma ação explícita e separada para reabrir itens finalizados, se o fluxo editorial realmente exigir isso;
 4. criar fluxo editorial separado para promover material autorizado a uma galeria/publicação;
 5. manter qualquer publicação como ação explícita e independente da moderação.

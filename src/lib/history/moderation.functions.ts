@@ -177,15 +177,20 @@ export const moderateHistoricalContribution = createServerFn({ method: "POST" })
         reviewed_at: reviewedAt,
       })
       .eq("id", data.id)
+      .in("status", ["pending", "reviewing"])
       .select("id,status,moderation_note,reviewed_at")
-      .single();
+      .maybeSingle();
 
-    if (error || !updated) {
+    if (error) {
       console.error("[history-moderation] Falha ao moderar contribuição", {
-        code: error?.code,
-        message: error?.message,
+        code: error.code,
+        message: error.message,
       });
       return { ok: false as const, code: "storage_error" as const };
+    }
+
+    if (!updated) {
+      return { ok: false as const, code: "not_active" as const };
     }
 
     return {

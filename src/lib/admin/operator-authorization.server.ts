@@ -45,6 +45,7 @@ export async function authorizePortalOperator(): Promise<PortalOperatorAuthoriza
   applyPrivateHeaders(responseHeaders);
 
   if (error || !user) return { status: "unauthenticated" };
+  if (!user.email_confirmed_at) return { status: "forbidden" };
 
   const email = user.email?.trim().toLowerCase();
   if (!email || !allowlist.has(email)) return { status: "forbidden" };

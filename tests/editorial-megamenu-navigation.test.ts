@@ -25,6 +25,8 @@ const requiredPublicNavigationPaths = [
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
+  "/nivel-do-canal-sao-goncalo",
+  "/nivel-do-rio-jaguarao",
   "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
   "/enchente-2001-pelotas",
@@ -53,6 +55,14 @@ test("megamenu groups the public weather inventory into editorial areas", () => 
 
   assert.match(header, /label: "História das enchentes"/);
   assert.match(header, /Índice de pesquisa com os registros de 1941, 2001, 2015 e 2024/);
+});
+
+test("approved Defesa Civil hydrology pages live under Águas and keep weather navigation separate", () => {
+  assert.match(header, /label: "Nível do Canal São Gonçalo"[\s\S]*to: "\/nivel-do-canal-sao-goncalo"/);
+  assert.match(header, /label: "Nível do Rio Jaguarão"[\s\S]*to: "\/nivel-do-rio-jaguarao"/);
+  assert.match(header, /activePaths:[\s\S]*"\/nivel-do-canal-sao-goncalo"[\s\S]*"\/nivel-do-rio-jaguarao"/);
+  assert.match(header, /label: "Jaguarão"[\s\S]*path: "\/tempo-em\/jaguarao-rs"/);
+  assert.match(header, /label: "Capão do Leão"[\s\S]*path: "\/tempo-em\/capao-do-leao-rs"/);
 });
 
 test("satélites e radares ficam em página dedicada e navegação direta", () => {

@@ -25,6 +25,8 @@ const footerRoutes = [
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
+  "/nivel-do-canal-sao-goncalo",
+  "/nivel-do-rio-jaguarao",
   "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
   "/enchente-2001-pelotas",
@@ -46,6 +48,12 @@ test("public footer condenses the main editorial discovery into four groups", ()
   }
 
   assert.match(footer, /label: "História das enchentes"/);
+});
+
+test("footer exposes only the approved dedicated Defesa Civil hydrology intents", () => {
+  assert.match(footer, /label: "Nível do Canal São Gonçalo"[\s\S]*to: "\/nivel-do-canal-sao-goncalo"/);
+  assert.match(footer, /label: "Nível do Rio Jaguarão"[\s\S]*to: "\/nivel-do-rio-jaguarao"/);
+  assert.doesNotMatch(footer, /nivel-do-rio-turucu|nivel-do-rio-cristal|nivel-do-rio-bage|nivel-do-rio-arroio-grande/);
 });
 
 test("footer provenance has one HTTPS link and accessible label for every declared provider", () => {

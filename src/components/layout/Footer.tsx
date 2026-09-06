@@ -38,6 +38,8 @@ const footerGroups = [
       { label: "Nível da Lagoa dos Patos", ariaLabel: "Ver o panorama da Lagoa dos Patos e os cinco pontos locais monitorados", to: "/nivel-da-lagoa-dos-patos" },
       { label: "Nível no Laranjal", ariaLabel: "Ver o nível da Lagoa dos Patos na Praia do Laranjal", to: "/nivel-da-lagoa-dos-patos-laranjal" },
       { label: "Nível do Guaíba", ariaLabel: "Ver o nível atual do Guaíba e suas referências de medição", to: "/nivel-do-guaiba" },
+      { label: "Nível do Canal São Gonçalo", ariaLabel: "Ver o nível atual do Canal São Gonçalo na estação da Eclusa em Capão do Leão", to: "/nivel-do-canal-sao-goncalo" },
+      { label: "Nível do Rio Jaguarão", ariaLabel: "Ver o nível atual do Rio Jaguarão na estação da Defesa Civil RS", to: "/nivel-do-rio-jaguarao" },
       { label: "História das enchentes", ariaLabel: "Consultar o arquivo histórico das enchentes de Pelotas em 1941, 2001, 2015 e 2024", to: "/historia-das-enchentes-pelotas" },
       { label: "Enchente de 1941", ariaLabel: "Consultar o registro histórico da enchente de 1941 em Pelotas", to: "/enchente-1941-pelotas" },
       { label: "Enchente de 2001", ariaLabel: "Consultar o registro histórico em pesquisa da enchente de 2001 em Pelotas e no Laranjal", to: "/enchente-2001-pelotas" },

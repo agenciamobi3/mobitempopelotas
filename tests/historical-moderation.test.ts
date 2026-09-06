@@ -15,6 +15,7 @@ test("historical moderation is fail-closed behind a server-only operator allowli
   assert.match(authorization, /config\.isAdminConfigured/);
   assert.match(authorization, /allowlist\.size === 0/);
   assert.match(authorization, /client\.auth\.getUser\(\)/);
+  assert.match(authorization, /user\.email_confirmed_at/);
   assert.match(authorization, /allowlist\.has\(email\)/);
   assert.doesNotMatch(authorization, /import\.meta\.env\.VITE_.*ADMIN/i);
 });
@@ -39,13 +40,21 @@ test("moderation decisions never grant publication consent or publish content au
   assert.match(functions, /moderation_note: moderationNote/);
   assert.match(functions, /reviewed_at: reviewedAt/);
 
-  const updateBlock = functions.match(/\.update\(\{[\s\S]*?\}\)\n\s*\.eq\("id", data\.id\)/)?.[0] ?? "";
+  const updateBlock = functions.match(/\.update\(\{[\s\S]*?\.maybeSingle\(\)/)?.[0] ?? "";
   assert.ok(updateBlock, "teste deve localizar o update de moderação");
   assert.doesNotMatch(updateBlock, /publication_authorized|rights_confirmed|attachments|description|title/);
 
   assert.match(panel, /Aceitar um item aqui não altera\s+nenhuma página pública/);
   assert.match(panel, /Aceitar para pesquisa/);
   assert.match(panel, /publication_authorized/);
+});
+
+test("final moderation states cannot be reopened through the server action", () => {
+  assert.match(
+    functions,
+    /\.eq\("id", data\.id\)[\s\S]*\.in\("status", \["pending", "reviewing"\]\)[\s\S]*\.maybeSingle\(\)/,
+  );
+  assert.match(functions, /code: "not_active"/);
 });
 
 test("only authorized moderation snapshots render the internal panel inside the noindex account area", () => {

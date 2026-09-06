@@ -16,6 +16,8 @@ type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
   | "/nivel-da-lagoa-dos-patos"
+  | "/nivel-do-canal-sao-goncalo"
+  | "/nivel-do-rio-jaguarao"
   | "/historia-das-enchentes-pelotas"
   | "/enchente-1941-pelotas"
   | "/enchente-2001-pelotas"
@@ -140,12 +142,14 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
   {
     id: "water",
     label: "Águas",
-    summary: "Lagoa dos Patos, Guaíba, rede regional e memória das cheias.",
+    summary: "Lagoa dos Patos, Guaíba, rios, canais regionais e memória das cheias.",
     activePaths: [
       "/situacao-hidrologica-pelotas",
       "/nivel-da-lagoa-dos-patos",
       "/nivel-da-lagoa-dos-patos-laranjal",
       "/nivel-do-guaiba",
+      "/nivel-do-canal-sao-goncalo",
+      "/nivel-do-rio-jaguarao",
       "/historia-das-enchentes-pelotas",
       "/enchente-1941-pelotas",
       "/enchente-2001-pelotas",
@@ -176,6 +180,16 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             label: "Nível do Guaíba",
             to: "/nivel-do-guaiba",
             description: "Leitura regional do Guaíba com referência própria das estações.",
+          },
+          {
+            label: "Nível do Canal São Gonçalo",
+            to: "/nivel-do-canal-sao-goncalo",
+            description: "Leitura da estação da Eclusa em Capão do Leão, com referência própria.",
+          },
+          {
+            label: "Nível do Rio Jaguarão",
+            to: "/nivel-do-rio-jaguarao",
+            description: "Leitura oficial em Jaguarão, com horário, tendência e limites da régua.",
           },
           {
             label: "Situação das águas",
