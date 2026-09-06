@@ -137,6 +137,17 @@ export function Flood2001HistoricalPage() {
             automático do sistema atmosférico em escala maior.
           </p>
           <p>
+            Uma análise acadêmica posterior da Faculdade de Meteorologia da UFPel estudou
+            especificamente o evento de 8 de outubro com dados NCEP e observações de pressão,
+            direção e velocidade do vento da Praticagem da Barra de Rio Grande entre 5 e 8 de
+            outubro. O trabalho identificou a interação da Alta Subtropical do Atlântico Sul com uma
+            baixa pressão sobre o norte da Argentina, fortalecendo o gradiente de pressão e os ventos
+            de leste-nordeste. Os autores associam a sequência desses ventos ao represamento das águas,
+            à redução do escoamento para o oceano e à inundação da costa oeste da Lagoa dos Patos.
+            É uma análise específica do episódio, mas posterior, e não substitui um boletim
+            meteorológico operacional contemporâneo.
+          </p>
+          <p>
             Um texto náutico publicado em 2005 por Danilo Chagas Ribeiro descreve, de forma geral,
             que o vento Nordeste pode elevar o nível das águas na porção sul da Lagoa dos Patos por
             represamento no Canal da Feitoria, ao mesmo tempo em que reduz o nível ao norte. Esse

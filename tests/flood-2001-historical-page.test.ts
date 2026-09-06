@@ -33,6 +33,18 @@ test("source hierarchy does not attribute cyclone classification to the municipa
   assert.match(page, /“nordestão”/);
 });
 
+test("UFPel analysis adds event-specific meteorology without becoming a contemporary bulletin", () => {
+  assert.match(content, /https:\/\/anais-siiepe\.ufpel\.edu\.br\/2013\/CE_02822\.pdf/);
+  assert.match(content, /Análise acadêmica posterior específica do evento de 08\/10\/2001/);
+  assert.match(content, /dados NCEP e da Praticagem da Barra de Rio Grande entre 05 e 08\/10/);
+  assert.match(page, /análise acadêmica posterior da Faculdade de Meteorologia da UFPel/);
+  assert.match(page, /Alta Subtropical do Atlântico Sul/);
+  assert.match(page, /baixa pressão sobre o norte da Argentina/);
+  assert.match(page, /ventos\s+de leste-nordeste/);
+  assert.match(page, /redução do escoamento para o oceano e à inundação da costa oeste da Lagoa dos Patos/);
+  assert.match(page, /não substitui um boletim\s+meteorológico operacional contemporâneo/);
+});
+
 test("posterior Lagoa wind context explains mechanism without becoming evidence of the 2001 event", () => {
   assert.match(content, /https:\/\/acervo\.popa\.com\.br\/diversos\/ventos_lpatos\.htm/);
   assert.match(content, /Fonte posterior de contexto hidrodinâmico/);

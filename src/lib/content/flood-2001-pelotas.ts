@@ -92,7 +92,7 @@ export const FLOOD_2001_TIMELINE: Flood2001TimelineItem[] = [
 export const FLOOD_2001_RESEARCH_GAPS = [
   "Ainda não foi localizada uma série diária de níveis da Lagoa dos Patos ou do Canal São Gonçalo comparável aos boletins disponíveis para 2015.",
   "Não há, nesta fase, uma cota máxima calibrada e documentada que possa ser comparada diretamente às réguas atuais.",
-  "Ainda buscamos boletins meteorológicos oficiais da época que detalhem o sistema atmosférico sobre Pelotas e a Lagoa dos Patos.",
+  "Ainda buscamos boletins meteorológicos oficiais contemporâneos que detalhem operacionalmente o sistema atmosférico sobre Pelotas e a Lagoa dos Patos.",
   "Acervos da Biblioteca Pública, Defesa Civil, Sanep, UFPel, Embrapa, FURG, Marinha e imprensa local podem ampliar a cronologia, os impactos e a documentação fotográfica.",
 ] as const;
 
@@ -117,6 +117,13 @@ export const FLOOD_2001_SOURCES: Flood2001Source[] = [
     date: "18/10/2002",
     url: "https://www.pelotas.com.br/noticia/prefeitura-trabalha-para-conter-a-invasao-das-aguas-da-lagoa-os-patos",
     role: "Fonte retrospectiva que relembra o “nordestão” de 2001, o isolamento da Z3 e danos nos balneários.",
+  },
+  {
+    name: "Análise das condições meteorológicas associadas a um caso de vento extremo na região sul da Laguna dos Patos",
+    organization: "Faculdade de Meteorologia · UFPel",
+    date: "2013",
+    url: "https://anais-siiepe.ufpel.edu.br/2013/CE_02822.pdf",
+    role: "Análise acadêmica posterior específica do evento de 08/10/2001, com dados NCEP e da Praticagem da Barra de Rio Grande entre 05 e 08/10; sustenta o mecanismo de ventos de leste-nordeste e represamento, não substitui boletim operacional contemporâneo.",
   },
   {
     name: "O balanço das águas da Lagoa dos Patos",
