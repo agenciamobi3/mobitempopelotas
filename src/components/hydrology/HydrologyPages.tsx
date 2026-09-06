@@ -32,13 +32,14 @@ const officialSources = [
   {
     name: "Estação Laranjal",
     organization: "LabHidroSens / UFPel",
-    description: "Medição pública usada para mostrar o nível local no Laranjal.",
+    description: "Medição pública usada como fonte principal do nível local no Laranjal.",
     url: "https://tb.labhidrosens.com/dashboard/97ec9a60-d9e1-11f0-ac7c-456d9a25fe9a?publicId=0a869e80-d9e8-11f0-ac7c-456d9a25fe9a",
   },
   {
     name: "Rede da Lagoa dos Patos",
-    organization: "FURG e Portos RS",
-    description: "Leituras de diferentes pontos da Lagoa, cada uma com referência local própria.",
+    organization: "CIEX/FURG e Portos RS",
+    description:
+      "Leituras em diferentes pontos da Lagoa, reduzidas pela rede ao referencial vertical brasileiro — Marégrafo de Imbituba/SC.",
     url: "https://monitoramentolagoadospatos.com.br/",
   },
   {
@@ -217,6 +218,12 @@ function SourceStatus({ level }: { level: LaranjalLevelData }) {
 }
 
 function LevelReading({ level }: { level: LaranjalLevelData }) {
+  const alternative = level.source.role === "contingency";
+  const reference =
+    level.source.reference ??
+    (alternative
+      ? "Referencial vertical brasileiro — Marégrafo de Imbituba/SC"
+      : "Referência própria da Estação Laranjal");
   const TrendIcon =
     level.trendCmPerHour !== null && level.trendCmPerHour > 0.25
       ? TrendingUp
@@ -228,11 +235,15 @@ function LevelReading({ level }: { level: LaranjalLevelData }) {
     <section className="hydrology-level-card" aria-labelledby="hydrology-level-title">
       <div className="hydrology-level-heading">
         <div>
-          <p className="hydrology-kicker">Estação Laranjal · UFPel</p>
+          <p className="hydrology-kicker">
+            {alternative ? `${level.source.station} · CIEX/FURG` : "Estação Laranjal · UFPel"}
+          </p>
           <h2 id="hydrology-level-title">
             {level.status === "stale"
               ? "Último nível conhecido no Laranjal"
-              : "Nível medido no Laranjal"}
+              : alternative
+                ? "Nível local medido em Pelotas"
+                : "Nível medido no Laranjal"}
           </h2>
         </div>
         <SourceStatus level={level} />
@@ -244,8 +255,10 @@ function LevelReading({ level }: { level: LaranjalLevelData }) {
           <strong>{level.currentLevel === null ? "—" : level.currentLevel.toFixed(2)}</strong>
           <span>
             {level.status === "stale"
-              ? "metros na última leitura da estação"
-              : "metros na referência da estação"}
+              ? "metros na última leitura disponível"
+              : alternative
+                ? "metros no referencial da rede CIEX/FURG"
+                : "metros na referência da estação"}
           </span>
         </div>
         <div className="hydrology-trend">
@@ -295,8 +308,9 @@ function LevelReading({ level }: { level: LaranjalLevelData }) {
       <div className="hydrology-interpretation-warning">
         <ShieldAlert aria-hidden="true" />
         <p>
-          Esta leitura não é uma cota oficial de risco ou inundação. O valor usa a referência própria
-          da Estação Laranjal e deve ser acompanhado pela evolução no tempo e pelo horário da medição.
+          {alternative
+            ? `Esta leitura usa ${reference}. Ela não é convertida para a referência da Estação Laranjal, não é combinada com a série do LabHidroSens e não representa uma cota oficial de risco ou inundação.`
+            : "Esta leitura não é uma cota oficial de risco ou inundação. O valor usa a referência própria da Estação Laranjal e deve ser acompanhado pela evolução no tempo e pelo horário da medição."}
         </p>
       </div>
     </section>
@@ -404,6 +418,8 @@ export function HydrologyOverviewPage({
   guaiba: GuaibaObservationData;
   lagoon: LagoonMonitoringNetworkData;
 }) {
+  const alternative = level.source.role === "contingency";
+
   return (
     <div className="hydrology-page">
       <header className="hydrology-page-header">
@@ -414,8 +430,9 @@ export function HydrologyOverviewPage({
           <p className="hydrology-kicker">Águas e segurança em Pelotas</p>
           <h1>Situação das águas no Laranjal e na Lagoa dos Patos</h1>
           <p>
-            Comece pela medição da Estação Laranjal, observe a evolução recente e compare com outros
-            pontos da Lagoa e do Guaíba.
+            {alternative
+              ? "Comece pela leitura local temporariamente disponível na rede CIEX/FURG, observe a evolução recente e compare apenas o contexto com outros pontos da Lagoa e do Guaíba."
+              : "Comece pela medição da Estação Laranjal, observe a evolução recente e compare com outros pontos da Lagoa e do Guaíba."}
           </p>
         </div>
         <div className="hydrology-header-marker">
@@ -475,6 +492,8 @@ export function LaranjalLevelPage({
   weather: WeatherIntelligenceData;
   level: LaranjalLevelData;
 }) {
+  const alternative = level.source.role === "contingency";
+
   return (
     <div className="hydrology-page">
       <header className="hydrology-detail-header">
@@ -482,11 +501,18 @@ export function LaranjalLevelPage({
           <Link className="hydrology-back-link" to="/situacao-hidrologica-pelotas">
             <ArrowLeft aria-hidden="true" /> Situação das águas
           </Link>
-          <p className="hydrology-kicker">Medição da Estação Laranjal</p>
-          <h1>Nível da Lagoa dos Patos na Estação Laranjal</h1>
+          <p className="hydrology-kicker">
+            {alternative ? "Medição local · CIEX/FURG" : "Medição da Estação Laranjal"}
+          </p>
+          <h1>
+            {alternative
+              ? "Nível da Lagoa dos Patos em Pelotas"
+              : "Nível da Lagoa dos Patos na Estação Laranjal"}
+          </h1>
           <p>
-            Veja a medição pública do LabHidroSens/UFPel, a evolução das últimas 24 horas e as
-            informações de chuva e vento para Pelotas.
+            {alternative
+              ? "Enquanto a Estação Laranjal não entrega uma leitura atualizada, esta página mostra temporariamente o sensor Pelotas da rede CIEX/FURG. O horário, a fonte e o referencial vertical ficam identificados."
+              : "Veja a medição pública do LabHidroSens/UFPel, a evolução das últimas 24 horas e as informações de chuva e vento para Pelotas."}
           </p>
         </div>
       </header>
@@ -497,15 +523,17 @@ export function LaranjalLevelPage({
       <section className="hydrology-method" aria-labelledby="hydrology-method-title">
         <Info aria-hidden="true" />
         <div>
-          <h2 id="hydrology-method-title">Como o nível é calculado</h2>
+          <h2 id="hydrology-method-title">
+            {alternative ? "Como interpretar esta leitura alternativa" : "Como o nível é calculado"}
+          </h2>
           <p>
-            A estação mede a distância até a superfície da água. O valor é convertido usando a altura de
-            referência do equipamento e organizado em um histórico recente. Essa referência não deve ser
-            comparada diretamente com os valores absolutos de outras estações.
+            {alternative
+              ? "A rede CIEX/FURG publica o sensor Pelotas em centímetros reduzidos ao referencial vertical brasileiro, o Marégrafo de Imbituba/SC. O Tempo Pelotas converte apenas a unidade de centímetros para metros para manter a apresentação visual; não converte o datum nem mistura esta série com a referência da Estação Laranjal."
+              : "A estação mede a distância até a superfície da água. O valor é convertido usando a altura de referência do equipamento e organizado em um histórico recente. Essa referência não deve ser comparada diretamente com os valores absolutos de outras estações."}
           </p>
         </div>
         <a href={level.source.url} target="_blank" rel="noreferrer">
-          Abrir painel da estação <ArrowUpRight aria-hidden="true" />
+          Abrir fonte original <ArrowUpRight aria-hidden="true" />
         </a>
       </section>
 

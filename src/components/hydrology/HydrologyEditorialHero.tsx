@@ -40,11 +40,16 @@ export function HydrologyEditorialHero({
 }) {
   const overview = variant === "overview";
   const stale = level.status === "stale";
+  const contingency = level.source.role === "contingency";
   const statusLabel =
     level.status === "live"
-      ? "Leitura atualizada"
+      ? contingency
+        ? "Leitura alternativa atualizada"
+        : "Leitura atualizada"
       : stale
-        ? "Sem nova leitura"
+        ? contingency
+          ? "Leitura alternativa sem nova leitura"
+          : "Sem nova leitura"
         : "Leitura indisponível";
 
   return (
@@ -54,7 +59,11 @@ export function HydrologyEditorialHero({
           <ArrowLeft aria-hidden="true" /> {overview ? "Visão geral" : "Situação das águas"}
         </Link>
         <span className="hydrology-editorial-eyebrow">
-          {overview ? "Águas e segurança em Pelotas" : "Medição local · Estação Laranjal"}
+          {overview
+            ? "Águas e segurança em Pelotas"
+            : contingency
+              ? "Medição local · CIEX/FURG"
+              : "Medição local · Estação Laranjal"}
         </span>
         <h1>
           {overview
@@ -63,8 +72,10 @@ export function HydrologyEditorialHero({
         </h1>
         <p>
           {overview
-            ? "Comece pela leitura local da Estação Laranjal, observe a mudança recente e compare com outros pontos da Lagoa e do Guaíba."
-            : "Veja a última leitura disponível da Estação Laranjal, o horário da medição, a tendência recente e a variação do nível nas últimas 24 horas."}
+            ? "Comece pela leitura local disponível, observe a mudança recente e compare o contexto com outros pontos da Lagoa e do Guaíba sem misturar referências verticais."
+            : contingency
+              ? "A Estação Laranjal não está entregando uma leitura atualizada neste momento. O portal usa temporariamente o sensor Pelotas da rede CIEX/FURG, mantendo fonte, horário e referência vertical identificados."
+              : "Veja a última leitura disponível da Estação Laranjal, o horário da medição, a tendência recente e a variação do nível nas últimas 24 horas."}
         </p>
 
         <div className="hydrology-editorial-points" aria-label="Informações principais">
@@ -77,10 +88,10 @@ export function HydrologyEditorialHero({
             Ver nível e histórico <ArrowRight aria-hidden="true" />
           </a>
           {overview ? (
-            <Link to="/nivel-da-lagoa-dos-patos-laranjal">Abrir página da estação</Link>
+            <Link to="/nivel-da-lagoa-dos-patos-laranjal">Abrir página do nível local</Link>
           ) : (
             <a href={level.source.url} target="_blank" rel="noopener noreferrer">
-              Abrir página da estação <ExternalLink aria-hidden="true" />
+              Abrir fonte da medição <ExternalLink aria-hidden="true" />
             </a>
           )}
         </div>
@@ -90,12 +101,15 @@ export function HydrologyEditorialHero({
         <div className="hydrology-editorial-watermark" aria-hidden="true">
           <Waves />
         </div>
-        <article className="hydrology-editorial-card" aria-label="Resumo da leitura da Estação Laranjal">
+        <article
+          className="hydrology-editorial-card"
+          aria-label={`Resumo da leitura de ${level.source.station}`}
+        >
           <div className="hydrology-editorial-card-line" aria-hidden="true" />
           <header>
             <div>
-              <strong>Estação Laranjal</strong>
-              <small>Praia do Laranjal · Pelotas/RS</small>
+              <strong>{level.source.station}</strong>
+              <small>{level.source.location} · {level.source.name}</small>
             </div>
             <span className={`hydrology-editorial-status is-${level.status}`}>
               <i aria-hidden="true" /> {statusLabel}
@@ -130,7 +144,10 @@ export function HydrologyEditorialHero({
 
         <div className="hydrology-editorial-caption">
           <Gauge aria-hidden="true" />
-          <span>Referência própria da estação · não é cota oficial de inundação</span>
+          <span>
+            {level.source.reference ?? "Referência própria da Estação Laranjal"} · não é cota oficial
+            de inundação
+          </span>
         </div>
       </div>
     </header>
