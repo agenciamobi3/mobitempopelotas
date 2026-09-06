@@ -11,33 +11,37 @@ type HistoricalCollaborationProps = {
 };
 
 export function HistoricalCollaborationPrompt({ context }: HistoricalCollaborationProps) {
+  const researchInProgress = context.eventYear === 2001;
+
   return (
-    <aside className="tp-history-collab-prompt" aria-label="Colabore com este registro histórico">
+    <aside className="tp-history-collab-prompt" aria-label="Ajude a completar este registro histórico">
       <div>
-        <span>Arquivo aberto à comunidade</span>
+        <span>{researchInProgress ? "Pesquisa em andamento" : "Arquivo aberto à comunidade"}</span>
         <p>
-          Tem uma foto, documento, fonte, medição ou lembrança de {context.eventYear} que pode
-          melhorar este registro?
+          {researchInProgress
+            ? "Este registro ainda está sendo reconstruído. Fotos, jornais, documentos e lembranças de 2001 podem preencher lacunas que desapareceram da internet."
+            : `Viveu este período ou guarda algum registro de ${context.eventYear}? Fotos, documentos, notícias, medições e lembranças podem ajudar a preservar esta história.`}
         </p>
       </div>
       <a className="tp-history-collab-button" href={contributionPath(context)}>
-        Colabore com este registro
+        Enviar uma contribuição
       </a>
     </aside>
   );
 }
 
 export function HistoricalCollaborationSection({ context }: HistoricalCollaborationProps) {
+  const researchInProgress = context.eventYear === 2001;
+
   return (
     <section className="tp-history-collab" aria-labelledby="tp-history-collab-title">
       <div className="tp-history-collab__intro">
         <span>Arquivo construído com a comunidade</span>
-        <h2 id="tp-history-collab-title">Ajude a preservar a memória das cheias de Pelotas</h2>
+        <h2 id="tp-history-collab-title">Ajude a completar esta história</h2>
         <p>
-          Parte da história local sobrevive em álbuns de família, recortes de jornal, documentos,
-          marcas de água, vídeos, relatos e páginas antigas que já não aparecem nas buscas comuns.
-          O Tempo Pelotas recebe contribuições para que esse material possa ser localizado, conferido
-          e preservado com sua origem identificada.
+          {researchInProgress
+            ? "Parte da documentação de 2001 já não está disponível nos endereços originais e outras fontes continuam fora da internet. Um álbum de família, um jornal guardado, uma fotografia, um documento ou uma lembrança bem localizada pode preencher uma lacuna histórica real."
+            : "Parte da história local sobrevive em álbuns de família, recortes de jornal, documentos, marcas de água, vídeos, relatos e páginas antigas que já não aparecem nas buscas comuns. O Tempo Pelotas recebe contribuições para que esse material possa ser localizado, conferido e preservado com sua origem identificada."}
         </p>
       </div>
 
@@ -68,7 +72,7 @@ export function HistoricalCollaborationSection({ context }: HistoricalCollaborat
             <li>toda contribuição entra como pendente e passa por revisão antes de qualquer publicação;</li>
             <li>o material não altera automaticamente o registro histórico;</li>
             <li>autoria, origem, data e grau de certeza são preservados sempre que conhecidos;</li>
-            <li>não envie fotos ou documentos que você não tenha autorização para compartilhar.</li>
+            <li>você pode compartilhar um material apenas para análise, sem autorizar sua reprodução pública.</li>
           </ul>
           <a className="tp-history-collab-button" href={contributionPath(context)}>
             Enviar uma contribuição sobre {context.eventYear}
