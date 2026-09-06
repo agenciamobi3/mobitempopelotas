@@ -25,6 +25,7 @@ export const PUBLIC_ROUTES: PublicRouteEntry[] = [
   { path: "/estacao-embrapa-pelotas", changeFrequency: "hourly", priority: 0.7 },
   { path: "/clima-em-pelotas", changeFrequency: "daily", priority: 0.78 },
   { path: "/historico-climatico-pelotas", changeFrequency: "daily", priority: 0.7 },
+  { path: "/historia-das-enchentes-pelotas", changeFrequency: "monthly", priority: 0.8 },
   { path: "/enchente-1941-pelotas", changeFrequency: "monthly", priority: 0.76 },
   { path: "/enchente-2001-pelotas", changeFrequency: "monthly", priority: 0.765 },
   { path: "/enchente-2015-pelotas", changeFrequency: "monthly", priority: 0.77 },
