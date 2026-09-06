@@ -126,7 +126,7 @@ test("alerts page uses a concise first fold and trustworthy source states", () =
 
 test("hydrology pages preserve their approved data-led heroes", () => {
   assert.match(hydrologyHero, /Acompanhe as águas que influenciam Pelotas/);
-  assert.match(hydrologyHero, /Nível da Lagoa dos Patos no Laranjal/);
+  assert.match(hydrologyHero, /Nível da Lagoa dos Patos hoje no Laranjal/);
   assert.match(hydrologyHero, /level\.currentLevel/);
   assert.match(hydrologyHero, /level\.trendCmPerHour/);
   assert.match(hydrologyRouteStyles, /\.hydrology-page-header/);
