@@ -57,3 +57,37 @@ test("somente cidades meteorológicas verificadas recebem associação de águas
     ["rio-grande-rs", "sao-lourenco-do-sul-rs", "sao-jose-do-norte-rs"],
   );
 });
+
+test("cards regionais encaminham apenas estações verificadas e preservam destinos gerais", () => {
+  const regional = readFileSync("src/components/hydrology/RegionalWaterNetwork.tsx", "utf8");
+  assert.match(regional, /findHydrologyLocalityByStationId\(observation\.station\.id\)/);
+  assert.match(regional, /const localPath = locality \? hydrologyLocalityPath\(locality\) : null/);
+  assert.match(regional, /localPath \? \(/);
+  assert.match(regional, /href=\{localPath\}/);
+  assert.match(regional, /to="\/nivel-do-guaiba"/);
+  assert.match(regional, /Ver nível e histórico do Guaíba/);
+  assert.match(regional, /to="\/nivel-da-lagoa-dos-patos"/);
+  assert.match(regional, /Ver panorama da Lagoa/);
+});
+
+test("menu Águas e exploração da Home descobrem o panorama da Lagoa", () => {
+  const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
+  const explore = readFileSync("src/components/weather/HomeExplorePortal.tsx", "utf8");
+  assert.match(header, /label: "Nível da Lagoa dos Patos"/);
+  assert.match(header, /to: "\/nivel-da-lagoa-dos-patos"/);
+  assert.match(header, /Panorama dos cinco pontos locais monitorados/);
+  assert.match(explore, /label: "Nível da Lagoa dos Patos"/);
+  assert.match(explore, /to: "\/nivel-da-lagoa-dos-patos"/);
+});
+
+test("páginas meteorológicas preservam intenção de tempo e carregam águas de forma independente", () => {
+  const weatherPage = readFileSync("src/components/regional/RegionalCityWeatherPage.tsx", "utf8");
+  const hydrologyModule = readFileSync("src/components/regional/RegionalCityHydrologyLink.tsx", "utf8");
+  const editorial = readFileSync("src/lib/regional-city-editorial.ts", "utf8");
+  assert.match(weatherPage, /findHydrologyLocalityByWeatherCitySlug\(city\.slug\)/);
+  assert.match(weatherPage, /<RegionalCityHydrologyLink citySlug=\{city\.slug\}/);
+  assert.match(editorial, /return `Tempo em \$\{city\.name\} hoje: previsão, chuva e vento`/);
+  assert.match(hydrologyModule, /useEffect\(\(\) =>/);
+  assert.match(hydrologyModule, /getLagoonMonitoringNetwork\(\)/);
+  assert.match(hydrologyModule, /Consultando a leitura hidrológica sem bloquear a previsão meteorológica/);
+});
