@@ -61,6 +61,21 @@ const heroPhotos = {
   },
 } satisfies Record<HeroPhotoKind, HeroPhotoPresentation>;
 
+const partlyCloudyDayAlternate = {
+  src: "/weather/hero/pelotas-dia-parcialmente-bulado.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · dia",
+} as const;
+
+const partlyCloudyMadrugadaAlternate = {
+  src: "/weather/hero/pelotas-madrugada-parcialmente-nublado.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · madrugada",
+} as const;
+
+const PELOTAS_TIME_ZONE = "America/Sao_Paulo";
+const MADRUGADA_END_HOUR = 7;
+
 function normalizeText(value: string | null | undefined) {
   return (value ?? "")
     .normalize("NFD")
@@ -71,6 +86,66 @@ function normalizeText(value: string | null | undefined) {
 function currentCloudCover(weather: WeatherData) {
   const cloudCover = weather.hourly[0]?.cloudCover;
   return typeof cloudCover === "number" && Number.isFinite(cloudCover) ? cloudCover : null;
+}
+
+function localHourFromTimestamp(value: string | null | undefined) {
+  const timestamp = value?.trim();
+  if (!timestamp) return null;
+
+  const localIso = timestamp.match(/^\d{4}-\d{2}-\d{2}T(\d{2}):/);
+  const hasExplicitZone = /(?:z|[+-]\d{2}:\d{2})$/i.test(timestamp);
+  if (localIso && !hasExplicitZone) {
+    const hour = Number(localIso[1]);
+    return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : null;
+  }
+
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return null;
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: PELOTAS_TIME_ZONE,
+      hour: "2-digit",
+      hourCycle: "h23",
+    }).format(date),
+  );
+  return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : null;
+}
+
+function currentPelotasHour(weather: WeatherData) {
+  return (
+    localHourFromTimestamp(weather.hourly[0]?.timestamp) ??
+    localHourFromTimestamp(weather.current.updatedAt) ??
+    localHourFromTimestamp(weather.current.source.observedAt)
+  );
+}
+
+function usesAlternateRotationSlot(weather: WeatherData) {
+  const hour = currentPelotasHour(weather);
+  return hour !== null && hour % 2 === 0;
+}
+
+function partlyCloudyDayPhoto(weather: WeatherData, legacy: HeroPhotoPresentation) {
+  if (!usesAlternateRotationSlot(weather)) return legacy;
+  return {
+    kind: legacy.kind,
+    ...partlyCloudyDayAlternate,
+  } satisfies HeroPhotoPresentation;
+}
+
+function partlyCloudyNightPhoto(weather: WeatherData) {
+  const hour = currentPelotasHour(weather);
+  if (
+    hour !== null &&
+    hour >= 0 &&
+    hour < MADRUGADA_END_HOUR &&
+    usesAlternateRotationSlot(weather)
+  ) {
+    return {
+      kind: "partly-cloudy-dense",
+      ...partlyCloudyMadrugadaAlternate,
+    } satisfies HeroPhotoPresentation;
+  }
+  return heroPhotos["partly-cloudy-dense"];
 }
 
 export function resolveHeroPhoto({
@@ -114,13 +189,15 @@ export function resolveHeroPhoto({
 
   if (icon === "partly-cloudy") {
     const cloudCover = currentCloudCover(weather);
-    return cloudCover !== null && cloudCover >= 50
-      ? heroPhotos["partly-cloudy-dense"]
-      : heroPhotos["partly-cloudy-light"];
+    const legacy =
+      cloudCover !== null && cloudCover >= 50
+        ? heroPhotos["partly-cloudy-dense"]
+        : heroPhotos["partly-cloudy-light"];
+    return partlyCloudyDayPhoto(weather, legacy);
   }
 
   if (icon === "partly-cloudy-night") {
-    return heroPhotos["partly-cloudy-dense"];
+    return partlyCloudyNightPhoto(weather);
   }
 
   return heroPhotos.cloudy;
