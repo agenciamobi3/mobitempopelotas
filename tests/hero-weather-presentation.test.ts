@@ -140,6 +140,30 @@ test("a nova foto diurna entra na rotação sem apagar a semântica de cobertura
   assert.equal(denser.src, "/weather/hero/pelotas-dia-parcialmente-bulado.png");
 });
 
+test("poucas nuvens no fim de tarde alternam entre os três registros diurnos", () => {
+  const at16 = resolveHeroPhoto({
+    weather: partlyCloudyWeather(34, "2026-09-06T16:00:00-03:00"),
+    icon: "partly-cloudy",
+  });
+  const at17 = resolveHeroPhoto({
+    weather: partlyCloudyWeather(34, "2026-09-06T17:00:00-03:00"),
+    icon: "partly-cloudy",
+  });
+  const at18 = resolveHeroPhoto({
+    weather: partlyCloudyWeather(34, "2026-09-06T18:00:00-03:00"),
+    icon: "partly-cloudy",
+  });
+  const denseAt17 = resolveHeroPhoto({
+    weather: partlyCloudyWeather(68, "2026-09-06T17:00:00-03:00"),
+    icon: "partly-cloudy",
+  });
+
+  assert.equal(at16.src, "/weather/hero/pelotas parcialmente nublado centro.jpg");
+  assert.equal(at17.src, "/weather/hero/pelotas-fim-de-tarde-poucas-nuvens.png");
+  assert.equal(at18.src, "/weather/hero/pelotas-dia-parcialmente-bulado.png");
+  assert.equal(denseAt17.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
+});
+
 test("a foto de madrugada só entra na rotação noturna durante a madrugada", () => {
   const madrugada = resolveHeroPhoto({
     weather: partlyCloudyWeather(68, "2026-09-06T04:00:00-03:00", "partly-cloudy-night"),
