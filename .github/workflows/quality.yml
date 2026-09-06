@@ -107,6 +107,9 @@ jobs:
       - name: Snapshot estável da página hidrológica
         run: node --test tests/hydrology-loader-stable-weather.test.ts
 
+      - name: Localidades hidrológicas da Lagoa
+        run: node --test tests/hydrology-localities.test.ts
+
       - name: Boundaries locais e mapas hidrológicos
         run: node --test tests/hydrology-local-boundaries.test.ts
 
@@ -141,7 +144,7 @@ jobs:
 
       - name: Iniciar preview de produção
         run: |
-          npm run preview -- --host 127.0.0.1 > /tmp/tempo-pelotas-preview.log 2>&1 &
+          npm run preview -- --host 127.0.0.1:4173 > /tmp/tempo-pelotas-preview.log 2>&1 &
           echo $! > /tmp/tempo-pelotas-preview.pid
           for attempt in {1..45}; do
             if curl --fail --silent --show-error http://127.0.0.1:4173/ > /dev/null; then
