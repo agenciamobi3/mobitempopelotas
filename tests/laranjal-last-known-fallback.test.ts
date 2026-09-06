@@ -78,6 +78,7 @@ test("refresh do Laranjal é local, a cada minuto, e nunca regride a medição v
   assert.match(refreshSource, /LARANJAL_REFRESH_INTERVAL_MS = 60_000/);
   assert.match(refreshSource, /window\.setInterval/);
   assert.match(refreshSource, /visibilitychange/);
+  assert.match(refreshSource, /currentSource !== nextSource/);
   assert.match(refreshSource, /return nextTime >= currentTime/);
   assert.match(refreshSource, /current\.currentLevel === null/);
   assert.doesNotMatch(refreshSource, /router\.invalidate/);
