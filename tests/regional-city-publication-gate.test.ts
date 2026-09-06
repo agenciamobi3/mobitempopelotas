@@ -33,6 +33,10 @@ function candidate(
   return { ...baseCity, slug, name: `Teste ${slug}`, ...overrides };
 }
 
+function hasStandaloneRegionalCitiesMap(source: string) {
+  return /(^|[^A-Z_])REGIONAL_CITIES\.map/.test(source);
+}
+
 test("as 24 cidades existentes permanecem públicas, completas e indexáveis", () => {
   assert.equal(REGIONAL_CITIES.length, 24);
   assert.equal(PUBLIC_REGIONAL_CITIES.length, 24);
@@ -78,7 +82,7 @@ test("Central Regional consulta apenas cidades públicas", () => {
   assert.match(overviewSource, /PUBLIC_REGIONAL_CITIES/);
   assert.match(overviewSource, /PUBLIC_REGIONAL_CITIES\.map\(\(city\) => city\.latitude\)/);
   assert.match(overviewSource, /PUBLIC_REGIONAL_CITIES\.map\(\(city\) => city\.longitude\)/);
-  assert.doesNotMatch(overviewSource, /REGIONAL_CITIES\.map/);
+  assert.equal(hasStandaloneRegionalCitiesMap(overviewSource), false);
 });
 
 test("draft não passa pela rota nem pelo server function regional", () => {
