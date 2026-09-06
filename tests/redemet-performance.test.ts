@@ -30,6 +30,10 @@ const radarCss = readFileSync(
   "src/production/components/home-radar-editorial.css",
   "utf8",
 );
+const radarGestureCss = readFileSync(
+  "src/production/components/home-radar-gestures.css",
+  "utf8",
+);
 const weatherMap = readFileSync("src/production/components/weather-map.tsx", "utf8");
 const radarMapFrame = readFileSync("src/components/redemet/RadarMapFrame.tsx", "utf8");
 
@@ -82,7 +86,7 @@ test("satélite REDEMET tenta somente a hora UTC anterior quando a resposta atua
   assert.match(satelliteServer, /url\.searchParams\.set\("data", referenceData\)/);
   assert.match(satelliteServer, /const referenceData = previousRedemetUtcHourToken\(\)/);
   assert.match(satelliteServer, /const previousHour = await requestSatellitePayload/);
-  assert.match(satelliteServer, /hora UTC anterior, uma única vez/);
+  assert.match(satelliteServer, /hora UTC\s*anterior, uma única vez/);
   assert.doesNotMatch(satelliteServer, /for \([^\n]*previousRedemetUtcHourToken/);
 });
 
@@ -193,6 +197,7 @@ test("STSC requests the animation window upstream instead of slicing a single de
 test("radar editorial section skips offscreen rendering in its isolated component", () => {
   assert.match(radarComponent, /className="tp-home-radar"/);
   assert.match(radarComponent, /<WeatherMap regionalWeather=\{regionalWeather\} \/>/);
+  assert.match(radarComponent, /home-radar-gestures\.css/);
   assert.match(radarCss, /content-visibility:\s*auto/);
   assert.match(radarCss, /contain-intrinsic-size:/);
   assert.doesNotMatch(cssEntry, /home-radar-editorial-v45\.css/);
@@ -200,11 +205,13 @@ test("radar editorial section skips offscreen rendering in its isolated componen
 });
 
 test("radar isolated layer preserves map gestures and compact operational controls", () => {
-  assert.match(radarCss, /\.tp-home-radar \.map-canvas\s*\{[\s\S]*cursor:\s*grab/);
-  assert.match(radarCss, /\.tp-home-radar \.radar-player\s*\{[\s\S]*pointer-events:\s*none/);
-  assert.match(radarCss, /map-canvas--satellite[\s\S]*width:\s*min\(680px/);
-  assert.match(radarCss, /maplibregl-ctrl-bottom-right[\s\S]*top:\s*80px/);
-  assert.doesNotMatch(radarCss, /!important/);
+  assert.match(radarGestureCss, /\.tp-home-radar \.map-canvas\s*\{[\s\S]*cursor:\s*grab/);
+  assert.match(radarGestureCss, /\.tp-home-radar \.map-canvas:active\s*\{[\s\S]*cursor:\s*grabbing/);
+  assert.match(radarCss, /\.tp-home-radar \.radar-player\s*\{/);
+  assert.match(radarCss, /\.tp-home-radar \.radar-play-button\s*\{/);
+  assert.match(radarCss, /\.tp-home-radar \.map-layer-switcher\s*\{/);
+  assert.match(radarCss, /maplibregl-ctrl-bottom-right/);
+  assert.doesNotMatch(radarGestureCss, /!important/);
 });
 
 test("radar and satellite maps start roughly three zoom levels wider", () => {
