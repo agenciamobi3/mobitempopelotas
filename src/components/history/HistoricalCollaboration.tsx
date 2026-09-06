@@ -91,6 +91,7 @@ export function HistoricalCollaborationSection({ context }: HistoricalCollaborat
         <nav className="tp-history-collab__years" aria-label="Outros registros históricos de enchentes">
           <span>História das enchentes</span>
           <div>
+            <a href="/historia-das-enchentes-pelotas">Visão geral</a>
             {HISTORICAL_COLLABORATION_ORDER.map((item) => (
               <a
                 href={item.pagePath}
