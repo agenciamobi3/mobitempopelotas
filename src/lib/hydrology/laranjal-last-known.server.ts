@@ -16,6 +16,10 @@ const VARIABLE_KEY = "water_level";
 const ARCHIVE_LIMIT = 300;
 
 type HistoricalRow = {
+  source_key: string;
+  station_key: string;
+  variable_key: string;
+  data_class: "observation" | "forecast" | "reanalysis" | "derived";
   observed_at: string;
   value_numeric: number | null;
   unit: string;
