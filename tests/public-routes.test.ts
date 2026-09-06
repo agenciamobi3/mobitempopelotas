@@ -17,7 +17,9 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/situacao-hidrologica-pelotas",
   "/nivel-da-lagoa-dos-patos-laranjal",
   "/nivel-do-guaiba",
+  "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
+  "/enchente-2001-pelotas",
   "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
   "/cameras-ao-vivo-pelotas",
@@ -116,9 +118,11 @@ test("mantém atualização frequente nas páginas operacionais", () => {
   }
 });
 
-test("mantém páginas históricas com cadência editorial mensal", () => {
+test("mantém o arquivo histórico e cada enchente com cadência editorial mensal", () => {
   const routeMap = new Map(PUBLIC_ROUTES.map((route) => [route.path, route]));
+  assert.equal(routeMap.get("/historia-das-enchentes-pelotas")?.changeFrequency, "monthly");
   assert.equal(routeMap.get("/enchente-1941-pelotas")?.changeFrequency, "monthly");
+  assert.equal(routeMap.get("/enchente-2001-pelotas")?.changeFrequency, "monthly");
   assert.equal(routeMap.get("/enchente-2015-pelotas")?.changeFrequency, "monthly");
   assert.equal(routeMap.get("/enchente-2024-pelotas-laranjal")?.changeFrequency, "monthly");
 });
