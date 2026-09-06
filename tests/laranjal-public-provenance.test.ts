@@ -47,7 +47,7 @@ test("Metodologia audita Lab como fonte primária sem mascará-lo pelo seletor",
   assert.match(methodologyLoader, /fetchLaranjalLevelData/);
   assert.doesNotMatch(methodologyLoader, /getLaranjalLevelData/);
   assert.doesNotMatch(methodologyLoader, /fetchSelectedLaranjalLevelData/);
-  assert.match(methodologyLoader, /fonte\s+primária em si/);
+  assert.match(methodologyLoader, /fetchLaranjalLevelData\(\{ deadlineMs: 2_500 \}\)/);
 });
 
 test("arquivo histórico continua coletando a série Lab sem passar pelo seletor", () => {
