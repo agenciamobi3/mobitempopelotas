@@ -34,7 +34,7 @@ test("hub exposes every dedicated flood record and preserves 2001 research statu
 test("hub teaches source and gauge caveats instead of flattening historical data", () => {
   assert.match(page, /fonte oficial, imprensa contemporânea, pesquisa\s+acadêmica/);
   assert.match(page, /não compare cotas de anos diferentes sem saber estação, régua, datum e referência/);
-  assert.match(page, /não foi localizada, a lacuna permanece identificada/);
+  assert.match(page, /não\s+foi localizada, a lacuna permanece identificada/);
 });
 
 test("hub is indexable and discoverable from water navigation", () => {
