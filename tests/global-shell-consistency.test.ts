@@ -35,7 +35,7 @@ test("navegação institucional existe em definições canônicas do shell", () 
     "Tempo amanhã",
     "Próximos 7 dias",
     "Estação Embrapa",
-    "Radar e satélite",
+    "Satélites e Radares",
     "Câmeras ao vivo",
     "Nível no Laranjal",
     "História das enchentes",
