@@ -46,7 +46,8 @@ test("REDEMET public detail layer derives timeline depth and storm proximity fro
 });
 
 test("INMET detail layer preserves official publication and full territorial coverage progressively", () => {
-  assert.match(alertsRoute, /<InmetAlertCoverageDetails data=\{weather\} \/>/);
+  assert.match(alertsRoute, /\{\(recoveredWeather\) => \(/);
+  assert.match(alertsRoute, /<InmetAlertCoverageDetails data=\{recoveredWeather\} \/>/);
   assert.match(alertsRoute, /lista territorial recebida do aviso oficial/);
   assert.match(alertCoverage, /alert\.sentAt/);
   assert.match(alertCoverage, /alert\.startsAt/);
