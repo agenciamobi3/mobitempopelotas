@@ -57,8 +57,9 @@ test("flood history is standalone and shared chrome cannot be duplicated", () =>
   assert.match(siteLayout, /"\/enchente-2024-pelotas-laranjal"/);
   assert.match(siteLayout, /<SiteHeader advisoryLevel="normal" variant="hero" \/>/);
   assert.match(siteLayout, /<SiteFooter \/>/);
-  assert.match(siteFooter, /variant="home"/);
+  assert.match(siteFooter, /Footer source=\{source\}/);
   assert.match(siteFooter, /site-footer-home\.css/);
+  assert.doesNotMatch(siteFooter, /variant=/);
 });
 
 test("internal weather shell uses the same 1440px rail and soft surfaces as the Home", () => {
