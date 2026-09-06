@@ -10,6 +10,10 @@ import {
 } from "@/components/hydrology/HydrologyOverviewV2";
 import "@/components/hydrology/HydrologyOverviewHomeContract.css";
 import { HydrologySectionBoundary } from "@/components/hydrology/HydrologySectionBoundary";
+import {
+  SaceGuaibaContext,
+  SaceGuaibaRenderScope,
+} from "@/components/hydrology/SaceGuaibaContext";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { HYDROLOGY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { loadHydrologyOverviewPageData } from "@/lib/hydrology/public-hydrology-page-loader";
@@ -18,7 +22,7 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 
 const PAGE_TITLE = "Enchente em Pelotas hoje? Situação das águas e níveis";
 const PAGE_DESCRIPTION =
-  "Veja a situação das águas em Pelotas hoje, com nível do Laranjal, Lagoa dos Patos, Guaíba e SACE, horários das leituras e contexto sem transformar nível isolado em diagnóstico de enchente.";
+  "Veja a situação das águas em Pelotas hoje, com nível do Laranjal, Lagoa dos Patos, Guaíba, Rede da Defesa Civil RS e contexto complementar do SACE, preservando horários e referências de cada leitura.";
 const PAGE_PATH = "/situacao-hidrologica-pelotas";
 
 const HYDROLOGY_PAGE_CONTENT = {
@@ -26,14 +30,15 @@ const HYDROLOGY_PAGE_CONTENT = {
   eyebrow: "Como acompanhar os níveis da água",
   title: "Entenda o que cada estação mostra e por que os valores não são iguais",
   answer:
-    "A Estação Laranjal é a leitura local apresentada para Pelotas. Os demais pontos da Lagoa dos Patos, do Guaíba e dos rios acompanhados pelo SACE ajudam a entender a situação regional, mas cada estação usa seu próprio local, horário e referência de medição. Por isso, os números não devem ser comparados por simples subtração.",
+    "A Estação Laranjal é a leitura local apresentada para Pelotas. Os demais pontos da Lagoa dos Patos e da Rede da Defesa Civil RS ajudam a entender a situação regional. O SACE Guaíba entra como contexto complementar a montante. Cada estação usa seu próprio local, horário e referência de medição, por isso os números não devem ser comparados por simples subtração.",
   facts: [
     "O Tempo Pelotas possui acesso autorizado à plataforma integrada da ANA para coleta e exibição de informações hidrometeorológicas da Rede Hidrometeorológica Nacional; a integração dessas estações está sendo implantada gradualmente.",
     "A Rede Hidrometeorológica Nacional integra o SNIRH e reúne dados observados como níveis, vazões e chuvas, mantendo identificação própria de cada estação.",
     "A Estação Laranjal é a referência local do portal e não recebe automaticamente as cotas de outras estações.",
     "Uma leitura atrasada aparece como último valor conhecido e não como nível atual.",
     "Itapuã, Arambaré, São Lourenço do Sul e Rio Grande ajudam a acompanhar diferentes partes da Lagoa dos Patos.",
-    "O SACE mostra a situação de rios como Jacuí, Taquari-Antas, Caí, Sinos e Gravataí, além do Delta e do Guaíba.",
+    "A Rede de Monitoramento Hidrometeorológico da Defesa Civil RS é apresentada antes do SACE no panorama regional desta página.",
+    "Como contexto complementar a montante, o SACE mostra a situação de rios como Jacuí, Taquari-Antas, Caí, Sinos e Gravataí, além do Delta e do Guaíba.",
     "As categorias Atenção, Alerta e Inundação pertencem à estação que as publicou e não são convertidas em classificação para o Laranjal.",
     "Vento, chuva, armazenamento de água, Canal São Gonçalo, drenagem local e saída oceânica podem influenciar a evolução em Pelotas.",
     "Quando uma estação não transmite, não há dado atual para interpretar; isso não significa que o nível esteja normal.",
@@ -54,6 +59,11 @@ const HYDROLOGY_PAGE_CONTENT = {
       question: "Como o Tempo Pelotas pretende usar os dados da ANA e da RHN?",
       answer:
         "O portal possui acesso autorizado à plataforma integrada da ANA para coleta e exibição de informações hidrometeorológicas da Rede Hidrometeorológica Nacional. A integração está sendo implantada de forma gradual, validando unidade, referência, horário e situação de cada estação antes de incorporá-la às páginas públicas.",
+    },
+    {
+      question: "Qual é o papel do SACE Guaíba nesta página?",
+      answer:
+        "O SACE é usado como contexto complementar a montante. Ele ajuda a observar a situação oficial de rios que alimentam o Guaíba, mas não substitui a leitura local do Laranjal nem as medições da Defesa Civil RS e não é convertido em previsão automática para Pelotas.",
     },
     {
       question: "Uma estação elevada no SACE significa que o Laranjal vai subir?",
@@ -143,8 +153,10 @@ export const Route = createFileRoute("/situacao-hidrologica-pelotas")({
           "Medições de nível na região",
           "Situação das águas em Pelotas",
           "Medições automáticas da Lagoa dos Patos",
+          "Rede de Monitoramento Hidrometeorológico da Defesa Civil RS",
           "Guaíba e Delta do Jacuí",
           "SACE Guaíba do Serviço Geológico do Brasil",
+          "Contexto complementar a montante",
           "Rios Jacuí, Taquari-Antas, Caí, Sinos e Gravataí",
           "Horário e tendência das leituras de nível",
           "Referências locais de estações",
@@ -183,16 +195,21 @@ function SituacaoHidrologicaPage() {
             sace={data.sace}
           />
           <HydrologySectionBoundary label="Painel regional de hidrologia">
-            <HydrologyOverviewV2
-              weather={recoveredWeather}
-              level={data.level}
-              guaiba={data.guaiba}
-              lagoon={data.lagoon}
-              sace={data.sace}
-            />
+            <SaceGuaibaRenderScope render={false}>
+              <HydrologyOverviewV2
+                weather={recoveredWeather}
+                level={data.level}
+                guaiba={data.guaiba}
+                lagoon={data.lagoon}
+                sace={data.sace}
+              />
+            </SaceGuaibaRenderScope>
           </HydrologySectionBoundary>
           <HydrologySectionBoundary label="Rede da Defesa Civil RS">
             <DefesaCivilHydroNetwork data={data.defesaCivil} />
+          </HydrologySectionBoundary>
+          <HydrologySectionBoundary label="Contexto complementar · SACE Guaíba">
+            <SaceGuaibaContext data={data.sace} />
           </HydrologySectionBoundary>
           <OfficialDataAccessNotice scope="hydrology" />
           <EditorialContentSection
