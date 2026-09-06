@@ -162,6 +162,17 @@ O índice municipal comprova uma edição “Cheias 2015 - Boletim atualizado à
 
 O arquivo de notícias da GZH também comprova uma matéria de 29/10 intitulada “Número de desabrigados pelas chuvas cai em Pelotas e Rio Grande”, de Karoline Ávila e Camila Faraco. Nesta rodada o corpo dessa reportagem também não foi recuperado. O título, isoladamente, não autoriza atribuir um número a Pelotas.
 
+### 30/10 - conclusão do dique emergencial e início da baixa no Valverde
+
+- Sanep concluiu o dique de contenção emergencial no Laranjal;
+- dimensões finais da obra: 1,8 km de comprimento, 3 m de altura e comporta móvel de 6 m;
+- a fonte de 30/10 NÃO substitui o anúncio de 25/10, que previa aproximadamente 2 km de extensão e 3 m de largura — as duas datas devem ser citadas separadamente;
+- Prefeitura registra início da baixa das águas no Valverde e Novo Valverde no fim da tarde.
+
+Caveat: não há nesta fonte cotas de Lagoa dos Patos ou Canal São Gonçalo para 30/10. Não inventar medições hidrométricas para este dia.
+
+Fonte: `https://www.pelotas.com.br/noticia/sanep-conclui-dique-de-contencao-emergencial-no-laranjal`
+
 ### 03/11 - estabilização operacional
 
 - São Gonçalo: 1,80 m;
@@ -226,3 +237,7 @@ O resultado útil da busca foi indireto, mas documentalmente forte:
 - portanto, esses horários permanecem no inventário, mas sem valores inventados;
 - as medições da GZH de 27 e 28 de outubro são identificadas como reprodução contemporânea de dados da Defesa Civil, não como boletins municipais;
 - a expressão jornalística “2,25 m acima do normal” continua fora da série municipal calibrada porque não informa estação, zero da régua ou definição operacional de “normal”.
+
+## Fontes adicionais recuperadas
+
+- 30/10/2015 — Sanep conclui dique de contenção emergencial no Laranjal: `https://www.pelotas.com.br/noticia/sanep-conclui-dique-de-contencao-emergencial-no-laranjal`
