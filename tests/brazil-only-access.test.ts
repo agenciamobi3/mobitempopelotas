@@ -72,10 +72,11 @@ test("foreign browsers stop before the app and receive a single self-contained b
   const html = await response.text();
   assert.match(html, /<main aria-label="Tempo Pelotas">/);
   assert.match(html, /<svg[^>]+viewBox="0 0 512 512"/);
+  assert.match(html, /xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
   assert.doesNotMatch(html, /<img\b/i);
   assert.doesNotMatch(html, /<script\b/i);
   assert.doesNotMatch(html, /<link\b/i);
-  assert.doesNotMatch(html, /https?:\/\//i);
+  assert.doesNotMatch(html.replace("http://www.w3.org/2000/svg", ""), /https?:\/\//i);
   assert.doesNotMatch(html, /supabase/i);
   assert.doesNotMatch(html, /google-analytics|googletagmanager|gtag\(|dataLayer/i);
   assert.doesNotMatch(html, /fetch\s*\(/i);
