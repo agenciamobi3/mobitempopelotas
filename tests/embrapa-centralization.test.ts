@@ -22,6 +22,7 @@ const healthDurationFixMigration = readFileSync(
   "utf8",
 );
 const centralStore = readFileSync("src/lib/weather/embrapa-central.server.ts", "utf8");
+const currentGate = readFileSync("src/lib/weather/embrapa-current.server.ts", "utf8");
 const healthServer = readFileSync("src/lib/weather/embrapa-health.server.ts", "utf8");
 const healthFunction = readFileSync("src/lib/weather/embrapa-health.functions.ts", "utf8");
 const historyServer = readFileSync("src/lib/weather/embrapa-history.server.ts", "utf8");
@@ -87,11 +88,12 @@ test("centralizador persiste leitura atual, histórico deduplicado e agenda cole
   assert.match(migration, /'\* \* \* \* \*'/);
 });
 
-test("agregador usa exclusivamente a leitura central e mantém coleta direta isolada", () => {
-  assert.match(officialSources, /getCentralEmbrapaObservation/);
-  assert.match(officialSources, /getCentralEmbrapaObservation\(\)/);
+test("agregador usa o gate de frescor da Embrapa e mantém coleta direta isolada", () => {
+  assert.match(officialSources, /getFreshEmbrapaObservation/);
+  assert.match(officialSources, /getFreshEmbrapaObservation\(\)/);
   assert.doesNotMatch(officialSources, /fetchEmbrapaObservation\(\)/);
-  assert.match(centralStore, /import \{ fetchEmbrapaObservation \} from "\.\/embrapa\.server"/);
+  assert.match(currentGate, /getCentralEmbrapaObservation/);
+  assert.match(currentGate, /fetchEmbrapaObservation/);
   assert.match(sourceCollector, /cache: "no-store"/);
 });
 
@@ -101,7 +103,20 @@ test("centralizador controla concorrência, preserva última leitura e deduplica
   assert.match(centralStore, /createHash\("sha256"\)/);
   assert.match(centralStore, /onConflict: "station_id,source_hash"/);
   assert.match(centralStore, /fallback: "last-known"/);
-  assert.match(centralStore, /CENTRAL_READING_MAX_AGE_MS = 75_000/);
+});
+
+test("snapshot central só é autoridade por 75 segundos e pageview não persiste refresh", () => {
+  assert.match(currentGate, /CENTRAL_READING_MAX_AGE_MS = 75_000/);
+  assert.match(currentGate, /isCentralEmbrapaSnapshotFresh/);
+  assert.match(currentGate, /return fetchEmbrapaObservation\(\)/);
+  assert.doesNotMatch(currentGate, /refreshCentralEmbrapaObservation/);
+
+  const publicGetter =
+    centralStore
+      .split("export async function getCentralEmbrapaObservation")[1]
+      ?.split("function safeTokenEqual")[0] ?? "";
+  assert.match(publicGetter, /readCurrentRow\(AbortSignal\.timeout\(PUBLIC_READ_TIMEOUT_MS\)\)/);
+  assert.doesNotMatch(publicGetter, /refreshCentralEmbrapaObservation/);
 });
 
 test("última leitura sem horário publicado envelhece pelo fetchedAt", () => {
@@ -110,21 +125,22 @@ test("última leitura sem horário publicado envelhece pelo fetchedAt", () => {
   assert.equal(getObservationAgeMinutes(observation, now), 40);
 });
 
-test("rotas pública e de coleta leem a mesma fonte central", () => {
+test("rota pública recusa observação velha e coleta continua separada", () => {
   assert.match(cronRoute, /authorizeEmbrapaCollectorRequest/);
   assert.match(cronRoute, /refreshCentralEmbrapaObservation/);
   assert.match(cronRoute, /createFileRoute\("\/api\/cron\/embrapa"\)/);
-  assert.match(publicRoute, /getCentralEmbrapaObservation/);
-  assert.match(publicRoute, /createFileRoute\("\/api\/weather\/embrapa"\)/);
-  assert.match(publicRoute, /max-age=30, stale-while-revalidate=30/);
+  assert.match(publicRoute, /getFreshEmbrapaObservation/);
+  assert.match(publicRoute, /isPublishableEmbrapaObservation/);
+  assert.match(publicRoute, /status: publishable \? 200 : 503/);
+  assert.match(publicRoute, /CURRENT_DATA_NO_STORE_HEADERS/);
+  assert.doesNotMatch(publicRoute, /stale-while-revalidate|max-age=/);
 });
 
-test("páginas meteorológicas revalidam o snapshot coerente a cada minuto", () => {
-  assert.match(minuteRefresh, /REFRESH_INTERVAL_MS = 60_000/);
-  assert.match(minuteRefresh, /await router\.invalidate\(\)/);
-  assert.match(minuteRefresh, /document\.visibilityState !== "visible"/);
-  assert.match(weatherFunction, /max-age=45, stale-while-revalidate=15/);
-  assert.doesNotMatch(weatherFunction, /max-age=300/);
+test("páginas meteorológicas não reabrem a árvore por minuto e usam no-store", () => {
+  assert.match(minuteRefresh, /return null/);
+  assert.doesNotMatch(minuteRefresh, /router\.invalidate/);
+  assert.match(weatherFunction, /CURRENT_DATA_NO_STORE_HEADERS/);
+  assert.doesNotMatch(weatherFunction, /stale-while-revalidate|max-age=/);
 });
 
 test("saúde operacional registra métricas e mantém incidentes privados", () => {
@@ -140,7 +156,6 @@ test("saúde operacional registra métricas e mantém incidentes privados", () =
 test("coletor abre e resolve alertas por falha, atraso, lentidão e leitura incompleta", () => {
   assert.match(healthLogicMigration, /create or replace function public\.track_weather_station_health/);
   assert.match(healthLogicMigration, /new\.consecutive_failures := old\.consecutive_failures \+ 1/);
-  assert.match(healthLogicMigration, /new\.last_duration_ms := duration_ms/);
   assert.match(healthLogicMigration, /'consecutive-failures'/);
   assert.match(healthLogicMigration, /new\.consecutive_failures >= 3/);
   assert.match(healthLogicMigration, /'stale-reading'/);
