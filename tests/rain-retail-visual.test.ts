@@ -18,10 +18,12 @@ test("rain route uses the shared shell with a dedicated retail hero", () => {
   assert.match(route, /RainRetailHero/);
   assert.match(route, /RainForecastPageV2/);
   assert.match(route, /pageClassName="internal-weather-shell--rain"/);
-  assert.match(route, /hero=\{\(\{ weather: productionWeather, advisoryLevel, officialAlertCount \}\)/);
-  assert.match(route, /Veja a chance de chuva em Pelotas/);
+  assert.match(route, /data: recoveredWeather/);
+  assert.match(route, /weather: productionWeather/);
+  assert.match(route, /observedRainDaily=\{getObservedRainDaily\(recoveredWeather\)\}/);
+  assert.match(route, /Veja a chuva acumulada observada em Pelotas/);
   assert.match(route, /RAIN_PAGE_CONTENT/);
-  assert.match(route, /Como ler chance e volume de chuva em Pelotas/);
+  assert.match(route, /Como ler chuva acumulada, chance e volume previsto em Pelotas/);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, RAIN_PAGE_CONTENT\.faqs\)/);
   assert.doesNotMatch(route, /RainPage/);
   assert.doesNotMatch(route, /showOfficialAlerts=\{false\}/);
@@ -29,11 +31,10 @@ test("rain route uses the shared shell with a dedicated retail hero", () => {
 
 test("rain hero separates chance, volume and timing in direct language", () => {
   assert.match(hero, /Chuva em Pelotas/);
-  assert.match(hero, /chance por horário e volume previsto/);
   assert.match(hero, /Maior chance nas próximas 12 horas/);
   assert.match(hero, /Volume previsto hoje/);
   assert.match(hero, /Total previsto em 7 dias/);
-  assert.match(hero, /Horários com 30% ou mais/);
+  assert.match(hero, /horários com 30% ou mais/i);
   assert.match(hero, /Maior chance nas próximas horas/);
   assert.match(hero, /Dia com maior volume/);
   assert.match(hero, /Rajada em período com chuva/);
