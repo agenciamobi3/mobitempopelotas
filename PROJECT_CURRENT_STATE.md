@@ -35,7 +35,7 @@ Regras permanentes:
 | Descoberta Defesa Civil | As duas páginas aprovadas aparecem no megamenu Águas, no footer, nas páginas meteorológicas relacionadas e nos cartões da rede somente por `stationCode` exato; as outras cinco candidatas não recebem URL própria |
 | Open-Meteo | Principal; contingência/last-good preserva estado e timestamp sem mascarar falha |
 | MET Norway | Contingência compartilhada quando aplicável |
-| Embrapa | Observação local centralizada |
+| Embrapa | Observação local centralizada; snapshot central vale no máximo 75 s e amostra com mais de 30 min nunca é publicada como `Agora` |
 | INMET | Avisos/produtos oficiais conforme contrato de cada integração |
 | Radar / satélite / STSC | Probes independentes e copy pública sanitizada |
 | Hidrologia | Laranjal, Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
@@ -295,7 +295,30 @@ Documento: `docs/HISTORICAL_MODERATION_V1.md`.
 
 Open-Meteo é a previsão principal. MET Norway atua como contingência quando aplicável. Embrapa permanece como observação local centralizada. INMET fornece avisos e produtos oficiais conforme contratos específicos.
 
+Em 06/09/2026 foi reproduzida na Home uma regressão de recência: o shell/fallback carregava corretamente e, depois da hidratação, uma leitura central antiga da Embrapa era promovida novamente a `Agora`. O snapshot observado era de **05/09 às 08:56**.
+
+A auditoria do Supabase confirmou que:
+
+- `weather_collector_settings.enabled=true`;
+- o cron `tempo-pelotas-embrapa-every-minute` permanecia ativo em `* * * * *`;
+- o último sucesso estava em 05/09 11:56 UTC;
+- novas tentativas continuavam ocorrendo em 06/09;
+- o coletor acumulava mais de mil falhas consecutivas com `The operation was aborted due to timeout`;
+- os incidentes privados `consecutive-failures` e `stale-reading` estavam abertos.
+
+Correção permanente:
+
+- snapshot central da Embrapa só é caminho rápido por **75 segundos**;
+- acima disso, perde autoridade e o pageview tenta somente leitura direta, sem lease ou persistência;
+- a amostra meteorológica continua sujeita ao limite editorial de **30 minutos** definido em `current-observation.ts`;
+- observação mais velha ou não utilizável faz `/api/weather/embrapa` responder 503 e não pode virar `currentSource=embrapa`;
+- se a Embrapa estiver sem leitura recente, o Hero pode degradar para **Previsão**, mas não mostra last-known como `Agora`.
+
+A falha atual do coletor é uma pendência operacional separada da correção de apresentação: restaurar a coleta volta a fornecer observação, mas a indisponibilidade da fonte não autoriza o portal a publicar cache antigo como atual.
+
 Radar, STSC, satélite REDEMET e GOES/INMET têm probes independentes. Falha da integração do Tempo Pelotas não deve ser descrita como indisponibilidade global do serviço público.
+
+Documento: `docs/PUBLIC_ROUTE_RESILIENCE.md`.
 
 ## 9. Política ANA/RHN
 
@@ -381,6 +404,15 @@ Na Defesa Civil RS, os contratos protegem:
 - descoberta por `stationCode` exato;
 - ausência de links dedicados para as cinco candidatas não promovidas.
 
+Na observação Embrapa/Home, os contratos agora protegem:
+
+- snapshot central com janela máxima de 75 segundos;
+- fallback direto sem `refreshCentralEmbrapaObservation()` e sem persistência no pageview;
+- limite de 30 minutos para a amostra poder ser publicada como atual;
+- HTTP 503 em `/api/weather/embrapa` quando a observação não é publicável;
+- ausência de invalidação global por minuto;
+- cache antigo não volta a ser promovido a `Agora` durante a recuperação da Home.
+
 Na enchente de 2001, os contratos agora protegem:
 
 - 300 cm às 07h e 280 cm às 17h na camada bruta de 08/10/2001;
@@ -404,7 +436,7 @@ Na moderação histórica V1, os contratos protegem:
 - painel invisível para snapshot não autorizado;
 - `/painel` permanece `noindex, nofollow`.
 
-`.github/workflows/quality.yml` chama explicitamente contratos de moderação, Defesa Civil, navegação/rodapé e enchente de 2001.
+`.github/workflows/quality.yml` chama explicitamente contratos de moderação, Defesa Civil, navegação/rodapé e enchente de 2001. `npm test` também descobre os testes de frescor da Embrapa pelo glob geral.
 
 GitHub Actions segue apresentando runs que terminam antes do checkout/steps (`steps: null`). Nessa condição, não declarar testes, build, typecheck, lint, `routes:check` ou browser E2E como executados.
 
@@ -421,20 +453,21 @@ Devem permanecer distintos:
 
 ## 14. Próximas prioridades
 
-1. Confirmar propagação no domínio canônico de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
-2. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais quando houver ferramenta capaz de abrir as URLs diretamente; buscas exatas ainda não as retornaram em 06/09.
-3. Executar `routes:check`, testes da Lagoa/Defesa Civil/moderação/enchente de 2001, build e typecheck assim que houver executor funcional.
-4. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
-5. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar a Moderação V1 com conta autorizada, e-mail confirmado e contribuição descartável.
-6. Recuperar os quatro corpos perdidos de 2015 por acervo institucional, backup do CMS/banco municipal, Defesa Civil, Sanep ou hemeroteca; não repetir inferência web já esgotada.
-7. Localizar boletins meteorológicos contemporâneos de outubro de 2001.
-8. Tentar recuperar os textos integrais de Acosta et al. 2002 e Cruz et al. 2006.
-9. Localizar o relatório/entregável da consistência da `87955000` que explique a revisão de 290 cm bruto para 190 cm consistido/estimado em 08/10/2001 e recuperar os nivelamentos/RNs aplicáveis ao período.
-10. Obter documento oficial que esclareça a continuidade operacional/vertical entre `87955000` e `87955001`, se existir, sem fundir as séries antes disso.
-11. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.
-12. Depois da validação da moderação V1, adicionar paginação/filtros e fluxo editorial separado de publicação.
-13. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-14. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+1. Restaurar a saúde do coletor central da Embrapa e identificar a causa dos timeouts consecutivos, mantendo o Hero em modo degradado até existir observação realmente recente.
+2. Confirmar propagação no domínio canônico de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
+3. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais quando houver ferramenta capaz de abrir as URLs diretamente; buscas exatas ainda não as retornaram em 06/09.
+4. Executar `routes:check`, testes da Lagoa/Defesa Civil/moderação/enchente de 2001/Embrapa, build e typecheck assim que houver executor funcional.
+5. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
+6. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar a Moderação V1 com conta autorizada, e-mail confirmado e contribuição descartável.
+7. Recuperar os quatro corpos perdidos de 2015 por acervo institucional, backup do CMS/banco municipal, Defesa Civil, Sanep ou hemeroteca; não repetir inferência web já esgotada.
+8. Localizar boletins meteorológicos contemporâneos de outubro de 2001.
+9. Tentar recuperar os textos integrais de Acosta et al. 2002 e Cruz et al. 2006.
+10. Localizar o relatório/entregável da consistência da `87955000` que explique a revisão de 290 cm bruto para 190 cm consistido/estimado em 08/10/2001 e recuperar os nivelamentos/RNs aplicáveis ao período.
+11. Obter documento oficial que esclareça a continuidade operacional/vertical entre `87955000` e `87955001`, se existir, sem fundir as séries antes disso.
+12. Incorporar galerias documentais por enchente com autoria, origem, data/local aproximados e situação de autorização.
+13. Depois da validação da moderação V1, adicionar paginação/filtros e fluxo editorial separado de publicação.
+14. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
@@ -449,7 +482,7 @@ Devem permanecer distintos:
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
 - `docs/WIDGET_BUILDER_ARCHITECTURE.md` — widgets, RLS e embeds;
 - `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket e canário P1;
-- `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first e budgets;
+- `docs/PUBLIC_ROUTE_RESILIENCE.md` — shell-first, budgets e contrato fresh-only do Hero/Embrapa;
 - `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação;
 - `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
 - `docs/ANA_RHN_INTEGRATION.md` — política readiness-only da ANA/RHN e separação 87955000/87955001;
