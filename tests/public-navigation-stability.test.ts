@@ -108,10 +108,10 @@ test("rotas shell-first recuperam a consolidação do backend e propagam ao cont
   assert.match(browserRecovery, /getWeatherIntelligence/);
   assert.match(browserRecovery, /hasUsableWeatherIntelligence/);
   assert.match(browserRecovery, /useOpenMeteoIntelligenceRecovery\(serverRecoveredData\)/);
-  assert.match(internalWeatherShell, /useWeatherIntelligenceBrowserRecovery\(data\)/);
+  assert.match(internalWeatherShell, /useWeatherIntelligenceBrowserRecovery\(props\.data\)/);
   assert.match(internalWeatherShell, /typeof children === "function"/);
-  assert.match(internalWeatherShell, /children\(recoveredData\)/);
-  assert.match(internalWeatherShell, /data: recoveredData/);
+  assert.match(internalWeatherShell, /children\(resolvedData\)/);
+  assert.match(internalWeatherShell, /data: resolvedData/);
 
   for (const routeSource of [todayRoute, tomorrowRoute, sevenDayRoute]) {
     assert.match(routeSource, /\{\(recoveredWeather\) => \(/);
