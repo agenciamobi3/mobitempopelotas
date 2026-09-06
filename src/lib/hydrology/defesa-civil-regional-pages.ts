@@ -33,3 +33,10 @@ export function regionalDefesaCivilDedicatedPage(citySlug: string) {
   if (!(citySlug in REGIONAL_DEFESA_CIVIL_DEDICATED_PAGES)) return null;
   return REGIONAL_DEFESA_CIVIL_DEDICATED_PAGES[citySlug as RegionalDefesaCivilDedicatedCitySlug];
 }
+
+export function regionalDefesaCivilDedicatedPageByStationCode(stationCode: string) {
+  for (const page of Object.values(REGIONAL_DEFESA_CIVIL_DEDICATED_PAGES)) {
+    if (page.stationCode === stationCode) return page;
+  }
+  return null;
+}

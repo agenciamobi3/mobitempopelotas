@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   Clock3,
   CloudRain,
@@ -10,6 +11,7 @@ import {
   Wind,
 } from "lucide-react";
 
+import { regionalDefesaCivilDedicatedPageByStationCode } from "@/lib/hydrology/defesa-civil-regional-pages";
 import type {
   DefesaCivilHydroData,
   DefesaCivilHydroStation,
@@ -21,6 +23,7 @@ import { DefesaCivilHydroMap } from "./DefesaCivilHydroMap";
 import { HydrologyMapDeferred } from "./HydrologyMapDeferred";
 import "./DefesaCivilHydroNetwork.css";
 import "./DefesaCivilHydroInventory.css";
+import "./DefesaCivilHydroDedicatedLinks.css";
 
 function formatNumber(value: number | null, digits = 1) {
   if (value === null || !Number.isFinite(value)) return "—";
@@ -89,6 +92,7 @@ function StationCard({ station }: { station: DefesaCivilHydroStation }) {
   const freshness = freshnessCopy(station.freshness);
   const classification = classificationCopy(station.classification);
   const capabilities = capabilityLabels(station);
+  const dedicatedPage = regionalDefesaCivilDedicatedPageByStationCode(station.code);
   const hasHydrology = station.capabilities.riverLevel;
   const hasWeather =
     station.capabilities.rain ||
@@ -219,6 +223,13 @@ function StationCard({ station }: { station: DefesaCivilHydroStation }) {
           A estação foi identificada pela rede, mas não trouxe uma das variáveis exibidas neste
           recorte.
         </p>
+      ) : null}
+
+      {dedicatedPage ? (
+        <Link className="defesa-civil-hydro__dedicated-page-link" to={dedicatedPage.path}>
+          <span>{dedicatedPage.label}</span>
+          <span aria-hidden="true">→</span>
+        </Link>
       ) : null}
     </article>
   );

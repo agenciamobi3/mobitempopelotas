@@ -1,0 +1,31 @@
+.defesa-civil-hydro__dedicated-page-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-top: .9rem;
+  padding: .8rem .9rem;
+  border: 1px solid color-mix(in srgb, #5e2ced 18%, #dfe4ec);
+  border-radius: .85rem;
+  background: color-mix(in srgb, #5e2ced 4%, #fff);
+  color: #4b2ad0;
+  font-size: .8rem;
+  font-weight: 800;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.defesa-civil-hydro__dedicated-page-link:hover {
+  border-color: color-mix(in srgb, #5e2ced 34%, #dfe4ec);
+  background: color-mix(in srgb, #5e2ced 7%, #fff);
+}
+
+.defesa-civil-hydro__dedicated-page-link:focus-visible {
+  outline: 3px solid color-mix(in srgb, #5e2ced 38%, transparent);
+  outline-offset: 2px;
+}
+
+.defesa-civil-hydro__dedicated-page-link > span:last-child {
+  flex: 0 0 auto;
+  font-size: 1rem;
+}
