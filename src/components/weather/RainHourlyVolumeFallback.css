@@ -1,0 +1,46 @@
+/* Estado explícito para quando a série principal ainda não publicou mm por hora. */
+.internal-weather-shell--rain .rain-hourly-volume-context__state {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 5.5rem;
+  padding: 1rem 1.05rem;
+  border: 1px dashed rgb(7 30 47 / 14%);
+  border-radius: 0.95rem;
+  background: rgb(255 255 255 / 72%);
+  color: #607984;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__state > svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: #168fa3;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__state > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__state strong {
+  color: #071e2f;
+  font-size: 0.9rem;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__state p {
+  max-width: 72ch;
+  margin: 0;
+  color: #607984;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--rain .rain-hourly-volume-context__state {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}

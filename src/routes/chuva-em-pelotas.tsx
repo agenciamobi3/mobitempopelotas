@@ -8,7 +8,7 @@ import { createPageHead } from "@/lib/page-meta";
 import { RAIN_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
-import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
+import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Chuva em Pelotas hoje: acumulado, chance e previsão";
 const PAGE_DESCRIPTION =
@@ -50,17 +50,13 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
         ],
       }),
     ]),
-  loader: () =>
-    loadPublicWeatherWithMeteogram({
-      meteogramUnavailableMessage:
-        "O volume de chuva por hora está temporariamente indisponível. As demais informações de chuva permanecem acessíveis quando houver dados.",
-    }),
+  loader: () => loadPublicWeatherPage(),
   staleTime: 5 * 60 * 1_000,
   component: ChuvaPage,
 });
 
 function ChuvaPage() {
-  const { weather, meteogram } = Route.useLoaderData();
+  const weather = Route.useLoaderData();
 
   return (
     <InternalWeatherPageShell
@@ -80,9 +76,7 @@ function ChuvaPage() {
         />
       )}
     >
-      {(recoveredWeather) => (
-        <RainForecastPageV2 data={recoveredWeather} meteogram={meteogram} />
-      )}
+      {(recoveredWeather) => <RainForecastPageV2 data={recoveredWeather} />}
     </InternalWeatherPageShell>
   );
 }

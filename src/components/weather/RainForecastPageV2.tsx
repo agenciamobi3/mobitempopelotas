@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   CheckCircle2,
-  CloudRain,
   Info,
   RefreshCw,
   ShieldAlert,
@@ -11,7 +10,6 @@ import type { CSSProperties } from "react";
 
 import { RainAccumulationContext } from "@/components/weather/RainAccumulationContext";
 import { RainHourlyVolumeContext } from "@/components/weather/RainHourlyVolumeContext";
-import type { MeteogramData } from "@/lib/weather/meteogram.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import type { DailyForecast } from "@/lib/weather/types";
 import { WeatherIcon } from "@/production/components/weather-icon";
@@ -73,21 +71,16 @@ function EmptyRainForecast() {
   );
 }
 
-export function RainForecastPageV2({
-  data,
-  meteogram,
-}: {
-  data: WeatherIntelligenceData;
-  meteogram: MeteogramData;
-}) {
+export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) {
   const recoveredData = useOpenMeteoIntelligenceRecovery(data);
   const weather = recoveredData.weather;
   const hours = weather.hourly.slice(0, 12);
   const days = weather.daily.slice(0, 7);
-  const hasHourlyVolume =
-    meteogram.status === "live" &&
-    meteogram.hours.slice(0, 12).some((hour) => hour.precipitationMm !== null);
-  const hasForecast = hours.length > 0 || days.length > 0 || hasHourlyVolume;
+  const hasForecast = hours.length > 0 || days.length > 0;
+  const forecastSource = weather.quality.forecastSource;
+  const forecastFetchedAt = forecastSource
+    ? weather.sources[forecastSource].fetchedAt
+    : weather.source.fetchedAt;
 
   const totalRain = days.reduce((total, day) => total + day.precipitationMm, 0);
   const rainyDays = days.filter(
@@ -178,7 +171,11 @@ export function RainForecastPageV2({
         </section>
       ) : null}
 
-      <RainHourlyVolumeContext meteogram={meteogram} />
+      <RainHourlyVolumeContext
+        hourly={weather.hourly}
+        forecastProvider={weather.quality.forecastProvider}
+        forecastFetchedAt={forecastFetchedAt}
+      />
 
       {days.length ? (
         <section className="rain-page__week" id="chuva-na-semana" aria-labelledby="rain-page-week-title">

@@ -16,13 +16,13 @@ const todayHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "ut
 const todayResources = readFileSync("src/components/weather/TodayWeatherResources.tsx", "utf8");
 const meteogram = readFileSync("src/lib/weather/meteogram.server.ts", "utf8");
 
-test("rain and wind routes reuse the structured weather plus meteogram loader", () => {
-  for (const route of [rainRoute, windRoute]) {
-    assert.match(route, /loadPublicWeatherWithMeteogram/);
-  }
+test("rain uses the recovered hourly series while wind keeps the structured meteogram loader", () => {
+  assert.match(rainRoute, /loadPublicWeatherPage/);
+  assert.doesNotMatch(rainRoute, /loadPublicWeatherWithMeteogram|getPelotasMeteogram/);
+  assert.match(windRoute, /loadPublicWeatherWithMeteogram/);
 
-  assert.match(rainRoute, /<RainForecastPageV2 data=\{recoveredWeather\} meteogram=\{meteogram\} \/>/);
-  assert.match(rainPage, /<RainHourlyVolumeContext meteogram=\{meteogram\} \/>/);
+  assert.match(rainRoute, /<RainForecastPageV2 data=\{recoveredWeather\} \/>/);
+  assert.match(rainPage, /<RainHourlyVolumeContext[\s\S]*?hourly=\{weather\.hourly\}/);
   assert.match(windRoute, /WindDirectionContext meteogram=\{meteogram\}/);
 });
 

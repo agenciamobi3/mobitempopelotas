@@ -201,18 +201,18 @@ test("mapa regional e opcional e nao pode derrubar a rota", () => {
   assert.match(regionalMapDeferred, /A lista de cidades continua disponível/);
 });
 
-test("vento e chuva degradam chamadas secundarias sem abrir o boundary global", () => {
+test("vento mantém detalhe dedicado e chuva não duplica a série horária principal", () => {
   assert.match(publicWeatherPageLoader, /settlePageDependency/);
   assert.match(publicWeatherPageLoader, /createUnavailableWeatherIntelligence/);
   assert.match(publicWeatherPageLoader, /status:\s*"unavailable"/);
   assert.match(publicWeatherPageLoader, /hours:\s*\[\]/);
   assert.match(publicWeatherPageLoader, /Promise\.all\(/);
 
-  for (const routeSource of [windRoute, rainRoute]) {
-    assert.match(routeSource, /loadPublicWeatherWithMeteogram/);
-    assert.doesNotMatch(routeSource, /getPelotasMeteogram/);
-    assert.doesNotMatch(routeSource, /getWeatherIntelligence/);
-  }
+  assert.match(windRoute, /loadPublicWeatherWithMeteogram/);
+  assert.doesNotMatch(windRoute, /getPelotasMeteogram|getWeatherIntelligence/);
+
+  assert.match(rainRoute, /loadPublicWeatherPage/);
+  assert.doesNotMatch(rainRoute, /loadPublicWeatherWithMeteogram|getPelotasMeteogram|getWeatherIntelligence/);
 });
 
 test("home, hoje, amanhã e 7 dias não dependem de server function para entregar o primeiro documento", () => {

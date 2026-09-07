@@ -9,6 +9,7 @@ const homeEditorialForecast = readFileSync(
   "utf8",
 );
 const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
+const rainPage = readFileSync("src/components/weather/RainForecastPageV2.tsx", "utf8");
 const rainAccumulation = readFileSync(
   "src/components/weather/RainAccumulationContext.tsx",
   "utf8",
@@ -48,14 +49,15 @@ test("rain probability remains visible separately from hourly volume", () => {
 });
 
 test("página de chuva separa acumulado observado de volume previsto", () => {
-  assert.match(rainRoute, /<RainAccumulationContext data=\{weather\}/);
-  assert.match(rainRoute, /observedRainDaily=\{observedRainDaily\}/);
-  assert.match(rainHero, /Chuva em Pelotas hoje:/);
+  assert.match(rainPage, /<RainAccumulationContext data=\{recoveredData\} \/>/);
+  assert.match(rainRoute, /observedRainDaily=\{getObservedRainDaily\(recoveredWeather\)\}/);
+  assert.match(rainHero, /Chuva em Pelotas <span>hoje<\/span>/);
   assert.match(rainAccumulation, /observation\.accumulated\.rainDaily/);
   assert.match(rainAccumulation, /observation\.accumulated\.rainMonthly/);
-  assert.match(rainAccumulation, /Total previsto em 7 dias/);
-  assert.match(rainAccumulation, /Não some observado e previsto/);
-  assert.match(rainAccumulation, /janelas podem se sobrepor/);
+  assert.match(rainAccumulation, /Previsto em 7 dias/);
+  assert.match(rainAccumulation, /Medido e previsto não são somados/);
+  assert.match(rainAccumulation, /Os períodos podem se sobrepor/);
+  assert.match(rainPage, /hourly=\{weather\.hourly\}/);
 });
 
 test("acumulados da Defesa Civil são enriquecimento progressivo, não bloqueio do loader", () => {

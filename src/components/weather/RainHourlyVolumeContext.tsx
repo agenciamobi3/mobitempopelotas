@@ -1,10 +1,24 @@
 import { CloudRain, Database, Droplets } from "lucide-react";
 import type { CSSProperties } from "react";
 
-import type { MeteogramData, MeteogramHour } from "@/lib/weather/meteogram.server";
+import type { HourlyForecast } from "@/lib/weather/types";
+
+import "./RainHourlyVolumeFallback.css";
 
 const WINDOW_HOURS = 12;
 const MEASURABLE_RAIN_MM = 0.1;
+
+type RainVolumeHour = {
+  timestamp: string;
+  precipitationProbability: number | null;
+  precipitationMm: number | null;
+};
+
+type RainHourlyVolumeContextProps = {
+  hourly: HourlyForecast[];
+  forecastProvider: string | null;
+  forecastFetchedAt: string;
+};
 
 function formatHour(value: string) {
   const date = new Date(value);
@@ -41,26 +55,83 @@ function chanceLabel(value: number | null | undefined) {
   return value === null || value === undefined ? "chance não informada" : `${Math.round(value)}%`;
 }
 
-function wetHours(hours: MeteogramHour[]) {
+function normalizeHours(hourly: HourlyForecast[]) {
+  return hourly.slice(0, WINDOW_HOURS).map<RainVolumeHour>((hour) => ({
+    timestamp: hour.timestamp ?? hour.time,
+    precipitationProbability: hour.precipitationProbability,
+    precipitationMm: hour.precipitationMm ?? null,
+  }));
+}
+
+function wetHours(hours: RainVolumeHour[]) {
   return hours.filter(
     (hour) => hour.precipitationMm !== null && hour.precipitationMm >= MEASURABLE_RAIN_MM,
   );
 }
 
-function peakVolumeHour(hours: MeteogramHour[]) {
-  return hours.reduce<MeteogramHour | null>((selected, hour) => {
+function peakVolumeHour(hours: RainVolumeHour[]) {
+  return hours.reduce<RainVolumeHour | null>((selected, hour) => {
     if (hour.precipitationMm === null) return selected;
     if (!selected || selected.precipitationMm === null) return hour;
     return hour.precipitationMm > selected.precipitationMm ? hour : selected;
   }, null);
 }
 
-export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramData }) {
-  if (meteogram.status !== "live" || !meteogram.hours.length) return null;
+function SourceFooter({
+  forecastProvider,
+  forecastFetchedAt,
+}: Pick<RainHourlyVolumeContextProps, "forecastProvider" | "forecastFetchedAt">) {
+  return (
+    <footer>
+      <Database aria-hidden="true" />
+      <span>
+        <strong>{forecastProvider ?? "Modelo meteorológico disponível"}</strong>
+        <small>Atualizado em {formatDateTime(forecastFetchedAt)}</small>
+      </span>
+    </footer>
+  );
+}
 
-  const hours = meteogram.hours.slice(0, WINDOW_HOURS);
+export function RainHourlyVolumeContext({
+  hourly,
+  forecastProvider,
+  forecastFetchedAt,
+}: RainHourlyVolumeContextProps) {
+  const hours = normalizeHours(hourly);
   const availableVolumeHours = hours.filter((hour) => hour.precipitationMm !== null);
-  if (!availableVolumeHours.length) return null;
+
+  if (!hours.length || !availableVolumeHours.length) {
+    return (
+      <section
+        className="rain-hourly-volume-context"
+        id="volume-de-chuva-por-hora"
+        aria-labelledby="rain-hourly-volume-title"
+      >
+        <header>
+          <div>
+            <span>Próximas 12 horas</span>
+            <h2 id="rain-hourly-volume-title">Volume previsto</h2>
+          </div>
+          <p>Milímetros previstos em cada horário.</p>
+        </header>
+
+        <div className="rain-hourly-volume-context__state" role="status">
+          <CloudRain aria-hidden="true" />
+          <div>
+            <strong>Volume por hora em atualização</strong>
+            <p>
+              A chance de chuva pode continuar disponível, mas o volume em milímetros ainda não foi publicado para esta janela.
+            </p>
+          </div>
+        </div>
+
+        <SourceFooter
+          forecastProvider={forecastProvider}
+          forecastFetchedAt={forecastFetchedAt}
+        />
+      </section>
+    );
+  }
 
   const values = availableVolumeHours.map((hour) => hour.precipitationMm as number);
   const hasCompleteVolumeWindow = availableVolumeHours.length === hours.length;
@@ -107,7 +178,7 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
       </dl>
 
       <div className="rain-hourly-volume-context__timeline" aria-label="Volume e chance de chuva por hora">
-        {hours.map((hour) => {
+        {hours.map((hour, index) => {
           const volumeKnown = hour.precipitationMm !== null;
           const volume = hour.precipitationMm ?? 0;
           const style = {
@@ -115,7 +186,11 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
           } as CSSProperties;
 
           return (
-            <article className={volumeKnown ? undefined : "is-unknown"} key={hour.timestamp} style={style}>
+            <article
+              className={volumeKnown ? undefined : "is-unknown"}
+              key={`${hour.timestamp}-${index}`}
+              style={style}
+            >
               <header>
                 <strong>{formatHour(hour.timestamp)}</strong>
                 <span>{chanceLabel(hour.precipitationProbability)}</span>
@@ -130,13 +205,10 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
         })}
       </div>
 
-      <footer>
-        <Database aria-hidden="true" />
-        <span>
-          <strong>{meteogram.source.name} · {meteogram.source.model}</strong>
-          <small>Atualizado em {formatDateTime(meteogram.source.fetchedAt)}</small>
-        </span>
-      </footer>
+      <SourceFooter
+        forecastProvider={forecastProvider}
+        forecastFetchedAt={forecastFetchedAt}
+      />
     </section>
   );
 }

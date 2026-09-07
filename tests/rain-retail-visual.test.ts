@@ -19,7 +19,8 @@ test("rain route uses the shared shell without duplicate editorial layers", () =
   assert.match(route, /pageClassName="internal-weather-shell--rain"/);
   assert.match(route, /createEditorialPageJsonLd/);
   assert.match(route, /RAIN_CITATIONS/);
-  assert.match(route, /meteogram=\{meteogram\}/);
+  assert.match(route, /loadPublicWeatherPage/);
+  assert.doesNotMatch(route, /loadPublicWeatherWithMeteogram/);
   assert.doesNotMatch(route, /EditorialContentSection|RAIN_PAGE_CONTENT|createFaqPageJsonLd/);
 });
 
@@ -34,7 +35,6 @@ test("rain body owns one current visual hierarchy instead of layered V2 styleshe
   assert.doesNotMatch(page, /InternalPageChapters/);
   assert.doesNotMatch(page, /RainForecastPageV2\.css/);
   assert.doesNotMatch(accumulation, /RainAccumulationContext\.css/);
-  assert.doesNotMatch(hourlyVolume, /RainHourlyVolumeContext\.css/);
   assert.doesNotMatch(`${page}\n${styles}`, /rain-v2-/);
 });
 
@@ -81,14 +81,16 @@ test("rain accumulation keeps measured and forecast values explicit", () => {
   assert.match(accumulation, /Cada valor pertence à estação indicada, não à cidade inteira/);
 });
 
-test("hourly rain volume stays separate from probability and uses direct copy", () => {
+test("hourly rain volume stays separate from probability and uses recovered hourly data", () => {
   assert.match(hourlyVolume, /Volume previsto/);
   assert.match(hourlyVolume, /Milímetros previstos em cada horário/);
   assert.match(hourlyVolume, /Total em 12 h/);
   assert.match(hourlyVolume, /Maior volume em 1 h/);
   assert.match(hourlyVolume, /Primeiro volume/);
   assert.match(hourlyVolume, /rain-hourly-volume-context__summary/);
-  assert.doesNotMatch(hourlyVolume, /Não é chuva já medida|Previsão em milímetros para as próximas 12 horas/);
+  assert.match(hourlyVolume, /hour\.precipitationMm \?\? null/);
+  assert.match(page, /hourly=\{weather\.hourly\}/);
+  assert.doesNotMatch(hourlyVolume, /MeteogramData/);
 });
 
 test("rain visual contract uses current retail composition", () => {
