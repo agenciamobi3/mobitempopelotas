@@ -1,0 +1,40 @@
+name: INMET Gmail push poll
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inmet-gmail-push-poll
+  cancel-in-progress: true
+
+jobs:
+  poll:
+    name: Poll connected Gmail for INMET forecast
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Process recent INMET forecast emails
+        env:
+          CRON_SECRET: ${{ secrets.TEMPO_PELOTAS_CRON_SECRET }}
+          CRON_URL: https://tempopelotas.com.br/api/cron/push-daily?task=inmet-gmail
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${CRON_SECRET:-}" ]]; then
+            echo "TEMPO_PELOTAS_CRON_SECRET não está configurado no repositório." >&2
+            exit 1
+          fi
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --max-time 90 \
+            --header "Authorization: Bearer $CRON_SECRET" \
+            --header "Accept: application/json" \
+            "$CRON_URL"
