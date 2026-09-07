@@ -46,13 +46,13 @@ export function SimagroModelProducts() {
       aria-labelledby="simagro-model-products-title"
     >
       <header>
-        <div>
-          <h2 id="simagro-model-products-title">Meteogramas WRF e GFS do SIMAGRO RS</h2>
-        </div>
-        <p>Gráficos oficiais de modelagem para Pelotas. Os valores principais da página continuam na previsão hora a hora acima.</p>
+        <h2 id="simagro-model-products-title">Meteogramas do SIMAGRO RS</h2>
+        <a href={SIMAGRO_URL} target="_blank" rel="noopener noreferrer">
+          Abrir SIMAGRO RS <ExternalLink aria-hidden="true" />
+        </a>
       </header>
 
-      <div className="simagro-model-products__tabs" aria-label="Escolha o produto do SIMAGRO RS">
+      <div className="simagro-model-products__tabs" aria-label="Produto do SIMAGRO RS">
         {PRODUCTS.map((product) => (
           <button
             key={product.id}
@@ -61,8 +61,7 @@ export function SimagroModelProducts() {
             aria-pressed={product.id === selected.id}
             onClick={() => setSelectedId(product.id)}
           >
-            <strong>{product.label}</strong>
-            <span>{product.title}</span>
+            {product.label}
           </button>
         ))}
       </div>
@@ -70,15 +69,12 @@ export function SimagroModelProducts() {
       <figure className="simagro-model-products__viewer">
         <div className="simagro-model-products__viewer-heading">
           <strong>{selected.title}</strong>
-          <a href={SIMAGRO_URL} target="_blank" rel="noopener noreferrer">
-            Abrir SIMAGRO RS <ExternalLink aria-hidden="true" />
-          </a>
         </div>
 
         {failed ? (
           <div className="simagro-model-products__unavailable" role="status">
             <strong>O gráfico não carregou.</strong>
-            <span>Consulte o produto diretamente no SIMAGRO RS.</span>
+            <span>Consulte o SIMAGRO RS.</span>
           </div>
         ) : (
           <img
@@ -95,9 +91,7 @@ export function SimagroModelProducts() {
           />
         )}
 
-        <figcaption>
-          Imagem oficial do SIMAGRO RS. Data, ciclo e legenda ficam no próprio gráfico.
-        </figcaption>
+        <figcaption>Imagem do SIMAGRO RS. Data e ciclo aparecem no gráfico.</figcaption>
       </figure>
     </section>
   );
