@@ -124,85 +124,76 @@ test("meteogram route keeps SEO and separate forecast loading without a duplicat
   assert.match(route, /createEditorialPageJsonLd/);
   assert.match(route, /about:\s*\[/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
+  assert.match(route, /A previsão detalhada não respondeu\. Mostrando os dados horários disponíveis/);
   assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|METEOGRAM_CONTENT|como-interpretar-meteograma/);
 });
 
-test("meteogram page provides coordinated controls and practical readings", () => {
-  assert.match(page, /Como o tempo pode mudar nas próximas horas/);
+test("meteogram page uses direct copy and keeps the useful 24/48-hour controls", () => {
+  assert.match(page, /Meteograma de Pelotas/);
+  assert.match(page, /Temperatura, chuva, nuvens, visibilidade, pressão e vento hora a hora/);
+  assert.match(page, /Previsão por hora/);
   assert.match(page, /24 horas/);
   assert.match(page, /48 horas/);
-  assert.match(page, /Maior chance de chuva/);
-  assert.match(page, /Maior rajada/);
-  assert.match(page, /Menor visibilidade/);
-  assert.match(page, /Maior possibilidade de tempestade/);
-  assert.match(page, /Horário escolhido/);
-  assert.match(page, /Temperatura, sensação e umidade do ar/);
-  assert.match(page, /Chance de chuva e umidade do ar/);
-  assert.match(page, /Chuva prevista por hora/);
-  assert.match(page, /Nuvens baixas, médias e altas/);
-  assert.match(page, /Visibilidade prevista/);
+  assert.match(page, /InternalPageChapters/);
+  assert.match(page, /Horário/);
+  assert.match(page, /Temperatura, sensação e ponto de orvalho/);
+  assert.match(page, /Chance de chuva e umidade/);
+  assert.match(page, /Volume de chuva por hora/);
+  assert.match(page, /Nuvens por camada/);
+  assert.match(page, /Visibilidade/);
   assert.match(page, /Vento e rajadas/);
-  assert.match(page, /Pressão ao nível do mar/);
-  assert.match(page, /Esse valor, sozinho, não confirma temporal/);
-  assert.match(page, /Esta página mostra previsão, não medição/);
+  assert.match(page, /title="Pressão"/);
+
+  assert.doesNotMatch(page, /Como o tempo pode mudar nas próximas horas/);
+  assert.doesNotMatch(page, /Escolha um horário/);
+  assert.doesNotMatch(page, /meteogram-quick-actions/);
+  assert.doesNotMatch(page, /meteogram-insights/);
+  assert.doesNotMatch(page, /Maior possibilidade de tempestade/);
+  assert.doesNotMatch(page, /Esta página mostra previsão, não medição/);
 });
 
-test("meteogram fog assessment does not fabricate humidity cloud or visibility defaults", () => {
-  assert.match(page, /function fogSupportDetail/);
-  assert.match(page, /const hasSupportingSignal =/);
-  assert.match(page, /Ponto de orvalho próximo, mas faltam dados complementares/);
-  assert.match(page, /Umidade, nuvens baixas e visibilidade não foram informadas para completar a avaliação/);
-  assert.doesNotMatch(page, /candidate\.visibilityKm \?\? 99/);
-  assert.doesNotMatch(page, /candidate\.cloudCoverLow \?\? 0/);
-  assert.doesNotMatch(page, /candidate\.relativeHumidity \?\? 0/);
+test("meteogram selected hour is compact without dropping missing-data semantics", () => {
+  assert.match(page, /selectedMetric\("Temperatura"/);
+  assert.match(page, /selectedMetric\("Chuva"/);
+  assert.match(page, /selectedMetric\("Umidade"/);
+  assert.match(page, /selectedMetric\("Vento"/);
+  assert.match(page, /selectedMetric\("Pressão"/);
+  assert.match(page, /selectedMetric\("Visibilidade"/);
+  assert.match(page, /selectedMetric\("Instabilidade"/);
+  assert.match(page, /Volume não informado/);
+  assert.match(page, /Ponto de orvalho não informado/);
+  assert.match(page, /Direção não informada/);
+  assert.match(page, /Camada próxima ao solo não informada/);
+  assert.doesNotMatch(page, /selectedMetric\("Nuvens baixas"/);
 });
 
-test("meteogram precipitation totals distinguish complete partial and unavailable hours", () => {
+test("meteogram precipitation volume preserves partial and unavailable states", () => {
   assert.match(page, /const availableHours = hours\.filter\(\(hour\) => hour\.precipitationMm !== null\)/);
   assert.match(page, /const complete = availableHours\.length === hours\.length/);
-  assert.match(page, /Volume não informado no período/);
+  assert.match(page, /Volume não informado/);
   assert.match(page, /em \$\{availableHours\.length\} de \$\{hours\.length\} horários/);
-  assert.match(page, /volume não informado/);
-  assert.match(page, /const precipitationHours = hours\.filter\(\(hour\) => hour\.precipitationMm !== null\)/);
-  assert.match(page, /const hasCompletePrecipitationWindow = precipitationHours\.length === hours\.length/);
-  assert.match(page, /Soma parcial:/);
   assert.doesNotMatch(page, /total \+ \(hour\.precipitationMm \?\? 0\)/);
-  assert.doesNotMatch(page, /Math\.max\(3, \(\(hour\.precipitationMm \?\? 0\)/);
 });
 
-test("meteogram zero rain and zero gust do not create fake peak actions", () => {
+test("meteogram zero rain and zero gust do not invent peak times", () => {
   assert.match(page, /function positiveMaximumHour/);
   assert.match(page, /const maximumRain = positiveMaximumHour/);
   assert.match(page, /const maximumGust = positiveMaximumHour/);
-  assert.match(page, /maximumRainValue === 0[\s\S]*Sem horário de destaque/);
-  assert.match(page, /maximumGustValue === 0[\s\S]*Sem horário de destaque/);
-  assert.match(page, /disabled=\{!maximumRain\}/);
-  assert.match(page, /Sem pico de chuva/);
-  assert.match(page, /disabled=\{!maximumGust\}/);
-  assert.match(page, /Sem rajada prevista/);
-  assert.match(page, /function formatGust/);
+  assert.match(page, /maximumRainValue === 0 \? "Sem pico"/);
+  assert.match(page, /maximumGustValue === 0 \? "Sem pico"/);
+  assert.doesNotMatch(page, /Sem pico de chuva|Início da previsão/);
 });
 
-test("meteogram selected hour labels missing detail instead of printing dash as published data", () => {
-  assert.match(page, /function selectedRainDetail/);
-  assert.match(page, /Volume horário não informado/);
-  assert.match(page, /function selectedWindDetail/);
-  assert.match(page, /Direção não informada/);
-  assert.match(page, /Rajada: \$\{formatGust\(hour\.windGust\)\}/);
-  assert.match(page, /function selectedCloudDetail/);
-  assert.match(page, /Cobertura total não informada/);
-  assert.match(page, /function selectedBoundaryLayerDetail/);
-  assert.match(page, /Altura da camada próxima ao solo não informada/);
-});
-
-test("meteogram keeps atmospheric forecast separate from observation and hydrology", () => {
-  assert.match(page, /As medições da[\s\S]*Embrapa aparecem separadamente/);
-  assert.match(page, /Valores futuros não são chuva já medida/);
-  assert.match(page, /A previsão pode mudar entre atualizações/);
+test("meteogram keeps forecast separate from real measurements with one concise note", () => {
+  assert.match(page, /Previsão: \{sourceLabel\(weather, meteogram\)\}/);
+  assert.match(page, /Medições reais ficam separadas no Tempo de hoje/);
+  assert.match(page, /Previsão detalhada indisponível; usando os dados horários disponíveis/);
+  assert.doesNotMatch(page, /A previsão pode mudar entre atualizações/);
+  assert.doesNotMatch(page, /Valores futuros não são chuva já medida/);
   assert.doesNotMatch(`${route}\n${page}`, /SACE|Guaíba|Lagoa dos Patos|nível da água/i);
 });
 
-test("meteogram visual refinement removes the old megacard chrome without flattening charts", () => {
+test("meteogram visual refinement removes the old megacard layers without flattening charts", () => {
   assert.match(styles, /internal-weather-shell--meteogram \.meteogram-hero/);
   assert.match(styles, /overflow-x: auto/);
   assert.match(styles, /min-width: 920px/);
@@ -210,27 +201,27 @@ test("meteogram visual refinement removes the old megacard chrome without flatte
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
 
-  assert.match(refinement, /\.meteogram-hero__content,[\s\S]*\.meteogram-hero__panel[\s\S]*box-shadow:\s*none/);
-  assert.match(refinement, /\.meteogram-page \.eyebrow/);
-  assert.match(refinement, /\.meteogram-chapters span/);
-  assert.match(refinement, /\.meteogram-overview,[\s\S]*\.meteogram-chart-card,[\s\S]*box-shadow:\s*none/);
-  assert.match(refinement, /\.meteogram-timeline button\.is-selected[\s\S]*background:\s*#f7f4ff/);
-  assert.match(refinement, /grid-auto-flow:\s*column/);
-  assert.match(refinement, /grid-template-columns:\s*none/);
+  assert.match(refinement, /\.internal-page-chapters[\s\S]*repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(refinement, /\.meteogram-overview[\s\S]*border:\s*0/);
+  assert.match(refinement, /\.meteogram-selected-grid[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(refinement, /\.meteogram-chart-card,[\s\S]*\.meteogram-volume[\s\S]*box-shadow:\s*none/);
+  assert.match(refinement, /\.meteogram-footer/);
+  assert.match(refinement, /\.meteogram-related[\s\S]*background:\s*transparent/);
   assert.doesNotMatch(refinement, /radial-gradient/);
 });
 
-test("meteogram SIMAGRO block stays complementary and uses direct copy", () => {
-  assert.match(simagro, /Meteogramas WRF e GFS do SIMAGRO RS/);
-  assert.match(simagro, /Gráficos oficiais de modelagem para Pelotas/);
-  assert.match(simagro, /Imagem oficial do SIMAGRO RS/);
+test("meteogram SIMAGRO block stays complementary and direct", () => {
+  assert.match(simagro, /Meteogramas do SIMAGRO RS/);
   assert.match(simagro, /Abrir SIMAGRO RS/);
-  assert.doesNotMatch(simagro, /Modelagem complementar|Produto selecionado|O Tempo Pelotas não usa OCR|comparação e contexto/);
-  assert.match(simagroStyles, /box-shadow:\s*none/);
+  assert.match(simagro, /Imagem do SIMAGRO RS\. Data e ciclo aparecem no gráfico/);
+  assert.doesNotMatch(simagro, /Gráficos oficiais de modelagem para Pelotas|Os valores principais da página continuam/);
+  assert.doesNotMatch(simagro, /<span>\{product\.title\}<\/span>/);
+  assert.match(simagroStyles, /border-top:/);
+  assert.match(simagroStyles, /display:\s*flex/);
   assert.doesNotMatch(simagroStyles, /radial-gradient/);
 });
 
-test("meteogram hero keeps controlled technical color while the refinement owns the final surface", () => {
+test("meteogram hero keeps controlled technical color while refinement owns the final surface", () => {
   assert.match(homeContract, /acento técnico controlado/i);
   assert.match(homeContract, /\.meteogram-hero__panel/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
