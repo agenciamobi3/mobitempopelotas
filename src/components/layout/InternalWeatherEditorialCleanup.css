@@ -18,3 +18,39 @@
 .internal-weather-shell--embrapa .embrapa-v2-chapters {
   display: none !important;
 }
+
+/*
+ * 15 dias: as três grandes áreas viram capítulos editoriais abertos. Os cards
+ * diários continuam existindo porque ajudam a comparar datas lado a lado.
+ */
+.internal-weather-shell--fifteen-day .fifteen-day-page {
+  gap: 0 !important;
+}
+
+.internal-weather-shell--fifteen-day :is(
+    .fifteen-day__forecast,
+    .fifteen-day__trend,
+    .fifteen-day__risks
+  ) {
+  padding: clamp(2.6rem, 5vw, 4rem) 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgb(7 30 47 / 10%) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.internal-weather-shell--fifteen-day .fifteen-day__section-header {
+  padding-bottom: 1.1rem !important;
+}
+
+@media (max-width: 560px) {
+  .internal-weather-shell--fifteen-day :is(
+      .fifteen-day__forecast,
+      .fifteen-day__trend,
+      .fifteen-day__risks
+    ) {
+    padding: 2rem 0 !important;
+    border-radius: 0 !important;
+  }
+}
