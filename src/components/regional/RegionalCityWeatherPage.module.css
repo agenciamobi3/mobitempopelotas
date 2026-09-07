@@ -17,25 +17,22 @@
 .context,
 .related,
 .sources {
-  border: 1px solid rgb(7 30 47 / 9%);
-  border-radius: clamp(20px, 1.8vw, 26px);
-  background: rgb(255 255 255 / 96%);
-  box-shadow: 0 13px 34px rgb(7 30 47 / 4.5%);
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .context {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(340px, 0.62fr);
   gap: clamp(28px, 5vw, 76px);
-  background:
-    radial-gradient(circle at 94% 8%, rgb(94 44 237 / 7%), transparent 28rem),
-    radial-gradient(circle at 5% 100%, rgb(24 189 205 / 6%), transparent 24rem),
-    rgb(255 255 255 / 96%);
 }
 
 .context > div:first-child {
-  padding-left: clamp(14px, 1.5vw, 22px);
-  border-left: 3px solid #f27035;
+  padding-left: 0;
+  border-left: 0;
 }
 
 .context h2,
@@ -43,10 +40,10 @@
   max-width: 920px;
   margin: 7px 0 0;
   color: #071e2f;
-  font-size: clamp(2.35rem, 4vw, 4.65rem);
-  font-weight: 800;
-  line-height: 0.97;
-  letter-spacing: -0.062em;
+  font-size: clamp(2.2rem, 3.8vw, 4.2rem);
+  font-weight: 760;
+  line-height: 0.98;
+  letter-spacing: -0.058em;
   text-wrap: balance;
 }
 
@@ -59,34 +56,39 @@
 .context ul {
   display: grid;
   align-content: center;
-  gap: 12px;
+  gap: 0;
   margin: 0;
   padding: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
   list-style: none;
 }
 
 .context li {
   position: relative;
-  padding: 16px 18px 16px 42px;
-  border: 1px solid rgb(7 30 47 / 7%);
-  border-radius: 14px;
-  background: rgb(255 255 255 / 74%);
+  padding: 14px 0 14px 24px;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
   color: #405e6d;
-  font-size: 0.75rem;
-  line-height: 1.5;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
+.context li:last-child {
+  border-bottom: 0;
 }
 
 .context li::before {
   position: absolute;
-  top: 50%;
-  left: 18px;
-  width: 8px;
-  height: 8px;
+  top: 1.2rem;
+  left: 0;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: #18bdcd;
-  box-shadow: 0 0 0 5px rgb(24 189 205 / 10%);
   content: "";
-  transform: translateY(-50%);
 }
 
 .related > header {
@@ -98,8 +100,8 @@
 }
 
 .related > header > div:first-child {
-  padding-left: clamp(14px, 1.5vw, 22px);
-  border-left: 3px solid #e70b85;
+  padding-left: 0;
+  border-left: 0;
 }
 
 .related > header > a {
@@ -120,9 +122,9 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   overflow: hidden;
-  border: 1px solid rgb(7 30 47 / 9%);
-  border-radius: 18px;
-  background: #fff;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+  background: transparent;
 }
 
 .related > div > a {
@@ -133,10 +135,8 @@
   gap: 7px;
   padding: 22px;
   border-right: 1px solid rgb(7 30 47 / 7%);
-  background: #fff;
-  transition:
-    background-color 160ms ease,
-    transform 160ms ease;
+  background: transparent;
+  transition: background-color 160ms ease;
 }
 
 .related > div > a:last-child {
@@ -146,8 +146,8 @@
 .related > div > a:hover,
 .related > div > a:focus-visible {
   z-index: 1;
-  background: rgb(94 44 237 / 4.5%);
-  transform: translateY(-2px);
+  background: rgb(24 189 205 / 4%);
+  outline: none;
 }
 
 .related > div span {
@@ -166,14 +166,14 @@
   right: 18px;
   bottom: 18px;
   width: 16px;
-  color: #5e2ced;
+  color: #087f91;
 }
 
 .sources {
   display: flex;
   align-items: center;
   gap: 18px;
-  background: rgb(255 255 255 / 72%);
+  border-bottom: 0;
 }
 
 .sources span {
@@ -230,7 +230,7 @@
   .related > div > a,
   .related > div > a:nth-child(3),
   .related > div > a:nth-child(n + 4) {
-    min-height: 118px;
+    min-height: 110px;
     border-top: 0;
     border-right: 0;
     border-bottom: 1px solid rgb(7 30 47 / 9%);
