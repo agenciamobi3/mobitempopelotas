@@ -104,7 +104,7 @@ test("city pages query real coordinate forecasts and municipal INMET alerts", ()
   assert.match(page, /hasVerifiedRegionalAlertSemantics/);
 });
 
-test("regional first fold follows the wind page split composition", () => {
+test("regional first fold keeps the shared data contract with a local visual override", () => {
   assert.match(page, /<RegionalCityHero data=\{data\}/);
   assert.match(hero, /<WeatherSplitHero/);
   assert.match(hero, /title={`Tempo em \$\{city\.name\} hoje`}/);
@@ -124,11 +124,11 @@ test("regional first fold follows the wind page split composition", () => {
   assert.match(heroStyles, /\.regional-city-split-hero/);
 });
 
-test("regional pages reuse approved alert, chapter and forecast structures", () => {
+test("regional pages reuse alert and forecast structures without hidden chapter markup", () => {
   assert.match(page, /home-inmet-alerts/);
-  assert.match(page, /<InternalPageChapters/);
   assert.match(page, /<HomeForecastStory/);
   assert.match(page, /internal-forecast-widget regional-city-shared-forecast/);
+  assert.doesNotMatch(page, /InternalPageChapters|regionalSections|pageSections/);
   assert.match(sharedForecast, /context\?: "home" \| "today-page" \| "regional-page"/);
   assert.match(sharedForecast, /locationName\?: string/);
   assert.match(adapter, /precipitationMm: hour\.precipitationMm/);
@@ -136,7 +136,7 @@ test("regional pages reuse approved alert, chapter and forecast structures", () 
   assert.doesNotMatch(page, /RegionalCityHourlySection/);
 });
 
-test("regional pages defer lower sections and keep anchor navigation aligned", () => {
+test("regional pages defer lower sections and keep anchors aligned", () => {
   assert.match(page, /import "\.\/RegionalCityPerformance\.css"/);
   assert.match(page, /regional-city-page/);
   assert.match(performanceStyles, /content-visibility:\s*auto/);
