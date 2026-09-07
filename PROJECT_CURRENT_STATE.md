@@ -37,7 +37,7 @@ Regras permanentes:
 | MET Norway | Contingência compartilhada quando aplicável |
 | Embrapa | Observação local centralizada; snapshot central vale no máximo 75 s e amostra com mais de 30 min nunca é publicada como `Agora` |
 | INMET | Avisos/produtos oficiais conforme o contrato de cada integração; pipeline Gmail → previsão estruturada → Web Push preparado e fail-closed por `INMET_GMAIL_PUSH_ENABLED`, com `inmet-gmail-check` protegido para validar o connector sem entrega |
-| Radar / satélite / STSC | Probes independentes e copy pública sanitizada |
+| Radar / satélite / STSC | `/radar-e-satelite-pelotas` mostra coletas reais com horário da própria fonte, usa janelas públicas compactas de 4 imagens e 6 leituras STSC e faz uma única recuperação pós-hidratação quando o SSR de 2,8 s entrega fallback; a copy separa observação, previsão e aviso oficial |
 | Hidrologia | Laranjal usa seleção local explícita: LabHidroSens/UFPel quando atualizado, CIEX/FURG (`sensor_7`) quando o Lab atrasa/falha e last-known do próprio Lab se ambas as consultas correntes falharem; Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
 | Localidades da Lagoa | Hub `/nivel-da-lagoa-dos-patos` + páginas verificadas de Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
 | ANA / SNIRH / RHN | `87955001` permanece readiness/cross-check atual; série histórica `87955000` foi recuperada em bruto e consistido para pesquisa, sem terceira ingestão de runtime |
@@ -64,6 +64,7 @@ Budgets atuais:
 - loaders meteorológicos secundários: 2,5 s por dependência;
 - loaders hidrológicos dedicados: 2,5 s por dependência;
 - Radar: 2,8 s;
+- no radar, 2,8 s é o teto do documento inicial; se a composição REDEMET não terminar nesse prazo, o navegador faz uma única recuperação pós-hidratação sem apagar coletas já recebidas;
 - previsão de 15 dias: 2,8 s.
 
 O shell-first existe para manter o documento navegável. Ele não pode significar entregar objeto indisponível e nunca recuperar o dado real.
