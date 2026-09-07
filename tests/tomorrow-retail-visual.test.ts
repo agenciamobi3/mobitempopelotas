@@ -19,9 +19,10 @@ test("tomorrow route uses the shared shell with a dedicated retail hero", () => 
   assert.match(route, /TomorrowForecastPageV3/);
   assert.match(route, /pageClassName="internal-weather-shell--tomorrow"/);
   assert.match(route, /hero=\{\(\{ weather: productionWeather, advisoryLevel, officialAlertCount \}\)/);
-  assert.match(route, /Veja o tempo amanhã em Pelotas/);
+  assert.match(route, /Veja a previsão do tempo para amanhã em Pelotas/);
   assert.doesNotMatch(route, /TomorrowForecastPageV2/);
   assert.doesNotMatch(route, /showOfficialAlerts=\{false\}/);
+  assert.doesNotMatch(route, /EditorialContentSection|como-interpretar-amanha/);
 });
 
 test("tomorrow hero uses a useful search-oriented headline and concise metrics", () => {
@@ -30,18 +31,18 @@ test("tomorrow hero uses a useful search-oriented headline and concise metrics",
   assert.match(hero, /getRetailWeatherPhoto/);
   assert.match(hero, /Tempo amanhã em Pelotas/);
   assert.match(hero, /temperatura, chuva e vento/);
-  assert.doesNotMatch(hero, /organizado para você planejar/);
-  assert.match(hero, /Mínima prevista/);
+  assert.match(hero, /label: "Mínima"/);
   assert.match(hero, /Chance de chuva/);
-  assert.match(hero, /Rajada máxima/);
-  assert.match(hero, /metric\.detail \? <em>\{metric\.detail\}<\/em> : null/);
+  assert.match(hero, /label: "Rajadas"/);
   assert.match(hero, /Volume de chuva/);
   assert.match(hero, /Fonte da previsão/);
+  assert.match(hero, /Ver detalhes de amanhã/);
+  assert.match(hero, /Sem aviso oficial para Pelotas/);
   assert.match(hero, /today-retail-hero__current-photo/);
   assert.match(hero, /today-retail-hero__photo-credit/);
   assert.match(hero, /<h1/);
-  assert.doesNotMatch(hero, /menor temperatura/);
-  assert.doesNotMatch(hero, /maior chance prevista/);
+  assert.doesNotMatch(hero, /organizado para você planejar|o que pode mudar sua rotina/);
+  assert.doesNotMatch(hero, /fontes meteorológicas do portal/);
   assert.doesNotMatch(hero, /weather\.current\.temperature/);
 });
 
@@ -59,38 +60,42 @@ test("retail photography is shared without breaking the today export", () => {
   assert.match(photoMap, /Heavy_Rain/);
 });
 
-test("tomorrow content answers planning questions in direct language", () => {
+test("tomorrow content uses direct language without generic section tags", () => {
   assert.match(page, /weather\.daily\[1\]/);
   assert.match(page, /InternalPageChapters/);
-  assert.match(page, /Amanhã em resumo/);
-  assert.match(page, /Compare com hoje/);
-  assert.match(page, /Como o tempo de amanhã deve mudar em relação a hoje/);
-  assert.match(page, /Como se preparar para o tempo de amanhã/);
-  assert.match(page, /Hoje à noite e amanhã cedo/);
-  assert.match(page, /O que INMET e CPPMet\/UFPel publicam para amanhã/);
-  assert.match(page, /Dúvidas sobre o tempo de amanhã em Pelotas/);
+  assert.match(page, /Hoje x amanhã/);
+  assert.match(page, /O que observar amanhã/);
+  assert.match(page, /INMET e UFPel para amanhã/);
+  assert.match(page, /Perguntas sobre amanhã/);
+  assert.match(page, /Confira amanhã cedo/);
   assert.match(page, /dayWeatherSummary/);
   assert.match(page, /formatPercentDelta/);
-  assert.match(page, /Confira antes de sair/);
-  assert.match(page, /Outras previsões disponíveis/);
-  assert.doesNotMatch(page, /p\.p\./);
-  assert.doesNotMatch(page, /Transforme a previsão em decisões simples/);
-  assert.doesNotMatch(page, /novas rodadas/);
-  assert.doesNotMatch(page, /contexto complementar/);
-  assert.doesNotMatch(page, /não publicaram contexto/);
+  assert.match(page, /Previsão de 15 dias/);
+
+  assert.doesNotMatch(page, /Amanhã em resumo/);
+  assert.doesNotMatch(page, /Hoje e amanhã/);
+  assert.doesNotMatch(page, /Para organizar o próximo dia/);
+  assert.doesNotMatch(page, /Outras previsões disponíveis/);
+  assert.doesNotMatch(page, /Respostas rápidas/);
+  assert.doesNotMatch(page, /Como o tempo de amanhã deve mudar em relação a hoje/);
+  assert.doesNotMatch(page, /Como se preparar para o tempo de amanhã/);
+  assert.doesNotMatch(page, /O que INMET e CPPMet\/UFPel publicam para amanhã/);
+  assert.doesNotMatch(page, /Dúvidas sobre o tempo de amanhã em Pelotas/);
+  assert.doesNotMatch(page, /As respostas usam os dados disponíveis para amanhã/);
+  assert.doesNotMatch(page, /Transforme a previsão em decisões simples|contexto complementar|novas rodadas/);
 });
 
 test("tomorrow zero states do not invent gusts or erase positive rain volume", () => {
   assert.match(page, /function gustPhrase/);
-  assert.match(page, /if \(value <= 0\) return "sem rajada prevista"/);
+  assert.match(page, /if \(value <= 0\) return "sem rajadas previstas"/);
   assert.match(page, /function gustTitle/);
   assert.match(page, /if \(value <= 0\) return "Sem rajadas"/);
   assert.match(page, /function formatWindDelta/);
   assert.match(page, /if \(value === 0\) return "Sem mudança"/);
   assert.match(page, /day\.precipitationMm > 0/);
-  assert.match(page, /com \$\{day\.precipitationMm\} mm previstos neste momento/);
-  assert.match(page, /Não há rajada positiva prevista para amanhã nesta atualização/);
+  assert.match(page, /\$\{day\.rainChance\}% de chance e \$\{day\.precipitationMm\} mm previstos/);
   assert.match(page, /tomorrow\.windGust <= 0/);
+  assert.match(page, /Sem rajadas previstas\./);
 });
 
 test("tomorrow content matches official sources by stable ISO date", () => {
@@ -108,7 +113,9 @@ test("tomorrow content remains comparative and source-aware", () => {
   assert.match(page, /CPPMet \/ UFPel/);
   assert.match(page, /INMET · \{period\.period\}/);
   assert.match(page, /FAQPage/);
-  assert.match(page, /Nenhum valor foi estimado manualmente/);
+  assert.match(page, /Ainda não há previsão detalhada para amanhã/);
+  assert.match(page, /Fonte principal:/);
+  assert.doesNotMatch(page, /Nenhum valor foi estimado manualmente/);
   assert.doesNotMatch(page, /<h1/);
   assert.doesNotMatch(page, /daily-hero/);
   assert.doesNotMatch(page, /daily-condition-card/);
