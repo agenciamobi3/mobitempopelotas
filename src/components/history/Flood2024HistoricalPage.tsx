@@ -25,7 +25,15 @@ import "./Flood2024HistoricalPage.css";
 import "./FloodHistoricalVisualSystem.css";
 
 const HERO_FACT_ICONS = [Ruler, Clock, Building2] as const;
-const TIMELINE_ICONS = [CloudRain, Waves, Waves, MapPin, ShieldCheck, CalendarDays, Building2] as const;
+const TIMELINE_ICON_BY_STAGE = {
+  "centro-norte": CloudRain,
+  rios: Waves,
+  guaiba: Waves,
+  lagoa: Waves,
+  pelotas: MapPin,
+  estuario: Wind,
+  retorno: Building2,
+} as const;
 
 const PAGE_INDEX_ITEMS = [
   { href: "#como-a-agua-chegou", label: "Como a água chegou", icon: Waves },
@@ -41,17 +49,17 @@ export function Flood2024Hero() {
     {
       label: "Canal São Gonçalo",
       value: "3,04 m",
-      detail: "máximo registrado pela régua usada na emergência",
+      detail: "maior valor registrado pela régua usada na emergência",
     },
     {
       label: "Sala de Situação",
       value: "28 dias",
-      detail: "de operação coletiva durante a fase crítica",
+      detail: "de operação coletiva durante a fase mais crítica",
     },
     {
       label: "UBS Laranjal",
       value: "54 dias",
-      detail: "até a reabertura após a inundação",
+      detail: "entre o fechamento pela inundação e a reabertura",
     },
   ] as const;
 
@@ -141,8 +149,7 @@ export function Flood2024HistoricalPage() {
           </p>
           <p>
             Em Pelotas, a Lagoa já alta se combinou com chuva local, água do Canal São Gonçalo e da
-            Lagoa Mirim, direção dos ventos, maré e condições de saída da água pelo estuário de Rio
-            Grande.
+            Lagoa Mirim, direção dos ventos, maré e condições de saída da água por Rio Grande.
           </p>
           <p>
             O resultado foi uma inundação prolongada em áreas baixas, incluindo Laranjal, Colônia Z3,
@@ -176,8 +183,8 @@ export function Flood2024HistoricalPage() {
         </header>
 
         <div className="tp-flood-timeline__list">
-          {FLOOD_2024_TIMELINE.map((item, index) => {
-            const TimelineIcon = TIMELINE_ICONS[index] ?? CalendarDays;
+          {FLOOD_2024_TIMELINE.map((item) => {
+            const TimelineIcon = TIMELINE_ICON_BY_STAGE[item.stage];
             return (
               <section className={`tp-flood-event is-${item.stage}`} key={`${item.date}-${item.title}`}>
                 <div className="tp-flood-event__date">
@@ -215,8 +222,8 @@ export function Flood2024HistoricalPage() {
             chegar ao município.
           </p>
           <p>
-            A Lagoa dos Patos precisou receber esse grande volume e transportá-lo em direção ao
-            estuário de Rio Grande, principal caminho de saída para o Oceano Atlântico.
+            A Lagoa dos Patos precisou receber esse grande volume e levá-lo em direção a Rio Grande,
+            principal caminho de saída para o Oceano Atlântico.
           </p>
           <p>
             Esse processo é lento. A Lagoa é extensa, a região é muito plana e, em alguns momentos,
@@ -304,14 +311,14 @@ export function Flood2024HistoricalPage() {
               </span>
               <span>18 a 22 de outubro de 2015</span>
               <small>Evento histórico</small>
-              <strong>Chuva + bacias regionais + vento</strong>
+              <strong>Chuva + água regional + vento</strong>
             </div>
             <div className="tp-flood-event__body">
               <h3>Chuva muito acima da média e níveis altos na Lagoa e no Canal</h3>
               <p>
                 Até 20 de outubro, a Estação da Embrapa havia registrado 299 mm de chuva no mês,
                 diante de uma média de 101 mm citada pela Prefeitura. O Município também apontou água
-                chegando ao Canal São Gonçalo e à Lagoa dos Patos por diferentes bacias.
+                chegando ao Canal São Gonçalo e à Lagoa dos Patos por diferentes caminhos.
               </p>
               <p>
                 O balanço municipal posterior situou o período mais crítico entre 18 e 19 de outubro,

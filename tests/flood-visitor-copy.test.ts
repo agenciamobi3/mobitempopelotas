@@ -7,6 +7,9 @@ const page1941 = readFileSync("src/components/history/Flood1941HistoricalPage.ts
 const page2001 = readFileSync("src/components/history/Flood2001HistoricalPage.tsx", "utf8");
 const page2015 = readFileSync("src/components/history/Flood2015HistoricalPage.tsx", "utf8");
 const page2024 = readFileSync("src/components/history/Flood2024HistoricalPage.tsx", "utf8");
+const content2001 = readFileSync("src/lib/content/flood-2001-pelotas.ts", "utf8");
+const content2015 = readFileSync("src/lib/content/flood-2015-pelotas.ts", "utf8");
+const content2024 = readFileSync("src/lib/content/flood-2024-pelotas.ts", "utf8");
 const sharedVisuals = readFileSync("src/components/history/FloodHistoricalVisualSystem.css", "utf8");
 const indexPage = readFileSync("src/components/history/FloodHistoryIndexPage.tsx", "utf8");
 const agents = readFileSync("AGENTS.md", "utf8");
@@ -48,11 +51,25 @@ test("2001, 2015 and 2024 share the visual language introduced on 1941", () => {
     assert.match(page, /tp-flood-visual-event-icon/);
   }
 
+  assert.match(page2015, /TIMELINE_ICON_BY_STAGE/);
+  assert.match(page2024, /TIMELINE_ICON_BY_STAGE/);
   assert.match(sharedVisuals, /internal-weather-shell--flood-2001/);
   assert.match(sharedVisuals, /internal-weather-shell--flood-2015/);
   assert.match(sharedVisuals, /internal-weather-shell--flood-2024/);
   assert.match(sharedVisuals, /width:\s*100vw/);
   assert.doesNotMatch(sharedVisuals, /!important/);
+});
+
+test("second copy pass removes research-language labels from the public timelines", () => {
+  assert.doesNotMatch(content2001, /retroprojetado|RN ou datum|metadados da régua|detalhem operacionalmente/i);
+  assert.doesNotMatch(content2015, /Prelúdio documentado|Corroboração contemporânea|Níveis restatados|Recuo irregular/i);
+  assert.doesNotMatch(content2024, /configuração atmosférica persistente|cenário hidrológico sem precedentes|efeito de empilhamento|mananciais estavam altos/i);
+
+  assert.match(content2001, /Ainda falta um documento que diga se as estações 87955000 e 87955001/);
+  assert.match(content2015, /Boletim das 11h foi localizado, mas o texto completo não/);
+  assert.match(content2024, /A água baixava devagar/);
+  assert.match(page2015, /só registro encontrado/);
+  assert.match(page2001, /versão revisada, chamada de <strong>consistida<\/strong> no arquivo/);
 });
 
 test("visitor guide still documents the 2001 discrepancy as reusable historical copy", () => {

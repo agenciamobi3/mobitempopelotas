@@ -109,13 +109,13 @@ export function Flood2001HistoricalPage() {
           </p>
           <p>
             Duas semanas depois, a Prefeitura de Pelotas confirmou danos causados pelos fortes ventos
-            e pela invasão das águas do Canal São Gonçalo e da Lagoa dos Patos. Equipes ainda
+            e pela entrada das águas do Canal São Gonçalo e da Lagoa dos Patos. Equipes ainda
             trabalhavam na recuperação de acessos, drenagem e limpeza do balneário.
           </p>
           <p>
             Os documentos também preservam medições do nível da água no Laranjal. Como os arquivos
-            mostram dois valores para o mesmo dia, essa diferença é apresentada separadamente na
-            próxima seção, sem escolher um deles como se o outro não existisse.
+            mostram dois valores para o mesmo dia, essa diferença aparece na próxima seção, sem
+            esconder nenhuma das versões.
           </p>
         </div>
 
@@ -125,8 +125,7 @@ export function Flood2001HistoricalPage() {
           </strong>
           <p>
             As fontes não mostram que toda Pelotas, o Laranjal e a Z3 tiveram a mesma altura de água.
-            Os níveis medidos na régua do Laranjal são uma referência daquele ponto e são tratados
-            separadamente abaixo.
+            Os níveis da régua do Laranjal valem para aquele ponto de medição.
           </p>
         </div>
       </section>
@@ -141,46 +140,42 @@ export function Flood2001HistoricalPage() {
         </div>
         <div>
           <p>
-            Os arquivos da estação Laranjal 87955000 guardam duas versões da medição de 8 de outubro
-            de 2001. A versão bruta, que preserva os registros antes da revisão da série, tem leituras
-            de <strong>300 cm às 07h</strong> e <strong>280 cm às 17h</strong>, com média diária de
-            <strong> 290 cm</strong>.
+            A estação Laranjal 87955000 guarda duas versões da medição de 8 de outubro de 2001. Na
+            série bruta, antes da revisão, aparecem <strong>300 cm às 07h</strong> e
+            <strong> 280 cm às 17h</strong>, com média diária de <strong>290 cm</strong>.
           </p>
           <p>
-            A versão consistida, revisada posteriormente, registra <strong>190 cm</strong> para o mesmo
-            dia e marca esse valor como <strong>estimado</strong>. Por isso, 2,90 m e 1,90 m não são
-            duas réguas diferentes nem um erro do site. São duas versões preservadas da mesma série
-            histórica, e o Tempo Pelotas mostra as duas.
+            A versão revisada, chamada de <strong>consistida</strong> no arquivo, registra
+            <strong> 190 cm</strong> para o mesmo dia e marca o valor como <strong>estimado</strong>.
+            Por isso, 2,90 m e 1,90 m não são duas réguas diferentes nem um erro do site. São duas
+            versões preservadas da mesma série histórica.
           </p>
           <p>
-            O histórico da estação informa que os dados fluviométricos foram alterados em
-            <strong> 29/06/2018</strong> durante um trabalho de análise e consistência de dados da ANA.
-            Esse registro ajuda a entender por que existe uma revisão, mas não explica sozinho por que
-            o valor de 8 de outubro mudou exatamente 100 cm. Por isso, a página não inventa uma causa
-            para essa diferença.
+            Em 2018, o histórico da estação registra que os dados foram revisados em um trabalho da
+            ANA. Isso confirma que houve revisão, mas não explica por que o valor de 8 de outubro mudou
+            exatamente 100 cm. A página não inventa uma causa para essa diferença.
           </p>
           <p>
-            Um relatório municipal de 2013, baseado em dados da ANA disponíveis à época, registra
-            2,90 m em 08/10/2001. Com os arquivos Hidro atuais, esse valor pode ser identificado como
-            compatível com a <strong>série bruta</strong>, enquanto a série consistida preserva
-            <strong> 1,90 m como estimado</strong>.
+            Um relatório municipal de 2013, baseado nos dados da ANA disponíveis naquela época,
+            registra 2,90 m em 08/10/2001. Os arquivos Hidro atuais mostram que esse valor corresponde
+            à série bruta, enquanto a série revisada guarda 1,90 m como estimado.
           </p>
           <p>
-            O histórico cadastral também mudou ao longo dos anos. Em 2017, o zero da régua passou a
-            aparecer com altitude de <strong>-0,02 m</strong>, e em 2018 houve substituição e
-            renumeração de lances da régua. Sem um documento que prove que essa referência vale para
-            2001, o portal não usa o valor de 2017 para transformar os níveis antigos em altitude.
+            O cadastro da estação também mudou depois de 2001. Em 2017 aparece uma nova referência
+            para o zero da régua, e em 2018 houve troca de trechos da régua. Sem um documento ligando
+            essas mudanças à medição de 2001, o portal não usa referências mais novas para recalcular
+            o nível antigo.
           </p>
           <p>
-            Hoje também existem dois códigos relacionados ao Laranjal. A estação histórica
-            <strong> 87955000</strong> deixou de ser classificada como telemétrica em 2026, enquanto a
-            <strong> 87955001</strong> foi cadastrada como LARANJAL TELEMÉTRICA. Isso mostra que elas
-            têm papéis diferentes, mas não prova que usam exatamente a mesma referência vertical.
+            Em 2026, a estação histórica <strong>87955000</strong> deixou de ser marcada como
+            telemétrica, enquanto a <strong>87955001</strong> foi cadastrada como LARANJAL
+            TELEMÉTRICA. Isso indica papéis diferentes, mas não prova que as duas usem exatamente a
+            mesma referência de nível.
           </p>
           <blockquote>
             Em 08/10/2001, a estação 87955000 preserva 2,90 m na série bruta e 1,90 m na série
-            consistida, marcada como estimada. São níveis de uma régua naquele ponto, não a altura da
-            água em todas as ruas do Laranjal.
+            revisada e estimada. São níveis daquela régua, não a altura da água em todas as ruas do
+            Laranjal.
           </blockquote>
         </div>
       </section>
@@ -195,24 +190,21 @@ export function Flood2001HistoricalPage() {
         </div>
         <div>
           <p>
-            Um estudo da Faculdade de Meteorologia da UFPel analisou especificamente a inundação da
-            costa oeste da Lagoa dos Patos em 8 de outubro de 2001 usando dados de vento e pressão dos
-            dias anteriores ao evento.
+            Um estudo da Faculdade de Meteorologia da UFPel analisou a inundação da costa oeste da
+            Lagoa dos Patos em 8 de outubro de 2001 usando dados de vento e pressão dos dias anteriores.
           </p>
           <p>
-            O estudo encontrou uma combinação de sistemas atmosféricos que reforçou os ventos de leste
-            e nordeste sobre a região. Esses ventos ficaram mais fortes nos dias que antecederam o
-            episódio extremo.
+            O estudo encontrou uma combinação de sistemas que reforçou os ventos de leste e nordeste
+            sobre a região nos dias anteriores ao temporal.
           </p>
           <p>
-            Segundo os pesquisadores, o vento pode ter dificultado a saída da água da Lagoa dos Patos
-            para o Oceano Atlântico e, ao mesmo tempo, empurrado água em direção à costa oeste. Esse
-            mecanismo ajuda a explicar o avanço das águas no Laranjal, mas não muda a referência usada
-            pela régua histórica.
+            Segundo os pesquisadores, esses ventos podem ter dificultado a saída da água da Lagoa para
+            o Oceano Atlântico e, ao mesmo tempo, empurrado água em direção à costa oeste. Isso ajuda a
+            explicar o avanço no Laranjal.
           </p>
           <blockquote>
-            O estudo ajuda a explicar como o episódio aconteceu. Os números registrados durante a
-            enchente continuam atribuídos às fontes que os publicaram na época.
+            O estudo ajuda a explicar como o episódio aconteceu. Os números da enchente continuam
+            atribuídos às fontes que os publicaram na época.
           </blockquote>
         </div>
       </section>
@@ -225,8 +217,8 @@ export function Flood2001HistoricalPage() {
           </span>
           <h2 id="tp-flood-2001-timeline-title">Do temporal à recuperação do Laranjal</h2>
           <p>
-            Nem todos os dias têm registros preservados. Por isso, a linha do tempo mostra apenas as
-            datas que aparecem nas fontes já encontradas.
+            Nem todos os dias têm registros preservados. A linha do tempo mostra apenas as datas que
+            aparecem nas fontes já encontradas.
           </p>
         </header>
 
@@ -267,28 +259,26 @@ export function Flood2001HistoricalPage() {
         <div>
           <p>
             A expressão “ciclone extratropical” aparece na reportagem da Folha de S.Paulo publicada
-            no dia seguinte, que atribui essa classificação a meteorologistas. A Prefeitura, em seu
-            comunicado de 22 de outubro, fala em fortes ventos, vendavais e invasão das águas.
+            no dia seguinte, que atribui esse nome a meteorologistas. A Prefeitura, em seu comunicado
+            de 22 de outubro, fala em fortes ventos, vendavais e entrada das águas.
           </p>
           <p>
             Em 2002, ao lembrar o evento do ano anterior, a Prefeitura usa a palavra “nordestão”,
-            expressão local para o vento nordeste forte. Ela ajuda a registrar como pescadores e
-            moradores descreviam o vento, mas não substitui a classificação meteorológica do sistema.
+            expressão local para o vento nordeste forte. Ela preserva a forma como pescadores e
+            moradores descreviam o vento, mas não substitui o nome meteorológico usado pela Folha.
           </p>
           <p>
-            Os arquivos da estação 87955000 acrescentam as medições do Laranjal. A versão bruta
-            preserva 2,90 m em 08/10/2001; a versão consistida preserva 1,90 m e marca esse valor como
-            estimado. As duas permanecem visíveis porque fazem parte da história do dado.
+            Os arquivos da estação 87955000 acrescentam as medições do Laranjal. A série bruta guarda
+            2,90 m em 08/10/2001; a série revisada guarda 1,90 m e marca esse valor como estimado.
           </p>
           <p>
             O estudo da UFPel foi feito depois do evento e ajuda a explicar o papel dos ventos e da
-            Lagoa. Ele não é tratado como um boletim emitido durante a emergência e não substitui os
-            registros publicados em 2001.
+            Lagoa. Ele não substitui os registros publicados durante a enchente.
           </p>
           <p>
-            Um texto náutico publicado em 2005 também descreve, de forma geral, como o vento Nordeste
-            pode elevar o nível da água na parte sul da Lagoa dos Patos. Ele ajuda a entender o
-            mecanismo, mas não é usado como prova direta do que aconteceu em 8 de outubro de 2001.
+            Um texto náutico publicado em 2005 também explica, de forma geral, como o vento nordeste
+            pode alterar os níveis da Lagoa dos Patos. Ele ajuda no contexto, mas não é prova direta do
+            que aconteceu em 8 de outubro de 2001.
           </p>
           <blockquote>
             Quando duas fontes dizem coisas diferentes, a página mostra a diferença e identifica de
@@ -328,14 +318,17 @@ export function Flood2001HistoricalPage() {
         </div>
         <div>
           <p>
-            Os arquivos bruto e consistido da ANA já foram recuperados. Ainda falta um documento que
-            explique especificamente a mudança de 2,90 m para 1,90 m em 8 de outubro, além de mais
-            informações sobre a referência da régua usada em 2001 e sua relação com a estação
-            telemétrica atual.
+            Já temos as duas versões da medição de 8 de outubro. O que falta agora é entender melhor
+            por que elas diferem e confirmar qual referência de régua vale para aquele período.
           </p>
-          <ul>
+          <ul className="tp-flood-visual-list">
             {FLOOD_2001_RESEARCH_GAPS.map((gap) => (
-              <li key={gap}>{gap}</li>
+              <li key={gap}>
+                <span className="tp-flood-visual-list-icon" aria-hidden="true">
+                  <Search className="tp-flood-visual-icon" />
+                </span>
+                <span>{gap}</span>
+              </li>
             ))}
           </ul>
         </div>
@@ -352,8 +345,8 @@ export function Flood2001HistoricalPage() {
         <div>
           <p>
             A página pode crescer quando novas fotos, jornais, boletins ou documentos forem
-            encontrados. Quando uma informação ainda não foi confirmada, ela permanece indicada como
-            dúvida em vez de ser preenchida por estimativa.
+            encontrados. Quando uma informação ainda não foi confirmada, ela continua indicada como
+            dúvida.
           </p>
           <div className="tp-flood-related__links">
             {FLOOD_2001_SOURCES.map((source) => (

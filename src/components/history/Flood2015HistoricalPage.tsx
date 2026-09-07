@@ -6,12 +6,10 @@ import {
   CloudRain,
   ExternalLink,
   FileText,
-  MapPin,
   Ruler,
   ShieldCheck,
   Users,
   Waves,
-  Wind,
   Wrench,
 } from "lucide-react";
 
@@ -27,7 +25,10 @@ import "./Flood2024HistoricalPage.css";
 import "./FloodHistoricalVisualSystem.css";
 
 const FACT_ICONS = [CloudRain, Ruler, Users] as const;
-const TIMELINE_ICONS = [Waves, CloudRain, ShieldCheck, Wrench, CalendarDays, Users, Wrench] as const;
+const TIMELINE_ICON_BY_STAGE = {
+  lagoa: Waves,
+  pelotas: ShieldCheck,
+} as const;
 
 const PAGE_INDEX_ITEMS = [
   { href: "#como-a-cheia-se-formou", label: "Como a cheia se formou", icon: Waves },
@@ -145,8 +146,8 @@ export function Flood2015HistoricalPage() {
         </header>
 
         <div className="tp-flood-timeline__list">
-          {FLOOD_2015_TIMELINE.map((item, index) => {
-            const TimelineIcon = TIMELINE_ICONS[index] ?? CalendarDays;
+          {FLOOD_2015_TIMELINE.map((item) => {
+            const TimelineIcon = TIMELINE_ICON_BY_STAGE[item.stage];
             return (
               <section className={`tp-flood-event is-${item.stage}`} key={`${item.date}-${item.title}`}>
                 <div className="tp-flood-event__date">
@@ -205,7 +206,7 @@ export function Flood2015HistoricalPage() {
                 <div>
                   <strong>{entry.date}</strong>
                   <span className={`is-${entry.retrieval}`}>
-                    {entry.retrieval === "full" ? "conteúdo recuperado" : "apenas índice recuperado"}
+                    {entry.retrieval === "full" ? "texto completo" : "só registro encontrado"}
                   </span>
                 </div>
                 <ul>
@@ -343,8 +344,8 @@ export function Flood2015HistoricalPage() {
         <div>
           <p>
             A principal base desta página é a série “Cheias 2015” da Prefeitura de Pelotas. G1 e GZH
-            complementam momentos em que o arquivo municipal não preservou todo o conteúdo. Cada
-            informação continua identificada pela fonte que a publicou.
+            completam momentos em que o arquivo municipal não preservou todo o texto. Cada informação
+            continua ligada à fonte que a publicou.
           </p>
           <div className="tp-flood-related__links">
             {FLOOD_2015_SOURCES.map((source) => (
