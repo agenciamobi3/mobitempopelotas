@@ -156,7 +156,7 @@
   background: currentColor;
 }
 
-.redemet-freshness.is-fresh,
+.redemet-freshness.is-recent,
 .redemet-source-state.is-live {
   color: #17633b;
   background: #eef8f2;
@@ -659,8 +659,8 @@
   .redemet-page *,
   .redemet-page *::before,
   .redemet-page *::after {
-    scroll-behavior: auto !important;
-    transition: none !important;
+    scroll-behavior: auto;
+    transition: none;
   }
 }
 
