@@ -1,15 +1,8 @@
 /*
- * Alertas — camada cromática semântica sobre o contrato-base neutro.
- * A severidade pode influenciar hero, painel e CTA; conteúdo, mapa, períodos e
- * instruções oficiais permanecem responsáveis pela informação principal.
+ * Alertas — camada cromática estritamente semântica.
+ * A severidade colore somente estados e ações que comunicam risco. O HERO e os
+ * grandes blocos permanecem no contrato editorial neutro, sem gradientes.
  */
-
-.internal-weather-shell--alerts .alerts-editorial-copy {
-  background:
-    radial-gradient(circle at 0 100%, rgb(24 189 205 / 9%), transparent 24rem),
-    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--alerts-accent) 8%, transparent), transparent 24rem),
-    linear-gradient(145deg, #fff 0%, #f8fcfc 62%, #fff 100%);
-}
 
 .internal-weather-shell--alerts .alerts-editorial-back,
 .internal-weather-shell--alerts .alerts-editorial-panel > a {
@@ -36,38 +29,26 @@
   background: #8f1d1d;
 }
 
-.internal-weather-shell--alerts .alerts-editorial-panel {
-  background:
-    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--alerts-accent) 12%, transparent), transparent 20rem),
-    linear-gradient(145deg, color-mix(in srgb, var(--alerts-accent) 5%, #f8faf9), #fff 66%);
-}
-
 .internal-weather-shell--alerts .alerts-editorial-panel-status {
-  border-color: color-mix(in srgb, var(--alerts-accent) 20%, rgb(7 30 47 / 10%));
-  background: color-mix(in srgb, var(--alerts-accent) 8%, #fff);
+  border-color: color-mix(in srgb, var(--alerts-accent) 24%, rgb(7 30 47 / 10%));
+  color: color-mix(in srgb, var(--alerts-accent) 78%, #071e2f);
+  background: color-mix(in srgb, var(--alerts-accent) 7%, #fff);
 }
 
-@media (max-width: 720px) {
-  .internal-weather-shell--alerts .alerts-editorial-copy {
-    background:
-      radial-gradient(circle at 0 100%, rgb(24 189 205 / 8%), transparent 16rem),
-      linear-gradient(145deg, #fff, #f8fcfc 68%, #fff);
-  }
+.internal-weather-shell--alerts .alerts-editorial-panel-line {
+  background: var(--alerts-accent);
+}
 
-  .internal-weather-shell--alerts .alerts-editorial-panel {
-    background:
-      radial-gradient(circle at 100% 0, color-mix(in srgb, var(--alerts-accent) 10%, transparent), transparent 15rem),
-      linear-gradient(145deg, color-mix(in srgb, var(--alerts-accent) 4%, #f8faf9), #fff 68%);
-  }
+.internal-weather-shell--alerts .alerts-featured {
+  border-top-color: var(--alerts-accent);
 }
 
 @media (forced-colors: active) {
   .internal-weather-shell--alerts :is(
-    .alerts-editorial-copy,
-    .alerts-editorial-panel,
-    .alerts-editorial-panel-status
+    .alerts-editorial-panel-status,
+    .alerts-editorial-actions a:first-child,
+    .alerts-featured
   ) {
-    background: Canvas;
-    color: CanvasText;
+    border-color: Highlight;
   }
 }
