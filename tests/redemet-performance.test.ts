@@ -44,10 +44,11 @@ test("REDEMET limits animation payloads", () => {
   assert.match(stormsServer, /const MAX_FRAMES = 12;/);
 });
 
-test("REDEMET overview requests compact windows without cutting normal upstream latency", () => {
-  assert.match(redemetFunctions, /const IMAGE_FRAME_WINDOW = 8;/);
-  assert.match(redemetFunctions, /const STORM_FRAME_WINDOW = 12;/);
+test("REDEMET overview prioritizes a short real-data window without shrinking direct endpoint limits", () => {
+  assert.match(redemetFunctions, /const IMAGE_FRAME_WINDOW = 4;/);
+  assert.match(redemetFunctions, /const STORM_FRAME_WINDOW = 6;/);
   assert.match(redemetFunctions, /const OVERVIEW_LAYER_DEADLINE_MS = 4_500;/);
+  assert.match(redemetFunctions, /janela curta de coletas reais/i);
   assert.match(redemetFunctions, /fetchRedemetRadarResilient\(IMAGE_FRAME_WINDOW\)/);
   assert.match(redemetFunctions, /fetchOfficialRedemetSatellite\("realcada", IMAGE_FRAME_WINDOW\)/);
   assert.match(redemetFunctions, /fetchInmetSatellite\(IMAGE_FRAME_WINDOW\)/);
