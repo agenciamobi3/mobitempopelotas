@@ -12,6 +12,7 @@ const server = readFileSync("src/lib/integrations/inmet-gmail.server.ts", "utf8"
 const route = readFileSync("src/routes/api/cron/push-daily.ts", "utf8");
 const docs = readFileSync("docs/INMET_GMAIL_PUSH.md", "utf8");
 const envExample = readFileSync(".env.example", "utf8");
+const scheduler = readFileSync(".github/workflows/inmet-gmail-poll.yml", "utf8");
 
 test("INMET Gmail classifier ignores confirmation and recognizes forecast without AI", () => {
   assert.equal(
@@ -129,6 +130,14 @@ test("INMET Gmail polling stays server-only, protected, deterministic and on dai
   assert.doesNotMatch(route, /task === "inmet-gmail-watch"/);
   assert.doesNotMatch(route, /POST:\s*\(\{ request \}\)/);
   assert.doesNotMatch(route, /verifyInmetGmailPubSubRequest|parseInmetGmailPubSubEnvelope/);
+});
+
+test("INMET Gmail scheduler polls every ten minutes without AI or browser headers", () => {
+  assert.match(scheduler, /cron:\s*"\*\/10 \* \* \* \*"/);
+  assert.match(scheduler, /task=inmet-gmail/);
+  assert.match(scheduler, /TEMPO_PELOTAS_CRON_SECRET/);
+  assert.match(scheduler, /Authorization: Bearer \$CRON_SECRET/);
+  assert.doesNotMatch(scheduler, /gemini|openai|weather-ai|Sec-Fetch/i);
 });
 
 test("INMET Gmail configuration is owned by Lovable, not duplicated in env files", () => {
