@@ -1,6 +1,16 @@
-/* Chuva em Pelotas: superfícies simples, leitura rápida e dados funcionais preservados. */
+/* Chuva em Pelotas: leitura contínua, com cards apenas onde há unidades comparáveis. */
+.internal-weather-shell--rain .rain-v2-page {
+  gap: 0;
+}
+
 .internal-weather-shell--rain .internal-page-chapters {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: clamp(0.5rem, 1vw, 0.85rem);
+}
+
+.internal-weather-shell--rain .internal-page-chapters a {
+  min-height: 4.35rem;
+  padding: 0.75rem 0.9rem;
 }
 
 .internal-weather-shell--rain .rain-v2-page .eyebrow,
@@ -16,11 +26,22 @@
   .rain-v2-official,
   .rain-hourly-volume-context
 ) {
-  border: 1px solid rgb(7 30 47 / 8%);
-  border-radius: 1rem;
-  background: #fff;
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 3vw, 2.4rem) 0;
+  overflow: visible;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
   background-image: none;
   box-shadow: none;
+  content-visibility: auto;
+}
+
+.internal-weather-shell--rain .rain-accumulation {
+  border-top: 0;
 }
 
 .internal-weather-shell--rain :is(
@@ -34,16 +55,27 @@
 }
 
 .internal-weather-shell--rain :is(
+  .rain-accumulation__heading,
+  .rain-v2-hourly,
+  .rain-hourly-volume-context,
+  .rain-v2-week,
+  .rain-v2-official
+) {
+  scroll-margin-top: 8rem;
+}
+
+.internal-weather-shell--rain :is(
   .rain-accumulation__heading h2,
   .rain-v2-hourly h2,
   .rain-v2-week h2,
   .rain-v2-official h2,
   .rain-hourly-volume-context h2
 ) {
-  max-width: 22ch;
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  max-width: 24ch;
+  margin: 0;
+  font-size: clamp(1.75rem, 2.8vw, 2.65rem);
   line-height: 1;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.05em;
 }
 
 .internal-weather-shell--rain :is(
@@ -51,28 +83,54 @@
   .rain-v2-week,
   .rain-v2-official,
   .rain-hourly-volume-context
-) > header {
-  padding-bottom: 1rem;
+) > header,
+.internal-weather-shell--rain .rain-accumulation__heading {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.internal-weather-shell--rain .rain-v2-hourly > header > a,
+.internal-weather-shell--rain .rain-v2-official > header > a,
+.internal-weather-shell--rain .rain-accumulation__regional > header > a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Medição e previsão formam uma faixa de dados, não quatro cards independentes. */
+.internal-weather-shell--rain .rain-accumulation__summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 0.8rem 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
   border-bottom: 1px solid rgb(7 30 47 / 8%);
 }
 
-.internal-weather-shell--rain :is(
-  .rain-accumulation__summary article,
-  .rain-accumulation__regional-grid article
-) {
-  border-color: rgb(7 30 47 / 8%);
-  background: #fafcfd;
+.internal-weather-shell--rain .rain-accumulation__summary article,
+.internal-weather-shell--rain .rain-accumulation__summary article.is-observed,
+.internal-weather-shell--rain .rain-accumulation__summary article.is-forecast {
+  min-height: 0;
+  gap: 0.35rem;
+  padding: 0.3rem 1rem;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
-.internal-weather-shell--rain .rain-accumulation__summary article.is-observed {
-  border-color: rgb(24 189 205 / 18%);
-  background: #f6fbfc;
+.internal-weather-shell--rain .rain-accumulation__summary article:first-child {
+  padding-left: 0;
 }
 
-.internal-weather-shell--rain .rain-accumulation__summary article.is-forecast {
-  border-color: rgb(94 44 237 / 14%);
-  background: #faf8ff;
+.internal-weather-shell--rain .rain-accumulation__summary article:last-child {
+  border-right: 0;
+}
+
+.internal-weather-shell--rain .rain-accumulation__summary article > svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .internal-weather-shell--rain :is(
@@ -83,9 +141,121 @@
   text-transform: none;
 }
 
+.internal-weather-shell--rain .rain-accumulation__summary strong {
+  font-size: clamp(1.2rem, 1.8vw, 1.55rem);
+}
+
+.internal-weather-shell--rain .rain-accumulation__rule {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--rain .rain-accumulation__rule strong {
+  color: #983d18;
+}
+
+.internal-weather-shell--rain .rain-accumulation__rule p {
+  margin: 0;
+}
+
+/* Estações continuam em cards porque cada uma representa um ponto de medição distinto. */
+.internal-weather-shell--rain .rain-accumulation__regional {
+  padding-top: 0.35rem;
+}
+
+.internal-weather-shell--rain .rain-accumulation__regional > header {
+  padding-bottom: 0.75rem;
+}
+
+.internal-weather-shell--rain .rain-accumulation__regional-grid article {
+  min-height: 0;
+  border-color: rgb(7 30 47 / 8%);
+  background: #fafcfd;
+  box-shadow: none;
+}
+
+/* Horas permanecem comparáveis, mas com menos altura e menos cromatismo de caixa. */
+.internal-weather-shell--rain .rain-v2-hourly__grid {
+  gap: 0.5rem;
+}
+
+.internal-weather-shell--rain .rain-v2-hourly__grid article {
+  min-width: 7.8rem;
+  min-height: 12.5rem;
+  padding: 0.8rem;
+  background: #fafcfd;
+  box-shadow: none;
+}
+
 .internal-weather-shell--rain .rain-v2-hourly__grid article.is-current {
   border-color: rgb(24 189 205 / 24%);
-  background: #f6fbfc;
+  background: #f5fbfc;
+}
+
+.internal-weather-shell--rain .rain-v2-hourly__grid article.tone-high {
+  background: #fff8fb;
+}
+
+.internal-weather-shell--rain .rain-v2-hourly__reading > strong {
+  font-size: 1.5rem;
+}
+
+/* Volume por hora faz parte da mesma leitura das próximas horas. */
+.internal-weather-shell--rain .rain-hourly-volume-context {
+  padding-top: clamp(1.2rem, 2.4vw, 1.8rem);
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context > header {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context > header > p {
+  max-width: none;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__summary {
+  padding: 0.75rem 0;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__timeline article {
+  min-height: 124px;
+  background: #fafcfd;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__timeline article.is-unknown {
+  background: #f7f9fa;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context > footer {
+  padding-top: 0.7rem;
+}
+
+/* Sete dias: cards menores e resumo contínuo abaixo. */
+.internal-weather-shell--rain .rain-v2-week__grid article {
+  min-height: 13.5rem;
+  padding: 0.85rem;
+  background: #fafcfd;
+  box-shadow: none;
+}
+
+.internal-weather-shell--rain .rain-v2-week__grid article.is-today {
+  border-color: rgb(24 189 205 / 24%);
+  background: #f5fbfc;
+}
+
+.internal-weather-shell--rain .rain-v2-week__grid article.tone-high {
+  background: #fff8fb;
+}
+
+.internal-weather-shell--rain .rain-v2-week__grid article > svg {
+  width: 1.8rem;
+  height: 1.8rem;
 }
 
 .internal-weather-shell--rain .rain-v2-week__grid article > header b {
@@ -93,32 +263,19 @@
   text-transform: none;
 }
 
-.internal-weather-shell--rain .rain-accumulation__rule {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55rem 0.75rem;
-  flex-wrap: wrap;
-  border-color: rgb(242 112 53 / 16%);
-  background: #fffaf6;
-}
-
-.internal-weather-shell--rain .rain-accumulation__rule p {
-  margin: 0;
-}
-
 .internal-weather-shell--rain .rain-v2-week__summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   margin: 0;
-  padding: 0.85rem 0 0;
+  padding: 0.8rem 0 0;
   border-top: 1px solid rgb(7 30 47 / 8%);
 }
 
 .internal-weather-shell--rain .rain-v2-week__summary > div {
   display: grid;
   gap: 0.22rem;
-  padding: 0.25rem 1rem;
+  padding: 0.2rem 1rem;
   border-right: 1px solid rgb(7 30 47 / 8%);
 }
 
@@ -145,6 +302,7 @@
   font-weight: 800;
 }
 
+/* INMET fica como lista, não como mais uma grade de cards. */
 .internal-weather-shell--rain .rain-v2-official__list {
   display: grid;
   margin: 0;
@@ -196,7 +354,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem 2rem;
-  padding: 0.8rem 0;
+  padding: 0.9rem 0;
   border-top: 1px solid rgb(7 30 47 / 10%);
   color: #637b87;
 }
@@ -231,47 +389,54 @@
   text-decoration: none;
 }
 
-.internal-weather-shell--rain .rain-hourly-volume-context__timeline article {
-  background: #fafcfd;
-}
-
-.internal-weather-shell--rain .rain-hourly-volume-context__timeline article.is-unknown {
-  background: #f7f9fa;
-}
-
 @media (max-width: 1100px) {
-  .internal-weather-shell--rain .internal-page-chapters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 760px) {
   .internal-weather-shell--rain .internal-page-chapters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .internal-weather-shell--rain :is(
-    .rain-accumulation,
-    .rain-v2-hourly,
-    .rain-v2-week,
-    .rain-v2-official,
-    .rain-hourly-volume-context
-  ) {
-    border-radius: 0.9rem;
+  .internal-weather-shell--rain .rain-accumulation__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .internal-weather-shell--rain .rain-v2-week__summary {
+  .internal-weather-shell--rain .rain-accumulation__summary article:nth-child(2) {
+    border-right: 0;
+  }
+
+  .internal-weather-shell--rain .rain-accumulation__summary article:nth-child(n + 3) {
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid rgb(7 30 47 / 8%);
+  }
+}
+
+@media (max-width: 760px) {
+  .internal-weather-shell--rain :is(
+    .rain-v2-hourly > header,
+    .rain-v2-week > header,
+    .rain-v2-official > header,
+    .rain-accumulation__heading,
+    .rain-accumulation__regional > header
+  ) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .internal-weather-shell--rain .rain-v2-week__summary,
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .internal-weather-shell--rain .rain-v2-week__summary > div,
-  .internal-weather-shell--rain .rain-v2-week__summary > div:first-child {
-    padding: 0.65rem 0;
+  .internal-weather-shell--rain .rain-v2-week__summary > div:first-child,
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary > div,
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary > div:first-child {
+    padding: 0.6rem 0;
     border-right: 0;
     border-bottom: 1px solid rgb(7 30 47 / 8%);
   }
 
-  .internal-weather-shell--rain .rain-v2-week__summary > div:last-child {
+  .internal-weather-shell--rain .rain-v2-week__summary > div:last-child,
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary > div:last-child {
     border-bottom: 0;
   }
 
@@ -289,13 +454,37 @@
   }
 }
 
+@media (max-width: 560px) {
+  .internal-weather-shell--rain .internal-page-chapters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--rain .rain-accumulation__summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--rain .rain-accumulation__summary article,
+  .internal-weather-shell--rain .rain-accumulation__summary article:first-child,
+  .internal-weather-shell--rain .rain-accumulation__summary article:nth-child(2),
+  .internal-weather-shell--rain .rain-accumulation__summary article:nth-child(n + 3) {
+    margin: 0;
+    padding: 0.65rem 0;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--rain .rain-accumulation__summary article:last-child {
+    border-bottom: 0;
+  }
+}
+
 @media (forced-colors: active) {
   .internal-weather-shell--rain :is(
-    .rain-accumulation,
-    .rain-v2-hourly,
-    .rain-v2-week,
-    .rain-v2-official,
-    .rain-hourly-volume-context
+    .rain-v2-hourly__grid article,
+    .rain-v2-week__grid article,
+    .rain-accumulation__regional-grid article,
+    .rain-hourly-volume-context__timeline article
   ) {
     border-color: CanvasText;
     color: CanvasText;
