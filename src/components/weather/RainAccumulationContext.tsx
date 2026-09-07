@@ -65,7 +65,7 @@ function RegionalRainfallObservations() {
     return (
       <div className="rain-accumulation__regional-state" role="status">
         <RefreshCw aria-hidden="true" />
-        <span>Consultando acumulados observados nas estações regionais…</span>
+        <span>Carregando chuva das estações regionais…</span>
       </div>
     );
   }
@@ -79,9 +79,7 @@ function RegionalRainfallObservations() {
     );
   }
 
-  if (state.data.status === "disabled") {
-    return null;
-  }
+  if (state.data.status === "disabled") return null;
 
   const stations = state.data.stations
     .filter(
@@ -96,9 +94,7 @@ function RegionalRainfallObservations() {
     return (
       <div className="rain-accumulation__regional-state" role="status">
         <CloudRain aria-hidden="true" />
-        <span>
-          A rede respondeu, mas não há acumulado de 24 horas recente o suficiente no recorte regional.
-        </span>
+        <span>Não há acumulado recente de 24 horas nas estações regionais disponíveis.</span>
       </div>
     );
   }
@@ -107,8 +103,7 @@ function RegionalRainfallObservations() {
     <div className="rain-accumulation__regional">
       <header>
         <div>
-          <span>Rede regional · observação</span>
-          <h3>Chuva acumulada em 24 horas nas estações próximas</h3>
+          <h3>Chuva em 24 horas nas estações próximas</h3>
         </div>
         <a href={state.data.source.mapUrl} target="_blank" rel="noopener noreferrer">
           Mapa da Defesa Civil RS
@@ -126,29 +121,17 @@ function RegionalRainfallObservations() {
               </div>
             </div>
             <dl>
-              <div>
-                <dt>Últimas 24 h</dt>
-                <dd>{formatMillimeters(station.rain.h24Mm)}</dd>
-              </div>
-              <div>
-                <dt>Últimas 6 h</dt>
-                <dd>{formatMillimeters(station.rain.h6Mm)}</dd>
-              </div>
-              <div>
-                <dt>Última 1 h</dt>
-                <dd>{formatMillimeters(station.rain.h1Mm)}</dd>
-              </div>
+              <div><dt>24 h</dt><dd>{formatMillimeters(station.rain.h24Mm)}</dd></div>
+              <div><dt>6 h</dt><dd>{formatMillimeters(station.rain.h6Mm)}</dd></div>
+              <div><dt>1 h</dt><dd>{formatMillimeters(station.rain.h1Mm)}</dd></div>
             </dl>
-            <small>
-              {freshnessLabel(station)} · {formatDateTime(station.observedAt)}
-            </small>
+            <small>{freshnessLabel(station)} · {formatDateTime(station.observedAt)}</small>
           </article>
         ))}
       </div>
 
       <p className="rain-accumulation__regional-note">
-        Cada valor pertence ao ponto da estação e à janela móvel indicada. Ele não representa a chuva
-        em toda Pelotas e não é somado ao acumulado diário da Embrapa nem à previsão.
+        Cada valor pertence à estação indicada. Não representa automaticamente toda Pelotas.
       </p>
     </div>
   );
@@ -177,56 +160,49 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
     >
       <header className="rain-accumulation__heading">
         <div>
-          <span className="eyebrow">Chuva acumulada em Pelotas</span>
-          <h2 id="rain-accumulation-title">Quanto choveu e quanto ainda está previsto?</h2>
+          <h2 id="rain-accumulation-title">Chuva medida e prevista</h2>
         </div>
-        <p>
-          Medição observada e previsão aparecem separadas porque respondem a perguntas diferentes e
-          podem cobrir períodos que se sobrepõem.
-        </p>
+        <p>Os valores medidos e previstos ficam separados porque podem cobrir horas em comum.</p>
       </header>
 
       <div className="rain-accumulation__summary">
         <article className="is-observed">
           <Droplets aria-hidden="true" />
-          <span>{observationIsCurrent ? "Chuva observada hoje" : "Último acumulado diário conhecido"}</span>
+          <span>{observationIsCurrent ? "Chuva medida hoje" : "Último acumulado diário"}</span>
           <strong>{formatMillimeters(observation.accumulated.rainDaily)}</strong>
           <small>
             {observationHasKnownValue
               ? `${observation.source.station} · ${formatDateTime(observationTime)}`
-              : "A estação não informou um acumulado diário utilizável nesta leitura."}
+              : "Sem acumulado diário disponível nesta leitura."}
           </small>
         </article>
 
         <article className="is-observed">
           <Gauge aria-hidden="true" />
-          <span>Chuva observada no mês</span>
+          <span>Chuva medida no mês</span>
           <strong>{formatMillimeters(observation.accumulated.rainMonthly)}</strong>
-          <small>Acumulado publicado pela Embrapa Clima Temperado.</small>
+          <small>Embrapa Clima Temperado</small>
         </article>
 
         <article className="is-forecast">
           <CloudRain aria-hidden="true" />
-          <span>Volume previsto para hoje</span>
+          <span>Previsto para hoje</span>
           <strong>{formatMillimeters(today?.precipitationMm)}</strong>
-          <small>Previsão do modelo para o dia, não medição de pluviômetro.</small>
+          <small>Previsão, não medição</small>
         </article>
 
         <article className="is-forecast">
           <CloudRain aria-hidden="true" />
-          <span>Total previsto em 7 dias</span>
+          <span>Previsto em 7 dias</span>
           <strong>{formatMillimeters(forecastSevenDays)}</strong>
-          <small>{forecastDays.length ? `${forecastDays.length} dias disponíveis na previsão.` : "Previsão em atualização."}</small>
+          <small>{forecastDays.length ? `${forecastDays.length} dias disponíveis` : "Em atualização"}</small>
         </article>
       </div>
 
       <div className="rain-accumulation__rule">
-        <strong>Não some observado e previsto.</strong>
-        <p>
-          O acumulado da Embrapa registra chuva medida na estação. O Open-Meteo estima chuva para o
-          período indicado. Como as janelas podem se sobrepor, a soma criaria um total enganoso.
-        </p>
-        <Link to="/metodologia">Entenda as fontes e os limites</Link>
+        <strong>Não some os dois valores.</strong>
+        <p>A chuva medida e a prevista podem incluir parte do mesmo período.</p>
+        <Link to="/metodologia">Ver metodologia</Link>
       </div>
 
       <RegionalRainfallObservations />
