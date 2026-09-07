@@ -13,6 +13,7 @@ import { fetchInmetForecast } from "@/lib/weather/inmet-forecast.server";
 import {
   buildInmetForecastPushCopy,
   classifyInmetEmail,
+  isExpectedInmetRecipient,
   isPelotasInmetMessage,
   isTrustedInmetMessage,
 } from "./inmet-gmail";
@@ -57,6 +58,7 @@ type GmailListResponse = {
 type LovableGmailConfiguration = {
   lovableApiKey: string;
   connectionApiKey: string;
+  expectedRecipient: string;
 };
 
 type EligibleForecastEmail = {
@@ -73,13 +75,23 @@ function featureEnabled() {
   return process.env.INMET_GMAIL_PUSH_ENABLED?.trim().toLowerCase() === "true";
 }
 
+function normalizeExpectedRecipient(value: string | undefined) {
+  const normalized = value?.trim().toLowerCase() ?? "";
+  return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalized) ? normalized : "";
+}
+
 export function getInmetGmailConfigurationStatus() {
-  const required = ["LOVABLE_API_KEY", "GOOGLE_MAIL_API_KEY"] as const;
-  const missing = required.filter((name) => !process.env[name]?.trim());
+  const missing: string[] = [];
+  if (!process.env.LOVABLE_API_KEY?.trim()) missing.push("LOVABLE_API_KEY");
+  if (!process.env.GOOGLE_MAIL_API_KEY?.trim()) missing.push("GOOGLE_MAIL_API_KEY");
+
+  const expectedRecipient = normalizeExpectedRecipient(process.env.INMET_GMAIL_EXPECTED_RECIPIENT);
+  if (!expectedRecipient) missing.push("INMET_GMAIL_EXPECTED_RECIPIENT");
 
   return {
     enabled: featureEnabled(),
     configured: missing.length === 0,
+    recipientConfigured: Boolean(expectedRecipient),
     missing,
     provider: "lovable-google-mail" as const,
   };
@@ -96,6 +108,7 @@ function requireConfiguration(): LovableGmailConfiguration {
   return {
     lovableApiKey: process.env.LOVABLE_API_KEY!.trim(),
     connectionApiKey: process.env.GOOGLE_MAIL_API_KEY!.trim(),
+    expectedRecipient: normalizeExpectedRecipient(process.env.INMET_GMAIL_EXPECTED_RECIPIENT),
   };
 }
 
@@ -146,6 +159,12 @@ function headerValue(part: GmailMessagePart | undefined, name: string) {
   return headerValues(part, name)[0] ?? "";
 }
 
+function recipientHeaderValues(part: GmailMessagePart | undefined) {
+  return ["To", "Delivered-To", "X-Original-To", "Envelope-To"].flatMap((name) =>
+    headerValues(part, name),
+  );
+}
+
 async function lovableGmailFetch(path: string) {
   const config = requireConfiguration();
   const response = await fetch(`${LOVABLE_GMAIL_API_ROOT}${path}`, {
@@ -165,16 +184,16 @@ async function lovableGmailFetch(path: string) {
   return response;
 }
 
-function buildRecentInmetQuery(nowMs: number) {
+function buildRecentInmetQuery(nowMs: number, expectedRecipient: string) {
   const afterUnixSeconds = Math.floor(
     (nowMs - MAX_EMAIL_AGE_MINUTES * 60_000) / 1_000,
   );
-  return `${FIXED_INMET_QUERY_PREFIX} after:${afterUnixSeconds}`;
+  return `${FIXED_INMET_QUERY_PREFIX} to:${expectedRecipient} after:${afterUnixSeconds}`;
 }
 
-async function listRecentMessageIds(nowMs: number) {
+async function listRecentMessageIds(nowMs: number, expectedRecipient: string) {
   const params = new URLSearchParams({
-    q: buildRecentInmetQuery(nowMs),
+    q: buildRecentInmetQuery(nowMs, expectedRecipient),
     maxResults: String(MAX_MESSAGES_PER_RUN),
     fields: "messages(id)",
   });
@@ -294,6 +313,7 @@ function createSummary() {
     confirmationsIgnored: 0,
     otherIgnored: 0,
     nonPelotasIgnored: 0,
+    unexpectedRecipientIgnored: 0,
     untrustedIgnored: 0,
     tooOldIgnored: 0,
     messageErrors: 0,
@@ -307,11 +327,11 @@ function createSummary() {
 }
 
 async function scanRecentInmetForecastEmails(): Promise<ScanResult> {
-  requireConfiguration();
+  const configuration = requireConfiguration();
 
   const summary = createSummary();
   const nowMs = Date.now();
-  const ids = await listRecentMessageIds(nowMs);
+  const ids = await listRecentMessageIds(nowMs, configuration.expectedRecipient);
   const eligibleForecasts: EligibleForecastEmail[] = [];
 
   for (const id of ids) {
@@ -330,6 +350,16 @@ async function scanRecentInmetForecastEmails(): Promise<ScanResult> {
 
       if (!isTrustedInmetMessage({ from, authenticationResults })) {
         summary.untrustedIgnored += 1;
+        continue;
+      }
+
+      if (
+        !isExpectedInmetRecipient({
+          expectedRecipient: configuration.expectedRecipient,
+          recipientHeaders: recipientHeaderValues(message.payload),
+        })
+      ) {
+        summary.unexpectedRecipientIgnored += 1;
         continue;
       }
 
@@ -387,6 +417,7 @@ export async function inspectRecentInmetForecastEmails() {
       ...summary,
       mode: "check" as const,
       pushEnabled: configuration.enabled,
+      recipientConfigured: configuration.recipientConfigured,
       wouldDispatch: false,
       selectedMessage: null,
       structuredForecast: null,
@@ -401,6 +432,7 @@ export async function inspectRecentInmetForecastEmails() {
     ...summary,
     mode: "check" as const,
     pushEnabled: configuration.enabled,
+    recipientConfigured: configuration.recipientConfigured,
     wouldDispatch: true,
     selectedMessage: {
       fingerprint: messageLogFingerprint(selected.id),
