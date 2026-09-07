@@ -62,8 +62,8 @@ const hydrologyDetailHomeContract = readFileSync(
   "utf8",
 );
 const radarRoute = readFileSync("src/routes/radar-e-satelite-pelotas.tsx", "utf8");
-const redemetHomeContract = readFileSync(
-  "src/components/redemet/RedemetHomeContract.css",
+const redemetPageStyles = readFileSync(
+  "src/components/redemet/RedemetOverview.css",
   "utf8",
 );
 const camerasRoute = readFileSync("src/routes/cameras-ao-vivo-pelotas.tsx", "utf8");
@@ -268,18 +268,19 @@ test("Laranjal detail loads its Home contract last and removes the floating dark
   assert.doesNotMatch(hydrologyDetailHomeContract, /!important/);
 });
 
-test("radar route uses a local Home contract while preserving the dark image viewer", () => {
-  assert.match(radarRoute, /RedemetHomeContract\.css/);
-  assert.match(redemetHomeContract, /\.site-shell--topic \.redemet-hero/);
-  assert.match(redemetHomeContract, /grid-template-columns:\s*minmax\(0, 1\.12fr\) minmax\(320px, 0\.66fr\)/);
-  assert.match(redemetHomeContract, /\.redemet-hero aside[\s\S]*background:\s*var\(--redemet-home-soft\)/);
-  assert.match(redemetHomeContract, /\.redemet-explainer[\s\S]*box-shadow:\s*none/);
-  assert.match(redemetHomeContract, /Imagens meteorológicas permanecem escuras/);
-  assert.match(redemetHomeContract, /WCAG 2\.2: controles de reprodução e navegação mantêm alvo mínimo de 44 px/);
-  assert.match(redemetHomeContract, /\.redemet-frame-controls > button,[\s\S]*width:\s*44px[\s\S]*height:\s*44px/);
-  assert.match(redemetHomeContract, /@media \(max-width: 700px\)[\s\S]*min-height:\s*300px/);
-  assert.match(redemetHomeContract, /\.redemet-frame-tools :is\(button, a\):hover[\s\S]*transform:\s*none/);
-  assert.doesNotMatch(redemetHomeContract, /!important/);
+test("radar route uses a self-contained open monitor while preserving the dark image viewer", () => {
+  assert.doesNotMatch(radarRoute, /RedemetHomeContract\.css|RedemetEmptyStatePolish\.css/);
+  assert.match(radarRoute, /useRedemetOverviewBrowserRecovery/);
+  assert.match(redemetPageStyles, /\.redemet-hero\s*\{[\s\S]*background:\s*var\(--redemet-soft\)/);
+  assert.match(redemetPageStyles, /\.redemet-source-overview__list[\s\S]*border-top:/);
+  assert.match(redemetPageStyles, /\.redemet-source-row/);
+  assert.match(redemetPageStyles, /\.redemet-monitor__surface/);
+  assert.match(redemetPageStyles, /\.redemet-image-frame[\s\S]*background:\s*#0d171e/);
+  assert.match(redemetPageStyles, /\.redemet-frame-controls > button,[\s\S]*width:\s*44px[\s\S]*height:\s*44px/);
+  assert.match(redemetPageStyles, /@media \(max-width: 760px\)/);
+  assert.match(redemetPageStyles, /@media \(max-width: 560px\)/);
+  assert.doesNotMatch(redemetPageStyles, /radial-gradient|linear-gradient/);
+  assert.doesNotMatch(redemetPageStyles, /!important/);
 });
 
 test("cameras route uses a local Home contract without flattening the video player", () => {
