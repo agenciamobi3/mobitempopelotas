@@ -1,4 +1,19 @@
 import { Link } from "@tanstack/react-router";
+import {
+  BookOpen,
+  CalendarDays,
+  ExternalLink,
+  FileText,
+  History,
+  MapPin,
+  Newspaper,
+  Ruler,
+  Search,
+  Users,
+  Waves,
+  Wind,
+  Wrench,
+} from "lucide-react";
 
 import {
   FLOOD_2001_KEY_FACTS,
@@ -9,6 +24,21 @@ import {
 
 import "./Flood2024HistoricalPage.css";
 import "./Flood2001Hero.css";
+import "./FloodHistoricalVisualSystem.css";
+
+const FACT_ICONS = [CalendarDays, Wind, Waves, Users] as const;
+const TIMELINE_ICONS = [Wind, Newspaper, Wrench, CalendarDays, History] as const;
+
+const PAGE_INDEX_ITEMS = [
+  { href: "#o-que-sabemos-2001", label: "O que aconteceu", icon: MapPin },
+  { href: "#regua-laranjal-2001", label: "Nível no Laranjal", icon: Ruler },
+  { href: "#mecanismo-vento-2001", label: "Por que a água avançou", icon: Wind },
+  { href: "#linha-do-tempo-2001", label: "Linha do tempo", icon: CalendarDays },
+  { href: "#fontes-e-limites-2001", label: "Como usamos as fontes", icon: BookOpen },
+  { href: "#nao-confundir-setembro-2001", label: "Outro evento de 2001", icon: History },
+  { href: "#lacunas-2001", label: "O que ainda buscamos", icon: Search },
+  { href: "#fontes-2001", label: "Fontes", icon: FileText },
+] as const;
 
 export function Flood2001Hero() {
   return (
@@ -27,13 +57,19 @@ export function Flood2001Hero() {
         </div>
 
         <div className="tp-flood-hero__summary" aria-label="Marcos documentados do evento de 2001">
-          {FLOOD_2001_KEY_FACTS.map((fact) => (
-            <div key={fact.label}>
-              <span>{fact.label}</span>
-              <strong>{fact.value}</strong>
-              <small>{fact.detail}</small>
-            </div>
-          ))}
+          {FLOOD_2001_KEY_FACTS.map((fact, index) => {
+            const FactIcon = FACT_ICONS[index] ?? FileText;
+            return (
+              <div key={fact.label}>
+                <div className="tp-flood-visual-fact__label">
+                  <FactIcon className="tp-flood-visual-icon" aria-hidden="true" />
+                  <span>{fact.label}</span>
+                </div>
+                <strong>{fact.value}</strong>
+                <small>{fact.detail}</small>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -43,21 +79,25 @@ export function Flood2001Hero() {
 export function Flood2001HistoricalPage() {
   return (
     <article className="tp-flood-history">
-      <nav className="tp-flood-history__index" aria-label="Nesta página">
+      <nav className="tp-flood-history__index tp-flood-visual-index" aria-label="Nesta página">
         <span>Nesta página</span>
-        <a href="#o-que-sabemos-2001">O que aconteceu</a>
-        <a href="#regua-laranjal-2001">Nível no Laranjal</a>
-        <a href="#mecanismo-vento-2001">Por que a água avançou</a>
-        <a href="#linha-do-tempo-2001">Linha do tempo</a>
-        <a href="#fontes-e-limites-2001">Como usamos as fontes</a>
-        <a href="#nao-confundir-setembro-2001">Outro evento de 2001</a>
-        <a href="#lacunas-2001">O que ainda buscamos</a>
-        <a href="#fontes-2001">Fontes</a>
+        {PAGE_INDEX_ITEMS.map((item) => {
+          const ItemIcon = item.icon;
+          return (
+            <a href={item.href} key={item.href}>
+              <ItemIcon className="tp-flood-visual-icon" aria-hidden="true" />
+              {item.label}
+            </a>
+          );
+        })}
       </nav>
 
       <section className="tp-flood-history__lead" id="o-que-sabemos-2001">
         <div>
-          <span>O que aconteceu</span>
+          <span className="tp-flood-visual-kicker">
+            <MapPin className="tp-flood-visual-icon" aria-hidden="true" />
+            O que aconteceu
+          </span>
           <h2>Vento muito forte, águas avançando e áreas isoladas</h2>
         </div>
         <div className="tp-flood-history__lead-copy">
@@ -93,7 +133,10 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-explanation" id="regua-laranjal-2001">
         <div>
-          <span>Nível medido no Laranjal</span>
+          <span className="tp-flood-visual-kicker">
+            <Ruler className="tp-flood-visual-icon" aria-hidden="true" />
+            Nível medido no Laranjal
+          </span>
           <h2>Por que aparecem 2,90 m e 1,90 m no mesmo dia</h2>
         </div>
         <div>
@@ -144,7 +187,10 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-explanation" id="mecanismo-vento-2001">
         <div>
-          <span>Por que a água avançou</span>
+          <span className="tp-flood-visual-kicker">
+            <Wind className="tp-flood-visual-icon" aria-hidden="true" />
+            Por que a água avançou
+          </span>
           <h2>O vento ajudou a empurrar a água para a costa de Pelotas</h2>
         </div>
         <div>
@@ -173,7 +219,10 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-timeline" id="linha-do-tempo-2001" aria-labelledby="tp-flood-2001-timeline-title">
         <header>
-          <span>Linha do tempo</span>
+          <span className="tp-flood-visual-kicker">
+            <CalendarDays className="tp-flood-visual-icon" aria-hidden="true" />
+            Linha do tempo
+          </span>
           <h2 id="tp-flood-2001-timeline-title">Do temporal à recuperação do Laranjal</h2>
           <p>
             Nem todos os dias têm registros preservados. Por isso, a linha do tempo mostra apenas as
@@ -182,28 +231,37 @@ export function Flood2001HistoricalPage() {
         </header>
 
         <div className="tp-flood-timeline__list">
-          {FLOOD_2001_TIMELINE.map((item) => (
-            <section className="tp-flood-event is-lagoa" key={`${item.date}-${item.title}`}>
-              <div className="tp-flood-event__date">
-                <span>{item.date}</span>
-                <small>Registro da época</small>
-                <strong>{item.stageLabel}</strong>
-              </div>
-              <div className="tp-flood-event__body">
-                <h3>{item.title}</h3>
-                {item.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-                {item.highlight ? <b className="tp-flood-event__highlight">{item.highlight}</b> : null}
-              </div>
-            </section>
-          ))}
+          {FLOOD_2001_TIMELINE.map((item, index) => {
+            const TimelineIcon = TIMELINE_ICONS[index] ?? CalendarDays;
+            return (
+              <section className="tp-flood-event is-lagoa" key={`${item.date}-${item.title}`}>
+                <div className="tp-flood-event__date">
+                  <span className="tp-flood-visual-event-icon" aria-hidden="true">
+                    <TimelineIcon className="tp-flood-visual-icon" />
+                  </span>
+                  <span>{item.date}</span>
+                  <small>Registro da época</small>
+                  <strong>{item.stageLabel}</strong>
+                </div>
+                <div className="tp-flood-event__body">
+                  <h3>{item.title}</h3>
+                  {item.paragraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                  {item.highlight ? <b className="tp-flood-event__highlight">{item.highlight}</b> : null}
+                </div>
+              </section>
+            );
+          })}
         </div>
       </section>
 
       <section className="tp-flood-explanation" id="fontes-e-limites-2001">
         <div>
-          <span>Como usamos as fontes</span>
+          <span className="tp-flood-visual-kicker">
+            <BookOpen className="tp-flood-visual-icon" aria-hidden="true" />
+            Como usamos as fontes
+          </span>
           <h2>Cada fonte conta uma parte do que aconteceu</h2>
         </div>
         <div>
@@ -241,7 +299,10 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-lessons" id="nao-confundir-setembro-2001">
         <div>
-          <span>Outro evento de 2001</span>
+          <span className="tp-flood-visual-kicker">
+            <History className="tp-flood-visual-icon" aria-hidden="true" />
+            Outro evento de 2001
+          </span>
           <h2>As chuvas de agosto e setembro foram outro episódio</h2>
         </div>
         <div>
@@ -259,7 +320,10 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-lessons" id="lacunas-2001">
         <div>
-          <span>O que ainda buscamos</span>
+          <span className="tp-flood-visual-kicker">
+            <Search className="tp-flood-visual-icon" aria-hidden="true" />
+            O que ainda buscamos
+          </span>
           <h2>Algumas partes da história ainda não estão fechadas</h2>
         </div>
         <div>
@@ -279,7 +343,10 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-sources" id="fontes-2001" aria-labelledby="tp-flood-2001-sources-title">
         <div>
-          <span>Fontes</span>
+          <span className="tp-flood-visual-kicker">
+            <BookOpen className="tp-flood-visual-icon" aria-hidden="true" />
+            Fontes
+          </span>
           <h2 id="tp-flood-2001-sources-title">De onde vêm as informações desta página</h2>
         </div>
         <div>
@@ -290,12 +357,17 @@ export function Flood2001HistoricalPage() {
           </p>
           <div className="tp-flood-related__links">
             {FLOOD_2001_SOURCES.map((source) => (
-              <a href={source.url} target="_blank" rel="noreferrer" key={`${source.date}-${source.url}`}>
+              <a className="tp-flood-visual-source-link" href={source.url} target="_blank" rel="noreferrer" key={`${source.date}-${source.url}`}>
+                <span className="tp-flood-visual-source-icon" aria-hidden="true">
+                  <FileText className="tp-flood-visual-icon" />
+                </span>
                 <span>
                   {source.name}<br />
                   <small>{source.organization} · {source.date} · {source.role}</small>
                 </span>
-                <span aria-hidden="true">↗</span>
+                <span className="tp-flood-visual-source-external" aria-hidden="true">
+                  <ExternalLink className="tp-flood-visual-icon" />
+                </span>
               </a>
             ))}
           </div>
@@ -304,7 +376,6 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-related" aria-label="Continue consultando">
         <div>
-          <span>Continue explorando</span>
           <h2>Veja outras enchentes e os níveis de hoje</h2>
         </div>
         <div className="tp-flood-related__links">
