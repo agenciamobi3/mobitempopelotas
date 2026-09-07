@@ -4,6 +4,7 @@ import {
   Flood1941Hero,
   Flood1941HistoricalPage,
 } from "@/components/history/Flood1941HistoricalPage";
+import "@/components/history/Flood1941Hero.css";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
