@@ -30,7 +30,7 @@ const PAGE_CONFIG: DefesaCivilStationPageConfig = {
   eyebrow: "Canal São Gonçalo · Defesa Civil RS",
   heading: "Nível do Canal São Gonçalo hoje",
   introduction:
-    "A leitura abaixo vem da estação Capão do Leão - Eclusa - Canal São Gonçalo, da Rede de Monitoramento Hidrometeorológico da Defesa Civil RS. O valor pertence à referência própria desse ponto e não deve ser confundido com a régua do Cais do Porto em Pelotas ou com outra estação do sistema lagunar.",
+    "Acompanhe a última leitura recebida da estação da Eclusa, em Capão do Leão. O horário, a tendência e a chuva aparecem junto do nível quando a fonte os informa. Esta régua é própria desse ponto e não é a mesma do Porto de Pelotas.",
   waterBodyLabel: "Canal São Gonçalo",
   locationLabel: "Eclusa do Canal São Gonçalo, Capão do Leão",
   weatherPath: "/tempo-em/capao-do-leao-rs",
@@ -40,49 +40,49 @@ const PAGE_CONFIG: DefesaCivilStationPageConfig = {
 };
 
 const PAGE_CONTENT = {
-  eyebrow: "Leitura da Eclusa",
-  title: "O São Gonçalo é um sistema, mas cada régua continua sendo local",
+  eyebrow: "Entenda a leitura",
+  title: "A régua da Eclusa representa este ponto do Canal São Gonçalo",
   answer:
-    "O Canal São Gonçalo conecta a Lagoa Mirim à Lagoa dos Patos e possui pontos de observação com referências distintas. Esta página acompanha especificamente a estação DCRS-00063 na Eclusa, em Capão do Leão. Por isso, o valor não é convertido para a régua do Porto de Pelotas nem usado para reconstruir outra série.",
+    "O Canal São Gonçalo liga a Lagoa Mirim à Lagoa dos Patos e pode ter leituras diferentes ao longo do sistema. Esta página acompanha somente a estação DCRS-00063, na Eclusa em Capão do Leão. Por isso, o valor não é convertido para a régua do Porto de Pelotas nem tratado como um número único para todo o canal.",
   facts: [
-    "A página usa somente a estação DCRS-00063, identificada pela Defesa Civil RS como Capão do Leão - Eclusa - Canal São Gonçalo.",
-    "A barragem e a eclusa do Canal São Gonçalo ficam em Capão do Leão; o sistema conecta a Lagoa Mirim e a Lagoa dos Patos.",
-    "O nível é exibido em metros, unidade documentada pela API oficial, sempre associado à referência própria da estação.",
-    "A tendência recebida da fonte descreve o comportamento informado no ponto e não é convertida automaticamente em risco ou cota de atenção.",
-    "Uma leitura da Eclusa não deve ser comparada diretamente com a régua do Cais do Porto de Pelotas sem referência vertical compatível.",
+    "A leitura vem da estação DCRS-00063, na Eclusa do Canal São Gonçalo, em Capão do Leão.",
+    "O nível é mostrado em metros, na unidade informada pela fonte.",
+    "A tendência descreve o comportamento informado para esta estação e não é, sozinha, um alerta de risco.",
+    "Se a leitura não chega, o portal não troca a ausência por zero ou por uma estação vizinha.",
+    "A régua da Eclusa e a régua do Porto de Pelotas só podem ser comparadas quando suas referências forem compatíveis.",
   ],
   faqs: [
     {
       question: "Qual é o nível do Canal São Gonçalo hoje?",
       answer:
-        "A última medição recebida da estação DCRS-00063 aparece no bloco de leitura desta página. O horário acompanha o valor para deixar claro quando a observação foi registrada.",
+        "A última medição recebida aparece no bloco de leitura desta página, junto do horário informado pela estação.",
     },
     {
       question: "Essa leitura é feita em Pelotas?",
       answer:
-        "Não. Esta página usa a estação da Eclusa em Capão do Leão. Leituras publicadas para o Cais do Porto em Pelotas pertencem a outro ponto e não são tratadas como a mesma régua.",
+        "Não. A estação desta página fica na Eclusa, em Capão do Leão. O Cais do Porto em Pelotas é outro ponto de medição.",
     },
     {
-      question: "O nível da Eclusa pode ser comparado diretamente ao nível do Cais do Porto?",
+      question: "Posso comparar diretamente a Eclusa com o Cais do Porto?",
       answer:
-        "Não sem confirmação de referência vertical compatível. O Tempo Pelotas mantém cada ponto identificado separadamente e não subtrai nem converte réguas diferentes automaticamente.",
+        "Não sem confirmar que as duas réguas usam referências compatíveis. O portal mantém os pontos separados justamente para evitar uma comparação enganosa.",
     },
     {
-      question: "O valor mostrado já indica cota de atenção ou inundação?",
+      question: "O valor mostrado já indica atenção ou inundação?",
       answer:
-        "Não. O portal apresenta o nível informado pela estação. Sem metadado específico do limiar e da referência dessa régua, o valor não é classificado como cota de atenção, alerta ou inundação.",
+        "Não automaticamente. Sem um limiar oficial específico para esta régua, o Tempo Pelotas apresenta a medição sem transformá-la em cota de atenção ou inundação.",
     },
     {
-      question: "Onde vejo a previsão do tempo para a área da Eclusa?",
+      question: "Onde vejo a previsão do tempo para a Eclusa?",
       answer:
-        "A previsão municipal fica na página de tempo em Capão do Leão. Ela é independente da leitura hidrológica da Defesa Civil e não substitui a observação do canal.",
+        "A previsão fica na página de tempo em Capão do Leão. Ela complementa a leitura do canal, mas não altera o valor medido pela estação.",
     },
   ],
   relatedLinks: [
     {
-      label: "Situação hidrológica regional",
+      label: "Situação das águas na região",
       href: "/situacao-hidrologica-pelotas" as const,
-      description: "Compare as redes regionais mantendo cada estação na sua própria referência.",
+      description: "Veja outras leituras de água mantendo cada estação na própria referência.",
     },
     {
       label: "Alertas oficiais",
@@ -92,7 +92,7 @@ const PAGE_CONTENT = {
     {
       label: "Metodologia e fontes",
       href: "/metodologia" as const,
-      description: "Veja como o portal trata unidade, horário, proveniência e estados degradados.",
+      description: "Entenda como o portal trata horário, unidade, origem e indisponibilidade.",
     },
   ],
 };
