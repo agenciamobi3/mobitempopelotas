@@ -1,113 +1,85 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
-import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
 import { RadarForecastContext } from "@/components/redemet/RadarForecastContext";
 import { RedemetDerivedContext } from "@/components/redemet/RedemetDerivedContext";
 import { RedemetOverview } from "@/components/redemet/RedemetOverview";
-import "@/components/redemet/RedemetHomeContract.css";
-import "@/components/redemet/RedemetEmptyStatePolish.css";
 import { RADAR_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
 import { loadRadarPageData } from "@/lib/redemet/radar-page-loader";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
+import { useRedemetOverviewBrowserRecovery } from "@/production/lib/redemet-browser-recovery";
+import { useWeatherIntelligenceBrowserRecovery } from "@/production/lib/weather-intelligence-browser-recovery";
 
-const PAGE_TITLE = "Satélites e radares em Pelotas: chuva, nuvens e trovoadas";
+const PAGE_TITLE = "Radar de chuva e satélite em Pelotas: imagens recentes";
 const PAGE_DESCRIPTION =
-  "Acompanhe satélites e radares em Pelotas com radar de chuva, imagens de satélite, trovoadas, horários recentes, sequência temporal e fontes meteorológicas oficiais.";
+  "Veja as imagens mais recentes de radar e satélite para a região de Pelotas, horários reais das coletas e registros de raios da REDEMET/DECEA.";
 const PAGE_PATH = "/radar-e-satelite-pelotas";
 
 const RADAR_PAGE_CONTENT = {
   ...RADAR_EDITORIAL_CONTENT,
-  eyebrow: "Satélites e Radares",
-  title: "Acompanhe chuva, nuvens e trovoadas na região de Pelotas",
+  eyebrow: "Entenda as imagens",
+  title: "Radar, satélite e raios mostram partes diferentes do tempo",
   answer:
-    "Confira primeiro o horário da imagem mais recente e depois reproduza a sequência. O radar ajuda a localizar áreas associadas à chuva; o satélite mostra a cobertura e a organização das nuvens; e os registros de trovoadas indicam atividade elétrica detectada. Os valores exibidos ao lado pertencem à previsão por hora mais próxima, enquanto as imagens representam registros recentes da fonte.",
+    "O radar ajuda a localizar áreas de chuva. O satélite mostra as nuvens. Os registros de descargas elétricas mostram onde houve raios detectados. Em todos os blocos, confira o horário da coleta antes de interpretar a situação.",
   facts: [
-    "Os produtos de radar, satélite e STSC são coletados por integração server-side com acesso autorizado à API da REDEMET/DECEA; a origem e o horário permanecem identificados no portal.",
-    "A expressão radar agora deve ser lida como a imagem mais recente disponível na fonte; o horário do quadro é a referência para saber quão atual é o registro.",
-    "Reproduzir a sequência ajuda a perceber deslocamento e mudança, mas não garante que o mesmo movimento continuará.",
-    "O radar oferece uma visão regional e não confirma sozinho chuva em um endereço ou bairro específico.",
-    "Quando uma estação de radar não fornece imagem recente, o portal pode usar outra estação oficial cuja cobertura inclua Pelotas; a origem e o horário do quadro permanecem identificados.",
-    "Nuvens no satélite não significam necessariamente chuva no solo em Pelotas.",
-    "Trovoada detectada indica atividade elétrica e não substitui um aviso oficial de risco.",
-    "Cada imagem pode ter um horário diferente; compare registros feitos em momentos próximos.",
-    "Temperatura, chance de chuva, vento, nuvens baixas e visibilidade são valores previstos e não são medidos pela imagem.",
-    "A janela temporal e a cadência mostradas na página são calculadas a partir dos timestamps dos quadros disponíveis naquela consulta; elas podem mudar se a fonte atrasar ou omitir um quadro.",
-    "A distância de uma trovoada até Pelotas é uma aproximação em linha reta a partir da coordenada detectada pelo STSC. Ela localiza atividade elétrica, mas não representa intensidade, direção de deslocamento nem nível de risco.",
+    "Os horários exibidos vêm das próprias coletas recebidas das fontes.",
+    "Radar mostra áreas associadas à chuva, mas não confirma sozinho chuva em uma rua ou bairro.",
+    "Nuvens vistas pelo satélite não significam necessariamente chuva no solo.",
+    "Raios detectados não substituem os avisos oficiais de risco.",
   ],
   faqs: [
     {
-      question: "Onde vejo o radar de chuva de Pelotas agora?",
+      question: "Onde vejo o radar de chuva de Pelotas?",
       answer:
-        "A imagem mais recente disponível aparece na área de radar desta página com o horário do quadro e a estação de origem. Confira esse horário antes de interpretar a imagem como situação atual, porque a fonte pode apresentar atraso entre atualizações.",
+        "A imagem mais recente aparece no bloco Radar. O horário mostrado abaixo da imagem indica quando aquela coleta foi registrada.",
     },
     {
-      question: "Como o Tempo Pelotas recebe os dados da REDEMET?",
+      question: "As imagens desta página são reais?",
       answer:
-        "O portal possui acesso autorizado à API da REDEMET/DECEA e consulta os produtos oficiais por conexão entre sistemas no servidor. A credencial não é enviada ao navegador, e cada quadro mantém a identificação da fonte e do horário recebido.",
+        "Sim. A página mostra imagens e registros recebidos das fontes identificadas em cada bloco. Quando uma coleta não chega, o portal mostra esse estado em vez de inventar uma imagem ou um horário.",
     },
     {
-      question: "Como usar a reprodução automática das imagens?",
+      question: "Como usar a sequência de imagens?",
       answer:
-        "Selecione Reproduzir sequência para avançar pelas imagens disponíveis. Pause para examinar uma imagem, use a linha do tempo para escolher outro horário ou retorne à imagem mais recente. A sequência mostra registros passados e recentes, não uma projeção futura.",
+        "Use os controles para voltar ou avançar entre as coletas recebidas. A sequência mostra o que aconteceu nos horários disponíveis e não é uma previsão do movimento futuro.",
     },
     {
-      question: "O radar mostra se está chovendo exatamente no meu bairro?",
+      question: "O radar mostra se está chovendo no meu bairro?",
       answer:
-        "Não com precisão absoluta. O radar oferece uma visão regional e pode ter limitações de distância, resolução, altura do feixe e intensidade da chuva. Confirme com observação local, previsão por horário e avisos oficiais.",
+        "Não com precisão de endereço. O radar oferece uma visão regional. Para saber o que acontece no seu ponto, compare com observação local, previsão e avisos oficiais.",
     },
     {
-      question: "Nuvens no satélite significam chuva em Pelotas?",
+      question: "Nuvens no satélite significam chuva?",
       answer:
-        "Não necessariamente. O satélite mostra cobertura e características das nuvens. Para avaliar chuva, compare a imagem com radar, previsão, horário e observações próximas.",
+        "Não necessariamente. O satélite mostra nuvens. A presença de chuva deve ser avaliada junto com radar, previsão e observações locais.",
     },
     {
-      question: "Uma ocorrência de trovoada é um alerta meteorológico?",
+      question: "Um raio detectado é um alerta meteorológico?",
       answer:
-        "Não. Ela indica atividade elétrica detectada em uma área e horário. Alertas oficiais são emitidos por órgãos responsáveis com critérios próprios de risco, abrangência e validade.",
-    },
-    {
-      question: "Por que as imagens podem mostrar horários diferentes?",
-      answer:
-        "Radar, satélite e trovoadas são atualizados em intervalos próprios. Por isso, confira o horário mostrado em cada bloco e evite comparar imagens de momentos muito diferentes como se fossem simultâneas.",
-    },
-    {
-      question: "O que significa a cadência observada da sequência?",
-      answer:
-        "É o intervalo mediano calculado entre os timestamps dos quadros disponíveis naquela consulta. Serve para entender a sequência exibida, mas não representa garantia de que a fonte publicará sempre no mesmo intervalo.",
-    },
-    {
-      question: "Como é calculada a distância das trovoadas até Pelotas?",
-      answer:
-        "O portal calcula a distância em linha reta entre a coordenada de cada ocorrência retornada pelo STSC e um ponto de referência de Pelotas. Essa distância ajuda a localizar a atividade elétrica, mas não substitui um aviso oficial nem indica a trajetória da tempestade.",
-    },
-    {
-      question: "Os valores ao lado do radar foram medidos pela imagem?",
-      answer:
-        "Não. Temperatura, chance de chuva, vento, nuvens baixas e visibilidade vêm da previsão por hora mais próxima. A imagem do radar permanece uma observação independente da REDEMET/DECEA.",
+        "Não. Ele indica atividade elétrica detectada em um horário e local. Para risco e orientação de segurança, consulte os avisos oficiais.",
     },
   ],
   relatedLinks: [
     {
       label: "Chuva em Pelotas",
       href: "/chuva-em-pelotas" as const,
-      description: "Compare as imagens com chance e volume de chuva previstos por horário.",
+      description: "Veja chance e volume de chuva previstos por horário.",
     },
     {
       label: "Tempo hoje em Pelotas",
       href: "/tempo-hoje-pelotas" as const,
-      description: "Veja temperatura, chuva, vento, ponto de orvalho, nuvens e visibilidade.",
+      description: "Veja temperatura, chuva, vento e mudanças nas próximas horas.",
     },
     {
       label: "Vento e rajadas em Pelotas",
       href: "/vento-em-pelotas" as const,
-      description: "Compare a evolução visual dos sistemas com direção e rajadas previstas por hora.",
+      description: "Confira direção, velocidade e rajadas previstas.",
     },
     {
-      label: "Avisos oficiais do INMET",
+      label: "Avisos oficiais",
       href: "/alertas" as const,
-      description: "Consulte abrangência, validade e orientações dos avisos para Pelotas.",
+      description: "Consulte os avisos oficiais válidos para Pelotas.",
     },
   ],
 };
@@ -121,26 +93,16 @@ export const Route = createFileRoute("/radar-e-satelite-pelotas")({
         path: PAGE_PATH,
         breadcrumbs: [
           { name: "Início", path: "/" },
-          { name: "Satélites e Radares em Pelotas", path: PAGE_PATH },
+          { name: "Radar e satélite em Pelotas", path: PAGE_PATH },
         ],
         about: [
-          "Satélites e radares em Pelotas",
           "Radar de chuva em Pelotas",
-          "Radar meteorológico de Pelotas agora",
           "Imagem de radar mais recente para Pelotas",
-          "Radar meteorológico de Santiago com cobertura sobre Pelotas",
-          "Seleção operacional de estação REDEMET conforme disponibilidade e cobertura",
-          "API autorizada da REDEMET/DECEA",
           "Imagens de satélite sobre Pelotas",
-          "Monitoramento regional de trovoadas",
-          "Distância de trovoadas até Pelotas",
-          "Cadência observada da sequência de radar",
-          "Janela temporal das imagens meteorológicas",
-          "Precipitação na Zona Sul do Rio Grande do Sul",
+          "Raios e trovoadas na região de Pelotas",
           "REDEMET e INMET",
           "Horário das imagens meteorológicas",
           "Sequência de imagens de radar",
-          "Comparação entre radar e previsão horária",
         ],
       }),
       createFaqPageJsonLd(PAGE_PATH, RADAR_PAGE_CONTENT.faqs),
@@ -151,14 +113,15 @@ export const Route = createFileRoute("/radar-e-satelite-pelotas")({
 });
 
 function RedemetPage() {
-  const data = Route.useLoaderData();
+  const baseline = Route.useLoaderData();
+  const { data: redemet, isRecovering } = useRedemetOverviewBrowserRecovery(baseline.redemet);
+  const weather = useWeatherIntelligenceBrowserRecovery(baseline.weather);
 
   return (
     <div className="radar-satellite-page">
-      <RedemetOverview data={data.redemet} />
-      <RedemetDerivedContext data={data.redemet} />
-      <OfficialDataAccessNotice scope="meteorology" />
-      <RadarForecastContext radar={data.redemet.radar} weather={data.weather} />
+      <RedemetOverview data={redemet} isRefreshing={isRecovering} />
+      <RedemetDerivedContext data={redemet} />
+      <RadarForecastContext radar={redemet.radar} weather={weather} />
       <EditorialContentSection
         id="como-interpretar-radar-satelite"
         content={RADAR_PAGE_CONTENT}
