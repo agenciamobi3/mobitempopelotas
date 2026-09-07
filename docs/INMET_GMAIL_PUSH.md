@@ -2,54 +2,32 @@
 
 ## Objetivo
 
-Usar a chegada das mensagens oficiais de **Previsões por E-mail do INMET** em `contato.agenciamobi@gmail.com` como gatilho para o Web Push já existente do Tempo Pelotas.
+Usar as mensagens oficiais de **Previsões por E-mail do INMET** recebidas em `contato.agenciamobi@gmail.com` como gatilho para o Web Push já existente do Tempo Pelotas.
 
-Este fluxo é **100% determinístico e não usa IA** para ler, classificar ou escrever a notificação.
+O fluxo é **100% determinístico**. Não usa Gemini, OpenAI nem outro modelo para ler o e-mail, classificar a mensagem ou escrever o push.
 
-O e-mail não é encaminhado cru ao visitante. Ele apenas dispara uma nova leitura da previsão estruturada do INMET para Pelotas. Quando a API estruturada estiver temporariamente indisponível, o push usa uma mensagem genérica informando que chegou uma nova previsão oficial por e-mail, sem inventar valores.
+O e-mail também não é encaminhado cru. Quando chega uma previsão reconhecida, o backend consulta novamente a previsão estruturada oficial do INMET para Pelotas e monta a mensagem com template fixo. Se essa API estiver temporariamente indisponível, o push informa apenas que há uma nova previsão do INMET, sem inventar valores.
 
-## Separação editorial
+## Arquitetura atual
 
-- e-mail de confirmação de cadastro: ignorado;
-- e-mail reconhecido como previsão: dispara o fluxo de previsão;
-- outros e-mails: ignorados;
-- aviso oficial de risco continua no pipeline específico de `weather_alerts`, baseado nos avisos oficiais estruturados do INMET.
-
-Uma previsão por e-mail nunca é promovida a "alerta oficial" apenas por ter vindo do INMET.
-
-## Segurança do remetente
-
-Antes de qualquer disparo o backend exige:
-
-1. endereço `From` terminado exatamente em `@inmet.gov.br`;
-2. `spf=pass`;
-3. `dmarc=pass`;
-4. alinhamento `header.from=inmet.gov.br`.
-
-A confirmação recebida em 07/09/2026 de `sepre2.df@inmet.gov.br` apresentou SPF e DMARC válidos e serve como referência do contrato esperado.
-
-Mensagens que não passam por essas verificações são ignoradas.
-
-## Fluxo
+O projeto reutiliza o **App Connector Gmail já conectado no workspace da MOBI no Lovable**.
 
 ```text
 INMET
   ↓
 Gmail contato.agenciamobi@gmail.com
   ↓
-Gmail watch / Google Cloud Pub/Sub
+Lovable App Connector: google_mail
   ↓
-POST /api/cron/push-daily?task=inmet-gmail
+GET /api/cron/push-daily?task=inmet-gmail
   ↓
-validação OIDC do Pub/Sub
+busca fixa de mensagens recentes do INMET
   ↓
-busca das mensagens recentes do domínio inmet.gov.br
-  ↓
-validação SPF + DMARC + remetente
+validação de remetente + SPF + DMARC
   ↓
 classificação determinística
   ↓
-consulta /previsao do INMET para o geocódigo de Pelotas
+consulta da previsão estruturada do INMET para Pelotas
   ↓
 template fixo
   ↓
@@ -58,116 +36,95 @@ claim_web_push_dispatch / deduplicação
 Web Push topic=weather
 ```
 
-## Consentimento
+Não existe OAuth próprio do Tempo Pelotas para Gmail, refresh token próprio, Gmail Watch ou Google Cloud Pub/Sub nesse fluxo.
 
-As atualizações de previsão usam:
+## Conector do Lovable
 
-- `topic: "weather"`;
-- `consentPreference: "daily_summary"`.
-
-Isso evita enviar previsão rotineira a uma pessoa que tenha escolhido apenas alertas meteorológicos graves.
-
-O pipeline existente de alertas oficiais continua usando `weather_alerts`.
-
-## Variáveis de ambiente
-
-```env
-INMET_GMAIL_USER=contato.agenciamobi@gmail.com
-INMET_GMAIL_CLIENT_ID=
-INMET_GMAIL_CLIENT_SECRET=
-INMET_GMAIL_REFRESH_TOKEN=
-
-INMET_GMAIL_QUERY=in:inbox -in:spam -in:trash from:(@inmet.gov.br) newer_than:1d
-INMET_GMAIL_MAX_AGE_MINUTES=360
-
-INMET_GMAIL_PUBSUB_TOPIC=projects/SEU_PROJETO/topics/tempo-pelotas-inmet-gmail
-INMET_GMAIL_PUBSUB_AUDIENCE=https://tempopelotas.com.br/api/cron/push-daily?task=inmet-gmail
-INMET_GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL=
-```
-
-Todos os valores acima são server-only. Nunca criar variantes `VITE_*`.
-
-O refresh token deve ser emitido com o menor escopo necessário:
+O runtime usa o gateway oficial do connector:
 
 ```text
-https://www.googleapis.com/auth/gmail.readonly
+https://connector-gateway.lovable.dev/google_mail/gmail/v1
 ```
 
-## Gmail watch
+A autenticação usa valores server-only gerenciados pelo Lovable:
 
-O watch é renovado por:
+- `LOVABLE_API_KEY`;
+- `GOOGLE_MAIL_API_KEY`.
 
-```http
-GET /api/cron/push-daily?task=inmet-gmail-watch
-Authorization: Bearer $CRON_SECRET
-```
+Esses valores **não devem ser copiados para `.env.example`, versionados nem expostos ao navegador**. O projeto não cria uma segunda credencial Google para a mesma caixa postal.
 
-A chamada registra o tópico Pub/Sub e observa a `INBOX`. A filtragem por remetente continua no backend.
+A integração precisa permanecer vinculada à conexão Gmail de `contato.agenciamobi@gmail.com` no projeto Tempo Pelotas.
 
-O Gmail watch expira e deve ser renovado periodicamente. Agendar a renovação **diariamente** é simples e evita depender do último dia de validade.
+## Leitura da caixa postal
 
-## Webhook Pub/Sub
-
-Destino:
+A rota usa uma consulta fixa no servidor:
 
 ```text
-https://tempopelotas.com.br/api/cron/push-daily?task=inmet-gmail
+in:inbox -in:spam -in:trash from:(inmet.gov.br) newer_than:1d
 ```
 
-Método:
+São lidas no máximo **20 mensagens por execução**. O visitante não consegue enviar `query`, `messageId`, remetente ou qualquer outro parâmetro para pesquisar a caixa postal.
 
-```http
-POST
-Content-Type: application/json
-Authorization: Bearer <Google OIDC token>
-```
-
-A assinatura Pub/Sub deve usar autenticação OIDC. O backend valida:
-
-- assinatura RS256 contra as chaves públicas do Google;
-- issuer Google;
-- audiência exata de `INMET_GMAIL_PUBSUB_AUDIENCE`;
-- expiração;
-- e, quando configurado, o e-mail da service account em `INMET_GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL`.
-
-Não usar segredo em query string como substituto da validação OIDC.
-
-## Configuração do Google Cloud
-
-1. habilitar Gmail API e Pub/Sub no projeto;
-2. criar tópico Pub/Sub;
-3. permitir que `gmail-api-push@system.gserviceaccount.com` publique nesse tópico;
-4. criar uma push subscription para o endpoint do Tempo Pelotas;
-5. configurar OIDC na push subscription com uma service account própria;
-6. colocar a mesma URL do endpoint como audiência OIDC;
-7. armazenar o e-mail dessa service account em `INMET_GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL`;
-8. gerar OAuth Client ID/Secret e refresh token da conta `contato.agenciamobi@gmail.com` com `gmail.readonly`;
-9. chamar a rota `task=inmet-gmail-watch` para iniciar o watch.
-
-## Recuperação sem webhook
-
-O mesmo pipeline pode ser executado manualmente ou por scheduler:
+Apenas esta rota protegida pode iniciar a leitura:
 
 ```http
 GET /api/cron/push-daily?task=inmet-gmail
 Authorization: Bearer $CRON_SECRET
 ```
 
-Ele busca até 20 mensagens recentes do INMET e usa `web_push_dispatches` para impedir duplicidade.
+Não existe endpoint público genérico para Gmail.
 
-Esse GET funciona como recuperação se Pub/Sub ficar indisponível. Uma frequência curta, por exemplo 10 a 15 minutos, é suficiente como contingência; o caminho principal continua sendo o webhook.
+## Frequência
+
+Como não usamos Pub/Sub, o scheduler deve chamar `task=inmet-gmail` em intervalo curto. **5 a 10 minutos** é um intervalo adequado para esse caso.
+
+A repetição é segura porque cada mensagem é deduplicada antes do envio.
+
+## Segurança do remetente
+
+Antes de considerar um e-mail, o backend exige:
+
+1. `From` terminado exatamente em `@inmet.gov.br`;
+2. `spf=pass`;
+3. `dmarc=pass`;
+4. alinhamento `header.from=inmet.gov.br`.
+
+Mensagens que não passam nessas verificações são ignoradas, mesmo que o assunto contenha “INMET”.
+
+A mensagem de confirmação recebida de `sepre2.df@inmet.gov.br` em 07/09/2026 apresentou SPF e DMARC válidos e ajudou a validar esse contrato de cabeçalhos.
+
+## Classificação sem IA
+
+As regras são deliberadamente estreitas:
+
+- confirmação de cadastro: ignorada;
+- previsão por e-mail: elegível para o fluxo de previsão;
+- mensagens administrativas ou desconhecidas: ignoradas.
+
+Uma mensagem desconhecida nunca é “interpretada” por IA para tentar decidir o que fazer.
+
+## Separação entre previsão e alerta
+
+Uma previsão normal do INMET usa:
+
+- `topic: "weather"`;
+- `consentPreference: "daily_summary"`;
+- urgência normal;
+- destino `/tempo-hoje-pelotas`.
+
+Ela **não** é promovida a `weather_alerts` só porque veio de `@inmet.gov.br`.
+
+Avisos oficiais de risco continuam no pipeline já existente de avisos estruturados do INMET, com `weather_alerts`, alta prioridade e destino `/alertas`.
 
 ## Janela de idade
 
-Por padrão, somente previsões recebidas nas últimas **6 horas** podem gerar novo push.
+Somente previsões recebidas nas últimas **6 horas** podem gerar um novo push.
 
-Isso evita que o primeiro deploy ou uma recuperação longa dispare uma fila antiga de mensagens.
+A busca olha um dia para trás para permitir recuperação, mas a regra de idade impede que um primeiro deploy ou uma indisponibilidade longa dispare mensagens antigas.
 
-A janela é configurável por `INMET_GMAIL_MAX_AGE_MINUTES`, limitada pelo código entre 5 minutos e 24 horas.
+## Copy determinística
 
-## Copy sem IA
-
-O template é construído por código a partir de `fetchInmetForecast()`.
+O template usa `fetchInmetForecast()`.
 
 Exemplo:
 
@@ -177,7 +134,7 @@ INMET atualizou a previsão de Pelotas
 Manhã: muitas nuvens com possibilidade de chuva isolada. Mínima de 12 °C e máxima de 18 °C.
 ```
 
-Se a previsão estruturada não estiver disponível:
+Se a previsão estruturada estiver indisponível:
 
 ```text
 INMET atualizou a previsão de Pelotas
@@ -185,28 +142,41 @@ INMET atualizou a previsão de Pelotas
 Uma nova previsão do INMET chegou por e-mail. Confira os detalhes atualizados no Tempo Pelotas.
 ```
 
-Não há chamada a Gemini, OpenAI ou qualquer outro modelo nesse caminho.
+Nenhuma chamada de IA participa desse caminho.
 
 ## Deduplicação
 
-Cada mensagem Gmail recebe um fingerprint derivado do ID interno da mensagem:
+Cada mensagem do Gmail recebe um fingerprint derivado do ID interno da mensagem:
 
 ```text
 inmet-gmail-<sha256 curto>
 ```
 
-A reserva usa o mesmo `claim_web_push_dispatch` já empregado pelo restante do Web Push.
+A reserva usa `claim_web_push_dispatch`, já empregado pelo restante do Web Push.
 
-Reentregas do Pub/Sub, recuperação por cron ou reinício do runtime não geram um segundo push para o mesmo e-mail.
+Se o cron consultar a mesma mensagem dezenas de vezes, ela continua gerando no máximo um disparo.
 
-## O que ainda depende de infraestrutura externa
+Se uma entrega for interrompida depois de já alcançar parte dos assinantes, o progresso parcial é encerrado no ledger para evitar uma repetição cega do mesmo lote.
 
-O código fica pronto no repositório, mas a entrega em produção só começa após:
+## Fail-safe
 
-- cadastrar as credenciais OAuth no ambiente;
-- criar o tópico e a push subscription no Google Cloud;
-- configurar OIDC;
-- renovar o Gmail watch;
-- manter Web Push/VAPID/Supabase operacionais.
+O fluxo prefere não enviar a enviar algo incorreto:
 
-Nenhuma dessas credenciais deve ser versionada.
+- conector Gmail do Lovable indisponível → nenhum push;
+- mensagem sem autenticação do domínio → ignorada;
+- formato desconhecido → ignorado;
+- mensagem antiga → ignorada;
+- previsão estruturada indisponível → apenas texto genérico, sem números inventados;
+- Web Push indisponível → nenhum envio.
+
+## Operação no Lovable
+
+Para produção, confirmar apenas:
+
+1. o App Connector `Gmail` está habilitado no workspace;
+2. a conexão usada pelo projeto Tempo Pelotas corresponde a `contato.agenciamobi@gmail.com`;
+3. o connector permanece com acesso de leitura suficiente para listar e ler as mensagens;
+4. `CRON_SECRET`, Supabase e Web Push/VAPID estão operacionais;
+5. existe scheduler chamando `GET /api/cron/push-daily?task=inmet-gmail` a cada 5–10 minutos.
+
+Não criar OAuth Client ID/Secret, refresh token, tópico Pub/Sub ou Gmail Watch especificamente para esta integração.
