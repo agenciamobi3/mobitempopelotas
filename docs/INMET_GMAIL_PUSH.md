@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Usar as mensagens oficiais de **Previsões por E-mail do INMET** recebidas em `contato.agenciamobi@gmail.com` como gatilho para uma atualização de previsão do Tempo Pelotas.
+Usar mensagens oficiais de **Previsões por E-mail do INMET** como gatilho para uma atualização de previsão do Tempo Pelotas.
 
 O fluxo é **100% determinístico**. Não usa Gemini, OpenAI nem outro modelo para ler o e-mail, classificar a mensagem ou escrever o push.
 
@@ -10,9 +10,7 @@ O e-mail não vira conteúdo público. Ele funciona apenas como sinal de que o I
 
 ## Estado operacional
 
-O código do pipeline está preparado, mas o Web Push público do Tempo Pelotas permanece suspenso enquanto a fase de estabilidade não for homologada.
-
-Por isso existe um gate server-only:
+O pipeline está preparado na `main`, porém permanece **desativado para entrega**.
 
 ```env
 INMET_GMAIL_PUSH_ENABLED=false
@@ -20,16 +18,58 @@ INMET_GMAIL_PUSH_ENABLED=false
 
 Enquanto o valor não for exatamente `true`, o fluxo normal `task=inmet-gmail` retorna `success/skipped` e **não consulta o Gmail nem tenta enviar notificações**.
 
-A ativação desse flag deve acontecer somente junto da reativação formal do Web Push público. O cron versionado pode permanecer agendado sem furar essa suspensão.
+Além disso, existe uma segunda trava obrigatória antes de qualquer verificação ou ativação:
 
-Existe separadamente um modo de **verificação segura** para testar o Gmail real sem abrir a entrega.
+```env
+INMET_GMAIL_EXPECTED_RECIPIENT=
+```
+
+Esse valor deve ser um **endereço ou alias dedicado exclusivamente à assinatura do INMET usada pelo Tempo Pelotas**. Não deve ser o e-mail pessoal de uma pessoa nem um endereço genérico usado para outras assinaturas.
+
+Enquanto esse destinatário dedicado não for definido, o modo `check` também permanece fail-closed.
+
+Portanto, o estado correto neste corte é:
+
+- arquitetura e pipeline implementados;
+- integração Gmail do Lovable reutilizada;
+- Web Push público continua suspenso;
+- `INMET_GMAIL_PUSH_ENABLED=false`;
+- destinatário exclusivo ainda deve ser escolhido/configurado antes de uma homologação real;
+- nenhum envio automático deve ser considerado operacional neste momento.
+
+## Por que o destinatário dedicado é obrigatório
+
+A caixa conectada pode receber mensagens legítimas do INMET destinadas a pessoas, clientes ou outros projetos.
+
+Sem essa trava, um e-mail real do INMET sobre Pelotas poderia ser interpretado como gatilho coletivo mesmo que a assinatura tivesse sido feita por uma pessoa para uso próprio.
+
+A regra de segurança passa a ser:
+
+```text
+remetente oficial do INMET
++ autenticação Gmail/SPF/DMARC válida
++ destinatário exclusivo do Tempo Pelotas
++ conteúdo referente a Pelotas
++ formato conhecido de previsão
+= candidata ao pipeline
+```
+
+Exemplos conceituais:
+
+- e-mail do INMET para um endereço pessoal → ignorado;
+- e-mail do INMET para um endereço genérico da agência → ignorado se não for o destinatário reservado;
+- e-mail do INMET para o alias/endereço exclusivo configurado em `INMET_GMAIL_EXPECTED_RECIPIENT` → pode continuar para as demais validações.
+
+O endereço definitivo deve ser decidido antes da ativação. O código não inventa nem assume um alias.
 
 ## Arquitetura refinada
 
 ```text
 INMET
   ↓
-Gmail contato.agenciamobi@gmail.com
+assinatura dedicada do Tempo Pelotas
+  ↓
+Gmail conectado no Lovable
   ↓
 Lovable App Connector: google_mail
   ↓
@@ -37,15 +77,19 @@ GET /api/cron/push-daily?task=inmet-gmail
   ↓
 gate INMET_GMAIL_PUSH_ENABLED
   ↓
-busca fixa: INMET + Pelotas + janela de 6 h
+validação de INMET_GMAIL_EXPECTED_RECIPIENT
+  ↓
+busca fixa: INMET + Pelotas + destinatário dedicado + janela de 6 h
   ↓
 validação do Authentication-Results do Gmail
   ↓
 From @inmet.gov.br + SPF pass + DMARC pass
   ↓
+validação redundante de To / Delivered-To / X-Original-To / Envelope-To
+  ↓
 classificação determinística
   ↓
-confirmação / desconhecido / outra cidade → ignorado
+confirmação / desconhecido / outra cidade / outro destinatário → ignorado
   ↓
 se houver várias previsões elegíveis → mantém somente a mais recente
   ↓
@@ -64,58 +108,34 @@ Não existe OAuth próprio do Tempo Pelotas para Gmail, refresh token próprio, 
 
 ## Verificação segura antes da ativação
 
-A rota protegida abaixo ignora o gate de entrega apenas para **ler e validar** a integração:
+A rota protegida abaixo existe para **ler e validar** a integração sem abrir a entrega:
 
 ```http
 GET /api/cron/push-daily?task=inmet-gmail-check
 Authorization: Bearer $CRON_SECRET
 ```
 
-Ela pode ser executada mesmo com:
+Ela pode ser executada com:
 
 ```env
 INMET_GMAIL_PUSH_ENABLED=false
 ```
 
+Mas exige que `INMET_GMAIL_EXPECTED_RECIPIENT` já esteja configurado com o endereço exclusivo da assinatura do Tempo Pelotas.
+
 Esse modo:
 
 - consulta o App Connector Gmail real;
-- usa a mesma busca de INMET + Pelotas + janela de 6 horas;
+- usa a mesma busca de INMET + Pelotas + destinatário dedicado + janela de 6 horas;
 - aplica a mesma autenticação de remetente;
+- valida o destinatário exato novamente nos headers da mensagem;
 - aplica a mesma classificação sem IA;
 - escolhe a mesma candidata mais recente;
 - consulta `fetchInmetForecast()` para saber qual texto público seria formado;
 - retorna contadores, horário da candidata, um hash curto do ID interno, estado da previsão estruturada e uma prévia do push;
-- **não chama `claim_web_push_dispatch` para essa verificação, não reserva envio e não chama `broadcastPushNotification`**.
+- **não chama `claim_web_push_dispatch`, não reserva envio e não chama `broadcastPushNotification`**.
 
-A resposta não devolve assunto, corpo, endereço do remetente nem ID bruto do Gmail.
-
-Exemplo conceitual de resposta sanitizada:
-
-```json
-{
-  "success": true,
-  "kind": "inmet-gmail-check",
-  "dispatchAttempted": false,
-  "mode": "check",
-  "forecastEmails": 1,
-  "wouldDispatch": true,
-  "selectedMessage": {
-    "fingerprint": "3c2b18f7a1",
-    "receivedAt": "2026-09-07T07:10:00.000Z"
-  },
-  "structuredForecast": {
-    "status": "live",
-    "periods": 4,
-    "fetchedAt": "2026-09-07T07:12:00.000Z"
-  },
-  "preview": {
-    "title": "INMET atualizou a previsão de Pelotas",
-    "body": "...",
-    "url": "/tempo-hoje-pelotas"
-  }
-}
-```
+A resposta não devolve assunto, corpo, endereço do remetente, destinatário bruto nem ID bruto do Gmail.
 
 `wouldDispatch=true` significa apenas que existe uma candidata válida e que, se o pipeline estivesse ativo, ela chegaria à etapa de deduplicação/entrega. **Não significa que a notificação foi enviada.**
 
@@ -134,19 +154,17 @@ A autenticação usa valores server-only gerenciados pelo Lovable:
 
 Esses valores **não devem ser copiados para `.env.example`, versionados nem expostos ao navegador**. O projeto não cria uma segunda credencial Google para a mesma caixa postal.
 
-A integração deve permanecer vinculada à conexão Gmail de `contato.agenciamobi@gmail.com` usada pelo projeto Tempo Pelotas.
-
 ## Leitura da caixa postal
 
 O backend monta uma busca server-only com estes filtros obrigatórios:
 
 ```text
-in:inbox -in:spam -in:trash from:(inmet.gov.br) Pelotas after:<início-da-janela>
+in:inbox -in:spam -in:trash from:(inmet.gov.br) Pelotas to:<destinatário-dedicado> after:<início-da-janela>
 ```
 
 `after:` é calculado em cada execução para cobrir somente a janela operacional de **6 horas**. O servidor ainda valida a idade real de cada mensagem após a leitura; o filtro do Gmail é apenas a primeira camada.
 
-São considerados no máximo **20 IDs por execução**. O visitante não consegue fornecer `query`, `messageId`, remetente, cidade ou outro parâmetro para pesquisar a caixa postal.
+São considerados no máximo **20 IDs por execução**. O visitante não consegue fornecer `query`, `messageId`, remetente, destinatário, cidade ou outro parâmetro para pesquisar a caixa postal.
 
 As duas operações permitidas permanecem atrás do mesmo `CRON_SECRET`:
 
@@ -172,15 +190,30 @@ Para uma mensagem ser confiável, é necessário que **um mesmo `Authentication-
 
 Além disso, o `From` visível deve terminar exatamente em `@inmet.gov.br`.
 
-`ARC-Authentication-Results` não substitui essa prova no fluxo atual. Isso reduz o risco de aceitar um cabeçalho injetado ou uma cadeia de encaminhamento como se fosse autenticação direta do remetente.
+`ARC-Authentication-Results` não substitui essa prova no fluxo atual.
 
-A mensagem de confirmação recebida de `sepre2.df@inmet.gov.br` em 07/09/2026 apresentou SPF e DMARC válidos e permanece como referência do formato esperado.
+A mensagem de confirmação recebida de `sepre2.df@inmet.gov.br` em 07/09/2026 apresentou SPF e DMARC válidos e permanece como referência do formato esperado. Ela foi recebida no endereço geral usado no cadastro inicial e **não deve ser usada como prova de que o destinatário exclusivo já está configurado**.
+
+## Segurança do destinatário
+
+O destinatário esperado é lido somente do runtime:
+
+```env
+INMET_GMAIL_EXPECTED_RECIPIENT=
+```
+
+O backend usa esse valor em duas camadas:
+
+1. no filtro Gmail com `to:<destinatário>`;
+2. depois da leitura, validando o endereço exato nos headers `To`, `Delivered-To`, `X-Original-To` e `Envelope-To`.
+
+A mensagem só continua se pelo menos um desses headers contiver exatamente o destinatário esperado.
+
+Essa redundância impede que uma assinatura pessoal ou de outro projeto use a mesma caixa conectada e acione o broadcast coletivo.
 
 ## Escopo obrigatório: Pelotas
 
 Uma mensagem reconhecida como previsão só continua se o assunto ou o corpo extraído contiver **Pelotas**.
-
-Isso é importante porque a caixa pode receber outros produtos ou previsões do INMET. Um e-mail de outra cidade nunca pode provocar um push dizendo que a previsão de Pelotas mudou.
 
 A busca do Gmail já inclui `Pelotas`, mas o backend repete essa validação antes do disparo. A regra é deliberadamente redundante e fail-closed.
 
@@ -191,7 +224,8 @@ As regras permanecem estreitas:
 - confirmação de cadastro: ignorada;
 - previsão por e-mail: candidata;
 - mensagens administrativas ou desconhecidas: ignoradas;
-- previsão sem referência a Pelotas: ignorada.
+- previsão sem referência a Pelotas: ignorada;
+- mensagem destinada a outro endereço: ignorada.
 
 Uma mensagem desconhecida nunca é entregue a um modelo para “tentar interpretar”.
 
@@ -203,11 +237,9 @@ Depois da validação, as candidatas são ordenadas pelo horário de recebimento
 
 Se a previsão mais recente já tiver sido enviada, o fluxo termina como duplicado. Ele não volta para uma mensagem antiga para produzir um push atrasado.
 
-Isso evita tempestade de notificações após atraso do scheduler, deploy ou mais de uma atualização do INMET em sequência curta.
-
 ## Deduplicação por conteúdo público
 
-A deduplicação não usa mais o ID interno do Gmail como identidade final do push.
+A deduplicação não usa o ID interno do Gmail como identidade final do push.
 
 O fingerprint combina:
 
@@ -286,15 +318,9 @@ TEMPO_PELOTAS_CRON_SECRET
 
 que deve ter o mesmo valor de `CRON_SECRET` em produção.
 
-No `workflow_dispatch`, o modo padrão é **`check`**. Portanto, ao clicar manualmente em **Run workflow** sem mudar a opção, o GitHub chama:
+No `workflow_dispatch`, o modo padrão é **`check`**. Também existe a opção manual `delivery`, mas ela continua sujeita a `INMET_GMAIL_PUSH_ENABLED=true`.
 
-```text
-task=inmet-gmail-check
-```
-
-Também existe a opção manual `delivery`, mas ela continua sujeita a `INMET_GMAIL_PUSH_ENABLED=true`. Com o flag desligado, essa execução retorna `skipped` e não consulta o Gmail.
-
-O workflow não envia headers de navegador, portanto não entra no bloqueio geográfico aplicado a navegação web. Também não cancela uma execução já iniciada quando outra rodada é enfileirada. Isso evita interromper um request no meio de uma possível entrega.
+Enquanto o flag permanecer `false`, o agendamento não consulta Gmail nem envia push.
 
 O GitHub Actions continua sendo uma dependência operacional separada do código. Se o runner não iniciar e aparecer `steps: null`, o polling/check não ocorreu e isso não deve ser tratado como falha do pipeline do INMET.
 
@@ -303,10 +329,12 @@ O GitHub Actions continua sendo uma dependência operacional separada do código
 O fluxo prefere não enviar a enviar algo incorreto:
 
 - `INMET_GMAIL_PUSH_ENABLED` diferente de `true` → fluxo normal sai antes de tocar no Gmail;
-- `inmet-gmail-check` → pode ler/validar o Gmail, mas nunca tenta entregar;
+- `INMET_GMAIL_EXPECTED_RECIPIENT` ausente ou inválido → check e scanner falham fechados;
+- `inmet-gmail-check` → pode ler/validar o Gmail quando o destinatário dedicado estiver configurado, mas nunca tenta entregar;
 - Web Push sem configuração operacional → fluxo normal sai sem consultar a caixa;
 - conector Gmail do Lovable indisponível → nenhum push;
 - mensagem sem autenticação direta do Gmail para o domínio INMET → ignorada;
+- mensagem para outro destinatário → ignorada;
 - formato desconhecido → ignorado;
 - previsão de outra cidade → ignorada;
 - mensagem antiga → ignorada;
@@ -319,14 +347,18 @@ O fluxo prefere não enviar a enviar algo incorreto:
 Para ativar o fluxo de verdade, a ordem correta é:
 
 1. manter `INMET_GMAIL_PUSH_ENABLED=false`;
-2. executar manualmente o workflow no modo `check`;
-3. comprovar que o App Connector Gmail está acessível e que uma mensagem real do INMET para Pelotas é reconhecida;
-4. validar a prévia do texto e o estado da previsão estruturada;
-5. homologar a reativação do Web Push público;
-6. confirmar VAPID, Supabase e inscrições com consentimento;
-7. confirmar `CRON_SECRET` e `TEMPO_PELOTAS_CRON_SECRET` equivalentes;
-8. definir `INMET_GMAIL_PUSH_ENABLED=true` no runtime;
-9. executar uma rodada manual `delivery`;
-10. só então considerar o polling automático operacional.
+2. escolher um endereço ou alias dedicado exclusivamente à assinatura INMET do Tempo Pelotas;
+3. cadastrar esse endereço no INMET;
+4. configurar o mesmo valor em `INMET_GMAIL_EXPECTED_RECIPIENT` no runtime;
+5. confirmar a assinatura recebida nesse endereço dedicado;
+6. executar manualmente o workflow no modo `check`;
+7. comprovar que uma previsão real para Pelotas foi reconhecida somente quando destinada ao endereço reservado;
+8. validar a prévia do texto e o estado da previsão estruturada;
+9. homologar a reativação do Web Push público;
+10. confirmar VAPID, Supabase e inscrições com consentimento;
+11. confirmar `CRON_SECRET` e `TEMPO_PELOTAS_CRON_SECRET` equivalentes;
+12. definir `INMET_GMAIL_PUSH_ENABLED=true` no runtime;
+13. executar uma rodada manual `delivery`;
+14. só então considerar o polling automático operacional.
 
 Não criar OAuth Client ID/Secret, refresh token, tópico Pub/Sub ou Gmail Watch especificamente para esta integração.
