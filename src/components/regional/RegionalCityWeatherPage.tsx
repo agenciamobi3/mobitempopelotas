@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
-import { InternalPageChapters } from "@/components/weather/InternalWeatherWidgets";
 import { HomeForecastStory } from "@/components/weather/HomeForecastStory";
 import {
   regionalCityEditorialProfile,
@@ -37,14 +36,6 @@ import "./RegionalCityIdentity.css";
 import "./RegionalCityAccentContract.css";
 import "./RegionalCityAlertLayout.css";
 
-const regionalSections = [
-  { href: "#avisos-municipais", label: "Avisos", detail: "INMET e orientações oficiais" },
-  { href: "#previsao-hoje", label: "Próximas horas", detail: "Temperatura, chuva e vento" },
-  { href: "#tendencia", label: "Próximos dias", detail: "Tendência diária do município" },
-  { href: "#como-interpretar-previsao-regional", label: "Entenda os dados", detail: "Limites e origem da previsão" },
-  { href: "#cidades-proximas", label: "Cidades próximas", detail: "Previsão para a região" },
-];
-
 function distanceLabel(distanceKm: number) { return `${Math.round(distanceKm)} km em linha reta`; }
 
 function CityLink({ city, distanceKm }: { city: RegionalCity; distanceKm: number }) {
@@ -78,13 +69,6 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
   const path = regionalCityPath(city);
   const forecastStory = toRegionalForecastStory(data);
   const hydrologyLocality = findHydrologyLocalityByWeatherCitySlug(city.slug);
-  const pageSections = hydrologyLocality
-    ? [
-        ...regionalSections.slice(0, 3),
-        { href: "#aguas", label: "Águas", detail: "Nível local da Lagoa dos Patos" },
-        ...regionalSections.slice(3),
-      ]
-    : regionalSections;
   const schema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -112,7 +96,6 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs) }} />
     <RegionalCityHero data={data} />
     <RegionalOfficialAlertPanel data={data} />
-    <InternalPageChapters items={pageSections} label={`Navegação da previsão para ${city.name}`} />
     <div className="internal-forecast-widget regional-city-shared-forecast"><HomeForecastStory data={forecastStory} context="regional-page" locationName={city.name} showLinks={false} /></div>
     <RegionalCityDefesaCivil citySlug={city.slug} cityName={city.name} />
     {hydrologyLocality ? <RegionalCityHydrologyLink citySlug={city.slug} /> : null}
