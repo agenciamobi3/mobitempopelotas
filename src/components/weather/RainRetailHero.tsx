@@ -123,29 +123,29 @@ export function RainRetailHero({
   const hasAlert = officialAlertCount > 0;
   const metrics: RetailMetric[] = [
     {
-      label: "Medido hoje",
+      label: "Medido",
       value: observedRainDaily === null ? "Em atualização" : formatMillimeters(observedRainDaily),
       detail: "Embrapa",
       icon: Gauge,
     },
     {
-      label: "Previsto hoje",
+      label: "Hoje previsto",
       value: formatMillimeters(today?.precipitation),
       icon: Droplets,
     },
     {
-      label: "Previsto em 7 dias",
+      label: "7 dias",
       value: hasDailyForecast ? formatMillimeters(totalRain) : "—",
       icon: CloudRain,
     },
   ];
 
   const description = hasHourlyForecast && hasDailyForecast
-    ? `${wetHours} ${wetHours === 1 ? "horário tem" : "horários têm"} 30% ou mais de chance nas próximas 12 horas. Veja também o volume previsto e a chuva já medida.`
+    ? `${wetHours} ${wetHours === 1 ? "horário tem" : "horários têm"} 30% ou mais de chance nas próximas 12 horas. Veja o que já choveu e o que ainda está previsto.`
     : hasHourlyForecast
-      ? "Chance de chuva por horário disponível. O volume diário ainda está em atualização."
+      ? "A chance por horário está disponível. O volume diário ainda está em atualização."
       : hasDailyForecast
-        ? "Previsão diária disponível. A chance por horário ainda está em atualização."
+        ? "A previsão diária está disponível. A chance por horário ainda está em atualização."
         : observedRainDaily !== null
           ? "A chuva medida está disponível enquanto a previsão é atualizada."
           : "Os dados de chuva estão em atualização.";
@@ -171,7 +171,7 @@ export function RainRetailHero({
       <div className="today-retail-hero__inner rain-retail-hero__inner">
         <div className="today-retail-hero__copy rain-retail-hero__copy">
           <h1 id="rain-retail-hero-title">
-            Chuva em Pelotas hoje: <span>acumulado, chance e previsão.</span>
+            Chuva em Pelotas <span>hoje</span>
           </h1>
 
           <p>{description}</p>
@@ -186,12 +186,12 @@ export function RainRetailHero({
 
           <div className="today-retail-hero__actions">
             <a className="today-retail-hero__primary" href="#chuva-acumulada">
-              Ver acumulado <ArrowRight aria-hidden="true" />
+              Ver medido e previsto <ArrowRight aria-hidden="true" />
             </a>
 
             {hasHourlyForecast ? (
               <a className="today-retail-hero__secondary" href="#chuva-por-hora">
-                Ver por horário
+                Ver próximas horas
               </a>
             ) : (
               <Link className="today-retail-hero__secondary" to="/previsao-7-dias-pelotas">
@@ -279,7 +279,7 @@ export function RainRetailHero({
               <strong>{formatGust(strongestWetGust)}</strong>
             </article>
             <article className="is-sun">
-              <span><Gauge aria-hidden="true" /> Previsão</span>
+              <span><Gauge aria-hidden="true" /> Fonte</span>
               <strong>{weather.source.forecastName ?? weather.source.name}</strong>
             </article>
           </div>
