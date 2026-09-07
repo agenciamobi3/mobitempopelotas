@@ -4,6 +4,7 @@ import test from "node:test";
 
 const guide = readFileSync("src/components/history/FloodVisitorGuide.tsx", "utf8");
 const page1941 = readFileSync("src/components/history/Flood1941HistoricalPage.tsx", "utf8");
+const page2001 = readFileSync("src/components/history/Flood2001HistoricalPage.tsx", "utf8");
 const indexPage = readFileSync("src/components/history/FloodHistoryIndexPage.tsx", "utf8");
 const agents = readFileSync("AGENTS.md", "utf8");
 const routes = new Map([
@@ -21,8 +22,20 @@ test("1941 simplifies the page itself instead of stacking a generic visitor guid
   assert.match(page1941, /Esse número não significa que\s+havia 2,88 m de água em todas as ruas ou casas/);
 });
 
-test("other flood pages keep their current visitor-first explanation until their own copy review", () => {
-  for (const year of ["2001", "2015", "2024"] as const) {
+test("2001 also simplifies the page itself and keeps methodology after the event story", () => {
+  const route2001 = routes.get("2001");
+  assert.ok(route2001);
+  assert.doesNotMatch(route2001, /FloodVisitorGuide/);
+  assert.match(route2001, /showHistoricalCollaborationPrompt=\{false\}/);
+  assert.match(page2001, /Na madrugada de 8 de outubro de 2001, um forte temporal atingiu Pelotas/);
+  assert.match(page2001, /Vento muito forte, águas avançando e áreas isoladas/);
+  assert.match(page2001, /Por que aparecem 2,90 m e 1,90 m no mesmo dia/);
+  assert.match(page2001, /não são duas réguas diferentes nem um erro do site/);
+  assert.match(page2001, /São níveis de uma régua naquele ponto, não a altura da\s+água em todas as ruas do Laranjal/);
+});
+
+test("2015 and 2024 keep their current visitor-first explanation until their own copy review", () => {
+  for (const year of ["2015", "2024"] as const) {
     const route = routes.get(year);
     assert.ok(route);
     assert.match(route, /FloodVisitorGuide/);
@@ -30,7 +43,7 @@ test("other flood pages keep their current visitor-first explanation until their
   }
 });
 
-test("visitor guide still protects the 2001 measurement discrepancy", () => {
+test("visitor guide still documents the 2001 discrepancy for reuse while the page carries its own explanation", () => {
   assert.match(guide, /2,90 m e 1,90 m para o mesmo dia/);
   assert.match(guide, /Isso não é um erro do site/);
   assert.match(guide, /diferença de 1 metro/);
