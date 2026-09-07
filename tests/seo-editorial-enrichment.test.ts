@@ -22,6 +22,8 @@ const wind = source("src/routes/vento-em-pelotas.tsx");
 const radar = source("src/routes/radar-e-satelite-pelotas.tsx");
 const alerts = source("src/routes/alertas.tsx");
 const meteogram = source("src/routes/meteograma-pelotas.tsx");
+const meteogramPage = source("src/components/weather/MeteogramPage.tsx");
+const simagro = source("src/components/weather/SimagroModelProducts.tsx");
 const frost = source("src/routes/mapa-de-geadas-rio-grande-do-sul.tsx");
 const climate = source("src/routes/clima-em-pelotas.tsx");
 const history = source("src/routes/historico-climatico-pelotas.tsx");
@@ -108,9 +110,13 @@ test("radar cobre busca por chuva recente sem prometer imagem instantânea", () 
 
 test("meteograma, clima e histórico recente não disputam a mesma intenção", () => {
   assert.match(meteogram, /Meteograma de Pelotas: previsão hora a hora por 48h/);
-  assert.match(meteogram, /Qual é a diferença entre o meteograma e a página Tempo hoje/);
-  assert.match(meteogram, /href: "\/vento-em-pelotas"/);
-  assert.match(meteogram, /href: "\/tempo-amanha-pelotas"/);
+  assert.match(meteogram, /MeteogramPage/);
+  assert.match(meteogram, /SimagroModelProducts/);
+  assert.doesNotMatch(meteogram, /EditorialContentSection|createFaqPageJsonLd|METEOGRAM_CONTENT/);
+  assert.match(meteogramPage, /to="\/vento-em-pelotas"/);
+  assert.match(meteogramPage, /to="\/tempo-hoje-pelotas"/);
+  assert.match(meteogramPage, /Esta página mostra previsão, não medição/);
+  assert.match(simagro, /Meteogramas WRF e GFS do SIMAGRO RS/);
 
   assert.match(climate, /Clima de Pelotas: estações do ano e climatologia/);
   assert.match(climate, /Qual é a diferença entre clima e histórico de 30 dias/);
