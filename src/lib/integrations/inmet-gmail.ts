@@ -21,6 +21,12 @@ function extractEmailAddress(value: string) {
   return (angle?.[1] ?? value).trim().toLowerCase();
 }
 
+function extractEmailAddresses(value: string) {
+  return (value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? []).map((address) =>
+    address.toLowerCase(),
+  );
+}
+
 export function classifyInmetEmail(subject: string, body: string): InmetEmailKind {
   const normalizedSubject = normalizeText(subject);
   const normalizedBody = normalizeText(body.slice(0, MAX_CLASSIFICATION_BODY_CHARS));
@@ -49,6 +55,16 @@ export function classifyInmetEmail(subject: string, body: string): InmetEmailKin
 export function isPelotasInmetMessage(subject: string, body: string) {
   const combined = normalizeText(`${subject} ${body.slice(0, MAX_TARGET_BODY_CHARS)}`);
   return /\bpelotas\b/.test(combined);
+}
+
+export function isExpectedInmetRecipient(input: {
+  expectedRecipient: string;
+  recipientHeaders: readonly string[];
+}) {
+  const expected = input.expectedRecipient.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(expected)) return false;
+
+  return input.recipientHeaders.some((value) => extractEmailAddresses(value).includes(expected));
 }
 
 function isTrustedGoogleAuthenticationResult(value: string) {
