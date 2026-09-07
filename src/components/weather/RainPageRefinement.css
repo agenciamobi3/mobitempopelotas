@@ -1,0 +1,168 @@
+/* Chuva em Pelotas: mesma linguagem visual das páginas meteorológicas atuais. */
+.internal-weather-shell--rain .rain-v2-page .eyebrow,
+.internal-weather-shell--rain .rain-accumulation .eyebrow,
+.internal-weather-shell--rain .rain-hourly-volume-context__eyebrow {
+  display: none;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-accumulation,
+  .rain-v2-overview,
+  .rain-v2-hourly,
+  .rain-v2-week,
+  .rain-v2-planning,
+  .rain-v2-official,
+  .rain-hourly-volume-context
+) {
+  border: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: none;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-accumulation,
+  .rain-v2-overview,
+  .rain-v2-hourly,
+  .rain-v2-week,
+  .rain-v2-planning,
+  .rain-v2-official
+)::before {
+  display: none;
+  content: none;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-accumulation__heading h2,
+  .rain-v2-overview h2,
+  .rain-v2-hourly h2,
+  .rain-v2-week h2,
+  .rain-v2-planning h2,
+  .rain-v2-official h2,
+  .rain-hourly-volume-context h2
+) {
+  max-width: 22ch;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.internal-weather-shell--rain .rain-v2-overview {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.internal-weather-shell--rain .rain-v2-overview__intro {
+  gap: 0.4rem;
+}
+
+.internal-weather-shell--rain .rain-v2-overview__intro > p {
+  max-width: 62ch;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-v2-overview__cards article,
+  .rain-v2-planning__grid article,
+  .rain-v2-official__grid article,
+  .rain-accumulation__summary article,
+  .rain-accumulation__regional-grid article,
+  .rain-hourly-volume-context__summary article
+) {
+  border-color: rgb(7 30 47 / 8%);
+  background: #fafcfd;
+  box-shadow: none;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-v2-overview__cards article.is-best,
+  .rain-v2-planning__grid article.is-best,
+  .rain-v2-official__grid article.is-stable,
+  .rain-accumulation__summary article.is-observed
+) {
+  border-color: rgb(24 189 205 / 18%);
+  background: #f6fbfc;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-v2-overview__cards article.is-attention,
+  .rain-v2-planning__grid article.is-attention,
+  .rain-v2-official__grid article.has-alert
+) {
+  border-color: rgb(242 112 53 / 18%);
+  background: #fffaf6;
+}
+
+.internal-weather-shell--rain .rain-accumulation__summary article.is-forecast {
+  border-color: rgb(94 44 237 / 14%);
+  background: #faf8ff;
+}
+
+.internal-weather-shell--rain :is(
+  .rain-v2-overview__cards span,
+  .rain-v2-planning__grid span,
+  .rain-v2-official__grid span,
+  .rain-accumulation__summary span,
+  .rain-accumulation__regional > header span,
+  .rain-hourly-volume-context__summary span
+) {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.internal-weather-shell--rain .rain-v2-hourly__grid article.is-current {
+  border-color: rgb(24 189 205 / 24%);
+  background: #f6fbfc;
+}
+
+.internal-weather-shell--rain .rain-v2-week__grid article > header b {
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.internal-weather-shell--rain .rain-accumulation__rule {
+  border-color: rgb(242 112 53 / 16%);
+  background: #fffaf6;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__timeline article {
+  background: #fafcfd;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__timeline article.is-unknown {
+  background: #f7f9fa;
+}
+
+.internal-weather-shell--rain .rain-v2-related a {
+  background: #fff;
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  .internal-weather-shell--rain :is(
+    .rain-accumulation,
+    .rain-v2-overview,
+    .rain-v2-hourly,
+    .rain-v2-week,
+    .rain-v2-planning,
+    .rain-v2-official,
+    .rain-hourly-volume-context
+  ) {
+    border-radius: 0.9rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--rain :is(
+    .rain-accumulation,
+    .rain-v2-overview,
+    .rain-v2-hourly,
+    .rain-v2-week,
+    .rain-v2-planning,
+    .rain-v2-official,
+    .rain-hourly-volume-context
+  ) {
+    border-color: CanvasText;
+    color: CanvasText;
+    background: Canvas;
+  }
+}
