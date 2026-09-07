@@ -24,22 +24,20 @@ test("rain route uses the shared shell without a duplicate editorial FAQ layer",
   assert.match(route, /createEditorialPageJsonLd/);
   assert.match(route, /RAIN_CITATIONS/);
   assert.doesNotMatch(route, /EditorialContentSection|RAIN_PAGE_CONTENT|createFaqPageJsonLd/);
-  assert.doesNotMatch(route, /showOfficialAlerts=\{false\}/);
 });
 
-test("rain hero keeps measured and forecast rain distinct with concise copy", () => {
-  assert.match(hero, /Chuva em Pelotas hoje/);
-  assert.match(hero, /Medido hoje/);
-  assert.match(hero, /Previsto hoje/);
-  assert.match(hero, /Previsto em 7 dias/);
+test("rain hero keeps measured and forecast rain distinct with direct copy", () => {
+  assert.match(hero, /Chuva em Pelotas <span>hoje<\/span>/);
+  assert.match(hero, /label: "Medido"/);
+  assert.match(hero, /label: "Hoje previsto"/);
+  assert.match(hero, /label: "7 dias"/);
   assert.match(hero, /Maior chance nas próximas 12 horas/);
-  assert.match(hero, /Ver acumulado/);
-  assert.match(hero, /Ver por horário/);
+  assert.match(hero, /Ver medido e previsto/);
+  assert.match(hero, /Ver próximas horas/);
   assert.match(hero, /getRetailWeatherPhoto/);
   assert.match(hero, /today-retail-hero__current-photo/);
   assert.doesNotMatch(hero, /today-retail-hero__eyebrow/);
-  assert.doesNotMatch(hero, /Sem aviso oficial de chuva listado para Pelotas/);
-  assert.doesNotMatch(hero, /Não somado ao observado/);
+  assert.doesNotMatch(hero, /acumulado, chance e previsão\.<\/span>/);
 });
 
 test("rain zero-volume state does not invent a rainiest day", () => {
@@ -58,7 +56,6 @@ test("rain zero-chance state keeps zero percent without inventing a peak hour", 
 });
 
 test("rain page keeps unknown probability separate from a published zero", () => {
-  assert.match(page, /const knownChanceHours = hours\.filter\(\(hour\) => hour\.precipitationProbability !== null\)/);
   assert.match(page, /function formatChance/);
   assert.match(page, /Não informada/);
   assert.match(page, /chanceTone/);
@@ -71,55 +68,42 @@ test("rain volume ranking remains dimensional", () => {
   assert.match(page, /rainScore\(day\) > rainScore\(selected\)/);
 });
 
-test("rain planning only highlights windows when there is real contrast", () => {
-  assert.match(page, /const bestCandidates = windows\.filter\(\(window\) => window\.averageChance !== null\)/);
-  assert.match(page, /const hasBestContrast = bestKeys\.size > 1/);
-  assert.match(page, /const bestWindow = hasBestContrast \? bestCandidate : null/);
-  assert.match(page, /const hasAttentionContrast =/);
-  assert.match(page, /Math\.max\(\.\.\.attentionChances\) > Math\.min\(\.\.\.attentionChances\)/);
-  assert.match(page, /const attentionWindow = hasAttentionContrast \? attentionCandidate : null/);
-  assert.match(page, /Sem período de destaque/);
-  assert.match(page, /className=\{bestWindow \? "is-best" : undefined\}/);
-  assert.match(page, /className=\{attentionWindow \? "is-attention" : undefined\}/);
-});
-
-test("rain page follows a direct sequence without a repeated overview section", () => {
+test("rain page removes the duplicated planning layer", () => {
   assert.match(page, /InternalPageChapters/);
   assert.match(page, /Chance de chuva nas próximas 12 horas/);
   assert.match(page, /Chuva nos próximos 7 dias/);
-  assert.match(page, /Menor e maior chance nas próximas 12 horas/);
   assert.match(page, /INMET para Pelotas/);
-  assert.match(page, /Menor chance/);
-  assert.match(page, /Maior chance/);
-  assert.match(page, /Horários com 30% ou mais/);
+  assert.match(page, /rain-v2-week__summary/);
+  assert.match(page, /rain-v2-official__list/);
+  assert.match(page, /rain-v2-footer/);
   assert.match(page, /Nenhum aviso ativo/);
-  assert.doesNotMatch(page, /rain-v2-overview/);
-  assert.doesNotMatch(page, /Chuva em resumo|Chuva por horário|Horários para planejar|O que o INMET publica/);
-  assert.doesNotMatch(page, />Previsão<\/b>/);
-  assert.doesNotMatch(page, /Nenhum valor foi estimado manualmente/);
+  assert.doesNotMatch(page, /rain-v2-planning|planejamento-da-chuva/);
+  assert.doesNotMatch(page, /Menor e maior chance nas próximas 12 horas/);
+  assert.doesNotMatch(page, /Menor chance|Maior chance|Horários com 30% ou mais/);
+  assert.doesNotMatch(page, /buildWindows|WindowSummary/);
 });
 
-test("rain accumulation keeps the necessary observed-versus-forecast warning concise", () => {
+test("rain accumulation keeps only the necessary measured-versus-forecast warning", () => {
   assert.match(accumulation, /Chuva medida e prevista/);
-  assert.match(accumulation, /Chuva medida hoje/);
-  assert.match(accumulation, /Previsto para hoje/);
-  assert.match(accumulation, /Não some os dois valores/);
-  assert.match(accumulation, /podem incluir parte do mesmo período/);
+  assert.match(accumulation, /Medido hoje/);
+  assert.match(accumulation, /Previsto hoje/);
+  assert.match(accumulation, /Medido e previsto não são somados/);
+  assert.match(accumulation, /Os períodos podem se sobrepor/);
   assert.match(accumulation, /Chuva em 24 horas nas estações próximas/);
-  assert.match(accumulation, /Cada valor pertence à estação indicada/);
-  assert.doesNotMatch(accumulation, /respondem a perguntas diferentes/);
-  assert.doesNotMatch(accumulation, /a soma criaria um total enganoso/);
+  assert.match(accumulation, /Cada valor pertence à estação indicada, não à cidade inteira/);
+  assert.doesNotMatch(accumulation, /Os valores medidos e previstos ficam separados porque/);
+  assert.doesNotMatch(accumulation, /Previsão, não medição/);
 });
 
-test("hourly rain volume states forecast status once instead of explaining every metric", () => {
+test("hourly rain volume uses a compact summary", () => {
   assert.match(hourlyVolume, /Volume de chuva por hora/);
-  assert.match(hourlyVolume, /Milímetros previstos nas próximas 12 horas\. Não é chuva já medida/);
+  assert.match(hourlyVolume, /Previsão em milímetros para as próximas 12 horas/);
   assert.match(hourlyVolume, /Total em 12 h/);
   assert.match(hourlyVolume, /Maior volume em 1 h/);
-  assert.match(hourlyVolume, /Horas com 0,1 mm ou mais/);
   assert.match(hourlyVolume, /Primeiro volume/);
-  assert.doesNotMatch(hourlyVolume, /Além da chance percentual/);
-  assert.doesNotMatch(hourlyVolume, /grandezas diferentes e podem mudar/);
+  assert.doesNotMatch(hourlyVolume, /Horas com 0,1 mm ou mais/);
+  assert.doesNotMatch(hourlyVolume, /Não é chuva já medida/);
+  assert.match(hourlyVolume, /<dl className="rain-hourly-volume-context__summary"/);
 });
 
 test("rain experience uses the current Home rail", () => {
@@ -129,13 +113,14 @@ test("rain experience uses the current Home rail", () => {
   assert.doesNotMatch(heroStyles, /max-width:\s*var\(--internal-weather-frame-max\)/);
 });
 
-test("rain page refinement removes decorative body chrome without flattening functional charts", () => {
-  assert.match(refinement, /grid-template-columns:\s*repeat\(6, minmax\(0, 1fr\)\)/);
+test("rain page refinement removes decorative body chrome and card-heavy summaries", () => {
+  assert.match(refinement, /grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
   assert.match(refinement, /\.rain-v2-page \.eyebrow/);
-  assert.match(refinement, /\.rain-accumulation \.eyebrow/);
   assert.match(refinement, /box-shadow:\s*none/);
-  assert.match(refinement, /\.rain-hourly-volume-context/);
-  assert.doesNotMatch(refinement, /rain-v2-overview/);
+  assert.match(refinement, /\.rain-v2-week__summary/);
+  assert.match(refinement, /\.rain-v2-official__list/);
+  assert.match(refinement, /\.rain-v2-footer/);
+  assert.doesNotMatch(refinement, /rain-v2-planning/);
   assert.doesNotMatch(refinement, /radial-gradient/);
   assert.match(refinement, /@media \(forced-colors: active\)/);
 
@@ -145,10 +130,12 @@ test("rain page refinement removes decorative body chrome without flattening fun
   assert.match(pageStyles, /:focus-visible/);
 });
 
-test("hourly rain volume keeps functional precipitation bars", () => {
+test("hourly rain volume keeps functional precipitation bars while flattening summary cards", () => {
   assert.match(hourlyVolumeStyles, /\.internal-weather-shell--rain \.rain-hourly-volume-context \{/);
+  assert.match(hourlyVolumeStyles, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(hourlyVolumeStyles, /\.rain-hourly-volume-context__summary > div/);
   assert.match(hourlyVolumeStyles, /box-shadow:\s*none/);
   assert.doesNotMatch(hourlyVolumeStyles, /radial-gradient/);
-  assert.match(hourlyVolumeStyles, /gradiente abaixo é funcional/);
+  assert.match(hourlyVolumeStyles, /Gradiente funcional/);
   assert.match(hourlyVolumeStyles, /linear-gradient\(90deg, #18bdcd, #5e2ced\)/);
 });
