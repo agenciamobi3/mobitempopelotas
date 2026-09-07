@@ -64,6 +64,11 @@ type EligibleForecastEmail = {
   receivedAtMs: number;
 };
 
+type ScanResult = {
+  summary: ReturnType<typeof createSummary>;
+  eligibleForecasts: EligibleForecastEmail[];
+};
+
 function featureEnabled() {
   return process.env.INMET_GMAIL_PUSH_ENABLED?.trim().toLowerCase() === "true";
 }
@@ -301,25 +306,10 @@ function createSummary() {
   };
 }
 
-export async function processRecentInmetForecastEmails() {
-  const summary = createSummary();
-  const configuration = getInmetGmailConfigurationStatus();
-
-  if (!configuration.enabled) {
-    summary.skipped = true;
-    summary.reason = "feature-disabled";
-    return summary;
-  }
-
+async function scanRecentInmetForecastEmails(): Promise<ScanResult> {
   requireConfiguration();
 
-  const push = getPushConfigurationStatus();
-  if (!push.enabled) {
-    summary.skipped = true;
-    summary.reason = "web-push-unavailable";
-    return summary;
-  }
-
+  const summary = createSummary();
   const nowMs = Date.now();
   const ids = await listRecentMessageIds(nowMs);
   const eligibleForecasts: EligibleForecastEmail[] = [];
@@ -381,21 +371,80 @@ export async function processRecentInmetForecastEmails() {
     throw new Error("Nenhuma mensagem candidata do Gmail pôde ser avaliada nesta execução.");
   }
 
-  if (eligibleForecasts.length === 0) return summary;
-
   eligibleForecasts.sort((left, right) => right.receivedAtMs - left.receivedAtMs);
   summary.supersededForecasts = Math.max(0, eligibleForecasts.length - 1);
 
+  return { summary, eligibleForecasts };
+}
+
+export async function inspectRecentInmetForecastEmails() {
+  const configuration = getInmetGmailConfigurationStatus();
+  const { summary, eligibleForecasts } = await scanRecentInmetForecastEmails();
   const selected = eligibleForecasts[0];
-  const result = await dispatchForecastUpdate(selected.receivedAtMs);
-  if (result.status === "duplicate") {
-    summary.duplicates += 1;
+
+  if (!selected) {
+    return {
+      ...summary,
+      mode: "check" as const,
+      pushEnabled: configuration.enabled,
+      wouldDispatch: false,
+      selectedMessage: null,
+      structuredForecast: null,
+      preview: null,
+    };
+  }
+
+  const forecast = await fetchInmetForecast();
+  const copy = buildInmetForecastPushCopy(forecast);
+
+  return {
+    ...summary,
+    mode: "check" as const,
+    pushEnabled: configuration.enabled,
+    wouldDispatch: true,
+    selectedMessage: {
+      fingerprint: messageLogFingerprint(selected.id),
+      receivedAt: new Date(selected.receivedAtMs).toISOString(),
+    },
+    structuredForecast: {
+      status: forecast.status,
+      periods: forecast.periods.length,
+      fetchedAt: forecast.source.fetchedAt,
+    },
+    preview: copy,
+  };
+}
+
+export async function processRecentInmetForecastEmails() {
+  const summary = createSummary();
+  const configuration = getInmetGmailConfigurationStatus();
+
+  if (!configuration.enabled) {
+    summary.skipped = true;
+    summary.reason = "feature-disabled";
     return summary;
   }
 
-  summary.dispatches += 1;
-  summary.sent += result.sent;
-  summary.failed += result.failed;
-  summary.removed += result.removed;
-  return summary;
+  const push = getPushConfigurationStatus();
+  if (!push.enabled) {
+    summary.skipped = true;
+    summary.reason = "web-push-unavailable";
+    return summary;
+  }
+
+  const scan = await scanRecentInmetForecastEmails();
+  const selected = scan.eligibleForecasts[0];
+  if (!selected) return scan.summary;
+
+  const result = await dispatchForecastUpdate(selected.receivedAtMs);
+  if (result.status === "duplicate") {
+    scan.summary.duplicates += 1;
+    return scan.summary;
+  }
+
+  scan.summary.dispatches += 1;
+  scan.summary.sent += result.sent;
+  scan.summary.failed += result.failed;
+  scan.summary.removed += result.removed;
+  return scan.summary;
 }
