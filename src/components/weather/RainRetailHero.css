@@ -89,20 +89,18 @@
   font-size: clamp(0.74rem, 0.7rem + 0.08vw, 0.82rem);
 }
 
-/* Chance, volume, vento e fonte são leituras distintas e ficam lado a lado. */
+.rain-retail-hero__tiles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .rain-retail-hero__tiles article {
-  min-height: 6.6rem;
+  min-height: 6.2rem;
   padding: 0.82rem;
   border-color: rgb(7 30 47 / 8%);
   box-shadow: none;
 }
 
-.rain-retail-hero__tiles article.is-rain {
-  border-color: rgb(94 44 237 / 12%);
-  background: #f7f4ff;
-}
-
-.rain-retail-hero__tiles article:nth-child(2) {
+.rain-retail-hero__tiles article.is-volume {
   border-color: rgb(24 189 205 / 14%);
   background: #f1fbfc;
 }
@@ -112,18 +110,8 @@
   background: #fff4f9;
 }
 
-.rain-retail-hero__tiles article.is-sun {
-  border-color: rgb(7 30 47 / 9%);
-  background: #f7f9fa;
-}
-
 .rain-retail-hero__tiles article > strong {
   font-size: clamp(0.95rem, 1.2vw, 1.22rem);
-}
-
-.rain-retail-hero__tiles article.is-sun > strong {
-  font-size: clamp(0.68rem, 0.9vw, 0.84rem);
-  line-height: 1.25;
 }
 
 .rain-retail-hero.today-retail-hero--attention .today-retail-hero__primary,
@@ -179,6 +167,12 @@
 
   .rain-retail-hero__current-main > div:last-child > strong {
     font-size: clamp(3.4rem, 16vw, 4.8rem);
+  }
+}
+
+@media (max-width: 520px) {
+  .rain-retail-hero__tiles {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
