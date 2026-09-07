@@ -134,11 +134,6 @@
   border-bottom: 0;
 }
 
-/* O índice numerado antigo permanece apenas por compatibilidade estrutural. */
-.regional-city-page > .internal-page-chapters {
-  display: none;
-}
-
 .regional-city-page .regional-city-official-alert .home-inmet-alerts__aside > a,
 .regional-city-page .regional-city-related > header > a {
   min-height: 44px;
