@@ -74,7 +74,7 @@ async function loadMeteogramPageData() {
       meteogram = await getPelotasMeteogram();
     } catch {
       meteogram = unavailableMeteogram(
-        "A série dedicada do meteograma não respondeu. A página está usando a previsão horária disponível como contingência.",
+        "A previsão detalhada não respondeu. Mostrando os dados horários disponíveis.",
       );
     }
   }
