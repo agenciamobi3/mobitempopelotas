@@ -1,0 +1,585 @@
+/* Vento em Pelotas: corpo editorial limpo, sem a antiga navegação em capítulos. */
+.internal-weather-shell--wind .wind-page {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: clamp(2.8rem, 5vw, 5.2rem);
+  padding: clamp(1.4rem, 2.6vw, 2.2rem) 0 clamp(3rem, 6vw, 5rem);
+}
+
+.internal-weather-shell--wind .wind-page > * {
+  min-width: 0;
+  scroll-margin-top: 7rem;
+}
+
+.internal-weather-shell--wind .wind-page__provenance {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  align-items: end;
+  gap: clamp(1.5rem, 4vw, 4rem);
+  padding: clamp(1.35rem, 2.7vw, 2.2rem) 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--wind .wind-page__provenance > div,
+.internal-weather-shell--wind .wind-page__heading > div {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.internal-weather-shell--wind :is(.wind-page__provenance > div > span, .wind-page__heading > div > span) {
+  color: #168fa3;
+  font-size: 0.73rem;
+  font-weight: 820;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.internal-weather-shell--wind :is(.wind-page__provenance h2, .wind-page__heading h2, .wind-page__interpretation h2) {
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(2rem, 3.5vw, 3.45rem);
+  font-weight: 720;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.internal-weather-shell--wind .wind-page__provenance p,
+.internal-weather-shell--wind .wind-page__heading > p,
+.internal-weather-shell--wind .wind-page__interpretation p {
+  margin: 0;
+  color: #5f7681;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.internal-weather-shell--wind .wind-page__provenance dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--wind .wind-page__provenance dl > div {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.9rem 1rem;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--wind .wind-page__provenance dl > div:last-child {
+  border-right: 0;
+}
+
+.internal-weather-shell--wind .wind-page__provenance dt {
+  color: #6b8089;
+  font-size: 0.7rem;
+}
+
+.internal-weather-shell--wind .wind-page__provenance dd {
+  margin: 0;
+  color: #173849;
+  font-size: 0.78rem;
+  font-weight: 780;
+  line-height: 1.4;
+}
+
+.internal-weather-shell--wind :is(.wind-page__hourly, .wind-page__peaks, .wind-page__week) {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.internal-weather-shell--wind .wind-page__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1fr);
+  align-items: end;
+  gap: 1.5rem 3rem;
+}
+
+.internal-weather-shell--wind .wind-page__heading h2 {
+  max-width: 18ch;
+}
+
+.internal-weather-shell--wind .wind-page__heading > p {
+  max-width: 52rem;
+  justify-self: end;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track {
+  display: grid;
+  grid-auto-columns: minmax(150px, 1fr);
+  grid-auto-flow: column;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding: 0.1rem 0 0.55rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track article {
+  display: grid;
+  min-height: 13.5rem;
+  align-content: space-between;
+  gap: 0.85rem;
+  padding: 0.95rem;
+  border: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 1rem;
+  background: #fbfcfc;
+  scroll-snap-align: start;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track article.is-current {
+  border-color: rgb(24 189 205 / 28%);
+  box-shadow: inset 0 3px 0 #18bdcd;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track article > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track article > header strong {
+  color: #071e2f;
+  font-size: 0.88rem;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track article > header b {
+  padding: 0.25rem 0.42rem;
+  border-radius: 999px;
+  background: #eafafb;
+  color: #087f91;
+  font-size: 0.64rem;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgb(7 30 47 / 7%);
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track dt {
+  color: #6b8089;
+  font-size: 0.69rem;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track dd {
+  margin: 0;
+  color: #173849;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.internal-weather-shell--wind .wind-page__bars {
+  display: grid;
+  gap: 0.36rem;
+}
+
+.internal-weather-shell--wind .wind-page__bars i,
+.internal-weather-shell--wind .wind-page__week-track {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(7 30 47 / 7%);
+}
+
+.internal-weather-shell--wind .wind-page__bars i > span,
+.internal-weather-shell--wind .wind-page__week-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #18bdcd;
+}
+
+.internal-weather-shell--wind .wind-page__bars i.is-gust > span,
+.internal-weather-shell--wind .wind-page__legend i.is-gust {
+  background: #5e2ced;
+}
+
+.internal-weather-shell--wind .wind-page__hourly-track article > small {
+  color: #657c86;
+  font-size: 0.71rem;
+  line-height: 1.45;
+}
+
+.internal-weather-shell--wind .wind-page__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  color: #657c86;
+  font-size: 0.72rem;
+}
+
+.internal-weather-shell--wind .wind-page__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.internal-weather-shell--wind .wind-page__legend i {
+  width: 1.4rem;
+  height: 4px;
+  border-radius: 999px;
+  background: #18bdcd;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  list-style: none;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 4.8rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--wind .wind-page__peak-list li > span {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #f1f6f7;
+  color: #46616c;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list li > svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #168fa3;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list li > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list strong,
+.internal-weather-shell--wind .wind-page__peak-list b {
+  color: #071e2f;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list small {
+  color: #657c86;
+  font-size: 0.72rem;
+}
+
+.internal-weather-shell--wind .wind-page__peak-list b {
+  font-size: 1rem;
+}
+
+.internal-weather-shell--wind .wind-page__state,
+.internal-weather-shell--wind .wind-page__empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed rgb(7 30 47 / 13%);
+  border-radius: 0.9rem;
+  background: #f8fbfc;
+  color: #607984;
+}
+
+.internal-weather-shell--wind :is(.wind-page__state, .wind-page__empty) > svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex: 0 0 auto;
+  margin-top: 0.12rem;
+  color: #168fa3;
+}
+
+.internal-weather-shell--wind .wind-page__state p,
+.internal-weather-shell--wind .wind-page__empty p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.internal-weather-shell--wind .wind-page__empty > div {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.internal-weather-shell--wind .wind-page__empty h2 {
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  letter-spacing: -0.035em;
+}
+
+.internal-weather-shell--wind .wind-page__empty a {
+  width: fit-content;
+  color: #5e2ced;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--wind .wind-page__week-grid article {
+  display: grid;
+  min-width: 0;
+  min-height: 11rem;
+  align-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--wind .wind-page__week-grid article:last-child {
+  border-right: 0;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid article.is-today {
+  background: #f7fcfd;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid header {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid header strong {
+  color: #071e2f;
+  font-size: 0.82rem;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid header span,
+.internal-weather-shell--wind .wind-page__week-grid article > strong {
+  color: #657c86;
+  font-size: 0.72rem;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid article > svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  color: #168fa3;
+}
+
+.internal-weather-shell--wind .wind-page__week-grid article > strong {
+  color: #173849;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.internal-weather-shell--wind .wind-page__interpretation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: clamp(1.2rem, 2.5vw, 1.8rem);
+  border-radius: 1.2rem;
+  background: #f4fafb;
+}
+
+.internal-weather-shell--wind .wind-page__interpretation > svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  color: #168fa3;
+}
+
+.internal-weather-shell--wind .wind-page__interpretation h2 {
+  font-size: clamp(1.35rem, 2.3vw, 2rem);
+}
+
+.internal-weather-shell--wind .wind-page__interpretation nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 0.55rem;
+}
+
+.internal-weather-shell--wind .wind-page__interpretation a,
+.internal-weather-shell--wind .wind-page__footer a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 0.4rem;
+  color: #173849;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.internal-weather-shell--wind .wind-page__interpretation a {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0.7rem;
+  background: #fff;
+}
+
+.internal-weather-shell--wind .wind-page__interpretation a svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.internal-weather-shell--wind .wind-page__footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  color: #607984;
+}
+
+.internal-weather-shell--wind .wind-page__footer > svg {
+  width: 1rem;
+  height: 1rem;
+  color: #168fa3;
+}
+
+.internal-weather-shell--wind .wind-page__footer p {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.internal-weather-shell--wind :is(.wind-page a, .wind-page__hourly-track article):focus-visible {
+  outline: 3px solid rgb(24 189 205 / 42%);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1080px) {
+  .internal-weather-shell--wind .wind-page__provenance {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .internal-weather-shell--wind .wind-page__provenance dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .internal-weather-shell--wind .wind-page__provenance dl > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .internal-weather-shell--wind .wind-page__provenance dl > div:nth-child(-n + 2) {
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--wind .wind-page__week-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .internal-weather-shell--wind .wind-page__week-grid article:nth-child(4) {
+    border-right: 0;
+  }
+
+  .internal-weather-shell--wind .wind-page__week-grid article:nth-child(-n + 4) {
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+}
+
+@media (max-width: 760px) {
+  .internal-weather-shell--wind .wind-page__heading {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .internal-weather-shell--wind .wind-page__heading > p {
+    justify-self: start;
+  }
+
+  .internal-weather-shell--wind .wind-page__interpretation {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .internal-weather-shell--wind .wind-page__interpretation nav {
+    grid-column: 1 / -1;
+    justify-content: start;
+  }
+}
+
+@media (max-width: 620px) {
+  .internal-weather-shell--wind .wind-page {
+    gap: 2.7rem;
+  }
+
+  .internal-weather-shell--wind .wind-page__provenance dl,
+  .internal-weather-shell--wind .wind-page__week-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--wind .wind-page__provenance dl > div,
+  .internal-weather-shell--wind .wind-page__week-grid article {
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--wind .wind-page__provenance dl > div:last-child,
+  .internal-weather-shell--wind .wind-page__week-grid article:last-child {
+    border-bottom: 0;
+  }
+
+  .internal-weather-shell--wind .wind-page__week-grid article {
+    min-height: 8.5rem;
+  }
+
+  .internal-weather-shell--wind .wind-page__peak-list li {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .internal-weather-shell--wind .wind-page__peak-list li > svg {
+    display: none;
+  }
+
+  .internal-weather-shell--wind .wind-page__footer {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .internal-weather-shell--wind .wind-page__footer a {
+    grid-column: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .internal-weather-shell--wind .wind-page__hourly-track {
+    scroll-behavior: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--wind :is(
+    .wind-page__hourly-track article,
+    .wind-page__state,
+    .wind-page__empty,
+    .wind-page__interpretation,
+    .wind-page__interpretation a
+  ) {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+}

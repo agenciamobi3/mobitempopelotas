@@ -10,7 +10,7 @@ const windDetail = readFileSync("src/components/weather/WindDirectionContext.tsx
 const windStyles = readFileSync("src/components/weather/WindDirectionContext.css", "utf8");
 const windFallbackStyles = readFileSync("src/components/weather/WindDirectionFallback.css", "utf8");
 const windPage = readFileSync("src/components/weather/WindForecastPageV3.tsx", "utf8");
-const windPageStyles = readFileSync("src/components/weather/WindForecastPageV3.css", "utf8");
+const windPageStyles = readFileSync("src/components/weather/WindPageRefinement.css", "utf8");
 const rainPage = readFileSync("src/components/weather/RainForecastPageV2.tsx", "utf8");
 const todayPage = readFileSync("src/components/weather/TodayForecastPageV5.tsx", "utf8");
 const todayHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "utf8");
@@ -76,10 +76,10 @@ test("hourly wind direction stays a model forecast distinct from current observa
   assert.match(windDetail, /Direção por hora em atualização/);
   assert.match(windFallbackStyles, /wind-direction-context__state/);
   assert.doesNotMatch(windDetail, /return null/);
-  assert.doesNotMatch(windPage, /A fonte não informa a direção futura em cada horário/);
-  assert.match(windPage, /direção prevista por horário aparece em uma camada detalhada separada/);
-  assert.match(windPage, /href="#direcao-do-vento-por-hora"/);
-  assert.match(windPageStyles, /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/);
+  assert.match(windRoute, /forecastProvider=\{recoveredWeather\.weather\.quality\.forecastProvider\}/);
+  assert.match(windPage, /Vento e rajadas por horário/);
+  assert.match(windPageStyles, /grid-auto-flow: column/);
+  assert.match(windPageStyles, /grid-template-columns: repeat\(7, minmax\(0, 1fr\)\)/);
 });
 
 test("wind frequency does not invent a dominant direction when counts are tied", () => {
@@ -155,9 +155,11 @@ test("new public detail layers follow current responsive contracts", () => {
   assert.match(windStyles, /var\(--internal-weather-radius/);
   assert.match(rainStyles, /@media \(max-width: 620px\)/);
   assert.match(windStyles, /@media \(max-width: 520px\)/);
+  assert.match(windPageStyles, /@media \(max-width: 620px\)/);
   assert.match(rainStyles, /@media \(forced-colors: active\)/);
   assert.match(windStyles, /@media \(forced-colors: active\)/);
   assert.match(windFallbackStyles, /@media \(forced-colors: active\)/);
+  assert.match(windPageStyles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(rainStyles, /!important/);
-  assert.doesNotMatch(`${windStyles}\n${windFallbackStyles}`, /!important/);
+  assert.doesNotMatch(`${windStyles}\n${windFallbackStyles}\n${windPageStyles}`, /!important/);
 });

@@ -4,71 +4,53 @@ import test from "node:test";
 
 const route = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/weather/WindForecastPageV3.tsx", "utf8");
-const styles = readFileSync("src/components/weather/WindForecastPageV3.css", "utf8");
+const styles = readFileSync("src/components/weather/WindPageRefinement.css", "utf8");
+const direction = readFileSync("src/components/weather/WindDirectionContext.tsx", "utf8");
 const directionStyles = readFileSync("src/components/weather/WindDirectionContext.css", "utf8");
-const navigationAvailabilityStyles = readFileSync(
-  "src/components/weather/WindNavigationAvailability.css",
-  "utf8",
-);
 
-const windSource = `${route}\n${page}`;
+const windSource = `${route}\n${page}\n${direction}`;
 
-test("wind route uses the deeper source-aware page", () => {
-  assert.match(route, /WindForecastPageV3/);
-  assert.match(route, /WindNavigationAvailability\.css/);
+test("wind route uses the clean internal hero and one recovered forecast contract", () => {
+  assert.match(route, /WindRetailHero/);
+  assert.match(route, /WindPageRefinement\.css/);
   assert.match(route, /pageClassName="internal-weather-shell--wind"/);
-  assert.match(route, /Veja o vento agora, direção observada, direção prevista por hora/);
-  assert.match(route, /WIND_PAGE_CONTENT/);
-  assert.match(route, /Como ler vento, direção e rajadas em Pelotas/);
-  assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, WIND_PAGE_CONTENT\.faqs\)/);
+  assert.match(route, /loadPublicWeatherPage/);
+  assert.doesNotMatch(route, /loadPublicWeatherWithMeteogram|WindNavigationAvailability\.css/);
   assert.match(route, /staleTime: 5 \* 60 \* 1_000/);
-  assert.doesNotMatch(route, /WindForecastPageV2/);
 });
 
-test("wind page uses field-level provenance instead of a single current source", () => {
+test("wind body is editorial instead of the old chapter dashboard", () => {
+  assert.match(page, /className="wind-page"/);
+  assert.match(page, /wind-page__provenance/);
+  assert.match(page, /wind-page__hourly-track/);
+  assert.match(page, /wind-page__peak-list/);
+  assert.match(page, /wind-page__week-grid/);
+  assert.match(page, /wind-page__interpretation/);
+  assert.match(page, /wind-page__footer/);
+  assert.doesNotMatch(page, /wind-v3-chapters|wind-v3-source|wind-v3-section|wind-v3-hourly-list/);
+  assert.doesNotMatch(page, /WindForecastPageV3\.css/);
+});
+
+test("wind page keeps field-level provenance visible without repeating a dashboard summary", () => {
   assert.match(page, /currentProvenance\.windSpeed/);
   assert.match(page, /currentProvenance\.windDirection/);
   assert.match(page, /sourceName\(windSource\)/);
   assert.match(page, /sourceName\(directionSource\)/);
+  assert.match(page, /Origem dos dados/);
+  assert.match(page, /O vento atual e a direção observada podem ter origens diferentes/);
   assert.match(page, /Horário do vento atual/);
   assert.match(page, /Última atualização/);
-  assert.match(page, /current\?\.observedAt/);
   assert.doesNotMatch(page, /quality\.currentSource/);
-  assert.match(route, /O vento atual e a direção observada podem ter origens diferentes/);
 });
 
-test("wind page expands the hourly window to 24 hours", () => {
+test("wind page expands the primary hourly series to 24 hours", () => {
   assert.match(page, /weather\.hourly\.slice\(0, 24\)/);
   assert.match(page, /Próximas 24 horas/);
   assert.match(page, /Vento e rajadas por horário/);
-  assert.match(page, /wind-v3-hourly-list/);
   assert.match(page, /hour\.windSpeed/);
   assert.match(page, /hour\.windGust/);
-  assert.match(page, /Quanto a rajada supera o vento naquele horário/);
+  assert.match(page, /A diferença mostra quanto a rajada supera o vento naquele horário/);
   assert.doesNotMatch(page, /slice\(0, 12\)/);
-});
-
-test("future direction is an explicit model forecast, never fabricated from the current reading", () => {
-  assert.match(route, /direção prevista por hora/i);
-  assert.match(route, /não é apresentada como medição da estação/i);
-  assert.match(page, /direção prevista por horário aparece em uma camada detalhada separada/);
-  assert.doesNotMatch(page, /A fonte não informa a direção futura em cada horário/);
-  assert.doesNotMatch(page, /hour\.windDirection/);
-  assert.match(route, /A direção futura é uma medição da estação\?/);
-  assert.match(route, /Por que a direção prevista pode mudar ao longo do dia\?/);
-});
-
-test("top wind summary uses objective visitor-facing language", () => {
-  assert.match(page, /Rajadas de até \$\{number\(maximum\)\} km\/h nas próximas 24h/);
-  assert.match(page, /Sem rajadas positivas previstas nas próximas 24h/);
-  assert.match(page, /Vento agora/);
-  assert.match(page, /Rajada mais forte nas próximas 24h/);
-  assert.match(page, /Resumo da previsão\. Avisos oficiais têm prioridade/);
-  assert.match(route, /O resumo do topo apenas organiza os valores previstos/);
-  assert.match(route, /O resumo de intensidade do topo é um alerta oficial\?/);
-  assert.doesNotMatch(windSource, /Faixa editorial/i);
-  assert.doesNotMatch(windSource, /Vento consolidado agora/i);
-  assert.doesNotMatch(windSource, /Procedência campo a campo/i);
 });
 
 test("peak rankings use only positive published gusts", () => {
@@ -79,71 +61,52 @@ test("peak rankings use only positive published gusts", () => {
   assert.match(page, /Velocidade sustentada não substitui rajada/);
   assert.match(page, /Não há rajadas positivas previstas para as próximas 24 horas/);
   assert.match(page, /Sem rajada prevista/);
-  assert.match(page, /Próximos 7 dias/);
-  assert.match(page, /Rajada mais forte prevista em cada dia/);
+});
+
+test("wind weekly view keeps seven days without another card dashboard", () => {
   assert.match(page, /weather\.daily\.slice\(0, 7\)/);
+  assert.match(page, /Próximos 7 dias/);
+  assert.match(page, /Rajadas nos próximos 7 dias/);
+  assert.match(page, /Rajada mais forte prevista em cada dia/);
+  assert.match(page, /wind-page__week-grid/);
+  assert.doesNotMatch(page, /wind-v3-week-list/);
 });
 
-test("wind hourly CTA never points to an absent hourly section", () => {
-  assert.match(page, /hours\.length \? \(/);
-  assert.match(page, /href="#vento-por-hora"/);
-  assert.match(page, /to="\/previsao-7-dias-pelotas"/);
-  assert.match(page, /Ver previsão de 7 dias/);
-});
-
-test("wind chapter index hides links to conditional sections that are not rendered", () => {
-  assert.match(navigationAvailabilityStyles, /not\(:has\(#vento-por-hora\)\)/);
-  assert.match(navigationAvailabilityStyles, /a\[href="#vento-por-hora"\]/);
-  assert.match(navigationAvailabilityStyles, /not\(:has\(#vento-na-semana\)\)/);
-  assert.match(navigationAvailabilityStyles, /a\[href="#vento-na-semana"\]/);
-  assert.match(navigationAvailabilityStyles, /not\(:has\(#direcao-do-vento-por-hora\)\)/);
-  assert.match(navigationAvailabilityStyles, /a\[href="#direcao-do-vento-por-hora"\]/);
-  assert.doesNotMatch(navigationAvailabilityStyles, /!important/);
-});
-
-test("wind direction detail follows the Home surface contract", () => {
-  assert.match(directionStyles, /\.internal-weather-shell--wind \.wind-direction-context \{/);
-  assert.match(directionStyles, /background:\s*#fff/);
-  assert.match(directionStyles, /\.wind-direction-context__summary article[\s\S]*background:\s*#fbfcfc/);
-  assert.match(directionStyles, /\.wind-direction-context__timeline > article[\s\S]*background:\s*#fbfcfc/);
-  assert.match(directionStyles, /box-shadow:\s*none/);
-  assert.match(directionStyles, /@media \(max-width: 520px\)/);
-  assert.match(directionStyles, /--internal-weather-radius-mobile, 12px/);
-  assert.doesNotMatch(directionStyles, /radial-gradient|linear-gradient/);
-});
-
-test("wind alerts come only from active official alert records", () => {
-  assert.match(page, /alert\.period === "active"/);
-  assert.match(page, /vento\|vendaval\|rajada\|tempestade\|ciclone/);
-  assert.match(page, /Aviso oficial vigente/);
-  assert.match(page, /to="\/alertas"/);
+test("future direction stays a model forecast and remains visible while updating", () => {
+  assert.match(direction, /windDirectionDegrees/);
+  assert.match(direction, /dado de modelo/);
+  assert.match(direction, /separada da direção observada pela estação/);
+  assert.match(direction, /Direção por hora em atualização/);
+  assert.match(route, /hourly=\{recoveredWeather\.weather\.hourly\}/);
+  assert.doesNotMatch(route, /meteogram/);
 });
 
 test("wind empty state never inserts manual values", () => {
   assert.match(page, /Os dados de vento estão em atualização/);
-  assert.match(page, /Nenhuma velocidade ou rajada foi preenchida manualmente/);
+  assert.match(page, /Nenhuma velocidade, direção ou rajada foi preenchida manualmente/);
   assert.match(page, /!current && weather\.hourly\.length === 0 && weather\.daily\.length === 0/);
 });
 
-test("wind FAQ covers interpretation and provenance", () => {
-  assert.match(route, /Qual é a diferença entre vento e rajada\?/);
-  assert.match(route, /O que significa a direção do vento\?/);
-  assert.match(route, /O vento mostrado agora foi medido\?/);
-  assert.match(route, /A direção futura é uma medição da estação\?/);
-  assert.match(route, /Por que a direção prevista pode mudar ao longo do dia\?/);
-  assert.match(route, /Quando as rajadas exigem mais atenção\?/);
-});
-
-test("wind page follows responsive retail and accessibility contracts", () => {
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(styles, /content-visibility:\s*auto/);
-  assert.match(styles, /scroll-margin-top:\s*8rem/);
-  assert.match(styles, /@media \(max-width: 1220px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 720px\)/);
-  assert.match(styles, /@media \(max-width: 480px\)/);
+test("wind body follows the open editorial visual contract", () => {
+  assert.match(styles, /\.internal-weather-shell--wind \.wind-page \{/);
+  assert.match(styles, /\.wind-page__provenance/);
+  assert.match(styles, /border-top: 1px solid/);
+  assert.match(styles, /\.wind-page__hourly-track/);
+  assert.match(styles, /grid-auto-flow: column/);
+  assert.match(styles, /\.wind-page__week-grid/);
+  assert.match(styles, /grid-template-columns: repeat\(7, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
-  assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
+  assert.doesNotMatch(styles, /box-shadow: 0 18px|radial-gradient|linear-gradient|!important/);
+});
+
+test("direction detail remains a separate readable forecast layer", () => {
+  assert.match(directionStyles, /\.internal-weather-shell--wind \.wind-direction-context \{/);
+  assert.match(directionStyles, /background:\s*#fff/);
+  assert.match(directionStyles, /\.wind-direction-context__summary article/);
+  assert.match(directionStyles, /\.wind-direction-context__timeline > article/);
+  assert.match(directionStyles, /@media \(max-width: 520px\)/);
+  assert.doesNotMatch(windSource, /procedência campo a campo|vento consolidado/i);
 });

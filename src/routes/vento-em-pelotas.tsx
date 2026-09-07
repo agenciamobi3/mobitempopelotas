@@ -4,7 +4,7 @@ import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPag
 import { WindDirectionContext } from "@/components/weather/WindDirectionContext";
 import { WindForecastPageV3 } from "@/components/weather/WindForecastPageV3";
 import "@/components/weather/WindForecastHomeContract.css";
-import "@/components/weather/WindNavigationAvailability.css";
+import "@/components/weather/WindPageRefinement.css";
 import { WindRetailHero } from "@/components/weather/WindRetailHero";
 import { createPageHead } from "@/lib/page-meta";
 import { WIND_CITATIONS } from "@/lib/seo-source-citations";
