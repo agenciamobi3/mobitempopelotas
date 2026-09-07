@@ -172,30 +172,26 @@ export function SevenDayRetailHero({
     >
       <div className="today-retail-hero__inner seven-day-retail-hero__inner">
         <div className="today-retail-hero__copy seven-day-retail-hero__copy">
-          <span className="today-retail-hero__eyebrow">
-            <i aria-hidden="true" /> Próximos 7 dias · Pelotas
-          </span>
-
           <h1 id="seven-day-retail-hero-title">
             Previsão de <span>7 dias</span> para Pelotas
           </h1>
 
           <p>
             {hasDailyForecast
-              ? "Compare mínima e máxima, chance e volume de chuva e rajadas previstos para cada dia. Confirme novamente os dias mais distantes conforme eles se aproximarem."
-              : "A previsão dos próximos dias está em atualização. Consulte novamente em alguns instantes para comparar temperatura, chuva e rajadas."}
+              ? `Temperaturas entre ${minimum}° e ${maximum}°. Veja chuva e rajadas dia a dia.`
+              : "A previsão de 7 dias está em atualização."}
           </p>
 
           <div className="today-retail-hero__badges" aria-label="Situação da previsão semanal">
             <span>
-              <CalendarRange aria-hidden="true" /> {days.length || 0} dias na previsão
+              <CalendarRange aria-hidden="true" /> {days.length || 0} dias disponíveis
             </span>
             {hasAlert ? (
               <Link className="is-alert" to="/alertas">
                 <ShieldAlert aria-hidden="true" /> {alertLabel(officialAlertCount)}
               </Link>
             ) : (
-              <span className="is-stable">Sem aviso oficial listado para Pelotas</span>
+              <span className="is-stable">Sem aviso oficial para Pelotas</span>
             )}
           </div>
 
@@ -203,10 +199,10 @@ export function SevenDayRetailHero({
             {hasDailyForecast ? (
               <>
                 <a className="today-retail-hero__primary" href="#semana-dia-a-dia">
-                  Ver previsão dia a dia <ArrowRight aria-hidden="true" />
+                  Ver dia a dia <ArrowRight aria-hidden="true" />
                 </a>
                 <a className="today-retail-hero__secondary" href="#riscos-da-semana">
-                  Ver maiores chances de chuva
+                  Ver chuva e rajadas
                 </a>
               </>
             ) : (
@@ -215,7 +211,7 @@ export function SevenDayRetailHero({
                   Ver tempo de hoje <ArrowRight aria-hidden="true" />
                 </Link>
                 <Link className="today-retail-hero__secondary" to="/chuva-em-pelotas">
-                  Consultar chuva em Pelotas
+                  Ver chuva em Pelotas
                 </Link>
               </>
             )}
@@ -226,7 +222,7 @@ export function SevenDayRetailHero({
           <article
             className="today-retail-hero__current seven-day-retail-hero__current"
             style={photoStyle}
-            aria-label="Panorama da previsão para os próximos sete dias em Pelotas"
+            aria-label="Previsão para os próximos sete dias em Pelotas"
           >
             <div
               className="today-retail-hero__current-photo"
@@ -242,7 +238,7 @@ export function SevenDayRetailHero({
               <header>
                 <div>
                   <span>Pelotas, RS</span>
-                  <small>Previsão para os próximos 7 dias</small>
+                  <small>Temperatura, chuva e vento</small>
                 </div>
                 <b>
                   <i aria-hidden="true" /> 7 dias
@@ -264,7 +260,7 @@ export function SevenDayRetailHero({
                   <strong>
                     {minimum === null || maximum === null ? "—" : `${minimum}°–${maximum}°`}
                   </strong>
-                  <span>Faixa de temperatura dos próximos 7 dias</span>
+                  <span>Temperaturas na semana</span>
                   <small>
                     {!hasDailyForecast
                       ? "Dados da semana em atualização"
@@ -344,7 +340,7 @@ export function SevenDayRetailHero({
                 <Gauge aria-hidden="true" /> Fonte da previsão
               </span>
               <strong>{weather.source.forecastName ?? weather.source.name}</strong>
-              <small>Modelo meteorológico principal</small>
+              <small>Fonte principal</small>
             </article>
           </div>
         </div>
