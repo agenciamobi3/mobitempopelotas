@@ -64,19 +64,20 @@ test("flood history uses documentary color without presenting historical numbers
   assert.doesNotMatch(floodAccent, /!important/);
 });
 
-test("regional directory keeps its base neutral and loads geographic accents separately", () => {
+test("regional directory keeps geographic identity on an open editorial canvas", () => {
   assert.match(regionalRoute, /RegionalCitiesAccentContract\.css/);
   assert.doesNotMatch(regionalBase, /radial-gradient|linear-gradient/);
-  assert.match(regionalAccent, /Central regional — acento geográfico/);
-  assert.match(regionalAccent, /\.regional-cities-hero[\s\S]*radial-gradient/);
-  assert.match(regionalAccent, /\.regional-cities-controls/);
+  assert.match(regionalAccent, /Central regional — acento geográfico mínimo/);
+  assert.match(regionalAccent, /\.regional-cities-hero[\s\S]*background:\s*#f5f8f8/);
+  assert.match(regionalAccent, /\.regional-cities-controls[\s\S]*background:\s*transparent/);
   assert.match(regionalAccent, /\.regional-cities-groups > article/);
   assert.match(regionalAccent, /article:nth-child\(1\)[\s\S]*#18bdcd/);
   assert.match(regionalAccent, /article:nth-child\(2\)[\s\S]*#5e2ced/);
   assert.match(regionalAccent, /article:nth-child\(3\)[\s\S]*#e70b85/);
   assert.match(regionalAccent, /article:nth-child\(4\)[\s\S]*#f27035/);
-  assert.match(regionalAccent, /\.regional-cities-method/);
+  assert.match(regionalAccent, /\.regional-cities-method[\s\S]*background:\s*transparent/);
   assert.match(regionalAccent, /min-height:\s*44px/);
+  assert.doesNotMatch(regionalAccent, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(regionalAccent, /!important/);
   assert.doesNotMatch(regionalAccent, /> section:nth-child/);
 });
