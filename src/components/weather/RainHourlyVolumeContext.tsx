@@ -1,4 +1,4 @@
-import { CloudRain, Database, Droplets, Info } from "lucide-react";
+import { CloudRain, Database, Droplets } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import type { MeteogramData, MeteogramHour } from "@/lib/weather/meteogram.server";
@@ -83,37 +83,27 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
       aria-labelledby="rain-hourly-volume-title"
     >
       <header>
-        <div>
-          <h2 id="rain-hourly-volume-title">Volume de chuva por hora</h2>
-        </div>
-        <p>Milímetros previstos nas próximas 12 horas. Não é chuva já medida.</p>
+        <h2 id="rain-hourly-volume-title">Volume de chuva por hora</h2>
+        <p>Previsão em milímetros para as próximas 12 horas.</p>
       </header>
 
-      <div className="rain-hourly-volume-context__summary" aria-label="Resumo do volume previsto">
-        <article>
-          <Droplets aria-hidden="true" />
-          <span>{hasCompleteVolumeWindow ? "Total em 12 h" : "Total parcial"}</span>
-          <strong>{formatMm(total)}</strong>
-          {!hasCompleteVolumeWindow ? <small>{availableVolumeHours.length} de {hours.length} horários informados</small> : null}
-        </article>
-        <article>
-          <CloudRain aria-hidden="true" />
-          <span>Maior volume em 1 h</span>
-          <strong>{peak ? formatMm(peak.precipitationMm) : "Nenhum"}</strong>
+      <dl className="rain-hourly-volume-context__summary" aria-label="Resumo do volume previsto">
+        <div>
+          <dt><Droplets aria-hidden="true" /> {hasCompleteVolumeWindow ? "Total em 12 h" : "Total parcial"}</dt>
+          <dd>{formatMm(total)}</dd>
+          {!hasCompleteVolumeWindow ? <small>{availableVolumeHours.length} de {hours.length} horários</small> : null}
+        </div>
+        <div>
+          <dt><CloudRain aria-hidden="true" /> Maior volume em 1 h</dt>
+          <dd>{peak ? formatMm(peak.precipitationMm) : "Nenhum"}</dd>
           <small>{peak ? `Por volta de ${formatHour(peak.timestamp)}` : noPositiveVolumeDetail}</small>
-        </article>
-        <article>
-          <Droplets aria-hidden="true" />
-          <span>Horas com 0,1 mm ou mais</span>
-          <strong>{wet.length}</strong>
-        </article>
-        <article>
-          <Info aria-hidden="true" />
-          <span>Primeiro volume</span>
-          <strong>{firstWet ? formatHour(firstWet.timestamp) : "Nenhum"}</strong>
+        </div>
+        <div>
+          <dt><Droplets aria-hidden="true" /> Primeiro volume</dt>
+          <dd>{firstWet ? formatHour(firstWet.timestamp) : "Nenhum"}</dd>
           {firstWet ? <small>{formatMm(firstWet.precipitationMm)}</small> : null}
-        </article>
-      </div>
+        </div>
+      </dl>
 
       <div className="rain-hourly-volume-context__timeline" aria-label="Volume e chance de chuva por hora">
         {hours.map((hour) => {
