@@ -42,13 +42,15 @@ test("alerts keeps the neutral Home contract and loads semantic color afterwards
   assert.ok(baseIndex >= 0);
   assert.ok(accentIndex > baseIndex);
   assert.doesNotMatch(alertsBase, /radial-gradient|linear-gradient/);
+  assert.match(alertsAccent, /camada cromática estritamente semântica/i);
   assert.match(alertsAccent, /--alerts-accent/);
   assert.match(alertsAccent, /alerts-editorial-hero-potential/);
   assert.match(alertsAccent, /alerts-editorial-hero-danger/);
   assert.match(alertsAccent, /alerts-editorial-hero-great-danger/);
-  assert.match(alertsAccent, /radial-gradient/);
-  assert.match(alertsAccent, /linear-gradient/);
+  assert.match(alertsAccent, /\.alerts-editorial-panel-status/);
+  assert.match(alertsAccent, /\.alerts-editorial-panel-line/);
   assert.match(alertsAccent, /min-height:\s*44px/);
+  assert.doesNotMatch(alertsAccent, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(alertsAccent, /!important/);
 });
 
