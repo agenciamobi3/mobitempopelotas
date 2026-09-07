@@ -3,8 +3,6 @@ import type { CSSProperties } from "react";
 
 import type { MeteogramData, MeteogramHour } from "@/lib/weather/meteogram.server";
 
-import "./RainHourlyVolumeContext.css";
-
 const WINDOW_HOURS = 12;
 const MEASURABLE_RAIN_MM = 0.1;
 
@@ -83,8 +81,11 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
       aria-labelledby="rain-hourly-volume-title"
     >
       <header>
-        <h2 id="rain-hourly-volume-title">Volume de chuva por hora</h2>
-        <p>Previsão em milímetros para as próximas 12 horas.</p>
+        <div>
+          <span>Próximas 12 horas</span>
+          <h2 id="rain-hourly-volume-title">Volume previsto</h2>
+        </div>
+        <p>Milímetros previstos em cada horário.</p>
       </header>
 
       <dl className="rain-hourly-volume-context__summary" aria-label="Resumo do volume previsto">
