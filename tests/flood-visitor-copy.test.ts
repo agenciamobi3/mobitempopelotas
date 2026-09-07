@@ -72,6 +72,23 @@ test("second copy pass removes research-language labels from the public timeline
   assert.match(page2001, /versão revisada, chamada de <strong>consistida<\/strong> no arquivo/);
 });
 
+test("third copy pass removes generic labels and institutional self-reference", () => {
+  assert.doesNotMatch(page2001, /<small>Registro da época<\/small>/);
+  assert.doesNotMatch(page2015, /<small>Registro da época<\/small>/);
+  assert.doesNotMatch(page2024, /<small>Onde estava o problema<\/small>|<small>Evento histórico<\/small>/);
+
+  assert.doesNotMatch(page2001, /A página não inventa|o portal não usa|esta página poderá ser atualizada|A página pode crescer/i);
+  assert.doesNotMatch(page2015, /a página não inventa|medição calibrada\s+pelo portal/i);
+  assert.doesNotMatch(page2024, /Esta página reúne|O monitoramento precisa considerar/i);
+
+  assert.match(page2001, /O que ainda não sabemos/);
+  assert.match(page2001, /Quando duas fontes divergem, a diferença fica visível/);
+  assert.match(page2015, /Quando falta o texto completo, nenhum valor é preenchido por suposição/);
+  assert.match(page2015, /Onde os registros de 2015 foram encontrados/);
+  assert.match(page2024, /Para entender o risco em Pelotas, é preciso acompanhar vários pontos ao mesmo tempo/);
+  assert.match(page2024, /De onde vêm os dados e registros de 2024/);
+});
+
 test("visitor guide still documents the 2001 discrepancy as reusable historical copy", () => {
   assert.match(guide, /2,90 m e 1,90 m para o mesmo dia/);
   assert.match(guide, /Isso não é um erro do site/);

@@ -34,10 +34,10 @@ const PAGE_INDEX_ITEMS = [
   { href: "#regua-laranjal-2001", label: "Nível no Laranjal", icon: Ruler },
   { href: "#mecanismo-vento-2001", label: "Por que a água avançou", icon: Wind },
   { href: "#linha-do-tempo-2001", label: "Linha do tempo", icon: CalendarDays },
-  { href: "#fontes-e-limites-2001", label: "Como usamos as fontes", icon: BookOpen },
-  { href: "#nao-confundir-setembro-2001", label: "Outro evento de 2001", icon: History },
-  { href: "#lacunas-2001", label: "O que ainda buscamos", icon: Search },
-  { href: "#fontes-2001", label: "Fontes", icon: FileText },
+  { href: "#fontes-e-limites-2001", label: "O que cada fonte registra", icon: BookOpen },
+  { href: "#nao-confundir-setembro-2001", label: "Chuvas de agosto e setembro", icon: History },
+  { href: "#lacunas-2001", label: "O que ainda não sabemos", icon: Search },
+  { href: "#fontes-2001", label: "Documentos e fontes", icon: FileText },
 ] as const;
 
 export function Flood2001Hero() {
@@ -153,7 +153,8 @@ export function Flood2001HistoricalPage() {
           <p>
             Em 2018, o histórico da estação registra que os dados foram revisados em um trabalho da
             ANA. Isso confirma que houve revisão, mas não explica por que o valor de 8 de outubro mudou
-            exatamente 100 cm. A página não inventa uma causa para essa diferença.
+            exatamente 100 cm. Sem um documento que explique essa mudança, não há base para apontar
+            uma causa.
           </p>
           <p>
             Um relatório municipal de 2013, baseado nos dados da ANA disponíveis naquela época,
@@ -163,8 +164,8 @@ export function Flood2001HistoricalPage() {
           <p>
             O cadastro da estação também mudou depois de 2001. Em 2017 aparece uma nova referência
             para o zero da régua, e em 2018 houve troca de trechos da régua. Sem um documento ligando
-            essas mudanças à medição de 2001, o portal não usa referências mais novas para recalcular
-            o nível antigo.
+            essas mudanças à medição de 2001, referências mais novas não são usadas para recalcular o
+            nível antigo.
           </p>
           <p>
             Em 2026, a estação histórica <strong>87955000</strong> deixou de ser marcada como
@@ -232,7 +233,6 @@ export function Flood2001HistoricalPage() {
                     <TimelineIcon className="tp-flood-visual-icon" />
                   </span>
                   <span>{item.date}</span>
-                  <small>Registro da época</small>
                   <strong>{item.stageLabel}</strong>
                 </div>
                 <div className="tp-flood-event__body">
@@ -250,10 +250,6 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-explanation" id="fontes-e-limites-2001">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <BookOpen className="tp-flood-visual-icon" aria-hidden="true" />
-            Como usamos as fontes
-          </span>
           <h2>Cada fonte conta uma parte do que aconteceu</h2>
         </div>
         <div>
@@ -281,18 +277,13 @@ export function Flood2001HistoricalPage() {
             que aconteceu em 8 de outubro de 2001.
           </p>
           <blockquote>
-            Quando duas fontes dizem coisas diferentes, a página mostra a diferença e identifica de
-            onde veio cada informação.
+            Quando duas fontes divergem, a diferença fica visível e cada informação mantém sua origem.
           </blockquote>
         </div>
       </section>
 
       <section className="tp-flood-lessons" id="nao-confundir-setembro-2001">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <History className="tp-flood-visual-icon" aria-hidden="true" />
-            Outro evento de 2001
-          </span>
           <h2>As chuvas de agosto e setembro foram outro episódio</h2>
         </div>
         <div>
@@ -302,24 +293,20 @@ export function Flood2001HistoricalPage() {
             para tratar aquele episódio e a enchente de outubro como um único evento.
           </p>
           <p>
-            Se novas fontes mostrarem uma ligação direta entre os dois períodos, esta página poderá ser
-            atualizada. Por enquanto, eles permanecem separados.
+            Se aparecer uma fonte que ligue diretamente os dois períodos, essa relação poderá ser
+            revista. Por enquanto, eles permanecem separados.
           </p>
         </div>
       </section>
 
       <section className="tp-flood-lessons" id="lacunas-2001">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <Search className="tp-flood-visual-icon" aria-hidden="true" />
-            O que ainda buscamos
-          </span>
-          <h2>Algumas partes da história ainda não estão fechadas</h2>
+          <h2>O que ainda não sabemos</h2>
         </div>
         <div>
           <p>
-            Já temos as duas versões da medição de 8 de outubro. O que falta agora é entender melhor
-            por que elas diferem e confirmar qual referência de régua vale para aquele período.
+            Já temos as duas versões da medição de 8 de outubro. Ainda falta entender melhor por que
+            elas diferem e confirmar qual referência de régua vale para aquele período.
           </p>
           <ul className="tp-flood-visual-list">
             {FLOOD_2001_RESEARCH_GAPS.map((gap) => (
@@ -336,17 +323,12 @@ export function Flood2001HistoricalPage() {
 
       <section className="tp-flood-sources" id="fontes-2001" aria-labelledby="tp-flood-2001-sources-title">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <BookOpen className="tp-flood-visual-icon" aria-hidden="true" />
-            Fontes
-          </span>
-          <h2 id="tp-flood-2001-sources-title">De onde vêm as informações desta página</h2>
+          <h2 id="tp-flood-2001-sources-title">Onde essas informações foram encontradas</h2>
         </div>
         <div>
           <p>
-            A página pode crescer quando novas fotos, jornais, boletins ou documentos forem
-            encontrados. Quando uma informação ainda não foi confirmada, ela continua indicada como
-            dúvida.
+            Novas fotos, jornais, boletins ou documentos podem completar esta história. Quando um
+            ponto ainda não está confirmado, ele continua indicado como dúvida.
           </p>
           <div className="tp-flood-related__links">
             {FLOOD_2001_SOURCES.map((source) => (

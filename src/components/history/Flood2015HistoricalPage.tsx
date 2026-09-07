@@ -37,7 +37,7 @@ const PAGE_INDEX_ITEMS = [
   { href: "#por-que-nao-drenava", label: "Por que a água não baixava", icon: Waves },
   { href: "#impactos-e-resposta", label: "Impactos e resposta", icon: ShieldCheck },
   { href: "#como-ler-os-niveis", label: "Como ler os níveis", icon: Ruler },
-  { href: "#fontes-2015", label: "Fontes", icon: BookOpen },
+  { href: "#fontes-2015", label: "Documentos e fontes", icon: BookOpen },
 ] as const;
 
 export function Flood2015Hero() {
@@ -110,8 +110,8 @@ export function Flood2015HistoricalPage() {
             Canal altos, bairros e balneários mais baixos tinham menos capacidade para escoar a água.
           </p>
           <p>
-            Segundo a Prefeitura, a Estação da Embrapa acumulou 299 mm de chuva em outubro até o dia
-            20. No mesmo registro, a média citada para todo o mês de outubro era de 101 mm.
+            Nos boletins municipais, a Estação da Embrapa aparece com 299 mm de chuva em outubro até
+            o dia 20. No mesmo registro, a média citada para todo o mês era de 101 mm.
           </p>
         </div>
 
@@ -121,9 +121,9 @@ export function Flood2015HistoricalPage() {
             → alagamentos nas áreas mais baixas
           </strong>
           <p>
-            As águas chegaram por caminhos diferentes, mas o efeito local foi o mesmo: o sistema já
-            estava alto e tinha pouca capacidade para receber a água que precisava sair das áreas
-            urbanas.
+            As águas chegaram por caminhos diferentes, mas o efeito local foi o mesmo: a Lagoa e o
+            Canal já estavam altos e havia pouca capacidade para receber a água que precisava sair das
+            áreas urbanas.
           </p>
         </div>
       </section>
@@ -140,8 +140,8 @@ export function Flood2015HistoricalPage() {
           </span>
           <h2 id="tp-flood-2015-timeline-title">Dos primeiros sinais à recuperação</h2>
           <p>
-            A Prefeitura publicou atualizações frequentes durante a emergência. As medições abaixo
-            mantêm a data, o horário e a origem informados em cada fonte.
+            Os boletins municipais foram publicados com frequência durante a emergência. As medições
+            abaixo mantêm a data, o horário e a origem informados em cada registro.
           </p>
         </header>
 
@@ -155,7 +155,6 @@ export function Flood2015HistoricalPage() {
                     <TimelineIcon className="tp-flood-visual-icon" />
                   </span>
                   <span>{item.date}</span>
-                  <small>Registro da época</small>
                   <strong>{item.stageLabel}</strong>
                 </div>
                 <div className="tp-flood-event__body">
@@ -188,16 +187,12 @@ export function Flood2015HistoricalPage() {
         aria-labelledby="tp-flood-2015-archive-title"
       >
         <div>
-          <span className="tp-flood-visual-kicker">
-            <Archive className="tp-flood-visual-icon" aria-hidden="true" />
-            Boletins de 2015
-          </span>
-          <h2 id="tp-flood-2015-archive-title">A Prefeitura publicou atualizações quase todos os dias</h2>
+          <h2 id="tp-flood-2015-archive-title">Quase todos os dias tiveram novas atualizações</h2>
         </div>
         <div>
           <p>
-            O arquivo municipal ainda preserva a sequência de publicações da época. Alguns boletins
-            continuam disponíveis por inteiro; em outros casos, restou apenas o registro de que a
+            O arquivo municipal preserva a sequência de publicações da época. Alguns boletins ainda
+            estão disponíveis por inteiro; em outros casos, restou apenas o registro de que a
             publicação existiu.
           </p>
           <div className="tp-flood-archive" role="list" aria-label="Boletins de 2015 localizados no arquivo municipal">
@@ -219,9 +214,8 @@ export function Flood2015HistoricalPage() {
             ))}
           </div>
           <p className="tp-flood-archive__caveat">
-            Quando o texto completo de um boletim não foi encontrado, a página não inventa medições
-            para preencher o espaço. Informações recuperadas por jornais continuam identificadas como
-            jornalísticas.
+            Quando falta o texto completo, nenhum valor é preenchido por suposição. Informações
+            recuperadas em jornais continuam identificadas pela fonte que as publicou.
           </p>
         </div>
       </section>
@@ -236,8 +230,8 @@ export function Flood2015HistoricalPage() {
         </div>
         <div>
           <p>
-            Em 19 de outubro, a Prefeitura explicou que os canais do Laranjal precisavam descarregar
-            água em um sistema que também estava com o nível elevado.
+            O boletim de 19 de outubro explica que os canais do Laranjal precisavam descarregar água
+            em um sistema que também estava com o nível elevado.
           </p>
           <p>
             Com Lagoa dos Patos e Canal São Gonçalo altos, as áreas mais baixas recebiam água ao mesmo
@@ -253,10 +247,6 @@ export function Flood2015HistoricalPage() {
 
       <section className="tp-flood-lessons" id="impactos-e-resposta">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <ShieldCheck className="tp-flood-visual-icon" aria-hidden="true" />
-            Impactos e resposta
-          </span>
           <h2>Resgates, abrigos, energia interrompida e obras de emergência</h2>
         </div>
         <div>
@@ -271,8 +261,8 @@ export function Flood2015HistoricalPage() {
             de aproximadamente 2 km no Valverde.
           </p>
           <p>
-            Jornais da época ajudam a completar pontos em que o arquivo municipal está incompleto.
-            Essas informações continuam identificadas pela fonte que as publicou.
+            Jornais da época ajudam a preencher pontos em que o arquivo municipal está incompleto.
+            Quando um dado vem de jornal, essa origem permanece indicada.
           </p>
           <ul className="tp-flood-visual-list">
             {[
@@ -299,10 +289,6 @@ export function Flood2015HistoricalPage() {
 
       <section className="tp-flood-explanation" id="como-ler-os-niveis">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <Ruler className="tp-flood-visual-icon" aria-hidden="true" />
-            Como ler os níveis
-          </span>
           <h2>Números de lugares diferentes não são a mesma medição</h2>
         </div>
         <div>
@@ -327,23 +313,19 @@ export function Flood2015HistoricalPage() {
           <p>
             O G1 publicou, citando a Defesa Civil, que a Lagoa teria chegado a “2,25 m acima do
             normal”. Como a reportagem não informa qual régua nem o que significava “normal”, esse
-            número permanece como informação atribuída à reportagem, e não como uma medição calibrada
-            pelo portal.
+            número permanece como informação atribuída à reportagem, e não como uma medição confirmada
+            da Lagoa.
           </p>
         </div>
       </section>
 
       <section className="tp-flood-sources" id="fontes-2015" aria-labelledby="tp-flood-2015-sources-title">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <BookOpen className="tp-flood-visual-icon" aria-hidden="true" />
-            Fontes
-          </span>
-          <h2 id="tp-flood-2015-sources-title">De onde vêm as informações desta página</h2>
+          <h2 id="tp-flood-2015-sources-title">Onde os registros de 2015 foram encontrados</h2>
         </div>
         <div>
           <p>
-            A principal base desta página é a série “Cheias 2015” da Prefeitura de Pelotas. G1 e GZH
+            A maior parte dos registros vem da série “Cheias 2015” da Prefeitura de Pelotas. G1 e GZH
             completam momentos em que o arquivo municipal não preservou todo o texto. Cada informação
             continua ligada à fonte que a publicou.
           </p>

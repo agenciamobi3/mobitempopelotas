@@ -41,7 +41,7 @@ const PAGE_INDEX_ITEMS = [
   { href: "#por-que-pelotas-inundou", label: "Por que Pelotas inundou depois", icon: Clock },
   { href: "#caminho-da-cheia", label: "Caminho da cheia", icon: Route },
   { href: "#outros-eventos-historicos", label: "2001 e 2015", icon: ArrowLeftRight },
-  { href: "#ensinamentos", label: "O que 2024 mostrou", icon: ShieldCheck },
+  { href: "#ensinamentos", label: "O que precisa ser acompanhado", icon: ShieldCheck },
 ] as const;
 
 export function Flood2024Hero() {
@@ -192,7 +192,6 @@ export function Flood2024HistoricalPage() {
                     <TimelineIcon className="tp-flood-visual-icon" />
                   </span>
                   <span>{item.date}</span>
-                  <small>Onde estava o problema</small>
                   <strong>{item.stageLabel}</strong>
                 </div>
                 <div className="tp-flood-event__body">
@@ -261,10 +260,6 @@ export function Flood2024HistoricalPage() {
         aria-labelledby="tp-flood-other-events-title"
       >
         <header>
-          <span className="tp-flood-visual-kicker">
-            <ArrowLeftRight className="tp-flood-visual-icon" aria-hidden="true" />
-            2001 e 2015
-          </span>
           <h2 id="tp-flood-other-events-title">As grandes enchentes de Pelotas não aconteceram do mesmo jeito</h2>
           <p>
             Em 2001, os registros destacam o vento muito forte e o avanço da Lagoa. Em 2015, chuva
@@ -280,7 +275,6 @@ export function Flood2024HistoricalPage() {
                 <Wind className="tp-flood-visual-icon" />
               </span>
               <span>8 de outubro de 2001</span>
-              <small>Evento histórico</small>
               <strong>Vento muito forte + Lagoa</strong>
             </div>
             <div className="tp-flood-event__body">
@@ -291,9 +285,8 @@ export function Flood2024HistoricalPage() {
                 águas avançaram aproximadamente 600 metros para dentro do Laranjal.
               </p>
               <p>
-                A documentação disponível para 2001 dá destaque especial ao vento e à resposta da
-                Lagoa junto à costa de Pelotas. Por isso, aquele episódio não é tratado como uma cópia
-                de 2024.
+                Em 2001, os registros dão destaque especial ao vento e à resposta da Lagoa junto à
+                costa de Pelotas. Por isso, aquele episódio não é tratado como uma cópia de 2024.
               </p>
               <b className="tp-flood-event__highlight">105 km/h em Pelotas · avanço de cerca de 600 m no Laranjal</b>
               <p>
@@ -310,15 +303,14 @@ export function Flood2024HistoricalPage() {
                 <CloudRain className="tp-flood-visual-icon" />
               </span>
               <span>18 a 22 de outubro de 2015</span>
-              <small>Evento histórico</small>
               <strong>Chuva + água regional + vento</strong>
             </div>
             <div className="tp-flood-event__body">
               <h3>Chuva muito acima da média e níveis altos na Lagoa e no Canal</h3>
               <p>
                 Até 20 de outubro, a Estação da Embrapa havia registrado 299 mm de chuva no mês,
-                diante de uma média de 101 mm citada pela Prefeitura. O Município também apontou água
-                chegando ao Canal São Gonçalo e à Lagoa dos Patos por diferentes caminhos.
+                diante de uma média de 101 mm citada pela Prefeitura. Os registros municipais também
+                apontam água chegando ao Canal São Gonçalo e à Lagoa dos Patos por diferentes caminhos.
               </p>
               <p>
                 O balanço municipal posterior situou o período mais crítico entre 18 e 19 de outubro,
@@ -337,14 +329,10 @@ export function Flood2024HistoricalPage() {
 
       <section className="tp-flood-lessons" id="ensinamentos">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <ShieldCheck className="tp-flood-visual-icon" aria-hidden="true" />
-            O que 2024 mostrou
-          </span>
           <h2>Para acompanhar Pelotas, é preciso olhar além do Laranjal</h2>
         </div>
         <div>
-          <p>O monitoramento precisa considerar vários pontos ao mesmo tempo:</p>
+          <p>Para entender o risco em Pelotas, é preciso acompanhar vários pontos ao mesmo tempo:</p>
           <ul className="tp-flood-visual-list">
             {[
               "o Guaíba;",
@@ -372,17 +360,13 @@ export function Flood2024HistoricalPage() {
 
       <section className="tp-flood-sources" aria-labelledby="tp-flood-sources-title">
         <div>
-          <span className="tp-flood-visual-kicker">
-            <BookOpen className="tp-flood-visual-icon" aria-hidden="true" />
-            Fontes
-          </span>
-          <h2 id="tp-flood-sources-title">De onde vêm as informações desta página</h2>
+          <h2 id="tp-flood-sources-title">De onde vêm os dados e registros de 2024</h2>
         </div>
         <div>
           <p>
-            Esta página reúne informações publicadas durante e depois da enchente por órgãos públicos,
-            instituições de pesquisa e sistemas de monitoramento. Os registros de 2001 e 2015 aparecem
-            apenas como comparação histórica.
+            Os dados e relatos usados aqui foram publicados durante e depois da enchente por órgãos
+            públicos, instituições de pesquisa e sistemas de monitoramento. Os registros de 2001 e
+            2015 aparecem apenas como comparação histórica.
           </p>
           <p>
             Níveis medidos em lugares diferentes podem usar réguas e referências diferentes. Por isso,
