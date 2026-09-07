@@ -77,11 +77,12 @@ test("amanhã, 7 dias e 15 dias possuem papéis distintos e navegação progress
   assert.match(fifteenDays, /Veja a previsão de 10 e 15 dias em Pelotas/);
   assert.doesNotMatch(fifteenDays, /EditorialContentSection|createFaqPageJsonLd|FIFTEEN_DAY_PAGE_CONTENT/);
   assert.match(fifteenDaysHero, /Previsão de <span>15 dias<\/span> para Pelotas/);
-  assert.match(fifteenDaysPage, /Primeiros 7 dias/);
-  assert.match(fifteenDaysPage, /Dias 8 a 15/);
+  assert.match(fifteenDaysPage, /Previsão dos próximos 15 dias/);
+  assert.match(fifteenDaysPage, /Primeira semana/);
+  assert.match(fifteenDaysPage, /Segunda semana/);
   assert.match(fifteenDaysPage, /Temperaturas nos próximos 15 dias/);
   assert.match(fifteenDaysPage, /Chuva e rajadas nos próximos 15 dias/);
-  assert.doesNotMatch(fifteenDaysPage, /Como usar a previsão|A confiança não é igual em toda a janela/);
+  assert.doesNotMatch(fifteenDaysPage, /Como usar a previsão|A confiança não é igual em toda a janela|Primeiros 7 dias|Dias 8 a 15/);
 });
 
 test("chuva conecta medição e previsão sem criar uma segunda camada explicadora", () => {
