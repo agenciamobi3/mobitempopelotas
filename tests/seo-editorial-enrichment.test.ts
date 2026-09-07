@@ -18,6 +18,8 @@ const fifteenDays = source("src/routes/previsao-15-dias-pelotas.tsx");
 const fifteenDaysPage = source("src/components/weather/FifteenDayForecastPage.tsx");
 const fifteenDaysHero = source("src/components/weather/FifteenDayForecastHero.tsx");
 const rain = source("src/routes/chuva-em-pelotas.tsx");
+const rainPage = source("src/components/weather/RainForecastPageV2.tsx");
+const rainAccumulation = source("src/components/weather/RainAccumulationContext.tsx");
 const wind = source("src/routes/vento-em-pelotas.tsx");
 const radar = source("src/routes/radar-e-satelite-pelotas.tsx");
 const alerts = source("src/routes/alertas.tsx");
@@ -82,12 +84,17 @@ test("amanhã, 7 dias e 15 dias possuem papéis distintos e navegação progress
   assert.doesNotMatch(fifteenDaysPage, /Como usar a previsão|A confiança não é igual em toda a janela/);
 });
 
-test("chuva conecta previsão, observação e hidrologia sem somar janelas incompatíveis", () => {
-  assert.match(rain, /Vai chover hoje em Pelotas/);
-  assert.match(rain, /Quanto choveu hoje em Pelotas/);
-  assert.match(rain, /href: "\/situacao-hidrologica-pelotas"/);
-  assert.match(rain, /href: "\/nivel-da-lagoa-dos-patos-laranjal"/);
-  assert.match(rain, /não é somado ao volume previsto para hoje/);
+test("chuva conecta medição e previsão sem criar uma segunda camada explicadora", () => {
+  assert.match(rain, /Chuva em Pelotas hoje: acumulado, chance e previsão/);
+  assert.match(rain, /RAIN_CITATIONS/);
+  assert.doesNotMatch(rain, /EditorialContentSection|createFaqPageJsonLd|RAIN_PAGE_CONTENT/);
+  assert.match(rainAccumulation, /Chuva medida e prevista/);
+  assert.match(rainAccumulation, /Não some os dois valores/);
+  assert.match(rainPage, /Chance de chuva nas próximas 12 horas/);
+  assert.match(rainPage, /Chuva nos próximos 7 dias/);
+  assert.match(rainPage, /INMET para Pelotas/);
+  assert.match(rainPage, /to="\/radar-e-satelite-pelotas"/);
+  assert.match(rainPage, /to="\/vento-em-pelotas"/);
 });
 
 test("vento cobre intenção de hoje e mantém observação separada de previsão", () => {
@@ -133,7 +140,6 @@ test("alertas e geadas preservam fonte oficial e diferença entre observação e
   assert.match(alerts, /Alertas do INMET em Pelotas e região/);
   assert.match(alerts, /A ausência de alerta não elimina mudanças rápidas no tempo/);
   assert.match(alerts, /href: "\/situacao-hidrologica-pelotas"/);
-
   assert.match(frost, /Mapa de geadas observadas no Rio Grande do Sul/);
   assert.match(frost, /O mapa mostra registros passados e não prevê geada para a próxima madrugada/);
   assert.match(frost, /href: "\/previsao-7-dias-pelotas"/);
@@ -144,12 +150,10 @@ test("páginas de apoio preservam semântica, estrutura e entidades", () => {
   assert.match(privacy, /<ContentPageShell pageClassName="privacy-data-shell">/);
   assert.match(privacy, /<div className="privacy-page">/);
   assert.doesNotMatch(privacy, /<main className="privacy-page"/);
-
   assert.match(status, /createEditorialPageJsonLd/);
   assert.match(status, /Status dos dados e integrações/);
   assert.match(status, /Histórico de incidentes de dados/);
   assert.match(status, /Uma fonte offline não significa que todo o portal parou/);
-
   assert.match(regionalHub, /Tempo na Região Sul do RS: previsão por cidade/);
   assert.match(regionalHub, /Previsão do tempo por cidade no sul do RS/);
   assert.match(regionalHub, /Mapa meteorológico regional/);
@@ -162,7 +166,6 @@ test("cluster hidrológico conecta operação atual e memória histórica preser
     assert.match(route, /\/enchente-1941-pelotas/);
     assert.match(route, /\/enchente-2024-pelotas-laranjal/);
   }
-
   assert.match(laranjal, /não são convertidas em cota da Estação Laranjal/);
   assert.match(hydrology, /não devem ser comparados por simples subtração/);
   assert.match(guaiba, /não confirma risco de enchente em Pelotas/);
@@ -171,11 +174,7 @@ test("cluster hidrológico conecta operação atual e memória histórica preser
 
 test("páginas regionais preservam perfis locais sem FAQ templated em massa", () => {
   const priorityProfiles = [...regionalEditorial.matchAll(/^\s{2}"[a-z0-9-]+-rs": \{/gm)];
-  assert.ok(
-    priorityProfiles.length >= 10,
-    `esperava ao menos 10 perfis editoriais, encontrou ${priorityProfiles.length}`,
-  );
-
+  assert.ok(priorityProfiles.length >= 10, `esperava ao menos 10 perfis editoriais, encontrou ${priorityProfiles.length}`);
   assert.match(regionalEditorial, /"sao-jose-do-norte-rs"/);
   assert.match(regionalEditorial, /"sao-lourenco-do-sul-rs"/);
   assert.match(regionalEditorial, /"piratini-rs"/);
