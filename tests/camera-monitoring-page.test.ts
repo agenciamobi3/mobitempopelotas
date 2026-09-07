@@ -5,6 +5,7 @@ import test from "node:test";
 const route = readFileSync("src/routes/cameras-ao-vivo-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/cameras/CameraPageV2.tsx", "utf8");
 const styles = readFileSync("src/components/cameras/CameraPageV2.css", "utf8");
+const homeContract = readFileSync("src/components/cameras/CameraPageHomeContract.css", "utf8");
 const cameraServer = readFileSync("src/lib/cameras/cameras.server.ts", "utf8");
 const youtubeServer = readFileSync("src/lib/cameras/youtube.server.ts", "utf8");
 const cameraFallback = readFileSync("src/lib/cameras/cameras-fallback.ts", "utf8");
@@ -24,6 +25,7 @@ test("camera route keeps camera and weather failures independent", () => {
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /CameraPageHero/);
   assert.match(route, /CameraPageV2/);
+  assert.match(route, /CameraPageHomeContract\.css/);
   assert.match(route, /pageClassName="internal-weather-shell--cameras"/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
   assert.match(route, /staleTime: 3 \* 60 \* 1_000/);
@@ -32,19 +34,13 @@ test("camera route keeps camera and weather failures independent", () => {
 
 test("camera discovery is bounded and does not stack YouTube fallback timeouts", () => {
   assert.match(cameraServer, /configuredLaranjalEmbedUrl/);
-  assert.match(
-    cameraServer,
-    /configuredLaranjalEmbedUrl \? null : await getLatestLaranjalStream\(\)/,
-  );
+  assert.match(cameraServer, /configuredLaranjalEmbedUrl \? null : await getLatestLaranjalStream\(\)/);
   assert.match(youtubeServer, /const REQUEST_TIMEOUT_MS = 5_000/);
   assert.match(youtubeServer, /const signal = AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
   assert.match(youtubeServer, /const apiStreamPromise/);
   assert.match(youtubeServer, /const publicStreamPromise/);
   assert.match(youtubeServer, /const latestReplayPromise/);
-  assert.match(
-    youtubeServer,
-    /Promise\.all\(\[[\s\S]*apiStreamPromise,[\s\S]*publicStreamPromise,[\s\S]*latestReplayPromise,[\s\S]*\]\)/,
-  );
+  assert.match(youtubeServer, /Promise\.all\(\[[\s\S]*apiStreamPromise,[\s\S]*publicStreamPromise,[\s\S]*latestReplayPromise,[\s\S]*\]\)/);
 });
 
 test("camera states distinguish live, replay, configured and preparing", () => {
@@ -116,18 +112,29 @@ test("missing cameras and players never receive simulated imagery", () => {
   assert.doesNotMatch(cameraSource, /placeholder\.com|picsum|unsplash/i);
 });
 
-test("camera page follows the current responsive retail system", () => {
+test("camera page follows the clean internal editorial system", () => {
   assert.match(styles, /internal-weather-shell--cameras \.camera-v2-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /background:\s*var\(--camera-soft\)/);
+  assert.match(styles, /\.camera-v2-chapters \{\s*display:\s*none/);
   assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /content-visibility:\s*auto/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
-  assert.match(styles, /@media \(max-width: 1280px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /@media \(max-width: 920px\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
+  assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
+});
+
+test("camera Home contract preserves functional dark media without rebuilding card shells", () => {
+  assert.match(homeContract, /Player e miniatura mantêm fundo escuro/);
+  assert.match(homeContract, /\.camera-v2-hero__content,[\s\S]*\.camera-v2-featured[\s\S]*background:\s*transparent/);
+  assert.match(homeContract, /\.camera-v2-stage,[\s\S]*\.camera-v2-frame,[\s\S]*box-shadow:\s*none/);
+  assert.match(homeContract, /\.camera-v2-hero__actions a:first-child[\s\S]*background:\s*#071e2f/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
+  assert.match(homeContract, /@media \(forced-colors: active\)/);
+  assert.doesNotMatch(homeContract, /!important/);
 });
