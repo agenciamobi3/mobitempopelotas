@@ -15,6 +15,8 @@ const sevenDays = source("src/routes/previsao-7-dias-pelotas.tsx");
 const sevenDaysPage = source("src/components/weather/SevenDayForecastPageV2.tsx");
 const forecastHorizonBridge = source("src/components/weather/ForecastHorizonBridge.tsx");
 const fifteenDays = source("src/routes/previsao-15-dias-pelotas.tsx");
+const fifteenDaysPage = source("src/components/weather/FifteenDayForecastPage.tsx");
+const fifteenDaysHero = source("src/components/weather/FifteenDayForecastHero.tsx");
 const rain = source("src/routes/chuva-em-pelotas.tsx");
 const wind = source("src/routes/vento-em-pelotas.tsx");
 const radar = source("src/routes/radar-e-satelite-pelotas.tsx");
@@ -68,9 +70,14 @@ test("amanhã, 7 dias e 15 dias possuem papéis distintos e navegação progress
   assert.match(forecastHorizonBridge, /A segunda semana tem mais incerteza/);
 
   assert.match(fifteenDays, /10 e 15 dias/);
-  assert.match(fifteenDays, /Os primeiros 10 dias estão dentro desta mesma janela de 15 dias/);
-  assert.match(fifteenDays, /Qual a diferença entre a previsão de 7 e 15 dias/);
-  assert.match(fifteenDays, /não cria uma página duplicada apenas para trocar o número do horizonte/);
+  assert.match(fifteenDays, /Veja a previsão de 10 e 15 dias em Pelotas/);
+  assert.doesNotMatch(fifteenDays, /EditorialContentSection|createFaqPageJsonLd|FIFTEEN_DAY_PAGE_CONTENT/);
+  assert.match(fifteenDaysHero, /Previsão de <span>15 dias<\/span> para Pelotas/);
+  assert.match(fifteenDaysPage, /Primeiros 7 dias/);
+  assert.match(fifteenDaysPage, /Dias 8 a 15/);
+  assert.match(fifteenDaysPage, /Temperaturas nos próximos 15 dias/);
+  assert.match(fifteenDaysPage, /Chuva e rajadas nos próximos 15 dias/);
+  assert.doesNotMatch(fifteenDaysPage, /Como usar a previsão|A confiança não é igual em toda a janela/);
 });
 
 test("chuva conecta previsão, observação e hidrologia sem somar janelas incompatíveis", () => {
