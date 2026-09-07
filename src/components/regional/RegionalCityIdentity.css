@@ -30,11 +30,6 @@
   scroll-margin-top: 7.75rem;
 }
 
-/* Índice legado mantido apenas no markup para compatibilidade. */
-.regional-city-page > .internal-page-chapters {
-  display: none;
-}
-
 .regional-city-page > .regional-city-shared-forecast {
   margin-top: clamp(34px, 5vw, 64px);
   scroll-margin-top: 7.75rem;
