@@ -52,6 +52,34 @@ function partlyCloudyWeather(
   });
 }
 
+function weatherAt(
+  timestamp: string,
+  icon: "rain" | "storm" | "cloud",
+  condition: string,
+): WeatherData {
+  return weatherWith({
+    current: {
+      ...fallbackWeatherData.current,
+      available: true,
+      condition,
+      icon,
+      updatedAt: timestamp,
+    },
+    hourly: [
+      {
+        time: "Agora",
+        timestamp,
+        temperature: 17,
+        precipitation: icon === "cloud" ? 0 : 80,
+        windSpeed: 12,
+        windGust: icon === "storm" ? 55 : 28,
+        icon,
+        cloudCover: icon === "cloud" ? 100 : 95,
+      },
+    ],
+  });
+}
+
 test("o hero prioriza a previsão horária para representar o período atual", () => {
   const weather = weatherWith({
     hourly: [
@@ -102,7 +130,7 @@ test("o hero usa o acervo local de Pelotas conforme a condição observada", () 
   );
   assert.equal(
     resolveHeroPhoto({ weather: weatherWithCondition("Chuva com trovoadas"), icon: "storm" }).kind,
-    "rain",
+    "storm",
   );
   assert.equal(
     resolveHeroPhoto({ weather: weatherWithCondition("Céu limpo"), icon: "sun" }).kind,
@@ -112,6 +140,51 @@ test("o hero usa o acervo local de Pelotas conforme a condição observada", () 
     resolveHeroPhoto({ weather: weatherWithCondition("Nublado"), icon: "cloud" }).kind,
     "cloudy",
   );
+});
+
+test("chuva e tempestade usam as novas fotos específicas durante a noite", () => {
+  const rain = resolveHeroPhoto({
+    weather: weatherAt("2026-09-07T22:00:00-03:00", "rain", "Chuva"),
+    icon: "rain",
+  });
+  const storm = resolveHeroPhoto({
+    weather: weatherAt("2026-09-07T22:00:00-03:00", "storm", "Chuva com trovoadas"),
+    icon: "storm",
+  });
+
+  assert.equal(rain.kind, "rain");
+  assert.equal(rain.src, "/weather/hero/pelotas-noite-chuva.png");
+  assert.equal(storm.kind, "storm");
+  assert.equal(storm.src, "/weather/hero/pelotas-noite-tempestade.png");
+});
+
+test("chuva e tempestade preservam o acervo anterior durante o dia", () => {
+  const rain = resolveHeroPhoto({
+    weather: weatherAt("2026-09-07T14:00:00-03:00", "rain", "Chuva"),
+    icon: "rain",
+  });
+  const storm = resolveHeroPhoto({
+    weather: weatherAt("2026-09-07T14:00:00-03:00", "storm", "Chuva com trovoadas"),
+    icon: "storm",
+  });
+
+  assert.equal(rain.src, "/weather/hero/pelotas-laranjal-chuva.webp");
+  assert.equal(storm.src, "/weather/hero/pelotas-laranjal-chuva.webp");
+});
+
+test("céu nublado usa a nova foto de meio-dia somente na faixa compatível", () => {
+  const midday = resolveHeroPhoto({
+    weather: weatherAt("2026-09-07T12:00:00-03:00", "cloud", "Nublado"),
+    icon: "cloud",
+  });
+  const morning = resolveHeroPhoto({
+    weather: weatherAt("2026-09-07T09:00:00-03:00", "cloud", "Nublado"),
+    icon: "cloud",
+  });
+
+  assert.equal(midday.kind, "cloudy");
+  assert.equal(midday.src, "/weather/hero/pelotas-meio-dia-nublado.png");
+  assert.equal(morning.src, "/weather/hero/pelotas-parcialmente-nublado.avif");
 });
 
 test("sol entre nuvens preserva a divisão de 50% nos slots do acervo anterior", () => {
