@@ -15,8 +15,10 @@ import type {
   RedemetStormLayerResponse,
 } from "./redemet.types";
 
-const IMAGE_FRAME_WINDOW = 8;
-const STORM_FRAME_WINDOW = 12;
+// A página pública prioriza uma janela curta de coletas reais. Os endpoints
+// continuam aceitando janelas maiores quando usados diretamente.
+const IMAGE_FRAME_WINDOW = 4;
+const STORM_FRAME_WINDOW = 6;
 const OVERVIEW_LAYER_DEADLINE_MS = 4_500;
 
 function unavailableImageLayer(
