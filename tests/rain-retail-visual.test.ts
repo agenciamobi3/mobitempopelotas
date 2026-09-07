@@ -10,10 +10,7 @@ const pageStyles = readFileSync("src/components/weather/RainForecastPageV2.css",
 const refinement = readFileSync("src/components/weather/RainPageRefinement.css", "utf8");
 const accumulation = readFileSync("src/components/weather/RainAccumulationContext.tsx", "utf8");
 const hourlyVolume = readFileSync("src/components/weather/RainHourlyVolumeContext.tsx", "utf8");
-const hourlyVolumeStyles = readFileSync(
-  "src/components/weather/RainHourlyVolumeContext.css",
-  "utf8",
-);
+const hourlyVolumeStyles = readFileSync("src/components/weather/RainHourlyVolumeContext.css", "utf8");
 const shellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
 
 test("rain route uses the shared shell without a duplicate editorial FAQ layer", () => {
@@ -68,6 +65,12 @@ test("rain page keeps unknown probability separate from a published zero", () =>
   assert.doesNotMatch(page, /precipitationProbability \?\? 0/);
 });
 
+test("rain volume ranking remains dimensional", () => {
+  assert.match(page, /day\.precipitationMm !== selected\.precipitationMm/);
+  assert.match(page, /day\.precipitationMm > selected\.precipitationMm/);
+  assert.match(page, /rainScore\(day\) > rainScore\(selected\)/);
+});
+
 test("rain planning only highlights windows when there is real contrast", () => {
   assert.match(page, /const bestCandidates = windows\.filter\(\(window\) => window\.averageChance !== null\)/);
   assert.match(page, /const hasBestContrast = bestKeys\.size > 1/);
@@ -120,27 +123,19 @@ test("hourly rain volume states forecast status once instead of explaining every
 });
 
 test("rain experience uses the current Home rail", () => {
-  assert.match(
-    shellStyles,
-    /--internal-weather-frame-max:\s*var\(--tp-home-container-max, 1440px\)/,
-  );
-  assert.match(
-    shellStyles,
-    /--internal-weather-section-padding:\s*clamp\(24px, 3vw, 34px\)/,
-  );
-  assert.match(
-    shellStyles,
-    /\.internal-weather-shell--rain \.rain-retail-hero__inner[\s\S]*width:\s*100%[\s\S]*max-width:\s*none/,
-  );
+  assert.match(shellStyles, /--internal-weather-frame-max:\s*var\(--tp-home-container-max, 1440px\)/);
+  assert.match(shellStyles, /--internal-weather-section-padding:\s*clamp\(24px, 3vw, 34px\)/);
+  assert.match(shellStyles, /\.internal-weather-shell--rain \.rain-retail-hero__inner[\s\S]*width:\s*100%[\s\S]*max-width:\s*none/);
   assert.doesNotMatch(heroStyles, /max-width:\s*var\(--internal-weather-frame-max\)/);
 });
 
 test("rain page refinement removes decorative body chrome without flattening functional charts", () => {
+  assert.match(refinement, /grid-template-columns:\s*repeat\(6, minmax\(0, 1fr\)\)/);
   assert.match(refinement, /\.rain-v2-page \.eyebrow/);
   assert.match(refinement, /\.rain-accumulation \.eyebrow/);
   assert.match(refinement, /box-shadow:\s*none/);
-  assert.match(refinement, /\.rain-v2-overview/);
   assert.match(refinement, /\.rain-hourly-volume-context/);
+  assert.doesNotMatch(refinement, /rain-v2-overview/);
   assert.doesNotMatch(refinement, /radial-gradient/);
   assert.match(refinement, /@media \(forced-colors: active\)/);
 
