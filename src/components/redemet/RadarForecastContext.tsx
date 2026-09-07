@@ -32,9 +32,9 @@ function formatDateTime(value: string | null | undefined) {
 }
 
 function formatFetchedAt(value: string | null | undefined) {
-  if (!value) return "atualização não informada";
+  if (!value) return "horário não informado";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "atualização não informada";
+  if (Number.isNaN(date.getTime())) return "horário não informado";
   return new Intl.DateTimeFormat("pt-BR", {
     timeZone: "America/Sao_Paulo",
     hour: "2-digit",
@@ -84,30 +84,26 @@ export function RadarForecastContext({
       : weather.weather.quality.forecastProvider ?? "Modelo não informado";
 
   return (
-    <section
-      className="radar-forecast-context"
-      aria-labelledby="radar-forecast-context-title"
-    >
+    <section className="radar-forecast-context" aria-labelledby="radar-forecast-context-title">
       <header>
         <div>
-          <span>Imagem e previsão no mesmo horário</span>
-          <h2 id="radar-forecast-context-title">O que a previsão mostrava quando esta imagem foi registrada?</h2>
+          <span>Compare com a previsão</span>
+          <h2 id="radar-forecast-context-title">O que estava previsto perto do horário desta imagem</h2>
         </div>
         <p>
-          O radar mostra uma imagem observada pela REDEMET. Os valores abaixo pertencem à previsão por
-          hora mais próxima e não são medidos pelo radar.
+          A imagem é uma observação recebida da REDEMET. Os números abaixo vêm da previsão por hora mais próxima e não foram medidos pelo radar.
         </p>
       </header>
 
       <div className="radar-forecast-context__times">
         <article>
-          <small>Horário da imagem</small>
+          <small>Imagem do radar</small>
           <strong>{formatDateTime(frame.observedAt)}</strong>
           <span>REDEMET/DECEA · {redemetFrameDisplayLabel(frame)}</span>
         </article>
         <article>
-          <small>Horário da previsão</small>
-          <strong>{forecast?.time ?? "Sem horário próximo disponível"}</strong>
+          <small>Previsão comparada</small>
+          <strong>{forecast?.time ?? "Sem horário próximo"}</strong>
           <span>{modelLabel}</span>
         </article>
       </div>
@@ -116,7 +112,7 @@ export function RadarForecastContext({
         <div className="radar-forecast-context__metrics">
           <article>
             <Gauge aria-hidden="true" />
-            <span><small>Temperatura prevista</small><strong>{formatValue(forecast.temperature, " °C")}</strong></span>
+            <span><small>Temperatura</small><strong>{formatValue(forecast.temperature, " °C")}</strong></span>
           </article>
           <article>
             <CloudRain aria-hidden="true" />
@@ -124,7 +120,7 @@ export function RadarForecastContext({
           </article>
           <article>
             <Wind aria-hidden="true" />
-            <span><small>Rajada prevista</small><strong>{formatValue(forecast.windGust ?? forecast.windSpeed, " km/h")}</strong></span>
+            <span><small>Rajada</small><strong>{formatValue(forecast.windGust, " km/h")}</strong></span>
           </article>
           <article>
             <CloudFog aria-hidden="true" />
@@ -132,19 +128,17 @@ export function RadarForecastContext({
           </article>
           <article>
             <Eye aria-hidden="true" />
-            <span><small>Visibilidade prevista</small><strong>{formatValue(forecast.visibilityKm, " km", 1)}</strong></span>
+            <span><small>Visibilidade</small><strong>{formatValue(forecast.visibilityKm, " km", 1)}</strong></span>
           </article>
         </div>
       ) : (
         <div className="radar-forecast-context__unavailable">
-          Não foi encontrado um horário de previsão a até três horas desta imagem. Confira o horário do
-          radar e consulte a previsão hora a hora separadamente.
+          Não há uma previsão por hora suficientemente próxima desta coleta para fazer uma comparação segura.
         </div>
       )}
 
       <footer>
-        A comparação usa a previsão {modelLabel}, atualizada às {formatFetchedAt(sourceHealth?.fetchedAt)}.
-        O movimento entre imagens anteriores não representa o que acontecerá no futuro.
+        Previsão {modelLabel}, atualizada às {formatFetchedAt(sourceHealth?.fetchedAt)}. A sequência de imagens mostra o passado recente e não indica sozinha o que acontecerá depois.
       </footer>
     </section>
   );
