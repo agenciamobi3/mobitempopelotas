@@ -1,11 +1,11 @@
 /*
  * Barreira de precedência editorial para rotas carregadas sob demanda.
  *
- * As folhas específicas de cada página são chunks lazy e podem entrar no DOM
- * depois do bundle global. Por isso, apenas o contrato visual estrutural usa
- * !important aqui: superfície, borda, radius, sombra e fundos decorativos.
- * Dados funcionais (mapas, players, gráficos, alertas e cores semânticas)
- * permanecem sob responsabilidade dos componentes especializados.
+ * Esta camada existe porque folhas específicas de rota podem entrar no DOM depois
+ * do bundle global. Ela protege somente decisões estruturais já consolidadas:
+ * ausência de gradientes/sombras decorativas, heroes editoriais abertos e índices
+ * antigos ocultos. A geometria própria de mapas, players, gráficos, alertas,
+ * tabelas, formulários e cards comparativos continua pertencendo ao componente.
  */
 
 .site-shell--topic,
@@ -14,56 +14,110 @@
 .privacy-data-shell {
   --route-editorial-line: rgb(7 30 47 / 10%);
   --route-editorial-surface: #fff;
-  --route-editorial-soft: #fbfcfc;
+  --route-editorial-soft: #f5f8f8;
   --route-editorial-ink: #071e2f;
   --route-editorial-muted: #58717d;
-  --route-editorial-radius: 16px;
-  --route-editorial-inner-radius: 14px;
   --route-editorial-pad: clamp(26px, 3.2vw, 42px);
 }
 
-/* Páginas meteorológicas com shell compartilhado. */
-.site-shell--home-editorial.internal-weather-shell
+/*
+ * Páginas internas já convertidas para o canvas editorial aberto.
+ * A barreira não cria cartões: apenas impede que CSS lazy antigo recoloque
+ * gradiente, sombra, radius ou fundo de painel nas grandes seções.
+ */
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day,
+    .internal-weather-shell--meteogram,
+    .internal-weather-shell--cameras,
+    .internal-weather-shell--climate,
+    .internal-weather-shell--hydrology,
+    .internal-weather-shell--frost,
+    .internal-weather-shell--embrapa,
+    .internal-weather-shell--history
+  )
   .internal-weather-main
   > [class$="-page"]
-  > section,
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > [class$="-page"]
-  > aside,
-.site-shell--home-editorial.internal-weather-shell
+  > :is(section, aside),
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day,
+    .internal-weather-shell--meteogram,
+    .internal-weather-shell--cameras,
+    .internal-weather-shell--climate,
+    .internal-weather-shell--hydrology,
+    .internal-weather-shell--frost,
+    .internal-weather-shell--embrapa,
+    .internal-weather-shell--history
+  )
   .internal-weather-main
   > .editorial-answer-section {
-  border: 1px solid var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-radius) !important;
-  background-color: var(--route-editorial-surface) !important;
+  border-right: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > [class$="-page"]
-  > nav {
-  border-color: var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-inner-radius) !important;
-  background-color: var(--route-editorial-surface) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-.site-shell--home-editorial.internal-weather-shell
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day,
+    .internal-weather-shell--meteogram,
+    .internal-weather-shell--cameras,
+    .internal-weather-shell--climate,
+    .internal-weather-shell--hydrology,
+    .internal-weather-shell--frost,
+    .internal-weather-shell--embrapa,
+    .internal-weather-shell--history
+  )
   .internal-weather-main
   > [class$="-page"]
   > :is(section, aside)::before,
-.site-shell--home-editorial.internal-weather-shell
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day,
+    .internal-weather-shell--meteogram,
+    .internal-weather-shell--cameras,
+    .internal-weather-shell--climate,
+    .internal-weather-shell--hydrology,
+    .internal-weather-shell--frost,
+    .internal-weather-shell--embrapa,
+    .internal-weather-shell--history
+  )
   .internal-weather-main
   > [class$="-page"]
   > :is(section, aside)::after,
-.site-shell--home-editorial.internal-weather-shell
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day,
+    .internal-weather-shell--meteogram,
+    .internal-weather-shell--cameras,
+    .internal-weather-shell--climate,
+    .internal-weather-shell--hydrology,
+    .internal-weather-shell--frost,
+    .internal-weather-shell--embrapa,
+    .internal-weather-shell--history
+  )
   .internal-weather-main
   > .editorial-answer-section::before,
-.site-shell--home-editorial.internal-weather-shell
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day,
+    .internal-weather-shell--meteogram,
+    .internal-weather-shell--cameras,
+    .internal-weather-shell--climate,
+    .internal-weather-shell--hydrology,
+    .internal-weather-shell--frost,
+    .internal-weather-shell--embrapa,
+    .internal-weather-shell--history
+  )
   .internal-weather-main
   > .editorial-answer-section::after {
   display: none !important;
@@ -72,93 +126,54 @@
   box-shadow: none !important;
 }
 
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > [class$="-page"]
-  > :is(section, nav, aside)
-  :is(article, [class*="card"], [class*="panel"]),
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > .editorial-answer-section
-  :is(article, [class*="card"], [class*="panel"], details) {
-  border-color: var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-inner-radius) !important;
-  box-shadow: none !important;
+/* Índices numerados antigos não voltam por precedência. */
+.internal-weather-shell--fifteen-day .internal-page-chapters,
+.internal-weather-shell--meteogram .internal-page-chapters,
+.internal-weather-shell--cameras .camera-v2-chapters,
+.internal-weather-shell--climate .climate-chapters,
+.internal-weather-shell--hydrology .hydrology-v2-chapters,
+.internal-weather-shell--frost .frost-v2-chapters,
+.internal-weather-shell--embrapa .embrapa-v2-chapters {
+  display: none !important;
 }
 
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > [class$="-page"]
-  > section
-  > header
-  h2,
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > [class$="-page"]
-  > section
-  > h2,
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > .editorial-answer-section
-  h2 {
-  color: var(--route-editorial-ink) !important;
-  font-weight: 790 !important;
-  line-height: 1 !important;
-  letter-spacing: -0.05em !important;
-}
-
-.site-shell--home-editorial.internal-weather-shell
-  .internal-weather-main
-  > .editorial-answer-section
-  :is(.editorial-answer-related a, details) {
+/*
+ * Heroes retail principais Hoje, Amanhã e 7 dias permanecem deliberadamente
+ * fora desta neutralização cromática. Chuva, vento e 15 dias já usam o hero
+ * editorial limpo, mesmo quando reaproveitam a estrutura do TodayRetailHero.
+ */
+.internal-weather-shell:is(
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day
+  )
+  :is(.today-retail-hero, .rain-retail-hero) {
+  border: 0 !important;
+  border-radius: 0 !important;
   background-color: var(--route-editorial-soft) !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
-/*
- * Heroes retail de previsão recebem CSS lazy próprio. Os quatro podem usar
- * acento cromático deliberado quando a cor separa a abertura das superfícies
- * seguintes. A barreira retira apenas sombra externa e ornamentos antigos;
- * os fundos do próprio hero permanecem sob responsabilidade do componente.
- */
 .internal-weather-shell:is(
-    .internal-weather-shell--today,
-    .internal-weather-shell--tomorrow,
-    .internal-weather-shell--seven-day,
-    .internal-weather-shell--rain
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day
   )
-  :is(.today-retail-hero, .tomorrow-retail-hero, .seven-day-retail-hero, .rain-retail-hero) {
-  border: 0 !important;
-  border-radius: inherit !important;
-  box-shadow: none !important;
-}
-
+  :is(.today-retail-hero, .rain-retail-hero)::before,
 .internal-weather-shell:is(
-    .internal-weather-shell--today,
-    .internal-weather-shell--tomorrow,
-    .internal-weather-shell--seven-day,
-    .internal-weather-shell--rain
+    .internal-weather-shell--rain,
+    .internal-weather-shell--wind,
+    .internal-weather-shell--fifteen-day
   )
-  :is(.today-retail-hero, .tomorrow-retail-hero, .seven-day-retail-hero, .rain-retail-hero)::before,
-.internal-weather-shell:is(
-    .internal-weather-shell--today,
-    .internal-weather-shell--tomorrow,
-    .internal-weather-shell--seven-day,
-    .internal-weather-shell--rain
-  )
-  :is(.today-retail-hero, .tomorrow-retail-hero, .seven-day-retail-hero, .rain-retail-hero)::after {
+  :is(.today-retail-hero, .rain-retail-hero)::after {
   display: none !important;
   content: none !important;
   background: none !important;
   box-shadow: none !important;
 }
 
-/*
- * Clima e hidrologia ainda possuem heroes próprios em dois cards com gradientes.
- * Eles ficam fora de .internal-weather-main, portanto precisam de um contrato
- * explícito para adotar a mesma superfície editorial dos demais heroes.
- */
+/* Clima e situação das águas têm hero próprio em duas colunas. */
 .internal-weather-shell--climate .climate-hero,
 .internal-weather-shell--hydrology .hydrology-v2-hero {
   display: grid !important;
@@ -171,8 +186,8 @@
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
-  border-radius: inherit !important;
-  background-color: var(--route-editorial-surface) !important;
+  border-radius: 0 !important;
+  background-color: var(--route-editorial-soft) !important;
   background-image: none !important;
   box-shadow: none !important;
 }
@@ -196,7 +211,7 @@
   align-content: center !important;
   padding: clamp(36px, 4.2vw, 60px) var(--route-editorial-pad) !important;
   color: var(--route-editorial-ink) !important;
-  background-color: var(--route-editorial-surface) !important;
+  background-color: var(--route-editorial-soft) !important;
 }
 
 .internal-weather-shell--climate .climate-hero__panel,
@@ -204,18 +219,12 @@
   padding: clamp(28px, 3.2vw, 42px) !important;
   border-left: 1px solid var(--route-editorial-line) !important;
   color: var(--route-editorial-ink) !important;
-  background-color: var(--route-editorial-soft) !important;
-}
-
-.internal-weather-shell--climate .climate-hero__content .eyebrow,
-.internal-weather-shell--hydrology .hydrology-v2-hero__content .hydrology-v2-eyebrow {
-  color: #087f91 !important;
+  background-color: transparent !important;
 }
 
 .internal-weather-shell--climate .climate-hero__content h1,
 .internal-weather-shell--hydrology .hydrology-v2-hero__content h1 {
   max-width: 940px !important;
-  margin-top: 10px !important;
   color: var(--route-editorial-ink) !important;
   font-size: clamp(2.55rem, 4.6vw, 5rem) !important;
   font-weight: 790 !important;
@@ -231,40 +240,15 @@
   line-height: 1.65 !important;
 }
 
-.internal-weather-shell--climate .climate-hero__actions a,
-.internal-weather-shell--hydrology .hydrology-v2-hero__actions a {
-  min-height: 44px !important;
-  border-color: var(--route-editorial-line) !important;
-  color: var(--route-editorial-ink) !important;
-  background: #fff !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.internal-weather-shell--climate .climate-hero__actions a:first-child,
-.internal-weather-shell--hydrology .hydrology-v2-hero__actions a:first-child {
-  border-color: var(--route-editorial-ink) !important;
-  color: #fff !important;
-  background: var(--route-editorial-ink) !important;
-}
-
-.internal-weather-shell--climate .climate-hero__actions a:hover,
-.internal-weather-shell--hydrology .hydrology-v2-hero__actions a:hover {
-  transform: none !important;
-  border-color: rgb(24 189 205 / 32%) !important;
-}
-
-/*
- * Heroes dedicados que ainda possuem CSS legado próprio. O conteúdo visual
- * funcional do lado direito continua intacto; removemos apenas o chrome antigo.
- */
+/* Heroes dedicados também permanecem claros e sem chrome flutuante. */
 .internal-weather-shell--cameras .camera-v2-hero,
 .internal-weather-shell--frost .frost-v2-hero,
 .internal-weather-shell--meteogram .meteogram-hero,
 .internal-weather-shell--embrapa .embrapa-v2-hero,
 .internal-weather-shell--history .history-hero--retail {
-  border-color: var(--route-editorial-line) !important;
-  background-color: var(--route-editorial-surface) !important;
+  border-right: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
   background-image: none !important;
   box-shadow: none !important;
 }
@@ -274,16 +258,13 @@
 .internal-weather-shell--meteogram :is(.meteogram-hero__content, .meteogram-hero__panel),
 .internal-weather-shell--embrapa :is(.embrapa-v2-hero__content, .embrapa-v2-reading),
 .internal-weather-shell--history :is(.history-hero__content, .history-period-card) {
+  background-image: none !important;
   box-shadow: none !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
 
-/*
- * Páginas standalone. /status-dos-dados importa CSS diretamente na rota e esse
- * chunk pode ser anexado depois do bundle global. Reafirmamos somente geometria
- * e superfície para evitar que o layout antigo reapareça após a navegação.
- */
+/* Status e privacidade são páginas standalone, mas usam o mesmo canvas. */
 .data-status-shell,
 .privacy-data-shell {
   background-color: var(--tp-home-canvas, #f8faf9) !important;
@@ -298,81 +279,38 @@
   ) !important;
   max-width: none !important;
   margin: clamp(20px, 2.5vw, 32px) auto 0 !important;
-  padding: 0 0 clamp(22px, 3vw, 36px) !important;
   box-sizing: border-box;
 }
 
 .data-status-hero,
+.privacy-hero,
+.data-status-summary,
+.data-status-group,
+.data-status-history,
+.data-status-explainer,
+.privacy-card {
+  border-radius: 0 !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.data-status-hero,
 .privacy-hero {
-  margin: 0 0 clamp(16px, 2vw, 24px) !important;
-  padding: clamp(34px, 4vw, 58px) var(--route-editorial-pad) !important;
-  border: 1px solid var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-radius) !important;
-  background-color: var(--route-editorial-surface) !important;
-  background-image: none !important;
-  box-shadow: none !important;
+  border-right: 0 !important;
+  border-left: 0 !important;
 }
 
-.data-status-summary,
-.data-status-group,
-.data-status-history,
-.data-status-explainer,
-.privacy-card {
-  border: 1px solid var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-radius) !important;
-  background-color: var(--route-editorial-surface) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-.data-status-summary,
-.data-status-history,
-.data-status-explainer {
-  margin: 0 0 clamp(16px, 2vw, 24px) !important;
-}
-
-.data-status-groups {
-  gap: clamp(16px, 2vw, 24px) !important;
-  margin-top: 0 !important;
-}
-
-.data-status-group,
-.data-status-history,
-.data-status-explainer,
-.privacy-card {
-  padding: var(--route-editorial-pad) !important;
-}
-
-.data-status-hero > aside,
-.privacy-summary,
-.data-status-service,
-.data-status-availability-summary article,
-.data-status-maintenance article,
-.data-status-incident,
-.data-status-history-empty {
-  border-color: var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-inner-radius) !important;
-  box-shadow: none !important;
-}
-
-.data-status-hero > aside,
 .privacy-summary {
-  background-color: var(--route-editorial-soft) !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
   background-image: none !important;
+  box-shadow: none !important;
 }
 
-/* Páginas de tópico renderizadas pelo SiteLayout. */
-.site-shell--topic
-  .site-container--topic
-  > [class*="-page"]
-  > header,
-.site-shell--topic
-  .site-container--topic
-  > [class*="-page"]
-  > section,
-.site-shell--topic .topic-hero,
-.site-shell--topic .topic-section,
-.site-shell--topic .related-weather,
+/*
+ * Tópicos convertidos: hidrologia local e radar/satélite ficam abertos.
+ * As superfícies funcionais internas continuam intactas.
+ */
 .site-shell--topic .hydrology-editorial-hero,
 .site-shell--topic .hydrology-editorial-route > section,
 .site-shell--topic .radar-satellite-page > section,
@@ -380,63 +318,22 @@
 .site-shell--topic .redemet-page > section,
 .site-shell--topic .redemet-page > article,
 .site-shell--topic .redemet-page > nav {
-  border: 1px solid var(--route-editorial-line) !important;
-  border-radius: var(--route-editorial-radius) !important;
-  background-color: var(--route-editorial-surface) !important;
+  border-right: 0 !important;
+  border-left: 0 !important;
+  border-radius: 0 !important;
   background-image: none !important;
   box-shadow: none !important;
 }
 
-.site-shell--topic
-  .site-container--topic
-  > [class*="-page"]
-  > :is(header, section)::before,
-.site-shell--topic
-  .site-container--topic
-  > [class*="-page"]
-  > :is(header, section)::after,
-.site-shell--topic .topic-hero::before,
-.site-shell--topic .topic-hero::after,
-.site-shell--topic .hydrology-editorial-hero::before,
-.site-shell--topic .hydrology-editorial-hero::after,
-.site-shell--topic .redemet-hero::before,
-.site-shell--topic .redemet-hero::after {
+.site-shell--topic :is(.hydrology-editorial-hero, .redemet-hero)::before,
+.site-shell--topic :is(.hydrology-editorial-hero, .redemet-hero)::after {
   display: none !important;
   content: none !important;
   background: none !important;
   box-shadow: none !important;
 }
 
-.site-shell--topic
-  :is(
-    .site-container--topic > [class*="-page"] > section,
-    .topic-section,
-    .hydrology-editorial-route > section,
-    .radar-satellite-page > section,
-    .redemet-page > section,
-    .redemet-page > article
-  )
-  :is(article, [class*="card"], [class*="panel"]) {
-  border-radius: var(--route-editorial-inner-radius) !important;
-  box-shadow: none !important;
-}
-
-.site-shell--topic
-  :is(
-    .site-container--topic > [class*="-page"] > section,
-    .topic-section,
-    .hydrology-editorial-route > section,
-    .radar-satellite-page > section,
-    .redemet-page > section
-  )
-  h2 {
-  color: var(--route-editorial-ink) !important;
-  font-weight: 790 !important;
-  line-height: 1 !important;
-  letter-spacing: -0.05em !important;
-}
-
-/* Não tocar no contraste funcional de mapas, vídeo, gráficos e alertas. */
+/* A leitura principal, tabelas, mapas, players e gráficos mantêm geometria própria. */
 .site-shell--topic :is(.maplibregl-map, iframe, video, canvas, svg[data-chart]),
 .site-shell--home-editorial.internal-weather-shell
   :is(.maplibregl-map, iframe, video, canvas, svg[data-chart]) {
@@ -458,8 +355,6 @@
   .site-shell--home-editorial.internal-weather-shell,
   .data-status-shell,
   .privacy-data-shell {
-    --route-editorial-radius: 12px;
-    --route-editorial-inner-radius: 12px;
     --route-editorial-pad: 20px;
   }
 
@@ -490,38 +385,29 @@
     width: calc(100% - var(--tp-home-container-mobile-gutter, 20px)) !important;
     margin-top: 14px !important;
   }
-
-  .data-status-hero,
-  .privacy-hero,
-  .data-status-group,
-  .data-status-history,
-  .data-status-explainer,
-  .privacy-card {
-    padding: 22px 18px !important;
-  }
 }
 
 @media (forced-colors: active) {
-  .site-shell--home-editorial.internal-weather-shell
+  .internal-weather-shell:is(
+      .internal-weather-shell--rain,
+      .internal-weather-shell--wind,
+      .internal-weather-shell--fifteen-day,
+      .internal-weather-shell--meteogram,
+      .internal-weather-shell--cameras,
+      .internal-weather-shell--climate,
+      .internal-weather-shell--hydrology,
+      .internal-weather-shell--frost,
+      .internal-weather-shell--embrapa,
+      .internal-weather-shell--history
+    )
     .internal-weather-main
     > [class$="-page"]
-    > :is(section, nav, aside),
-  .site-shell--home-editorial.internal-weather-shell
-    .internal-weather-main
-    > .editorial-answer-section,
-  .internal-weather-shell--climate :is(.climate-hero__content, .climate-hero__panel),
-  .internal-weather-shell--hydrology :is(.hydrology-v2-hero__content, .hydrology-v2-hero__reading),
+    > :is(section, aside),
   .data-status-hero,
   .privacy-hero,
-  .data-status-summary,
-  .data-status-group,
-  .data-status-history,
-  .data-status-explainer,
   .privacy-card,
-  .site-shell--topic
-    .site-container--topic
-    > [class*="-page"]
-    > :is(header, section) {
+  .site-shell--topic .hydrology-editorial-hero,
+  .site-shell--topic .redemet-hero {
     border-color: CanvasText !important;
     background: Canvas !important;
     color: CanvasText !important;
