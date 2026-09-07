@@ -8,6 +8,7 @@ const rainDetail = readFileSync("src/components/weather/RainHourlyVolumeContext.
 const rainStyles = readFileSync("src/components/weather/RainPageRefinement.css", "utf8");
 const windDetail = readFileSync("src/components/weather/WindDirectionContext.tsx", "utf8");
 const windStyles = readFileSync("src/components/weather/WindDirectionContext.css", "utf8");
+const windFallbackStyles = readFileSync("src/components/weather/WindDirectionFallback.css", "utf8");
 const windPage = readFileSync("src/components/weather/WindForecastPageV3.tsx", "utf8");
 const windPageStyles = readFileSync("src/components/weather/WindForecastPageV3.css", "utf8");
 const rainPage = readFileSync("src/components/weather/RainForecastPageV2.tsx", "utf8");
@@ -16,14 +17,16 @@ const todayHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "ut
 const todayResources = readFileSync("src/components/weather/TodayWeatherResources.tsx", "utf8");
 const meteogram = readFileSync("src/lib/weather/meteogram.server.ts", "utf8");
 
-test("rain uses the recovered hourly series while wind keeps the structured meteogram loader", () => {
-  assert.match(rainRoute, /loadPublicWeatherPage/);
-  assert.doesNotMatch(rainRoute, /loadPublicWeatherWithMeteogram|getPelotasMeteogram/);
-  assert.match(windRoute, /loadPublicWeatherWithMeteogram/);
+test("rain and wind reuse the recovered hourly forecast instead of duplicate meteogram loaders", () => {
+  for (const route of [rainRoute, windRoute]) {
+    assert.match(route, /loadPublicWeatherPage/);
+    assert.doesNotMatch(route, /loadPublicWeatherWithMeteogram|getPelotasMeteogram/);
+  }
 
   assert.match(rainRoute, /<RainForecastPageV2 data=\{recoveredWeather\} \/>/);
   assert.match(rainPage, /<RainHourlyVolumeContext[\s\S]*?hourly=\{weather\.hourly\}/);
-  assert.match(windRoute, /WindDirectionContext meteogram=\{meteogram\}/);
+  assert.match(windRoute, /<WindDirectionContext[\s\S]*?hourly=\{recoveredWeather\.weather\.hourly\}/);
+  assert.doesNotMatch(windDetail, /MeteogramData|MeteogramHour|meteogram/);
 });
 
 test("hourly rain detail keeps probability and model volume separate from measurement", () => {
@@ -64,13 +67,15 @@ test("zero hourly rain volume does not create a fake peak hour", () => {
   assert.match(rainDetail, /Sem volume positivo nos horários informados/);
 });
 
-test("hourly wind direction stays a forecast distinct from current observation", () => {
+test("hourly wind direction stays a model forecast distinct from current observation", () => {
   assert.match(windDetail, /windDirectionDegrees/);
   assert.match(windDetail, /Mais frequente em 24h/);
   assert.match(windDetail, /vento vindo de/);
-  assert.match(windDetail, /previsão de modelo/);
-  assert.match(windRoute, /direção prevista por horário/i);
-  assert.match(windRoute, /não é apresentada como medição da estação/i);
+  assert.match(windDetail, /dado de modelo/);
+  assert.match(windDetail, /mesma previsão horária da velocidade e das rajadas/);
+  assert.match(windDetail, /Direção por hora em atualização/);
+  assert.match(windFallbackStyles, /wind-direction-context__state/);
+  assert.doesNotMatch(windDetail, /return null/);
   assert.doesNotMatch(windPage, /A fonte não informa a direção futura em cada horário/);
   assert.match(windPage, /direção prevista por horário aparece em uma camada detalhada separada/);
   assert.match(windPage, /href="#direcao-do-vento-por-hora"/);
@@ -152,6 +157,7 @@ test("new public detail layers follow current responsive contracts", () => {
   assert.match(windStyles, /@media \(max-width: 520px\)/);
   assert.match(rainStyles, /@media \(forced-colors: active\)/);
   assert.match(windStyles, /@media \(forced-colors: active\)/);
+  assert.match(windFallbackStyles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(rainStyles, /!important/);
-  assert.doesNotMatch(windStyles, /!important/);
+  assert.doesNotMatch(`${windStyles}\n${windFallbackStyles}`, /!important/);
 });

@@ -9,7 +9,7 @@ import { WindRetailHero } from "@/components/weather/WindRetailHero";
 import { createPageHead } from "@/lib/page-meta";
 import { WIND_CITATIONS } from "@/lib/seo-source-citations";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
-import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
+import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
 
 const PAGE_TITLE = "Vento em Pelotas hoje: direção e rajadas por hora";
 const PAGE_DESCRIPTION =
@@ -43,17 +43,13 @@ export const Route = createFileRoute("/vento-em-pelotas")({
         ],
       }),
     ]),
-  loader: () =>
-    loadPublicWeatherWithMeteogram({
-      meteogramUnavailableMessage:
-        "A direção detalhada por hora está temporariamente indisponível. As demais informações de vento permanecem acessíveis quando houver dados.",
-    }),
+  loader: () => loadPublicWeatherPage(),
   staleTime: 5 * 60 * 1_000,
   component: VentoPage,
 });
 
 function VentoPage() {
-  const { weather, meteogram } = Route.useLoaderData();
+  const weather = Route.useLoaderData();
 
   return (
     <InternalWeatherPageShell
@@ -71,7 +67,11 @@ function VentoPage() {
       {(recoveredWeather) => (
         <>
           <WindForecastPageV3 data={recoveredWeather} />
-          <WindDirectionContext meteogram={meteogram} />
+          <WindDirectionContext
+            hourly={recoveredWeather.weather.hourly}
+            forecastProvider={recoveredWeather.weather.quality.forecastProvider}
+            forecastFetchedAt={recoveredWeather.weather.source.fetchedAt}
+          />
         </>
       )}
     </InternalWeatherPageShell>

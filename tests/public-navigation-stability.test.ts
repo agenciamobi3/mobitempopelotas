@@ -135,10 +135,12 @@ test("chuva propaga recuperação para hero, acumulado e previsão", () => {
   assert.doesNotMatch(rainRoute, /<RainForecastPageV2 data=\{weather\} \/>/);
 });
 
-test("vento propaga recuperação para a previsão sem misturar o meteograma independente", () => {
+test("vento propaga a mesma recuperação para previsão e direção horária", () => {
   assert.match(windRoute, /\{\(recoveredWeather\) => \(/);
   assert.match(windRoute, /<WindForecastPageV3 data=\{recoveredWeather\} \/>/);
-  assert.match(windRoute, /<WindDirectionContext meteogram=\{meteogram\} \/>/);
+  assert.match(windRoute, /<WindDirectionContext[\s\S]*?hourly=\{recoveredWeather\.weather\.hourly\}/);
+  assert.match(windRoute, /forecastProvider=\{recoveredWeather\.weather\.quality\.forecastProvider\}/);
+  assert.doesNotMatch(windRoute, /meteogram|loadPublicWeatherWithMeteogram/);
   assert.doesNotMatch(windRoute, /<WindForecastPageV3 data=\{weather\} \/>/);
 });
 

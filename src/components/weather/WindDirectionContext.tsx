@@ -1,8 +1,9 @@
-import { Compass, Database, Navigation, TrendingUp, Wind } from "lucide-react";
+import { Compass, Database, Navigation, RefreshCw, TrendingUp, Wind } from "lucide-react";
 
-import type { MeteogramData, MeteogramHour } from "@/lib/weather/meteogram.server";
+import type { HourlyForecast } from "@/lib/weather/types";
 
 import "./WindDirectionContext.css";
+import "./WindDirectionFallback.css";
 
 const WINDOW_HOURS = 24;
 const VISIBLE_HOURS = 12;
@@ -24,6 +25,19 @@ const DIRECTION_LABELS = [
   "NO",
   "NNO",
 ] as const;
+
+type WindDirectionHour = {
+  timestamp: string;
+  windDirectionDegrees: number | null;
+  windSpeed: number;
+  windGust: number | null;
+};
+
+type WindDirectionContextProps = {
+  hourly: HourlyForecast[];
+  forecastProvider: string | null;
+  forecastFetchedAt: string;
+};
 
 type DirectionFrequency = {
   label: string;
@@ -75,11 +89,20 @@ function formatGust(value: number | null | undefined) {
   return formatSpeed(value);
 }
 
-function directionHours(hours: MeteogramHour[]) {
+function normalizeHours(hourly: HourlyForecast[]) {
+  return hourly.slice(0, WINDOW_HOURS).map<WindDirectionHour>((hour) => ({
+    timestamp: hour.timestamp ?? hour.time,
+    windDirectionDegrees: hour.windDirectionDegrees ?? null,
+    windSpeed: hour.windSpeed,
+    windGust: hour.windGust,
+  }));
+}
+
+function directionHours(hours: WindDirectionHour[]) {
   return hours.filter((hour) => hour.windDirectionDegrees !== null);
 }
 
-function directionFrequency(hours: MeteogramHour[]): DirectionFrequency | null {
+function directionFrequency(hours: WindDirectionHour[]): DirectionFrequency | null {
   const withDirection = directionHours(hours);
   const counts = new Map<string, number>();
   for (const hour of withDirection) {
@@ -107,20 +130,75 @@ function directionFrequency(hours: MeteogramHour[]): DirectionFrequency | null {
   };
 }
 
-function peakGustHour(hours: MeteogramHour[]) {
-  return hours.reduce<MeteogramHour | null>((selected, hour) => {
+function peakGustHour(hours: WindDirectionHour[]) {
+  return hours.reduce<WindDirectionHour | null>((selected, hour) => {
     if (hour.windGust === null || hour.windGust <= 0) return selected;
     const selectedValue = selected?.windGust ?? null;
     return selectedValue === null || hour.windGust > selectedValue ? hour : selected;
   }, null);
 }
 
-export function WindDirectionContext({ meteogram }: { meteogram: MeteogramData }) {
-  if (meteogram.status !== "live" || !meteogram.hours.length) return null;
+function SourceFooter({
+  forecastProvider,
+  forecastFetchedAt,
+}: Pick<WindDirectionContextProps, "forecastProvider" | "forecastFetchedAt">) {
+  return (
+    <footer>
+      <Database aria-hidden="true" />
+      <span>
+        <strong>{forecastProvider ?? "Modelo meteorológico disponível"}</strong>
+        <small>
+          Atualizado em {formatDateTime(forecastFetchedAt)}. A direção meteorológica indica de onde o vento vem; a previsão pode mudar entre novas rodadas do modelo.
+        </small>
+      </span>
+    </footer>
+  );
+}
 
-  const hours = meteogram.hours.slice(0, WINDOW_HOURS);
+export function WindDirectionContext({
+  hourly,
+  forecastProvider,
+  forecastFetchedAt,
+}: WindDirectionContextProps) {
+  const hours = normalizeHours(hourly);
   const withDirection = directionHours(hours);
-  if (!withDirection.length) return null;
+
+  if (!hours.length || !withDirection.length) {
+    return (
+      <section
+        className="wind-direction-context"
+        id="direcao-do-vento-por-hora"
+        aria-labelledby="wind-direction-context-title"
+      >
+        <header>
+          <div>
+            <span className="wind-direction-context__eyebrow">
+              <Compass aria-hidden="true" /> Direção prevista por hora
+            </span>
+            <h2 id="wind-direction-context-title">De onde o vento deve soprar nas próximas horas</h2>
+          </div>
+          <p>
+            A direção prevista usa a mesma série horária da velocidade e das rajadas. Ela permanece separada da direção observada pela estação no momento atual.
+          </p>
+        </header>
+
+        <div className="wind-direction-context__state" role="status">
+          <RefreshCw aria-hidden="true" />
+          <div>
+            <strong>Direção por hora em atualização</strong>
+            <p>
+              A velocidade e as rajadas podem continuar disponíveis, mas o modelo ainda não publicou direção suficiente para esta janela.
+            </p>
+          </div>
+        </div>
+
+        <SourceFooter
+          forecastProvider={forecastProvider}
+          forecastFetchedAt={forecastFetchedAt}
+        />
+      </section>
+    );
+  }
 
   const first = withDirection[0] ?? null;
   const last = withDirection.at(-1) ?? null;
@@ -148,8 +226,7 @@ export function WindDirectionContext({ meteogram }: { meteogram: MeteogramData }
           <h2 id="wind-direction-context-title">De onde o vento deve soprar nas próximas horas</h2>
         </div>
         <p>
-          A direção abaixo vem do perfil horário do Open-Meteo. Ela é previsão de modelo e permanece
-          separada da direção observada pela estação no momento atual.
+          A direção abaixo usa a mesma previsão horária da velocidade e das rajadas. Ela é dado de modelo e permanece separada da direção observada pela estação no momento atual.
         </p>
       </header>
 
@@ -181,8 +258,8 @@ export function WindDirectionContext({ meteogram }: { meteogram: MeteogramData }
       </div>
 
       <div className="wind-direction-context__timeline" aria-label="Direção, vento e rajada nos próximos horários">
-        {visible.map((hour) => (
-          <article key={hour.timestamp}>
+        {visible.map((hour, index) => (
+          <article key={`${hour.timestamp}-${index}`}>
             <header>
               <strong>{formatHour(hour.timestamp)}</strong>
               <span>{formatDirectionDegrees(hour.windDirectionDegrees)}</span>
@@ -200,16 +277,10 @@ export function WindDirectionContext({ meteogram }: { meteogram: MeteogramData }
         ))}
       </div>
 
-      <footer>
-        <Database aria-hidden="true" />
-        <span>
-          <strong>{meteogram.source.name} · {meteogram.source.model}</strong>
-          <small>
-            Atualizado em {formatDateTime(meteogram.source.fetchedAt)}. A direção meteorológica indica
-            de onde o vento vem; a previsão pode mudar entre novas rodadas do modelo.
-          </small>
-        </span>
-      </footer>
+      <SourceFooter
+        forecastProvider={forecastProvider}
+        forecastFetchedAt={forecastFetchedAt}
+      />
     </section>
   );
 }
