@@ -88,7 +88,7 @@ test("o conteúdo explica corretamente os limites das réguas e das previsões",
   assert.match(component, /Modelo global de contingência/);
 });
 
-test("links externos e capítulos permanecem acessíveis", () => {
+test("links externos e âncoras dos capítulos permanecem estruturados", () => {
   assert.match(component, /className="methodology-chapter-nav"/);
   assert.match(component, /href="#fontes-ativas"/);
   assert.match(component, /href="#fluxo-dados"/);
@@ -99,7 +99,7 @@ test("links externos e capítulos permanecem acessíveis", () => {
   assert.match(component, /aria-label=\{`Abrir página de \$\{source\.organization\} em nova aba`\}/);
 });
 
-test("a camada visual remove blur e segue a composição editorial responsiva", () => {
+test("a camada visual mantém responsividade e o contrato final oculta o índice legado", () => {
   assert.match(component, /MethodologyPageRefinement\.css/);
   assert.match(refinement, /backdrop-filter:\s*none/);
   assert.match(refinement, /\.methodology-chapter-nav/);
@@ -108,15 +108,18 @@ test("a camada visual remove blur e segue a composição editorial responsiva", 
   assert.match(refinement, /content-visibility:\s*auto/);
   assert.match(refinement, /@media \(max-width: 680px\)/);
   assert.match(refinement, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(homeContract, /\.methodology-chapter-nav\s*\{[\s\S]*display:\s*none/);
 });
 
-test("metodologia preserva cor com geometria editorial mais contida", () => {
+test("metodologia usa composição técnica aberta sem decoração de dashboard", () => {
   assert.match(route, /MethodologyHomeContract\.css/);
-  assert.match(homeContract, /\.methodology-hero[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /border-radius:\s*16px/);
-  assert.match(homeContract, /\.methodology-hero[\s\S]*box-shadow:\s*none/);
+  assert.match(homeContract, /transparência técnica em composição editorial aberta/i);
+  assert.match(homeContract, /\.methodology-hero[\s\S]*background:\s*var\(--methodology-home-soft\)/);
+  assert.match(homeContract, /\.methodology-hero[\s\S]*border-radius:\s*0[\s\S]*box-shadow:\s*none/);
   assert.match(homeContract, /\.methodology-source-card[\s\S]*border-top:\s*3px solid #18bdcd/);
   assert.match(homeContract, /data-category="hydrology"[\s\S]*border-top-color:\s*#5e2ced/);
-  assert.match(homeContract, /\.methodology-pipeline[\s\S]*border-radius:\s*16px/);
+  assert.match(homeContract, /\.methodology-pipeline[\s\S]*border-radius:\s*0/);
+  assert.match(homeContract, /\.methodology-actions[\s\S]*background:\s*transparent/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(homeContract, /!important/);
 });
