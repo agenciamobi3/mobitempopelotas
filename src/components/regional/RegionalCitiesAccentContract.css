@@ -1,53 +1,87 @@
 /*
- * Central regional — acento geográfico sobre o contrato-base neutro.
- * A base continua clara e contida; a cor separa hero, busca, grupos regionais
- * e metodologia sem depender da posição dos blocos no DOM.
+ * Central regional — acento geográfico mínimo.
+ * A cor diferencia os quatro grupos, mas HERO, busca, metodologia e grupos
+ * ficam sobre uma composição editorial aberta, sem gradientes ou megacards.
  */
 
 .regional-cities-hero {
-  background:
-    radial-gradient(circle at 0 100%, rgb(24 189 205 / 12%), transparent 24rem),
-    radial-gradient(circle at 100% 0, rgb(94 44 237 / 8%), transparent 26rem),
-    linear-gradient(145deg, #f7fcfc 0%, #fff 58%, #f8f6ff 100%);
+  padding-top: clamp(3.5rem, 7vw, 6rem);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: #f5f8f8;
+  box-shadow: none;
 }
 
-.regional-cities-hero > div > div {
-  border-color: rgb(24 189 205 / 14%);
-  background: rgb(241 251 252 / 88%);
+.regional-cities-hero > div > div,
+.regional-cities-hero [class*="heroStats"] > div {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.regional-cities-hero > div > div strong {
+.regional-cities-hero [class*="heroStats"] {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.regional-cities-hero [class*="heroStats"] > div {
+  padding: 14px 18px;
+}
+
+.regional-cities-hero [class*="heroStats"] > div:first-child {
+  padding-left: 0;
+}
+
+.regional-cities-hero [class*="heroStats"] > div + div {
+  border-left: 1px solid rgb(7 30 47 / 10%);
+}
+
+.regional-cities-hero [class*="heroStats"] strong {
   color: #087d8a;
 }
 
 .regional-cities-controls {
-  background:
-    radial-gradient(circle at 100% 0, rgb(94 44 237 / 5%), transparent 20rem),
-    #fff;
+  padding-top: clamp(2.4rem, 5vw, 4rem);
+  padding-bottom: clamp(2.4rem, 5vw, 4rem);
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.regional-cities-groups {
+  gap: clamp(2.4rem, 5vw, 4rem);
 }
 
 .regional-cities-groups > article {
-  border-top-width: 3px;
+  padding-top: 0;
+  padding-bottom: clamp(2rem, 4vw, 3.2rem);
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .regional-cities-groups > article:nth-child(1) {
-  border-top-color: #18bdcd;
-  background: #fbfefe;
+  border-top: 3px solid #18bdcd;
 }
 
 .regional-cities-groups > article:nth-child(2) {
-  border-top-color: #5e2ced;
-  background: #fdfcff;
+  border-top: 3px solid #5e2ced;
 }
 
 .regional-cities-groups > article:nth-child(3) {
-  border-top-color: #e70b85;
-  background: #fffdfd;
+  border-top: 3px solid #e70b85;
 }
 
 .regional-cities-groups > article:nth-child(4) {
-  border-top-color: #f27035;
-  background: #fffdfb;
+  border-top: 3px solid #f27035;
 }
 
 .regional-cities-groups > article:nth-child(2) header > svg {
@@ -66,21 +100,33 @@
 }
 
 .regional-cities-method {
-  background:
-    radial-gradient(circle at 100% 0, rgb(24 189 205 / 8%), transparent 22rem),
-    linear-gradient(145deg, #fff 0%, #f7fbfb 100%);
+  padding-top: clamp(2.4rem, 5vw, 4rem);
+  padding-bottom: clamp(2.4rem, 5vw, 4rem);
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .regional-cities-method li {
   min-height: 44px;
-  background: rgb(255 255 255 / 76%);
+  background: transparent;
 }
 
 @media (max-width: 720px) {
-  .regional-cities-hero {
-    background:
-      radial-gradient(circle at 0 100%, rgb(24 189 205 / 9%), transparent 17rem),
-      linear-gradient(145deg, #f8fcfc, #fff 64%, #f9f7ff);
+  .regional-cities-hero [class*="heroStats"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .regional-cities-hero [class*="heroStats"] > div,
+  .regional-cities-hero [class*="heroStats"] > div:first-child {
+    padding: 12px 0;
+  }
+
+  .regional-cities-hero [class*="heroStats"] > div + div {
+    border-top: 1px solid rgb(7 30 47 / 10%);
+    border-left: 0;
   }
 }
 
@@ -89,7 +135,6 @@
   .regional-cities-controls,
   .regional-cities-groups > article,
   .regional-cities-method,
-  .regional-cities-hero > div > div,
   .regional-cities-method li {
     background: Canvas;
     color: CanvasText;
