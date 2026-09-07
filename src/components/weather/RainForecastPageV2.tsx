@@ -137,10 +137,13 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
   const rainyDays = days.filter(
     (day) => (day.rainChance ?? 0) >= 30 || day.precipitationMm >= 1,
   );
-  const highestVolumeDay = days.reduce<DailyForecast | null>(
-    (selected, day) => (!selected || rainScore(day) > rainScore(selected) ? day : selected),
-    null,
-  );
+  const highestVolumeDay = days.reduce<DailyForecast | null>((selected, day) => {
+    if (!selected) return day;
+    if (day.precipitationMm !== selected.precipitationMm) {
+      return day.precipitationMm > selected.precipitationMm ? day : selected;
+    }
+    return rainScore(day) > rainScore(selected) ? day : selected;
+  }, null);
   const hasPositiveRainVolume = (highestVolumeDay?.precipitationMm ?? 0) > 0;
 
   const knownChanceHours = hours.filter((hour) => hour.precipitationProbability !== null);
@@ -185,34 +188,19 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
     <div className="rain-v2-page">
       <InternalPageChapters items={chapters} label="Navegação da página de chuva" />
 
-      <section
-        className="rain-v2-hourly"
-        id="chuva-por-hora"
-        aria-labelledby="rain-v2-hourly-title"
-      >
+      <section className="rain-v2-hourly" id="chuva-por-hora" aria-labelledby="rain-v2-hourly-title">
         <header>
-          <div>
-            <h2 id="rain-v2-hourly-title">Chance de chuva nas próximas 12 horas</h2>
-          </div>
+          <div><h2 id="rain-v2-hourly-title">Chance de chuva nas próximas 12 horas</h2></div>
           <Link to="/tempo-hoje-pelotas">Temperatura e vento de hoje</Link>
         </header>
 
         <div className="rain-v2-hourly__grid" aria-label="Probabilidade de chuva por horário">
           {hours.map((hour, index) => {
             const chance = hour.precipitationProbability;
-            const style = {
-              "--rain-chance": `${chance === null ? 0 : Math.max(4, chance)}%`,
-            } as CSSProperties;
+            const style = { "--rain-chance": `${chance === null ? 0 : Math.max(4, chance)}%` } as CSSProperties;
             return (
-              <article
-                className={`tone-${chanceTone(chance)}${index === 0 ? " is-current" : ""}`}
-                key={`${hour.time}-${index}`}
-                style={style}
-              >
-                <header>
-                  <strong>{hour.time}</strong>
-                  {index === 0 ? <b>Próxima hora</b> : null}
-                </header>
+              <article className={`tone-${chanceTone(chance)}${index === 0 ? " is-current" : ""}`} key={`${hour.time}-${index}`} style={style}>
+                <header><strong>{hour.time}</strong>{index === 0 ? <b>Próxima hora</b> : null}</header>
                 <div className="rain-v2-hourly__reading">
                   <WeatherIcon name={hour.icon} title={`Condição prevista para ${hour.time}`} />
                   <strong>{formatChance(chance)}</strong>
@@ -232,25 +220,16 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
         </div>
       </section>
 
-      <section
-        className="rain-v2-week"
-        id="chuva-na-semana"
-        aria-labelledby="rain-v2-week-title"
-      >
+      <section className="rain-v2-week" id="chuva-na-semana" aria-labelledby="rain-v2-week-title">
         <header>
-          <div>
-            <h2 id="rain-v2-week-title">Chuva nos próximos 7 dias</h2>
-          </div>
+          <div><h2 id="rain-v2-week-title">Chuva nos próximos 7 dias</h2></div>
           <p>{rainyDays.length} de {days.length} dias têm pelo menos 30% de chance ou 1 mm previsto.</p>
         </header>
 
         <div className="rain-v2-week__grid">
           {days.map((day, index) => (
             <article className={`tone-${chanceTone(day.rainChance)}${index === 0 ? " is-today" : ""}`} key={`${day.weekday}-${day.date}`}>
-              <header>
-                <div><strong>{day.weekday}</strong><span>{day.date}</span></div>
-                {index < 2 ? <b>{index === 0 ? "Hoje" : "Amanhã"}</b> : null}
-              </header>
+              <header><div><strong>{day.weekday}</strong><span>{day.date}</span></div>{index < 2 ? <b>{index === 0 ? "Hoje" : "Amanhã"}</b> : null}</header>
               <CloudRain aria-hidden="true" />
               <dl>
                 <div><dt>Chance</dt><dd>{formatChance(day.rainChance)}</dd></div>
@@ -267,17 +246,8 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
         </div>
       </section>
 
-      <section
-        className="rain-v2-planning"
-        id="planejamento-da-chuva"
-        aria-labelledby="rain-v2-planning-title"
-      >
-        <header>
-          <div>
-            <h2 id="rain-v2-planning-title">Menor e maior chance nas próximas 12 horas</h2>
-          </div>
-        </header>
-
+      <section className="rain-v2-planning" id="planejamento-da-chuva" aria-labelledby="rain-v2-planning-title">
+        <header><div><h2 id="rain-v2-planning-title">Menor e maior chance nas próximas 12 horas</h2></div></header>
         <div className="rain-v2-planning__grid">
           <article className={bestWindow ? "is-best" : undefined}>
             <CheckCircle2 aria-hidden="true" />
@@ -292,53 +262,26 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
             <div>
               <span>Maior chance</span>
               <strong>{attentionWindow ? `${attentionWindow.start}–${attentionWindow.end}` : attentionCandidates.length ? "Sem período de destaque" : "Em atualização"}</strong>
-              <p>
-                {attentionWindow
-                  ? `Até ${attentionWindow.maximumChance}% · rajadas ${formatGust(attentionWindow.maximumGust)}`
-                  : attentionCandidates.length
-                    ? "Os períodos estão parecidos."
-                    : "Chance ainda não informada."}
-              </p>
+              <p>{attentionWindow ? `Até ${attentionWindow.maximumChance}% · rajadas ${formatGust(attentionWindow.maximumGust)}` : attentionCandidates.length ? "Os períodos estão parecidos." : "Chance ainda não informada."}</p>
             </div>
           </article>
           <article>
             <Umbrella aria-hidden="true" />
-            <div>
-              <span>Horários com 30% ou mais</span>
-              <strong>{knownChanceHours.length ? `${wetHours.length} de ${knownChanceHours.length}` : "Em atualização"}</strong>
-            </div>
+            <div><span>Horários com 30% ou mais</span><strong>{knownChanceHours.length ? `${wetHours.length} de ${knownChanceHours.length}` : "Em atualização"}</strong></div>
           </article>
         </div>
       </section>
 
-      <section
-        className="rain-v2-official"
-        id="contexto-oficial-da-chuva"
-        aria-labelledby="rain-v2-official-title"
-      >
-        <header>
-          <div>
-            <h2 id="rain-v2-official-title">INMET para Pelotas</h2>
-          </div>
-          <Link to="/alertas">Ver avisos oficiais</Link>
-        </header>
-
+      <section className="rain-v2-official" id="contexto-oficial-da-chuva" aria-labelledby="rain-v2-official-title">
+        <header><div><h2 id="rain-v2-official-title">INMET para Pelotas</h2></div><Link to="/alertas">Ver avisos oficiais</Link></header>
         <div className="rain-v2-official__grid">
           <article className={activeRainAlerts.length ? "has-alert" : "is-stable"}>
             {activeRainAlerts.length ? <ShieldAlert aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
-            <div>
-              <span>Avisos de chuva e tempestade</span>
-              <strong>{activeAlertLabel(activeRainAlerts.length)}</strong>
-              {activeRainAlerts.length ? <p>{activeRainAlerts[0]?.headline || activeRainAlerts[0]?.event}</p> : null}
-            </div>
+            <div><span>Avisos de chuva e tempestade</span><strong>{activeAlertLabel(activeRainAlerts.length)}</strong>{activeRainAlerts.length ? <p>{activeRainAlerts[0]?.headline || activeRainAlerts[0]?.event}</p> : null}</div>
           </article>
           <article>
             <Info aria-hidden="true" />
-            <div>
-              <span>Previsão do INMET</span>
-              <strong>{officialPeriodLabel(officialPeriods.length)}</strong>
-              {officialPeriods[0]?.summary ? <p>{officialPeriods[0].summary}</p> : null}
-            </div>
+            <div><span>Previsão do INMET</span><strong>{officialPeriodLabel(officialPeriods.length)}</strong>{officialPeriods[0]?.summary ? <p>{officialPeriods[0].summary}</p> : null}</div>
           </article>
         </div>
       </section>
@@ -351,9 +294,7 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
 
       <aside className="rain-v2-source-note" aria-label="Origem e atualização da previsão de chuva">
         <Info aria-hidden="true" />
-        <p>
-          Atualizado em {formatFetchedAt(weather.source.fetchedAt)} · Previsão: {weather.quality.forecastProvider ?? "modelo meteorológico disponível"}. Chance e volume são previstos, não medidos.
-        </p>
+        <p>Atualizado em {formatFetchedAt(weather.source.fetchedAt)} · Previsão: {weather.quality.forecastProvider ?? "modelo meteorológico disponível"}. Chance e volume são previstos, não medidos.</p>
       </aside>
     </div>
   );
