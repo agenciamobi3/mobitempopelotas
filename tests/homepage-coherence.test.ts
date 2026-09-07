@@ -79,7 +79,13 @@ test("the Lagoa section is isolated as local civic-tech data", () => {
   assert.match(water, /className="tp-home-water"/);
   assert.match(water, /id="situacao-das-aguas"/);
   assert.match(water, /Praia do Laranjal/);
-  assert.match(water, /HOME_LAGOON_STATION_PRIORITY/);
+  assert.match(water, /HOME_LOCAL_ESTUARY_STATION_PRIORITY/);
+  assert.match(water, /HOME_REGIONAL_STATION_PRIORITY/);
+  assert.match(water, /findHydrologyLocalityByStationId/);
+  assert.match(water, /hydrologyLocalityPath/);
+  assert.match(water, /href=\{localPath\}/);
+  assert.match(water, /href="\/nivel-do-guaiba"/);
+  assert.match(water, /Rio Grande e São José do Norte/);
   assert.match(waterCss, /\.tp-home-water__layout\s*\{[\s\S]*grid-template-columns:/);
   assert.match(waterCss, /\.tp-home-water__rows article/);
   assert.doesNotMatch(waterCss, /!important/);

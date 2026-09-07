@@ -1,4 +1,8 @@
 import Link from "@/production/compat/NextLink";
+import {
+  findHydrologyLocalityByStationId,
+  hydrologyLocalityPath,
+} from "@/lib/hydrology/hydrology-localities";
 import type { GuaibaObservationData } from "@/production/lib/guaiba-monitor";
 import type {
   LagoonMonitoringNetworkData,
@@ -141,11 +145,11 @@ function orderStations(
 
 function LagoonStationRow({ station }: { station: LagoonMonitoringObservation }) {
   const trend = trendLabel(station.trendCmPerHour);
-
-  return (
+  const locality = findHydrologyLocalityByStationId(station.station.id);
+  const localPath = locality ? hydrologyLocalityPath(locality) : null;
+  const card = (
     <article
       className={`tp-home-water__station is-risk-${station.risk} is-trend-${trend.direction}`}
-      key={station.station.id}
     >
       <div className="tp-home-water__station-place">
         <strong>{station.station.city}</strong>
@@ -172,6 +176,18 @@ function LagoonStationRow({ station }: { station: LagoonMonitoringObservation })
       </div>
     </article>
   );
+
+  return localPath ? (
+    <a
+      href={localPath}
+      aria-label={`Ver nível, tendência e detalhes de ${locality!.name}`}
+      style={{ color: "inherit", display: "block", textDecoration: "none" }}
+    >
+      {card}
+    </a>
+  ) : (
+    card
+  );
 }
 
 function GuaibaReferenceRow({ reference }: { reference: GuaibaReference }) {
@@ -179,38 +195,43 @@ function GuaibaReferenceRow({ reference }: { reference: GuaibaReference }) {
   const isCaisMaua = reference.id === "cais-maua";
 
   return (
-    <article
-      className={`tp-home-water__station tp-home-water__guaiba-reference is-trend-${trend.direction}`}
-      key={`guaiba-${reference.id}`}
+    <a
+      href="/nivel-do-guaiba"
+      aria-label={`Ver nível e detalhes do Guaíba em ${guaibaReferenceTitle(reference)}`}
+      style={{ color: "inherit", display: "block", textDecoration: "none" }}
     >
-      <div className="tp-home-water__station-place">
-        <strong>{guaibaReferenceTitle(reference)}</strong>
-        <span>{reference.station}</span>
-        <small>
-          {isCaisMaua
-            ? "Régua no Centro Histórico de Porto Alegre, com referência própria de nível."
-            : "Régua de Porto Alegre usada para acompanhar a entrada de água no sistema Guaíba–Lagoa."}
-        </small>
-      </div>
-      <div className="tp-home-water__station-level">
-        <span>Nível</span>
-        <b>
-          {reference.currentLevel === null
-            ? "Sem leitura"
-            : `${formatNumber(reference.currentLevel, 2)} m`}
-        </b>
-      </div>
-      <div className="tp-home-water__station-state-wrap">
-        <span className={`tp-home-water__trend-mark is-${trend.direction}`} aria-hidden="true">
-          {trend.symbol}
-        </span>
-        <div className="tp-home-water__station-state">
-          <strong>{guaibaReferenceState(reference)}</strong>
-          <span className={`is-${trend.direction}`}>{trend.label}</span>
-          <small>{formatUpdatedAt(reference.updatedAt)}</small>
+      <article
+        className={`tp-home-water__station tp-home-water__guaiba-reference is-trend-${trend.direction}`}
+      >
+        <div className="tp-home-water__station-place">
+          <strong>{guaibaReferenceTitle(reference)}</strong>
+          <span>{reference.station}</span>
+          <small>
+            {isCaisMaua
+              ? "Régua no Centro Histórico de Porto Alegre, com referência própria de nível."
+              : "Régua de Porto Alegre usada para acompanhar a entrada de água no sistema Guaíba–Lagoa."}
+          </small>
         </div>
-      </div>
-    </article>
+        <div className="tp-home-water__station-level">
+          <span>Nível</span>
+          <b>
+            {reference.currentLevel === null
+              ? "Sem leitura"
+              : `${formatNumber(reference.currentLevel, 2)} m`}
+          </b>
+        </div>
+        <div className="tp-home-water__station-state-wrap">
+          <span className={`tp-home-water__trend-mark is-${trend.direction}`} aria-hidden="true">
+            {trend.symbol}
+          </span>
+          <div className="tp-home-water__station-state">
+            <strong>{guaibaReferenceState(reference)}</strong>
+            <span className={`is-${trend.direction}`}>{trend.label}</span>
+            <small>{formatUpdatedAt(reference.updatedAt)}</small>
+          </div>
+        </div>
+      </article>
+    </a>
   );
 }
 
