@@ -10,6 +10,7 @@ const editorial = source("src/lib/editorial-content.ts");
 const home = source("src/routes/index.tsx");
 const today = source("src/routes/tempo-hoje-pelotas.tsx");
 const tomorrow = source("src/routes/tempo-amanha-pelotas.tsx");
+const tomorrowPage = source("src/components/weather/TomorrowForecastPageV3.tsx");
 const sevenDays = source("src/routes/previsao-7-dias-pelotas.tsx");
 const fifteenDays = source("src/routes/previsao-15-dias-pelotas.tsx");
 const rain = source("src/routes/chuva-em-pelotas.tsx");
@@ -44,10 +45,12 @@ test("home e hoje formam um cluster de intenção sem criar novas URLs redundant
 test("amanhã, 7 dias e 15 dias possuem papéis distintos e navegação progressiva", () => {
   assert.match(tomorrow, /Tempo amanhã em Pelotas: temperatura, chuva e vento/);
   assert.match(tomorrow, /Vai chover amanhã em Pelotas/);
-  assert.match(tomorrow, /href: "\/previsao-7-dias-pelotas"/);
-  assert.match(tomorrow, /href: "\/previsao-15-dias-pelotas"/);
   assert.match(tomorrow, /createFaqPageJsonLd/);
-  assert.match(tomorrow, /<EditorialContentSection/);
+  assert.doesNotMatch(tomorrow, /EditorialContentSection|como-interpretar-amanha/);
+  assert.match(tomorrowPage, /to="\/previsao-7-dias-pelotas"/);
+  assert.match(tomorrowPage, /to="\/previsao-15-dias-pelotas"/);
+  assert.match(tomorrowPage, /Hoje x amanhã/);
+  assert.match(tomorrowPage, /INMET e UFPel para amanhã/);
 
   assert.match(sevenDays, /7 dias e semana/);
   assert.match(sevenDays, /Como fica o tempo em Pelotas nesta semana/);
