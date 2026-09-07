@@ -221,10 +221,11 @@ test("meteogram SIMAGRO block stays complementary and direct", () => {
   assert.doesNotMatch(simagroStyles, /radial-gradient/);
 });
 
-test("meteogram hero keeps controlled technical color while refinement owns the final surface", () => {
-  assert.match(homeContract, /acento técnico controlado/i);
+test("meteogram hero keeps only a minimal technical accent while refinement owns the final surface", () => {
+  assert.match(homeContract, /acento técnico mínimo/i);
   assert.match(homeContract, /\.meteogram-hero__panel/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(homeContract, /!important/);
   assert.match(refinement, /\.meteogram-hero__content[\s\S]*background:\s*#fff/);
   assert.match(refinement, /\.meteogram-hero__panel[\s\S]*background:\s*#f8fbfc/);
