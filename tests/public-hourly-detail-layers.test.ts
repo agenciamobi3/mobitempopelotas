@@ -5,7 +5,7 @@ import test from "node:test";
 const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
 const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
 const rainDetail = readFileSync("src/components/weather/RainHourlyVolumeContext.tsx", "utf8");
-const rainStyles = readFileSync("src/components/weather/RainHourlyVolumeContext.css", "utf8");
+const rainStyles = readFileSync("src/components/weather/RainPageRefinement.css", "utf8");
 const windDetail = readFileSync("src/components/weather/WindDirectionContext.tsx", "utf8");
 const windStyles = readFileSync("src/components/weather/WindDirectionContext.css", "utf8");
 const windPage = readFileSync("src/components/weather/WindForecastPageV3.tsx", "utf8");
@@ -31,7 +31,7 @@ test("hourly rain detail keeps probability and model volume separate from measur
   assert.match(rainDetail, /precipitationProbability/);
   assert.match(rainDetail, /Total em 12 h/);
   assert.match(rainDetail, /Maior volume em 1 h/);
-  assert.match(rainDetail, /Previsão em milímetros para as próximas 12 horas/);
+  assert.match(rainDetail, /Milímetros previstos em cada horário/);
   assert.match(rainPage, /RainAccumulationContext/);
   assert.match(rainPage, /RainHourlyVolumeContext/);
   assert.ok(
@@ -143,12 +143,12 @@ test("today planning does not color or name arbitrary winners when scores are ti
   assert.match(todayResources, /Sem um único horário/);
 });
 
-test("new public detail layers follow the internal editorial rail and responsive contract", () => {
+test("new public detail layers follow current responsive contracts", () => {
   assert.match(rainStyles, /internal-weather-shell--rain \.rain-hourly-volume-context/);
   assert.match(windStyles, /internal-weather-shell--wind \.wind-direction-context/);
-  assert.match(rainStyles, /var\(--internal-weather-radius/);
+  assert.match(rainStyles, /border-radius:\s*1\.35rem/);
   assert.match(windStyles, /var\(--internal-weather-radius/);
-  assert.match(rainStyles, /@media \(max-width: 520px\)/);
+  assert.match(rainStyles, /@media \(max-width: 620px\)/);
   assert.match(windStyles, /@media \(max-width: 520px\)/);
   assert.match(rainStyles, /@media \(forced-colors: active\)/);
   assert.match(windStyles, /@media \(forced-colors: active\)/);
