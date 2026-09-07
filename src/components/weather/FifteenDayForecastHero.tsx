@@ -146,9 +146,9 @@ export function FifteenDayForecastHero({
               : "A previsão estendida está em atualização. Veja a previsão de 7 dias enquanto os próximos dias são carregados."}
           </p>
 
-          <div className="today-retail-hero__badges" aria-label="Situação da previsão estendida">
+          <div className="today-retail-hero__badges" aria-label="Situação da previsão de 15 dias">
             <span>{hasDays ? `${days.length} de 15 dias disponíveis` : "Previsão em atualização"}</span>
-            {forecast.status === "partial" ? <span>Janela parcial</span> : null}
+            {forecast.status === "partial" ? <span>Faltam alguns dias</span> : null}
           </div>
 
           <div className="today-retail-hero__actions">
@@ -173,7 +173,7 @@ export function FifteenDayForecastHero({
           <article
             className="today-retail-hero__current fifteen-day-retail-hero__current"
             style={photoStyle}
-            aria-label="Resumo da previsão dos próximos 15 dias em Pelotas"
+            aria-label="Previsão dos próximos 15 dias em Pelotas"
           >
             <div
               className="today-retail-hero__current-photo"
@@ -185,7 +185,7 @@ export function FifteenDayForecastHero({
               <header>
                 <div>
                   <span>Pelotas, RS</span>
-                  <small>Previsão estendida</small>
+                  <small>{lastDay ? `Até ${lastDay.date}` : "Atualizando"}</small>
                 </div>
                 <b>
                   <i aria-hidden="true" /> {hasDays ? `${days.length} dias` : "Atualizando"}
@@ -201,7 +201,7 @@ export function FifteenDayForecastHero({
                   <span>Faixa de temperatura</span>
                   <small>
                     {lastDay
-                      ? `Até ${lastDay.date} · ${rainyDays} ${rainyDays === 1 ? "dia" : "dias"} com sinal de chuva`
+                      ? `${rainyDays} ${rainyDays === 1 ? "dia" : "dias"} com chuva prevista`
                       : "Dias ainda não disponíveis"}
                   </small>
                 </div>
