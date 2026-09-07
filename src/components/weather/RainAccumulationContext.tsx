@@ -102,9 +102,7 @@ function RegionalRainfallObservations() {
   return (
     <div className="rain-accumulation__regional">
       <header>
-        <div>
-          <h3>Chuva em 24 horas nas estações próximas</h3>
-        </div>
+        <h3>Chuva em 24 horas nas estações próximas</h3>
         <a href={state.data.source.mapUrl} target="_blank" rel="noopener noreferrer">
           Mapa da Defesa Civil RS
         </a>
@@ -131,7 +129,7 @@ function RegionalRainfallObservations() {
       </div>
 
       <p className="rain-accumulation__regional-note">
-        Cada valor pertence à estação indicada. Não representa automaticamente toda Pelotas.
+        Cada valor pertence à estação indicada, não à cidade inteira.
       </p>
     </div>
   );
@@ -159,36 +157,32 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
       aria-labelledby="rain-accumulation-title"
     >
       <header className="rain-accumulation__heading">
-        <div>
-          <h2 id="rain-accumulation-title">Chuva medida e prevista</h2>
-        </div>
-        <p>Os valores medidos e previstos ficam separados porque podem cobrir horas em comum.</p>
+        <h2 id="rain-accumulation-title">Chuva medida e prevista</h2>
       </header>
 
       <div className="rain-accumulation__summary">
         <article className="is-observed">
           <Droplets aria-hidden="true" />
-          <span>{observationIsCurrent ? "Chuva medida hoje" : "Último acumulado diário"}</span>
+          <span>{observationIsCurrent ? "Medido hoje" : "Último acumulado diário"}</span>
           <strong>{formatMillimeters(observation.accumulated.rainDaily)}</strong>
           <small>
             {observationHasKnownValue
               ? `${observation.source.station} · ${formatDateTime(observationTime)}`
-              : "Sem acumulado diário disponível nesta leitura."}
+              : "Sem acumulado diário disponível."}
           </small>
         </article>
 
         <article className="is-observed">
           <Gauge aria-hidden="true" />
-          <span>Chuva medida no mês</span>
+          <span>Medido no mês</span>
           <strong>{formatMillimeters(observation.accumulated.rainMonthly)}</strong>
           <small>Embrapa Clima Temperado</small>
         </article>
 
         <article className="is-forecast">
           <CloudRain aria-hidden="true" />
-          <span>Previsto para hoje</span>
+          <span>Previsto hoje</span>
           <strong>{formatMillimeters(today?.precipitationMm)}</strong>
-          <small>Previsão, não medição</small>
         </article>
 
         <article className="is-forecast">
@@ -200,9 +194,9 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
       </div>
 
       <div className="rain-accumulation__rule">
-        <strong>Não some os dois valores.</strong>
-        <p>A chuva medida e a prevista podem incluir parte do mesmo período.</p>
-        <Link to="/metodologia">Ver metodologia</Link>
+        <strong>Medido e previsto não são somados.</strong>
+        <p>Os períodos podem se sobrepor.</p>
+        <Link to="/metodologia">Metodologia</Link>
       </div>
 
       <RegionalRainfallObservations />
