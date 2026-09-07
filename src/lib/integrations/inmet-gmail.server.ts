@@ -13,15 +13,18 @@ import { fetchInmetForecast } from "@/lib/weather/inmet-forecast.server";
 import {
   buildInmetForecastPushCopy,
   classifyInmetEmail,
+  isPelotasInmetMessage,
   isTrustedInmetMessage,
 } from "./inmet-gmail";
 
 const LOVABLE_GMAIL_API_ROOT = "https://connector-gateway.lovable.dev/google_mail/gmail/v1";
-const FIXED_INMET_QUERY = "in:inbox -in:spam -in:trash from:(inmet.gov.br) newer_than:1d";
+const FIXED_INMET_QUERY_PREFIX =
+  "in:inbox -in:spam -in:trash from:(inmet.gov.br) Pelotas";
 const MAX_MESSAGES_PER_RUN = 20;
 const MAX_EMAIL_BODY_CHARS = 64_000;
 const MAX_EMAIL_AGE_MINUTES = 360;
 const CONNECTOR_TIMEOUT_MS = 10_000;
+const TIMEZONE = "America/Sao_Paulo";
 
 type GmailHeader = {
   name?: string;
@@ -56,11 +59,21 @@ type LovableGmailConfiguration = {
   connectionApiKey: string;
 };
 
+type EligibleForecastEmail = {
+  id: string;
+  receivedAtMs: number;
+};
+
+function featureEnabled() {
+  return process.env.INMET_GMAIL_PUSH_ENABLED?.trim().toLowerCase() === "true";
+}
+
 export function getInmetGmailConfigurationStatus() {
   const required = ["LOVABLE_API_KEY", "GOOGLE_MAIL_API_KEY"] as const;
   const missing = required.filter((name) => !process.env[name]?.trim());
 
   return {
+    enabled: featureEnabled(),
     configured: missing.length === 0,
     missing,
     provider: "lovable-google-mail" as const,
@@ -147,10 +160,18 @@ async function lovableGmailFetch(path: string) {
   return response;
 }
 
-async function listRecentMessageIds() {
+function buildRecentInmetQuery(nowMs: number) {
+  const afterUnixSeconds = Math.floor(
+    (nowMs - MAX_EMAIL_AGE_MINUTES * 60_000) / 1_000,
+  );
+  return `${FIXED_INMET_QUERY_PREFIX} after:${afterUnixSeconds}`;
+}
+
+async function listRecentMessageIds(nowMs: number) {
   const params = new URLSearchParams({
-    q: FIXED_INMET_QUERY,
+    q: buildRecentInmetQuery(nowMs),
     maxResults: String(MAX_MESSAGES_PER_RUN),
+    fields: "messages(id)",
   });
   const response = await lovableGmailFetch(`/users/me/messages?${params.toString()}`);
   const payload = (await response.json()) as GmailListResponse;
@@ -164,28 +185,50 @@ async function fetchMessage(id: string) {
   return (await response.json()) as GmailMessage;
 }
 
-function messageAgeMs(message: GmailMessage) {
+function messageReceivedAtMs(message: GmailMessage) {
   const internalDate = Number(message.internalDate);
-  if (Number.isFinite(internalDate) && internalDate > 0) {
-    return Math.max(0, Date.now() - internalDate);
-  }
+  if (Number.isFinite(internalDate) && internalDate > 0) return internalDate;
 
   const dateHeader = headerValue(message.payload, "Date");
   const parsedDate = Date.parse(dateHeader);
-  if (Number.isFinite(parsedDate)) return Math.max(0, Date.now() - parsedDate);
-
-  return Number.POSITIVE_INFINITY;
+  return Number.isFinite(parsedDate) ? parsedDate : null;
 }
 
-function dispatchFingerprint(messageId: string) {
-  const digest = createHash("sha256").update(messageId).digest("hex").slice(0, 20);
-  return `inmet-gmail-${digest}`;
+function messageAgeMs(message: GmailMessage, nowMs: number) {
+  const receivedAtMs = messageReceivedAtMs(message);
+  if (receivedAtMs === null) return Number.POSITIVE_INFINITY;
+  return Math.max(0, nowMs - receivedAtMs);
 }
 
-async function dispatchForecastMessage(messageId: string) {
-  const fingerprint = dispatchFingerprint(messageId);
-  const title = "INMET atualizou a previsão de Pelotas";
-  const leaseToken = await claimPushDispatch(fingerprint, title);
+function localDateKey(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+function dispatchFingerprint(
+  copy: ReturnType<typeof buildInmetForecastPushCopy>,
+  receivedAtMs: number,
+) {
+  const digest = createHash("sha256")
+    .update(`${copy.title}\n${copy.body}\n${copy.url}`)
+    .digest("hex")
+    .slice(0, 20);
+  return `inmet-gmail-${localDateKey(new Date(receivedAtMs))}-${digest}`;
+}
+
+function messageLogFingerprint(messageId: string) {
+  return createHash("sha256").update(messageId).digest("hex").slice(0, 10);
+}
+
+async function dispatchForecastUpdate(receivedAtMs: number) {
+  const forecast = await fetchInmetForecast();
+  const copy = buildInmetForecastPushCopy(forecast);
+  const fingerprint = dispatchFingerprint(copy, receivedAtMs);
+  const leaseToken = await claimPushDispatch(fingerprint, copy.title);
   if (!leaseToken) {
     return { status: "duplicate" as const, sent: 0, failed: 0, removed: 0 };
   }
@@ -194,15 +237,7 @@ async function dispatchForecastMessage(messageId: string) {
   const progress: { latest: PushDeliveryResult | null } = { latest: null };
 
   try {
-    const forecast = await fetchInmetForecast();
-    const copy = buildInmetForecastPushCopy(forecast);
-    const date = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "America/Sao_Paulo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
-
+    const date = localDateKey(new Date(receivedAtMs));
     const result = await broadcastPushNotification(
       {
         title: copy.title,
@@ -244,50 +279,74 @@ async function dispatchForecastMessage(messageId: string) {
   }
 }
 
-export async function processRecentInmetForecastEmails() {
-  requireConfiguration();
-
-  const push = getPushConfigurationStatus();
-  if (!push.enabled) {
-    throw new Error(`Web Push não configurado: ${push.missing.join(", ")}`);
-  }
-
-  const ids = await listRecentMessageIds();
-  const summary = {
+function createSummary() {
+  return {
+    provider: "lovable-google-mail" as const,
+    skipped: false,
+    reason: null as string | null,
     scanned: 0,
     forecastEmails: 0,
     confirmationsIgnored: 0,
     otherIgnored: 0,
+    nonPelotasIgnored: 0,
     untrustedIgnored: 0,
     tooOldIgnored: 0,
+    messageErrors: 0,
+    supersededForecasts: 0,
     duplicates: 0,
     dispatches: 0,
     sent: 0,
     failed: 0,
     removed: 0,
   };
-  const errors: string[] = [];
+}
 
-  for (const id of [...ids].reverse()) {
+export async function processRecentInmetForecastEmails() {
+  const summary = createSummary();
+  const configuration = getInmetGmailConfigurationStatus();
+
+  if (!configuration.enabled) {
+    summary.skipped = true;
+    summary.reason = "feature-disabled";
+    return summary;
+  }
+
+  requireConfiguration();
+
+  const push = getPushConfigurationStatus();
+  if (!push.enabled) {
+    summary.skipped = true;
+    summary.reason = "web-push-unavailable";
+    return summary;
+  }
+
+  const nowMs = Date.now();
+  const ids = await listRecentMessageIds(nowMs);
+  const eligibleForecasts: EligibleForecastEmail[] = [];
+
+  for (const id of ids) {
     summary.scanned += 1;
 
     try {
       const message = await fetchMessage(id);
+      if (messageAgeMs(message, nowMs) > MAX_EMAIL_AGE_MINUTES * 60_000) {
+        summary.tooOldIgnored += 1;
+        continue;
+      }
+
       const from = headerValue(message.payload, "From");
       const subject = headerValue(message.payload, "Subject");
-      const authenticationResults = [
-        ...headerValues(message.payload, "Authentication-Results"),
-        ...headerValues(message.payload, "ARC-Authentication-Results"),
-      ];
-      const extracted = extractPartText(message.payload).join("\n");
-      const body = (extracted || message.snippet || "").slice(0, MAX_EMAIL_BODY_CHARS);
+      const authenticationResults = headerValues(message.payload, "Authentication-Results");
 
       if (!isTrustedInmetMessage({ from, authenticationResults })) {
         summary.untrustedIgnored += 1;
         continue;
       }
 
+      const extracted = extractPartText(message.payload).join("\n");
+      const body = (extracted || message.snippet || "").slice(0, MAX_EMAIL_BODY_CHARS);
       const kind = classifyInmetEmail(subject, body);
+
       if (kind === "confirmation") {
         summary.confirmationsIgnored += 1;
         continue;
@@ -296,31 +355,47 @@ export async function processRecentInmetForecastEmails() {
         summary.otherIgnored += 1;
         continue;
       }
+      if (!isPelotasInmetMessage(subject, body)) {
+        summary.nonPelotasIgnored += 1;
+        continue;
+      }
 
-      if (messageAgeMs(message) > MAX_EMAIL_AGE_MINUTES * 60_000) {
+      const receivedAtMs = messageReceivedAtMs(message);
+      if (receivedAtMs === null) {
         summary.tooOldIgnored += 1;
         continue;
       }
 
       summary.forecastEmails += 1;
-      const result = await dispatchForecastMessage(id);
-      if (result.status === "duplicate") {
-        summary.duplicates += 1;
-        continue;
-      }
-
-      summary.dispatches += 1;
-      summary.sent += result.sent;
-      summary.failed += result.failed;
-      summary.removed += result.removed;
+      eligibleForecasts.push({ id, receivedAtMs });
     } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error));
+      summary.messageErrors += 1;
+      console.warn("[push/inmet-gmail] Mensagem não pôde ser avaliada", {
+        message: error instanceof Error ? error.message : String(error),
+        messageFingerprint: messageLogFingerprint(id),
+      });
     }
   }
 
-  if (errors.length > 0) {
-    throw new Error(`Falha ao processar ${errors.length} mensagem(ns) do INMET: ${errors[0]}`);
+  if (ids.length > 0 && summary.messageErrors === ids.length) {
+    throw new Error("Nenhuma mensagem candidata do Gmail pôde ser avaliada nesta execução.");
   }
 
+  if (eligibleForecasts.length === 0) return summary;
+
+  eligibleForecasts.sort((left, right) => right.receivedAtMs - left.receivedAtMs);
+  summary.supersededForecasts = Math.max(0, eligibleForecasts.length - 1);
+
+  const selected = eligibleForecasts[0];
+  const result = await dispatchForecastUpdate(selected.receivedAtMs);
+  if (result.status === "duplicate") {
+    summary.duplicates += 1;
+    return summary;
+  }
+
+  summary.dispatches += 1;
+  summary.sent += result.sent;
+  summary.failed += result.failed;
+  summary.removed += result.removed;
   return summary;
 }
