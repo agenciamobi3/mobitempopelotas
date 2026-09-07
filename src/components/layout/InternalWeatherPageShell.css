@@ -50,6 +50,7 @@
 .internal-weather-shell--today .today-retail-hero__inner,
 .internal-weather-shell--tomorrow .tomorrow-retail-hero__inner,
 .internal-weather-shell--seven-day .seven-day-retail-hero__inner,
+.internal-weather-shell--fifteen-day .fifteen-day-retail-hero__inner,
 .internal-weather-shell--rain .rain-retail-hero__inner {
   width: 100%;
   max-width: none;
@@ -83,6 +84,7 @@
 .internal-weather-main > .today-v5-page,
 .internal-weather-main > .tomorrow-v3-page,
 .internal-weather-main > .seven-day-v2-page,
+.internal-weather-main > .fifteen-day-page,
 .internal-weather-main > .rain-v2-page,
 .internal-weather-main > .editorial-answer-section {
   margin-inline: auto;
