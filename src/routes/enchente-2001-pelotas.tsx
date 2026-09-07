@@ -4,6 +4,7 @@ import {
   Flood2001Hero,
   Flood2001HistoricalPage,
 } from "@/components/history/Flood2001HistoricalPage";
+import { FloodVisitorGuide } from "@/components/history/FloodVisitorGuide";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -11,7 +12,7 @@ import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
 const PAGE_TITLE = "Enchente de 2001 em Pelotas e no Laranjal: ciclone, impactos e fontes";
 const PAGE_DESCRIPTION =
-  "Registro histórico em pesquisa da enchente de outubro de 2001 em Pelotas e no Laranjal, com ciclone extratropical, vento de 105 km/h, isolamento da Z3, avanço das águas e fontes da época.";
+  "Entenda a enchente de outubro de 2001 em Pelotas e no Laranjal: vento de 105 km/h, avanço da Lagoa, isolamento da Z3, impactos e por que os arquivos históricos mostram dois valores de nível para o mesmo dia.";
 const PAGE_PATH = "/enchente-2001-pelotas";
 
 export const Route = createFileRoute("/enchente-2001-pelotas")({
@@ -47,6 +48,7 @@ function Enchente2001PelotasPage() {
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
     >
       <Flood2001Hero />
+      <FloodVisitorGuide year="2001" />
       <Flood2001HistoricalPage />
     </ContentPageShell>
   );

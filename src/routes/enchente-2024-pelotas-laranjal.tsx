@@ -5,6 +5,7 @@ import {
   Flood2024HistoricalPage,
 } from "@/components/history/Flood2024HistoricalPage";
 import "@/components/history/Flood2024HomeContract.css";
+import { FloodVisitorGuide } from "@/components/history/FloodVisitorGuide";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -12,7 +13,7 @@ import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
 const PAGE_TITLE = "Enchente de 2024 em Pelotas e no Laranjal: linha do tempo histórica";
 const PAGE_DESCRIPTION =
-  "Linha do tempo da enchente de 2024 em Pelotas e no Laranjal, do excesso de chuva no Centro e Norte do RS ao avanço pelo Guaíba, Lagoa dos Patos, Canal São Gonçalo e fase de reconstrução.";
+  "Entenda por que a enchente de 2024 chegou depois a Pelotas, como a água percorreu o Guaíba e a Lagoa dos Patos, quais áreas foram atingidas e o que significam os níveis registrados durante a emergência.";
 const PAGE_PATH = "/enchente-2024-pelotas-laranjal";
 
 export const Route = createFileRoute("/enchente-2024-pelotas-laranjal")({
@@ -47,6 +48,7 @@ function Enchente2024PelotasPage() {
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
     >
       <Flood2024Hero />
+      <FloodVisitorGuide year="2024" />
       <Flood2024HistoricalPage />
     </ContentPageShell>
   );

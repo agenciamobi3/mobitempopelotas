@@ -5,6 +5,7 @@ import {
   Flood2015HistoricalPage,
 } from "@/components/history/Flood2015HistoricalPage";
 import "@/components/history/Flood2015HistoricalPage.css";
+import { FloodVisitorGuide } from "@/components/history/FloodVisitorGuide";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -12,7 +13,7 @@ import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
 const PAGE_TITLE = "Enchente de 2015 em Pelotas: linha do tempo, níveis e impactos";
 const PAGE_DESCRIPTION =
-  "Reconstrução documentada da enchente de outubro de 2015 em Pelotas, com boletins da Prefeitura, níveis da Lagoa dos Patos e do Canal São Gonçalo, impactos no Laranjal e Z3 e resposta da Defesa Civil.";
+  "Entenda como chuva intensa, água vinda de outras bacias, Lagoa dos Patos, Canal São Gonçalo e vento se combinaram na enchente de 2015 em Pelotas, com impactos no Laranjal, Z3 e outras áreas baixas.";
 const PAGE_PATH = "/enchente-2015-pelotas";
 
 export const Route = createFileRoute("/enchente-2015-pelotas")({
@@ -50,6 +51,7 @@ function Enchente2015PelotasPage() {
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
     >
       <Flood2015Hero />
+      <FloodVisitorGuide year="2015" />
       <Flood2015HistoricalPage />
     </ContentPageShell>
   );

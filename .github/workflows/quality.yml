@@ -59,6 +59,9 @@ jobs:
       - name: Histórico documentado da cheia de 2015
         run: node --test tests/flood-2015-historical-page.test.ts
 
+      - name: Linguagem acessível do arquivo de enchentes
+        run: node --test tests/flood-visitor-copy.test.ts
+
       - name: Índice de pesquisa das enchentes
         run: node --test tests/flood-history-index.test.ts
 

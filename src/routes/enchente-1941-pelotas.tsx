@@ -4,6 +4,7 @@ import {
   Flood1941Hero,
   Flood1941HistoricalPage,
 } from "@/components/history/Flood1941HistoricalPage";
+import { FloodVisitorGuide } from "@/components/history/FloodVisitorGuide";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -11,7 +12,7 @@ import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
 const PAGE_TITLE = "Enchente de 1941 em Pelotas: fotos, nível e história";
 const PAGE_DESCRIPTION =
-  "Veja o que os registros históricos mostram sobre a enchente de 1941 em Pelotas, a referência de 2,88 m no Canal São Gonçalo, fotos preservadas e comparação cuidadosa com 2024.";
+  "Entenda o que aconteceu na enchente de 1941 em Pelotas, onde a água chegou, o que significa a marca de 2,88 m no Canal São Gonçalo e como as fotos ajudaram a reconstruir essa história.";
 const PAGE_PATH = "/enchente-1941-pelotas";
 
 export const Route = createFileRoute("/enchente-1941-pelotas")({
@@ -48,6 +49,7 @@ function Enchente1941PelotasPage() {
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
     >
       <Flood1941Hero />
+      <FloodVisitorGuide year="1941" />
       <Flood1941HistoricalPage />
     </ContentPageShell>
   );
