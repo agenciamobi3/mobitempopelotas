@@ -6,10 +6,6 @@ const route = readFileSync("src/routes/estacao-embrapa-pelotas.tsx", "utf8");
 const loader = readFileSync("src/lib/weather/embrapa-station-page-loader.ts", "utf8");
 const page = readFileSync("src/components/embrapa/EmbrapaStationPageV2.tsx", "utf8");
 const styles = readFileSync("src/components/embrapa/EmbrapaStationPageV2.css", "utf8");
-const refinement = readFileSync(
-  "src/components/embrapa/EmbrapaStationPageV2Refinement.css",
-  "utf8",
-);
 const homeContract = readFileSync(
   "src/components/embrapa/EmbrapaStationHomeContract.css",
   "utf8",
@@ -34,9 +30,7 @@ test("Embrapa route uses the shared shell and a failure-isolated source loader",
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /EmbrapaStationHero/);
   assert.match(route, /EmbrapaStationPageV2/);
-  assert.match(route, /EmbrapaStationPageV2Refinement\.css/);
   assert.match(route, /EmbrapaStationHomeContract\.css/);
-  assert.ok(route.indexOf("EmbrapaStationHomeContract.css") > route.indexOf("EmbrapaStationPageV2Refinement.css"));
   assert.match(route, /pageClassName="internal-weather-shell--embrapa"/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
   assert.match(route, /staleTime: 60 \* 1_000/);
@@ -119,37 +113,39 @@ test("station links and dataset metadata remain transparent and safe", () => {
   assert.match(page, /Página da Embrapa/);
 });
 
-test("unavailable state removes links to absent measurement sections", () => {
-  assert.match(page, /className=\{`embrapa-v2-chapters\$\{available \? "" : " is-compact"\}`\}/);
-  assert.match(page, /\{available \? \([\s\S]*href="#leitura-observada"/);
-  assert.match(page, /<span>\{available \? "05" : "02"\}<\/span>/);
-  assert.match(refinement, /embrapa-v2-chapters\.is-compact/);
-  assert.match(refinement, /repeat\(2, minmax\(0, 1fr\)\)/);
+test("unavailable state never renders measurement values as current", () => {
+  assert.match(page, /const available = observation\.status !== "unavailable"/);
+  assert.match(page, /\{available \? \([\s\S]*id="leitura-observada"/);
+  assert.match(page, /embrapa-v2-unavailable/);
+  assert.match(page, /As medições não puderam ser exibidas/);
+  assert.match(page, /Última temperatura informada/);
 });
 
-test("Embrapa page follows the current responsive retail system", () => {
+test("Embrapa page follows the clean internal editorial system", () => {
   assert.match(styles, /internal-weather-shell--embrapa \.embrapa-v2-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /background:\s*var\(--embrapa-soft\)/);
+  assert.match(styles, /\.embrapa-v2-chapters \{\s*display:\s*none/);
   assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /content-visibility:\s*auto/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
-  assert.match(styles, /@media \(max-width: 1280px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /@media \(max-width: 1080px\)/);
+  assert.match(styles, /@media \(max-width: 820px\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
+  assert.doesNotMatch(styles, /box-shadow:/);
+  assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
 });
 
-test("Embrapa hero uses a local observation accent without overriding source health states", () => {
+test("Embrapa observation accent stays restrained and does not override health states", () => {
   assert.match(homeContract, /identidade de observação local/i);
-  assert.match(homeContract, /\.embrapa-v2-hero__content[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.embrapa-v2-reading[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.embrapa-v2-reading__quick > span:nth-child\(1\)/);
-  assert.match(homeContract, /\.embrapa-v2-reading__quick > span:nth-child\(4\)/);
-  assert.match(homeContract, /\.embrapa-v2-hero__actions a:first-child[\s\S]*linear-gradient/);
+  assert.match(homeContract, /\.embrapa-v2-hero__content,[\s\S]*\.embrapa-v2-reading[\s\S]*background:\s*transparent/);
+  assert.match(homeContract, /\.embrapa-v2-reading__quick > span[\s\S]*box-shadow:\s*none/);
+  assert.match(homeContract, /\.embrapa-v2-hero__actions a:first-child[\s\S]*background:\s*#071e2f/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(homeContract, /is-partial|is-stale|is-unavailable/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(homeContract, /!important/);
