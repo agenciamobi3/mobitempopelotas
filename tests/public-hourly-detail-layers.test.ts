@@ -16,37 +16,42 @@ const todayHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "ut
 const todayResources = readFileSync("src/components/weather/TodayWeatherResources.tsx", "utf8");
 const meteogram = readFileSync("src/lib/weather/meteogram.server.ts", "utf8");
 
-test("rain and wind routes reuse the structured 48-hour meteogram in parallel", () => {
+test("rain and wind routes reuse the structured weather plus meteogram loader", () => {
   for (const route of [rainRoute, windRoute]) {
-    assert.match(route, /getPelotasMeteogram/);
-    assert.match(route, /Promise\.all/);
-    assert.match(route, /getWeatherIntelligence\(\)/);
-    assert.match(route, /getPelotasMeteogram\(\)/);
+    assert.match(route, /loadPublicWeatherWithMeteogram/);
   }
 
-  assert.match(rainRoute, /RainHourlyVolumeContext meteogram=\{meteogram\}/);
+  assert.match(rainRoute, /<RainForecastPageV2 data=\{recoveredWeather\} meteogram=\{meteogram\} \/>/);
+  assert.match(rainPage, /<RainHourlyVolumeContext meteogram=\{meteogram\} \/>/);
   assert.match(windRoute, /WindDirectionContext meteogram=\{meteogram\}/);
 });
 
 test("hourly rain detail keeps probability and model volume separate from measurement", () => {
   assert.match(rainDetail, /precipitationMm/);
   assert.match(rainDetail, /precipitationProbability/);
-  assert.match(rainDetail, /Total nas próximas 12h/);
-  assert.match(rainDetail, /Maior volume em uma hora/);
-  assert.match(rainDetail, /São valores de previsão, não chuva já medida em Pelotas/);
-  assert.match(rainRoute, /O volume por hora desta página é uma previsão do modelo/);
-  assert.match(rainPage, /href="#volume-de-chuva-por-hora"/);
+  assert.match(rainDetail, /Total em 12 h/);
+  assert.match(rainDetail, /Maior volume em 1 h/);
+  assert.match(rainDetail, /Previsão em milímetros para as próximas 12 horas/);
+  assert.match(rainPage, /RainAccumulationContext/);
+  assert.match(rainPage, /RainHourlyVolumeContext/);
+  assert.ok(
+    rainPage.indexOf("<RainAccumulationContext") < rainPage.indexOf("<RainHourlyVolumeContext"),
+    "chuva medida deve aparecer antes do volume previsto por hora",
+  );
+  assert.ok(
+    rainPage.indexOf("<RainHourlyVolumeContext") < rainPage.indexOf('id="chuva-na-semana"'),
+    "volume por hora deve aparecer antes da previsão de 7 dias",
+  );
   assert.doesNotMatch(`${rainDetail}\n${rainRoute}`, /OCR|extrair pixels|chuva medida pelo modelo/i);
 });
 
 test("hourly rain detail distinguishes complete, partial, zero and unknown volume", () => {
   assert.match(rainDetail, /const availableVolumeHours = hours\.filter\(\(hour\) => hour\.precipitationMm !== null\)/);
   assert.match(rainDetail, /const hasCompleteVolumeWindow = availableVolumeHours\.length === hours\.length/);
-  assert.match(rainDetail, /Total parcial disponível/);
-  assert.match(rainDetail, /horários têm volume informado/);
-  assert.match(rainDetail, /Entre os \{availableVolumeHours\.length\} horários com volume informado/);
+  assert.match(rainDetail, /Total parcial/);
+  assert.match(rainDetail, /\{availableVolumeHours\.length\} de \{hours\.length\} horários/);
   assert.match(rainDetail, /chance não informada/);
-  assert.match(rainDetail, /volume não informado/);
+  assert.match(rainDetail, /não informado/);
   assert.match(rainDetail, /className=\{volumeKnown \? undefined : "is-unknown"\}/);
   assert.match(rainStyles, /article\.is-unknown/);
   assert.match(rainStyles, /repeating-linear-gradient/);
@@ -55,8 +60,8 @@ test("hourly rain detail distinguishes complete, partial, zero and unknown volum
 test("zero hourly rain volume does not create a fake peak hour", () => {
   assert.match(rainDetail, /const hasPositiveVolume = total > 0/);
   assert.match(rainDetail, /hasPositiveVolume \? peakVolumeHour\(availableVolumeHours\) : null/);
-  assert.match(rainDetail, /Sem volume previsto no período/);
-  assert.match(rainDetail, /Sem volume positivo entre os horários informados/);
+  assert.match(rainDetail, /Sem volume previsto/);
+  assert.match(rainDetail, /Sem volume positivo nos horários informados/);
 });
 
 test("hourly wind direction stays a forecast distinct from current observation", () => {
