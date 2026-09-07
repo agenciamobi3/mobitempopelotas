@@ -30,7 +30,7 @@ const PAGE_CONFIG: DefesaCivilStationPageConfig = {
   eyebrow: "Rio Jaguarão · Defesa Civil RS",
   heading: "Nível do Rio Jaguarão hoje",
   introduction:
-    "A leitura abaixo vem da estação Jaguarão da Rede de Monitoramento Hidrometeorológico da Defesa Civil RS. O valor é mostrado na referência própria do ponto, com horário, tendência e chuva quando esses campos estão disponíveis.",
+    "Acompanhe a última leitura recebida da estação de Jaguarão. O horário, a tendência e a chuva aparecem junto do nível quando a fonte os informa. A régua representa este ponto do rio e deve ser acompanhada pela própria série.",
   waterBodyLabel: "Rio Jaguarão",
   locationLabel: "Jaguarão",
   weatherPath: "/tempo-em/jaguarao-rs",
@@ -40,49 +40,49 @@ const PAGE_CONFIG: DefesaCivilStationPageConfig = {
 };
 
 const PAGE_CONTENT = {
-  eyebrow: "Leitura hidrológica local",
-  title: "A régua de Jaguarão precisa ser interpretada como uma série própria",
+  eyebrow: "Entenda a leitura",
+  title: "A evolução da própria régua é o que mais importa",
   answer:
-    "O dado mais útil é a evolução da própria estação ao longo do tempo. O Tempo Pelotas preserva o horário e a tendência recebidos da rede, mas não aplica uma cota de inundação sem metadado específico e não transfere limiares publicados para outras réguas ou pontos do rio.",
+    "Esta página acompanha somente a estação DCRS-00115, em Jaguarão. O horário e a tendência ajudam a entender como a leitura mudou naquele ponto. O Tempo Pelotas não aplica automaticamente cotas de outras estações nem transforma uma única medição em alerta de cheia.",
   facts: [
-    "A página usa somente a estação DCRS-00115, identificada como Jaguarão no inventário regional da Defesa Civil RS.",
-    "O nível do rio é exibido em metros, unidade documentada oficialmente pela API da rede hidrometeorológica.",
-    "Tendência é apresentada como texto da fonte e não é convertida pelo portal em classificação de risco.",
-    "Uma leitura ausente não é substituída por zero, por uma estação vizinha ou por uma condição presumida de normalidade.",
-    "Previsão meteorológica e nível do rio permanecem separados: chuva e vento previstos podem ajudar no contexto, mas não alteram o valor observado pela estação.",
+    "A leitura vem da estação DCRS-00115, identificada como Jaguarão pela Defesa Civil RS.",
+    "O nível é mostrado em metros, na unidade informada pela fonte.",
+    "A tendência descreve o comportamento informado para esta estação e não é, sozinha, um alerta.",
+    "Se a leitura não chega, o portal não troca a ausência por zero ou por uma estação vizinha.",
+    "Previsão de chuva e nível do rio são dados diferentes e permanecem separados.",
   ],
   faqs: [
     {
       question: "Qual é o nível do Rio Jaguarão hoje?",
       answer:
-        "A última medição recebida da estação DCRS-00115 aparece no bloco de leitura desta página, junto com o horário informado pela fonte. Se a estação não estiver disponível, o portal mostra a indisponibilidade em vez de inventar um valor.",
+        "A última medição recebida aparece no bloco de leitura desta página, junto do horário informado pela estação.",
     },
     {
       question: "O que significa a tendência do Rio Jaguarão?",
       answer:
-        "A tendência exibida é o texto informado pela própria estação. Ela ajuda a descrever a direção recente da leitura, mas não é transformada automaticamente pelo Tempo Pelotas em alerta, normalidade ou previsão de cheia.",
+        "É a direção de mudança informada pela fonte para esta estação. Ela ajuda a entender a leitura recente, mas não é automaticamente um alerta de risco.",
     },
     {
       question: "O nível mostrado já é a cota de inundação de Jaguarão?",
       answer:
-        "Não. O número é o nível informado na referência da estação. Sem o metadado específico de zero da régua, datum e limiar aplicável a esse ponto, o portal não apresenta o valor como cota de inundação.",
+        "Não. A página mostra a medição da régua. Sem um limiar oficial específico para esse ponto, o portal não apresenta o valor como cota de inundação.",
     },
     {
       question: "A chuva da estação é a previsão do tempo?",
       answer:
-        "Não. Os acumulados de chuva do módulo são observações da estação quando disponíveis. A previsão meteorológica de Jaguarão fica na página de tempo do município e usa contrato separado.",
+        "Não. A chuva mostrada neste módulo é uma observação da estação quando disponível. A previsão fica na página de tempo de Jaguarão.",
     },
     {
       question: "O Tempo Pelotas substitui os avisos da Defesa Civil?",
       answer:
-        "Não. Esta página organiza a leitura da estação para consulta. Em situação de risco, devem prevalecer os comunicados da Defesa Civil e das autoridades locais.",
+        "Não. Esta página organiza a leitura da estação. Em situação de risco, consulte também os comunicados da Defesa Civil e das autoridades locais.",
     },
   ],
   relatedLinks: [
     {
-      label: "Situação hidrológica regional",
+      label: "Situação das águas na região",
       href: "/situacao-hidrologica-pelotas" as const,
-      description: "Veja como o portal separa as diferentes redes e referências de água da região.",
+      description: "Veja outras leituras de água mantendo cada estação na própria referência.",
     },
     {
       label: "Alertas oficiais",
@@ -92,7 +92,7 @@ const PAGE_CONTENT = {
     {
       label: "Metodologia e fontes",
       href: "/metodologia" as const,
-      description: "Entenda como o Tempo Pelotas preserva origem, horário e limites de cada dado.",
+      description: "Entenda como o portal trata horário, unidade, origem e indisponibilidade.",
     },
   ],
 };
