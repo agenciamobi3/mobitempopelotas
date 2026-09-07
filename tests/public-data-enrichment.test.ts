@@ -28,20 +28,26 @@ test("meteogram exposes SIMAGRO model graphics without treating PNGs as numeric 
   assert.match(simagroStyles, /@media \(max-width: 620px\)/);
 });
 
-test("REDEMET public detail layer derives timeline depth and storm proximity from existing frames", () => {
-  assert.match(radarRoute, /<RedemetDerivedContext data=\{data\.redemet\} \/>/);
-  assert.match(radarRoute, /cadência observada/i);
-  assert.match(radarRoute, /distância das trovoadas/i);
+test("REDEMET detail layer exposes actual received timestamps and storm proximity", () => {
+  assert.match(radarRoute, /<RedemetDerivedContext data=\{redemet\} \/>/);
+  assert.match(radarDerived, /formatRedemetDateTime/);
   assert.match(radarDerived, /isUsableRedemetObservedAt/);
-  assert.match(radarDerived, /medianCadence/);
-  assert.match(radarDerived, /timelineWindow/);
+  assert.match(radarDerived, /function usableFrames/);
+  assert.match(radarDerived, /Últimas coletas realmente recebidas/);
+  assert.match(radarDerived, /A página não cria horários para preencher lacunas/);
+  assert.match(radarDerived, /<time dateTime=\{frame\.observedAt \?\? undefined\}/);
+  assert.match(radarDerived, /\$\{frames\.length\} coletas com horário/);
   assert.match(radarDerived, /EARTH_RADIUS_KM/);
   assert.match(radarDerived, /distanceFromPelotas/);
   assert.match(radarDerived, /Até 50 km/);
-  assert.match(radarDerived, /50–150 km/);
-  assert.match(radarDerived, /150–450 km/);
-  assert.match(radarDerived, /não mede intensidade, trajetória nem[\s\S]*substitui aviso meteorológico/i);
-  assert.match(radarDerivedStyles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(radarDerived, /50 a 150 km/);
+  assert.match(radarDerived, /150 a 450 km/);
+  assert.match(radarDerived, /não indica intensidade, trajetória ou nível de risco/i);
+  assert.doesNotMatch(radarDerived, /medianCadence|timelineWindow|Cadência observada/i);
+  assert.match(radarDerivedStyles, /\.redemet-collections__list[\s\S]*border-top:/);
+  assert.match(radarDerivedStyles, /\.redemet-collections__row/);
+  assert.match(radarDerivedStyles, /\.redemet-collections__times time/);
+  assert.doesNotMatch(radarDerivedStyles, /radial-gradient|linear-gradient/);
   assert.match(radarDerivedStyles, /@media \(max-width: 560px\)/);
 });
 
