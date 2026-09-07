@@ -1,0 +1,13 @@
+/*
+ * Superficie sticky do header publico em telas mais largas que o shell global.
+ * O fundo e a borda devem ocupar a viewport inteira; logo, navegacao e acoes
+ * continuam presos ao container canonico definido em home-editorial-header.css.
+ */
+
+.tp-home-header {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  box-sizing: border-box;
+}

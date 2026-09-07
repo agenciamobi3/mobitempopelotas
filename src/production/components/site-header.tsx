@@ -6,6 +6,8 @@ import { HomeEditorialHeader } from "@/production/components/home-editorial-head
 import type { InmetAlertSeverity } from "@/production/lib/inmet-alerts";
 import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
+import "./home-editorial-header-viewport.css";
+
 type SiteHeaderProps = {
   advisoryLevel?: AdvisoryLevel;
   officialAlertSeverity?: InmetAlertSeverity;

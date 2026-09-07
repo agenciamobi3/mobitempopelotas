@@ -18,6 +18,14 @@ const footerWrapper = readFileSync(
   "src/production/components/site-footer.tsx",
   "utf8",
 );
+const headerViewport = readFileSync(
+  "src/production/components/home-editorial-header-viewport.css",
+  "utf8",
+);
+const headerWrapper = readFileSync(
+  "src/production/components/site-header.tsx",
+  "utf8",
+);
 
 test("historical collaboration follows the canonical public container", () => {
   assert.match(collaborationSource, /HistoricalCollaborationContainer\.css/);
@@ -39,4 +47,13 @@ test("footer backgrounds are full bleed while content stays on the canonical gri
   assert.match(footerViewport, /--tp-home-container-compact-max,\s*1180px/);
   assert.match(footerViewport, /--tp-home-container-mobile-gutter,\s*20px/);
   assert.doesNotMatch(footerViewport, /!important/);
+});
+
+test("sticky public header fills the viewport while its inner grid remains canonical", () => {
+  assert.match(headerWrapper, /home-editorial-header-viewport\.css/);
+  assert.match(headerViewport, /\.tp-home-header\s*\{/);
+  assert.match(headerViewport, /width:\s*100vw/);
+  assert.match(headerViewport, /margin-left:\s*calc\(50%\s*-\s*50vw\)/);
+  assert.match(headerViewport, /margin-right:\s*calc\(50%\s*-\s*50vw\)/);
+  assert.doesNotMatch(headerViewport, /!important/);
 });
