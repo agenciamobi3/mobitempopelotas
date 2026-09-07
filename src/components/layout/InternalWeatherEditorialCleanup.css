@@ -1,0 +1,20 @@
+/*
+ * Limpeza editorial compartilhada das páginas internas já convertidas.
+ *
+ * Os componentes abaixo ainda preservam, por compatibilidade estrutural, alguns
+ * índices de capítulos do antigo layout de dashboard. A navegação principal do
+ * portal e os próprios títulos de seção já dão contexto suficiente, portanto o
+ * índice visual não deve reaparecer por ordem de importação.
+ *
+ * As páginas retail principais Hoje, Amanhã e 7 dias ficam deliberadamente fora.
+ */
+
+.internal-weather-shell--fifteen-day .internal-page-chapters,
+.internal-weather-shell--meteogram .internal-page-chapters,
+.internal-weather-shell--cameras .camera-v2-chapters,
+.internal-weather-shell--climate .climate-chapters,
+.internal-weather-shell--hydrology .hydrology-v2-chapters,
+.internal-weather-shell--frost .frost-v2-chapters,
+.internal-weather-shell--embrapa .embrapa-v2-chapters {
+  display: none !important;
+}
