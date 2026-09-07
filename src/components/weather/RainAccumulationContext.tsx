@@ -7,8 +7,6 @@ import { useEffect, useState } from "react";
 import { getDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.functions";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
-import "./RainAccumulationContext.css";
-
 type RegionalRainData = Awaited<ReturnType<typeof getDefesaCivilHydroData>>;
 type RegionalRainStation = RegionalRainData["stations"][number];
 
@@ -102,7 +100,10 @@ function RegionalRainfallObservations() {
   return (
     <div className="rain-accumulation__regional">
       <header>
-        <h3>Chuva em 24 horas nas estações próximas</h3>
+        <div>
+          <span>Estações próximas</span>
+          <h3>Chuva medida em 24 horas</h3>
+        </div>
         <a href={state.data.source.mapUrl} target="_blank" rel="noopener noreferrer">
           Mapa da Defesa Civil RS
         </a>
@@ -157,7 +158,10 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
       aria-labelledby="rain-accumulation-title"
     >
       <header className="rain-accumulation__heading">
-        <h2 id="rain-accumulation-title">Chuva medida e prevista</h2>
+        <div>
+          <span>Agora e próximos dias</span>
+          <h2 id="rain-accumulation-title">Chuva medida e prevista</h2>
+        </div>
       </header>
 
       <div className="rain-accumulation__summary">
@@ -195,7 +199,7 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
 
       <div className="rain-accumulation__rule">
         <strong>Medido e previsto não são somados.</strong>
-        <p>Os períodos podem se sobrepor.</p>
+        <span>Os períodos podem se sobrepor.</span>
         <Link to="/metodologia">Metodologia</Link>
       </div>
 
