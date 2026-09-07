@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import { processRecentInmetForecastEmails } from "@/lib/integrations/inmet-gmail.server";
+import {
+  inspectRecentInmetForecastEmails,
+  processRecentInmetForecastEmails,
+} from "@/lib/integrations/inmet-gmail.server";
 import { verifyWeatherAiGithubActionsRequest } from "@/lib/github-actions-oidc.server";
 import { hasBearerSecret, pushJsonResponse } from "@/lib/push/push-http.server";
 import {
@@ -314,6 +317,31 @@ async function sendDailySummary(request: Request) {
   }
 }
 
+async function processInmetGmailCheck(request: Request) {
+  if (!hasBearerSecret(request, process.env.CRON_SECRET?.trim())) {
+    return pushJsonResponse({ success: false, error: "Não autorizado." }, 401);
+  }
+
+  try {
+    const result = await inspectRecentInmetForecastEmails();
+    return pushJsonResponse({
+      success: true,
+      kind: "inmet-gmail-check",
+      aiCalled: false,
+      dispatchAttempted: false,
+      ...result,
+    });
+  } catch (error) {
+    console.error("[push/inmet-gmail-check] Falha na verificação do Gmail pelo Lovable", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return pushJsonResponse(
+      { success: false, error: "Não foi possível verificar os e-mails do INMET." },
+      503,
+    );
+  }
+}
+
 async function processInmetGmailRecovery(request: Request) {
   if (!hasBearerSecret(request, process.env.CRON_SECRET?.trim())) {
     return pushJsonResponse({ success: false, error: "Não autorizado." }, 401);
@@ -344,6 +372,7 @@ export const Route = createFileRoute("/api/cron/push-daily")({
       GET: ({ request }) => {
         const task = new URL(request.url).searchParams.get("task");
         if (task === "weather-ai") return generateWeatherAiSnapshot(request);
+        if (task === "inmet-gmail-check") return processInmetGmailCheck(request);
         if (task === "inmet-gmail") return processInmetGmailRecovery(request);
         return sendDailySummary(request);
       },
