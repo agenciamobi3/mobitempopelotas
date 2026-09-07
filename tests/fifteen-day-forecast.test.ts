@@ -15,6 +15,7 @@ const pageStyles = readFileSync("src/components/weather/FifteenDayForecastPage.c
 const hero = readFileSync("src/components/weather/FifteenDayForecastHero.tsx", "utf8");
 const heroStyles = readFileSync("src/components/weather/FifteenDayForecastHero.css", "utf8");
 const shellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
+const cleanHeroStyles = readFileSync("src/components/layout/InternalWeatherCleanHero.css", "utf8");
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 
@@ -83,7 +84,7 @@ test("rota de 15 dias usa shell retail sem camada editorial duplicada", () => {
   assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|FIFTEEN_DAY_PAGE_CONTENT/);
 });
 
-test("hero de 15 dias usa a mesma estrutura retail de hoje, amanhã e 7 dias", () => {
+test("hero de 15 dias reutiliza a estrutura retail sob a superfície editorial limpa", () => {
   assert.match(hero, /today-retail-hero fifteen-day-retail-hero/);
   assert.match(hero, /today-retail-hero__inner fifteen-day-retail-hero__inner/);
   assert.match(hero, /Previsão de <span>15 dias<\/span> para Pelotas/);
@@ -97,11 +98,14 @@ test("hero de 15 dias usa a mesma estrutura retail de hoje, amanhã e 7 dias", (
   assert.doesNotMatch(hero, /Previsão estendida · Pelotas/);
   assert.doesNotMatch(hero, /A incerteza aumenta com o horizonte/);
 
-  assert.match(heroStyles, /fifteen-day-retail-hero/);
-  assert.match(heroStyles, /radial-gradient/);
-  assert.match(heroStyles, /@media \(max-width: 920px\)/);
-  assert.match(heroStyles, /@media \(max-width: 700px\)/);
+  assert.match(heroStyles, /InternalWeatherCleanHero/);
+  assert.match(heroStyles, /box-shadow:\s*none/);
   assert.match(heroStyles, /@media \(forced-colors: active\)/);
+  assert.doesNotMatch(heroStyles, /radial-gradient|linear-gradient|background-image/);
+  assert.match(
+    cleanHeroStyles,
+    /internal-weather-shell--fifteen-day[\s\S]*today-retail-hero__current-photo[\s\S]*display:\s*none\s*!important/,
+  );
 });
 
 test("página de 15 dias apresenta as duas semanas em uma única superfície", () => {
