@@ -4,7 +4,6 @@ import test from "node:test";
 
 const editorialRouteFiles = [
   "src/routes/alertas.tsx",
-  "src/routes/chuva-em-pelotas.tsx",
   "src/routes/vento-em-pelotas.tsx",
   "src/routes/radar-e-satelite-pelotas.tsx",
   "src/routes/clima-em-pelotas.tsx",
@@ -23,7 +22,6 @@ function read(path: string) {
 test("content routes with dedicated editorial blocks expose visible answers and FAQ structured data", () => {
   for (const path of editorialRouteFiles) {
     const source = read(path);
-
     assert.match(source, /EditorialContentSection/);
     assert.match(source, /createFaqPageJsonLd/);
     assert.match(source, /about:\s*\[/);
@@ -33,7 +31,6 @@ test("content routes with dedicated editorial blocks expose visible answers and 
 test("seven-day forecast keeps visible direct content without a duplicate editorial or FAQ layer", () => {
   const route = read("src/routes/previsao-7-dias-pelotas.tsx");
   const page = read("src/components/weather/SevenDayForecastPageV2.tsx");
-
   assert.match(route, /createEditorialPageJsonLd/);
   assert.match(route, /about:\s*\[/);
   assert.match(route, /ForecastHorizonBridge/);
@@ -48,7 +45,6 @@ test("meteogram keeps visible direct content without a duplicate editorial or FA
   const route = read("src/routes/meteograma-pelotas.tsx");
   const page = read("src/components/weather/MeteogramPage.tsx");
   const simagro = read("src/components/weather/SimagroModelProducts.tsx");
-
   assert.match(route, /createEditorialPageJsonLd/);
   assert.match(route, /about:\s*\[/);
   assert.match(route, /MeteogramPage/);
@@ -59,10 +55,27 @@ test("meteogram keeps visible direct content without a duplicate editorial or FA
   assert.match(simagro, /Meteogramas WRF e GFS do SIMAGRO RS/);
 });
 
+test("rain keeps visible direct content without a duplicate editorial or FAQ layer", () => {
+  const route = read("src/routes/chuva-em-pelotas.tsx");
+  const page = read("src/components/weather/RainForecastPageV2.tsx");
+  const accumulation = read("src/components/weather/RainAccumulationContext.tsx");
+  const hourlyVolume = read("src/components/weather/RainHourlyVolumeContext.tsx");
+  assert.match(route, /createEditorialPageJsonLd/);
+  assert.match(route, /RAIN_CITATIONS/);
+  assert.match(route, /about:\s*\[/);
+  assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|RAIN_PAGE_CONTENT/);
+  assert.match(accumulation, /Chuva medida e prevista/);
+  assert.match(page, /Chance de chuva nas próximas 12 horas/);
+  assert.match(page, /Chuva nos próximos 7 dias/);
+  assert.match(page, /INMET para Pelotas/);
+  assert.match(hourlyVolume, /Volume de chuva por hora/);
+});
+
 test("core search intents remain distinct and internally connected", () => {
   const home = read("src/routes/index.tsx");
   const today = read("src/routes/tempo-hoje-pelotas.tsx");
-  const rain = read("src/routes/chuva-em-pelotas.tsx");
+  const rainRoute = read("src/routes/chuva-em-pelotas.tsx");
+  const rainPage = read("src/components/weather/RainForecastPageV2.tsx");
   const laranjal = read("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
   const situation = read("src/routes/situacao-hidrologica-pelotas.tsx");
 
@@ -70,9 +83,9 @@ test("core search intents remain distinct and internally connected", () => {
   assert.match(home, /"Tempo agora em Pelotas"/);
   assert.match(today, /Tempo hoje em Pelotas: temperatura e previsão por hora/);
   assert.match(today, /Previsão de 15 dias/);
-  assert.match(rain, /Vai chover hoje em Pelotas\?/);
-  assert.match(rain, /\/situacao-hidrologica-pelotas/);
-  assert.match(rain, /\/nivel-da-lagoa-dos-patos-laranjal/);
+  assert.match(rainRoute, /Chuva em Pelotas hoje: acumulado, chance e previsão/);
+  assert.match(rainPage, /\/radar-e-satelite-pelotas/);
+  assert.match(rainPage, /\/vento-em-pelotas/);
   assert.match(laranjal, /O nível da Lagoa dos Patos está em tempo real\?/);
   assert.match(laranjal, /atrasada ou indisponível/);
   assert.match(laranjal, /\/nivel-do-guaiba/);
@@ -84,7 +97,6 @@ test("core search intents remain distinct and internally connected", () => {
 
 test("monitoring content distinguishes observation, imagery, history and telemetry", () => {
   const source = read("src/lib/editorial-content.ts");
-
   assert.match(source, /RADAR_EDITORIAL_CONTENT/);
   assert.match(source, /EMBRAPA_EDITORIAL_CONTENT/);
   assert.match(source, /HISTORY_EDITORIAL_CONTENT/);
@@ -100,7 +112,6 @@ test("alert page distinguishes unavailable INMET data from an all-clear state", 
   const route = read("src/routes/alertas.tsx");
   const page = read("src/components/weather/WeatherAlertsPage.tsx");
   const refinements = read("src/components/weather/WeatherAlertsRefinements.css");
-
   assert.match(route, /Alertas meteorológicos em Pelotas e região/);
   assert.match(route, /createFaqPageJsonLd/);
   assert.match(route, /como-interpretar-alertas/);
@@ -115,7 +126,6 @@ test("alert page distinguishes unavailable INMET data from an all-clear state", 
 
 test("editorial links preserve visible names and attach descriptions", () => {
   const source = read("src/components/content/EditorialContentSection.tsx");
-
   assert.match(source, /aria-describedby=\{descriptionId\}/);
   assert.doesNotMatch(source, /aria-label=\{`\$\{link\.label\}/);
 });
@@ -125,7 +135,6 @@ test("external operational links identify new tabs safely", () => {
   const footer = read("src/components/layout/Footer.tsx");
   const redemet = read("src/components/redemet/RedemetOverview.tsx");
   const cameras = read("src/components/cameras/CameraExplorer.tsx");
-
   assert.match(alerts, /target="_blank"[\s\S]*rel="noopener noreferrer"/);
   assert.match(alerts, /site do INMET, em nova aba/);
   assert.match(footer, /target="_blank"[\s\S]*rel="noopener noreferrer"/);
@@ -139,7 +148,6 @@ test("external operational links identify new tabs safely", () => {
 test("radar and camera images avoid unnecessary synchronous decoding", () => {
   const redemet = read("src/components/redemet/RedemetOverview.tsx");
   const cameras = read("src/components/cameras/CameraExplorer.tsx");
-
   assert.match(redemet, /decoding="async"/);
   assert.match(redemet, /fetchPriority=\{kind === "radar" \? "high" : "auto"\}/);
   assert.match(cameras, /loading="lazy"[\s\S]*decoding="async"/);
@@ -149,7 +157,6 @@ test("editorial WebPage schema remains aligned with visible page semantics", () 
   const source = read("src/lib/structured-data.ts");
   const frost = read("src/routes/mapa-de-geadas-rio-grande-do-sul.tsx");
   const regionalDirectory = read("src/routes/tempo-na-regiao-sul-rs.tsx");
-
   assert.match(source, /isAccessibleForFree:\s*true/);
   assert.match(source, /"@type": "ReadAction"/);
   assert.match(source, /keywords:\s*about\.join/);
@@ -165,14 +172,12 @@ test("editorial WebPage schema remains aligned with visible page semantics", () 
 
 test("below-fold editorial content uses delayed rendering", () => {
   const source = read("src/components/content/EditorialContentSection.css");
-
   assert.match(source, /content-visibility:\s*auto/);
   assert.match(source, /contain-intrinsic-size:\s*auto 900px/);
 });
 
 test("below-fold editorial content owns the Home surface without legacy decorative chrome", () => {
   const source = read("src/components/content/EditorialContentSection.css");
-
   assert.match(source, /--editorial-answer-line:\s*rgb\(7 30 47 \/ 10%\)/);
   assert.match(source, /margin:\s*clamp\(16px, 2vw, 24px\) 0 0/);
   assert.match(source, /border-radius:\s*16px/);
