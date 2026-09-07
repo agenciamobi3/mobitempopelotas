@@ -1,4 +1,8 @@
 /* Chuva em Pelotas: mesma linguagem visual das páginas meteorológicas atuais. */
+.internal-weather-shell--rain .internal-page-chapters {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .internal-weather-shell--rain .rain-v2-page .eyebrow,
 .internal-weather-shell--rain .rain-accumulation .eyebrow,
 .internal-weather-shell--rain .rain-hourly-volume-context__eyebrow {
@@ -7,7 +11,6 @@
 
 .internal-weather-shell--rain :is(
   .rain-accumulation,
-  .rain-v2-overview,
   .rain-v2-hourly,
   .rain-v2-week,
   .rain-v2-planning,
@@ -22,7 +25,6 @@
 
 .internal-weather-shell--rain :is(
   .rain-accumulation,
-  .rain-v2-overview,
   .rain-v2-hourly,
   .rain-v2-week,
   .rain-v2-planning,
@@ -34,7 +36,6 @@
 
 .internal-weather-shell--rain :is(
   .rain-accumulation__heading h2,
-  .rain-v2-overview h2,
   .rain-v2-hourly h2,
   .rain-v2-week h2,
   .rain-v2-planning h2,
@@ -47,21 +48,7 @@
   letter-spacing: -0.055em;
 }
 
-.internal-weather-shell--rain .rain-v2-overview {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 1rem;
-}
-
-.internal-weather-shell--rain .rain-v2-overview__intro {
-  gap: 0.4rem;
-}
-
-.internal-weather-shell--rain .rain-v2-overview__intro > p {
-  max-width: 62ch;
-}
-
 .internal-weather-shell--rain :is(
-  .rain-v2-overview__cards article,
   .rain-v2-planning__grid article,
   .rain-v2-official__grid article,
   .rain-accumulation__summary article,
@@ -74,7 +61,6 @@
 }
 
 .internal-weather-shell--rain :is(
-  .rain-v2-overview__cards article.is-best,
   .rain-v2-planning__grid article.is-best,
   .rain-v2-official__grid article.is-stable,
   .rain-accumulation__summary article.is-observed
@@ -84,7 +70,6 @@
 }
 
 .internal-weather-shell--rain :is(
-  .rain-v2-overview__cards article.is-attention,
   .rain-v2-planning__grid article.is-attention,
   .rain-v2-official__grid article.has-alert
 ) {
@@ -98,7 +83,6 @@
 }
 
 .internal-weather-shell--rain :is(
-  .rain-v2-overview__cards span,
   .rain-v2-planning__grid span,
   .rain-v2-official__grid span,
   .rain-accumulation__summary span,
@@ -137,10 +121,19 @@
   box-shadow: none;
 }
 
+@media (max-width: 1100px) {
+  .internal-weather-shell--rain .internal-page-chapters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
+  .internal-weather-shell--rain .internal-page-chapters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .internal-weather-shell--rain :is(
     .rain-accumulation,
-    .rain-v2-overview,
     .rain-v2-hourly,
     .rain-v2-week,
     .rain-v2-planning,
@@ -154,7 +147,6 @@
 @media (forced-colors: active) {
   .internal-weather-shell--rain :is(
     .rain-accumulation,
-    .rain-v2-overview,
     .rain-v2-hourly,
     .rain-v2-week,
     .rain-v2-planning,
