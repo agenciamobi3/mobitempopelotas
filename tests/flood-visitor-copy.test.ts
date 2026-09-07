@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const guide = readFileSync("src/components/history/FloodVisitorGuide.tsx", "utf8");
+const page1941 = readFileSync("src/components/history/Flood1941HistoricalPage.tsx", "utf8");
 const indexPage = readFileSync("src/components/history/FloodHistoryIndexPage.tsx", "utf8");
+const agents = readFileSync("AGENTS.md", "utf8");
 const routes = new Map([
   ["1941", readFileSync("src/routes/enchente-1941-pelotas.tsx", "utf8")],
   ["2001", readFileSync("src/routes/enchente-2001-pelotas.tsx", "utf8")],
@@ -11,37 +13,28 @@ const routes = new Map([
   ["2024", readFileSync("src/routes/enchente-2024-pelotas-laranjal.tsx", "utf8")],
 ]);
 
-test("every dedicated flood page starts with a visitor-first explanation", () => {
-  for (const [year, route] of routes) {
+test("1941 simplifies the page itself instead of stacking a generic visitor guide", () => {
+  const route1941 = routes.get("1941");
+  assert.ok(route1941);
+  assert.doesNotMatch(route1941, /FloodVisitorGuide/);
+  assert.match(page1941, /Em 1941, uma grande enchente deixou ruas/);
+  assert.match(page1941, /Esse número não significa que\s+havia 2,88 m de água em todas as ruas ou casas/);
+});
+
+test("other flood pages keep their current visitor-first explanation until their own copy review", () => {
+  for (const year of ["2001", "2015", "2024"] as const) {
+    const route = routes.get(year);
+    assert.ok(route);
     assert.match(route, /FloodVisitorGuide/);
     assert.match(route, new RegExp(`<FloodVisitorGuide year="${year}" \\/>`));
   }
 });
 
-test("visitor guide explains measurements before exposing technical vocabulary", () => {
-  assert.match(guide, /Antes dos detalhes/);
-  assert.match(guide, /O que aconteceu/);
-  assert.match(guide, /Por que aconteceu/);
-  assert.match(guide, /Quem e onde foi afetado/);
-  assert.match(guide, /Como ler os números/);
-  assert.match(guide, /não a profundidade da inundação em toda a cidade/);
-  assert.match(guide, /Dado bruto/);
-  assert.match(guide, /dado consistido/);
-  assert.match(guide, /réguas diferentes não devem ser comparados como se usassem a mesma escala/);
-});
-
-test("2001 discrepancy is translated for a non-technical visitor without hiding either value", () => {
+test("visitor guide still protects the 2001 measurement discrepancy", () => {
   assert.match(guide, /2,90 m e 1,90 m para o mesmo dia/);
   assert.match(guide, /Isso não é um erro do site/);
   assert.match(guide, /diferença de 1 metro/);
   assert.match(guide, /mostramos os dois/);
-});
-
-test("each historical event has an immediate plain-language anchor", () => {
-  assert.match(guide, /2,88 m/);
-  assert.match(guide, /105 km\/h/);
-  assert.match(guide, /299 mm/);
-  assert.match(guide, /3,04 m/);
 });
 
 test("history index invites ordinary visitors before research terminology", () => {
@@ -49,4 +42,12 @@ test("history index invites ordinary visitors before research terminology", () =
   assert.match(indexPage, /“2,20 m” ou “3,04 m” normalmente é a leitura de uma régua/);
   assert.match(indexPage, /não\s+a altura da água em todas as casas/);
   assert.match(indexPage, /Quando dois documentos discordam, mostramos a diferença/);
+});
+
+test("AGENTS documents simple adult copy without institutional distance or over-explaining", () => {
+  assert.match(agents, /acessível|autonomia de leitura equivalente à 6ª série/i);
+  assert.match(agents, /isso não significa infantilizar o texto/i);
+  assert.match(agents, /não empilhe uma camada "para leigos"/i);
+  assert.match(agents, /A MOBI e o Tempo Pelotas fazem parte da comunidade local/i);
+  assert.match(agents, /uma explicação não deve exigir outra explicação/i);
 });

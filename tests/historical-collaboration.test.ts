@@ -27,19 +27,23 @@ const historicalRoutes = [
   "src/routes/enchente-2024-pelotas-laranjal.tsx",
 ];
 
-test("all dedicated flood pages opt into the reusable collaboration surface", () => {
+test("dedicated flood pages keep the reusable collaboration surface without forcing a top callout", () => {
   assert.match(shell, /HistoricalCollaborationPrompt/);
   assert.match(shell, /HistoricalCollaborationSection/);
+  assert.match(shell, /showHistoricalCollaborationPrompt = true/);
   assert.match(callouts, /Ajude a completar esta história/);
-  assert.match(callouts, /Enviar uma contribuição/);
-  assert.match(callouts, /Para trabalhos e pesquisas/);
-  assert.match(callouts, /não altera automaticamente o registro histórico/);
+  assert.match(callouts, /Enviar material ou relato/);
+  assert.match(callouts, /Sobre as fontes/);
+  assert.match(callouts, /uma contribuição não altera a página automaticamente/);
   assert.match(callouts, /Pesquisa em andamento/);
 
   for (const file of historicalRoutes) {
     const source = readFileSync(file, "utf8");
     assert.match(source, /historicalCollaboration=\{HISTORICAL_COLLABORATION_CONTEXTS\[PAGE_PATH\]\}/);
   }
+
+  const page1941 = readFileSync("src/routes/enchente-1941-pelotas.tsx", "utf8");
+  assert.match(page1941, /showHistoricalCollaborationPrompt=\{false\}/);
 
   for (const year of [1941, 2001, 2015, 2024]) {
     assert.match(contexts, new RegExp(String(year)));

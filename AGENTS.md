@@ -23,6 +23,48 @@ Documentos especializados em `docs/` continuam sendo a fonte detalhada de cada s
 
 Nunca versione HARs brutos, cookies, tokens, chaves, secrets, headers autenticados ou URLs contendo credenciais. Use apenas conclusões técnicas sanitizadas em documentos do repositório.
 
+## Copy pública e voz editorial
+
+O Tempo Pelotas é um projeto da MOBI feito dentro da comunidade e para uso da comunidade. A voz pública não deve soar como governo, força de segurança, autoridade distante ou instituição que fala de fora para "a população".
+
+### Regra de clareza
+
+- escreva para que um leitor com autonomia de leitura equivalente à 6ª série consiga entender o assunto sozinho;
+- isso não significa infantilizar o texto: mantenha tom adulto, natural, direto e respeitoso;
+- prefira frases curtas, palavras comuns e uma ideia principal por frase;
+- antes de criar uma explicação, glossário, card, aviso ou nota, tente reescrever a frase original de forma mais simples;
+- não explique palavras e conceitos que o contexto já torna compreensíveis;
+- evite analogias infantis, tom de cartilha e excesso de didatismo.
+
+### Regra contra poluição editorial
+
+- não use etiquetas genéricas apenas para preencher hierarquia visual, como "Arquivo aberto à comunidade", "Memória pública com rastreabilidade" ou equivalentes sem informação concreta;
+- títulos, subtítulos, badges e chamadas devem dizer algo útil sobre o conteúdo, o período, o lugar, a fonte ou a ação disponível;
+- não empilhe uma camada "para leigos" sobre um texto que continua técnico: simplifique o próprio texto principal;
+- uma explicação não deve exigir outra explicação para ser entendida.
+
+### Termos técnicos e precisão
+
+- use termo técnico somente quando ele for necessário para manter precisão factual;
+- quando necessário, apresente o termo no contexto, com a menor explicação suficiente para a leitura seguir;
+- preserve datas, locais, fontes, medições, incertezas e diferenças entre estações, réguas ou referências;
+- nunca simplifique uma informação a ponto de criar uma conclusão falsa. Exemplo: uma leitura de 2,88 m em uma régua do Canal São Gonçalo não significa 2,88 m de água em toda Pelotas;
+- detalhes de método e rastreabilidade podem vir depois do fato principal. O visitante não deve precisar entender a metodologia para entender o que aconteceu.
+
+### Ordem recomendada para páginas históricas
+
+1. o que aconteceu;
+2. onde e por quanto tempo, quando isso estiver documentado;
+3. os números que ajudam a entender o evento;
+4. como esses números ou fatos foram confirmados;
+5. fontes, método e limites da documentação.
+
+### Voz de comunidade
+
+- fale na primeira pessoa do projeto apenas quando isso ajudar a explicar uma decisão editorial;
+- em pedidos de colaboração, prefira chamadas concretas como "Tem fotos ou documentos desta enchente?" em vez de tratar "a comunidade" como um grupo externo;
+- a MOBI e o Tempo Pelotas fazem parte da comunidade local. A copy deve refletir proximidade, serviço e responsabilidade, não autoridade institucional.
+
 ## Redes sociais
 
 As regras de social media ficam separadas da documentação geral do agente.

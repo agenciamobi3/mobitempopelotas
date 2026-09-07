@@ -15,6 +15,7 @@ type ContentPageShellProps = {
   children: ReactNode;
   pageClassName?: string;
   historicalCollaboration?: HistoricalCollaborationContext;
+  showHistoricalCollaborationPrompt?: boolean;
 };
 
 /**
@@ -25,12 +26,13 @@ export function ContentPageShell({
   children,
   pageClassName = "",
   historicalCollaboration,
+  showHistoricalCollaborationPrompt = true,
 }: ContentPageShellProps) {
   return (
     <div className={["site-shell", "site-shell--content", pageClassName].filter(Boolean).join(" ")}>
       <SiteHeader variant="default" />
       <main id="conteudo-principal" tabIndex={-1}>
-        {historicalCollaboration ? (
+        {historicalCollaboration && showHistoricalCollaborationPrompt ? (
           <HistoricalCollaborationPrompt context={historicalCollaboration} />
         ) : null}
         {children}

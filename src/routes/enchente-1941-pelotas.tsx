@@ -4,7 +4,6 @@ import {
   Flood1941Hero,
   Flood1941HistoricalPage,
 } from "@/components/history/Flood1941HistoricalPage";
-import { FloodVisitorGuide } from "@/components/history/FloodVisitorGuide";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -47,9 +46,9 @@ function Enchente1941PelotasPage() {
     <ContentPageShell
       pageClassName="internal-weather-shell--flood-history"
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
+      showHistoricalCollaborationPrompt={false}
     >
       <Flood1941Hero />
-      <FloodVisitorGuide year="1941" />
       <Flood1941HistoricalPage />
     </ContentPageShell>
   );
