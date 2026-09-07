@@ -2,6 +2,7 @@ import type { WeatherData, WeatherIconName } from "@/production/lib/weather-data
 
 export type HeroPhotoKind =
   | "rain"
+  | "storm"
   | "fog"
   | "clear"
   | "clear-night"
@@ -19,6 +20,12 @@ export type HeroPhotoPresentation = {
 const heroPhotos = {
   rain: {
     kind: "rain",
+    src: "/weather/hero/pelotas-laranjal-chuva.webp",
+    position: "center 48%",
+    credit: "Acervo Tempo Pelotas",
+  },
+  storm: {
+    kind: "storm",
     src: "/weather/hero/pelotas-laranjal-chuva.webp",
     position: "center 48%",
     credit: "Acervo Tempo Pelotas",
@@ -79,8 +86,30 @@ const partlyCloudyMadrugadaAlternate = {
   credit: "Acervo Tempo Pelotas · Pelotas · madrugada",
 } as const;
 
+const cloudyMiddayAlternate = {
+  src: "/weather/hero/pelotas-meio-dia-nublado.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · meio-dia",
+} as const;
+
+const rainNightAlternate = {
+  src: "/weather/hero/pelotas-noite-chuva.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · noite",
+} as const;
+
+const stormNightAlternate = {
+  src: "/weather/hero/pelotas-noite-tempestade.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · noite",
+} as const;
+
 const PELOTAS_TIME_ZONE = "America/Sao_Paulo";
+const DAY_START_HOUR = 7;
+const NIGHT_START_HOUR = 19;
 const MADRUGADA_END_HOUR = 7;
+const MIDDAY_START_HOUR = 11;
+const MIDDAY_END_HOUR = 15;
 const FIM_DE_TARDE_START_HOUR = 16;
 const FIM_DE_TARDE_END_HOUR = 19;
 
@@ -125,6 +154,14 @@ function currentPelotasHour(weather: WeatherData) {
     localHourFromTimestamp(weather.current.updatedAt) ??
     localHourFromTimestamp(weather.current.source.observedAt)
   );
+}
+
+function isNightHour(hour: number | null) {
+  return hour !== null && (hour < DAY_START_HOUR || hour >= NIGHT_START_HOUR);
+}
+
+function isMiddayHour(hour: number | null) {
+  return hour !== null && hour >= MIDDAY_START_HOUR && hour < MIDDAY_END_HOUR;
 }
 
 function usesAlternateRotationSlot(weather: WeatherData) {
@@ -185,6 +222,30 @@ function partlyCloudyNightPhoto(weather: WeatherData) {
   return heroPhotos["partly-cloudy-dense"];
 }
 
+function rainPhoto(weather: WeatherData) {
+  if (!isNightHour(currentPelotasHour(weather))) return heroPhotos.rain;
+  return {
+    kind: "rain",
+    ...rainNightAlternate,
+  } satisfies HeroPhotoPresentation;
+}
+
+function stormPhoto(weather: WeatherData) {
+  if (!isNightHour(currentPelotasHour(weather))) return heroPhotos.storm;
+  return {
+    kind: "storm",
+    ...stormNightAlternate,
+  } satisfies HeroPhotoPresentation;
+}
+
+function cloudyPhoto(weather: WeatherData) {
+  if (!isMiddayHour(currentPelotasHour(weather))) return heroPhotos.cloudy;
+  return {
+    kind: "cloudy",
+    ...cloudyMiddayAlternate,
+  } satisfies HeroPhotoPresentation;
+}
+
 export function resolveHeroPhoto({
   weather,
   icon,
@@ -208,8 +269,12 @@ export function resolveHeroPhoto({
     return heroPhotos.fog;
   }
 
-  if (icon === "rain" || icon === "storm") {
-    return heroPhotos.rain;
+  if (icon === "rain") {
+    return rainPhoto(weather);
+  }
+
+  if (icon === "storm") {
+    return stormPhoto(weather);
   }
 
   const isClearNight =
@@ -237,5 +302,5 @@ export function resolveHeroPhoto({
     return partlyCloudyNightPhoto(weather);
   }
 
-  return heroPhotos.cloudy;
+  return cloudyPhoto(weather);
 }
