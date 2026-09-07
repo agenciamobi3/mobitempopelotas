@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   buildInmetForecastPushCopy,
   classifyInmetEmail,
+  isExpectedInmetRecipient,
   isPelotasInmetMessage,
   isTrustedInmetMessage,
 } from "@/lib/integrations/inmet-gmail";
@@ -48,6 +49,34 @@ test("INMET Gmail requires the message to target Pelotas", () => {
       "INMET - Previsão por E-mail",
       "Previsão meteorológica para Rio Grande - RS.",
     ),
+    false,
+  );
+});
+
+test("INMET Gmail requires the dedicated Tempo Pelotas recipient", () => {
+  const expectedRecipient = "tempo-pelotas@example.com";
+
+  assert.equal(
+    isExpectedInmetRecipient({
+      expectedRecipient,
+      recipientHeaders: ["Tempo Pelotas <tempo-pelotas@example.com>"],
+    }),
+    true,
+  );
+
+  assert.equal(
+    isExpectedInmetRecipient({
+      expectedRecipient,
+      recipientHeaders: ["pablo@example.com", "contato@example.com"],
+    }),
+    false,
+  );
+
+  assert.equal(
+    isExpectedInmetRecipient({
+      expectedRecipient: "",
+      recipientHeaders: ["tempo-pelotas@example.com"],
+    }),
     false,
   );
 });
@@ -151,6 +180,7 @@ test("INMET Gmail runtime uses the Lovable connector without custom Google crede
   assert.match(server, /\/users\/me\/messages/);
   assert.match(server, /MAX_MESSAGES_PER_RUN = 20/);
   assert.match(server, /FIXED_INMET_QUERY_PREFIX[\s\S]*Pelotas/);
+  assert.match(server, /to:\$\{expectedRecipient\}/);
   assert.match(server, /after:\$\{afterUnixSeconds\}/);
 
   assert.doesNotMatch(server, /gmail\.googleapis\.com|oauth2\.googleapis\.com/i);
@@ -165,6 +195,18 @@ test("INMET Gmail is fail-closed while Web Push remains suspended", () => {
   assert.match(server, /reason = "web-push-unavailable"/);
   assert.match(envExample, /^INMET_GMAIL_PUSH_ENABLED=false$/m);
   assert.match(docs, /Web Push público do Tempo Pelotas permanece suspenso/i);
+});
+
+test("INMET Gmail requires a dedicated recipient before check or delivery can scan Gmail", () => {
+  assert.match(server, /INMET_GMAIL_EXPECTED_RECIPIENT/);
+  assert.match(server, /recipientConfigured/);
+  assert.match(server, /recipientHeaderValues/);
+  assert.match(server, /isExpectedInmetRecipient/);
+  assert.match(server, /unexpectedRecipientIgnored/);
+  assert.match(server, /To", "Delivered-To", "X-Original-To", "Envelope-To"/);
+  assert.match(envExample, /^INMET_GMAIL_EXPECTED_RECIPIENT=$/m);
+  assert.match(docs, /destinatário exclusivo/i);
+  assert.match(docs, /não deve ser o e-mail pessoal/i);
 });
 
 test("INMET Gmail check can inspect the real connector without attempting delivery", () => {
@@ -182,7 +224,7 @@ test("INMET Gmail check can inspect the real connector without attempting delive
   assert.match(route, /hasBearerSecret\(request, process\.env\.CRON_SECRET/);
 
   assert.match(docs, /inmet-gmail-check/i);
-  assert.match(docs, /não reserva.*dispatch|não.*claim_web_push_dispatch/is);
+  assert.match(docs, /não chama `claim_web_push_dispatch`/i);
 });
 
 test("INMET Gmail coalesces candidates and deduplicates by public update content", () => {
@@ -210,6 +252,7 @@ test("INMET Gmail polling stays server-only, protected, deterministic and on dai
   assert.match(server, /claimPushDispatch/);
   assert.match(server, /fetchInmetForecast/);
   assert.match(server, /isTrustedInmetMessage/);
+  assert.match(server, /isExpectedInmetRecipient/);
   assert.match(server, /isPelotasInmetMessage/);
   assert.doesNotMatch(server, /gemini|openai|generateWeatherAiSnapshot|GEMINI_API_KEY/i);
 
