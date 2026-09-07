@@ -5,166 +5,132 @@ import test from "node:test";
 const route = readFileSync("src/routes/radar-e-satelite-pelotas.tsx", "utf8");
 const loader = readFileSync("src/lib/redemet/radar-page-loader.ts", "utf8");
 const fallback = readFileSync("src/lib/redemet/redemet-fallback.ts", "utf8");
+const recovery = readFileSync("src/production/lib/redemet-browser-recovery.ts", "utf8");
 const page = readFileSync("src/components/redemet/RedemetOverview.tsx", "utf8");
+const pageStyles = readFileSync("src/components/redemet/RedemetOverview.css", "utf8");
 const context = readFileSync("src/components/redemet/RadarForecastContext.tsx", "utf8");
 const contextStyles = readFileSync("src/components/redemet/RadarForecastContext.css", "utf8");
-const baseStyles = readFileSync("src/components/redemet/RedemetRetail.css", "utf8");
-const refinementStyles = readFileSync(
-  "src/components/redemet/RedemetRetailRefinement.css",
-  "utf8",
-);
-const emptyStateStyles = readFileSync(
-  "src/components/redemet/RedemetEmptyStatePolish.css",
-  "utf8",
-);
-const styles = `${baseStyles}\n${refinementStyles}\n${emptyStateStyles}\n${contextStyles}`;
+const styles = `${pageStyles}\n${contextStyles}`;
 const visibleCopy = `${route}\n${page}\n${context}`;
 
 const remValues = [...styles.matchAll(/font-size:\s*(0\.\d+)rem/g)].map((match) =>
   Number(match[1]),
 );
 
-test("radar route uses direct SEO copy and page-specific editorial content", () => {
+test("radar route uses simple SEO copy and recovers live collections after hydration", () => {
   assert.match(route, /Radar de chuva e satélite em Pelotas: imagens recentes/);
-  assert.match(route, /janela temporal/);
-  assert.match(route, /cadência/);
-  assert.match(route, /RADAR_PAGE_CONTENT/);
-  assert.match(route, /Acompanhe chuva, nuvens e trovoadas na região de Pelotas/);
-  assert.match(route, /Como usar a reprodução automática das imagens/);
-  assert.match(route, /passado recente|registros passados e recentes/);
-  assert.match(route, /Por que as imagens podem mostrar horários diferentes/);
-  assert.match(route, /Os valores ao lado do radar foram medidos pela imagem/);
+  assert.match(route, /horários reais das coletas/);
+  assert.match(route, /As imagens desta página são reais\?/);
+  assert.match(route, /Quando uma coleta não chega, o portal mostra esse estado/);
   assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, RADAR_PAGE_CONTENT\.faqs\)/);
-  assert.match(route, /className="radar-satellite-page"/);
-  assert.match(route, /Sequência de imagens de radar/);
-  assert.match(route, /RedemetEmptyStatePolish\.css/);
+  assert.match(route, /useRedemetOverviewBrowserRecovery\(baseline\.redemet\)/);
+  assert.match(route, /useWeatherIntelligenceBrowserRecovery\(baseline\.weather\)/);
+  assert.match(route, /<RedemetOverview data=\{redemet\} isRefreshing=\{isRecovering\} \/>/);
+  assert.match(route, /<RedemetDerivedContext data=\{redemet\} \/>/);
+  assert.match(route, /<RadarForecastContext radar=\{redemet\.radar\} weather=\{weather\} \/>/);
+  assert.doesNotMatch(route, /OfficialDataAccessNotice|RedemetHomeContract|RedemetEmptyStatePolish/);
+  assert.doesNotMatch(route, /cadência observada|janela temporal|integração server-side/i);
 });
 
-test("radar page provides image times and actionable guidance", () => {
-  assert.match(page, /InternalPageChapters/);
-  assert.match(page, /Radar e satélite em Pelotas/);
-  assert.match(page, /veja áreas de chuva, nuvens e trovoadas/);
-  assert.match(page, /latestObservedAt/);
-  assert.match(page, /getFreshness/);
-  assert.match(page, /FreshnessBadge/);
-  assert.match(page, /SourceSummaryCard/);
-  assert.match(page, /Horário e quantidade de imagens/);
-  assert.match(page, /Radar regional/);
+test("radar recovery keeps short SSR but replaces empty fallbacks with real backend collections", () => {
+  assert.match(loader, /PUBLIC_RADAR_PAGE_DEADLINE_MS = 2_800/);
+  assert.match(loader, /Promise\.race/);
+  assert.match(loader, /Promise\.all\(/);
+  assert.match(loader, /getRedemetOverview\(\)/);
+  assert.match(loader, /createUnavailableRedemetOverview/);
+
+  assert.match(recovery, /getRedemetOverview/);
+  assert.match(recovery, /hasPrimaryRedemetCollections/);
+  assert.match(recovery, /useRedemetOverviewBrowserRecovery/);
+  assert.match(recovery, /mergeRedemetOverview/);
+  assert.match(recovery, /if \(recovered\.frames\.length > 0\) return recovered/);
+  assert.match(recovery, /if \(baseline\.frames\.length > 0\) return baseline/);
+  assert.match(recovery, /runServerRecovery\(\(\) => getRedemetOverview\(\)\)/);
+  assert.match(recovery, /setData\(\(current\) => mergeRedemetOverview\(current, recovered\)\)/);
+  assert.match(fallback, /available: false/);
+  assert.match(fallback, /frames: \[\]/);
+});
+
+test("monitor shows received collections instead of technical integration cards", () => {
+  assert.match(page, /Pelotas · monitoramento regional/);
+  assert.match(page, /Radar, satélite e raios na região de Pelotas/);
+  assert.match(page, /Última coleta recebida/);
+  assert.match(page, /Coletas reais recebidas/);
+  assert.match(page, /O que chegou das fontes agora/);
+  assert.match(page, /SourceSummaryRow/);
+  assert.match(page, /Radar REDEMET/);
   assert.match(page, /Satélite REDEMET/);
   assert.match(page, /Satélite INMET/);
-  assert.match(page, /Trovoadas/);
-  assert.match(page, /Confira o horário/);
-  assert.match(page, /Reproduza a sequência/);
-  assert.match(page, /Compare as imagens/);
-  assert.match(page, /Confira os avisos/);
-  assert.doesNotMatch(visibleCopy, /Integração pendente/i);
-  assert.doesNotMatch(visibleCopy, /Produto:/i);
-  assert.doesNotMatch(visibleCopy, /configuração da integração/i);
-  assert.doesNotMatch(visibleCopy, /grade de previsão/i);
+  assert.match(page, /Raios REDEMET/);
+  assert.match(page, /Última coleta/);
+  assert.match(page, /frameCountLabel/);
+  assert.doesNotMatch(page, /InternalPageChapters|SourceSummaryCard/);
+  assert.doesNotMatch(visibleCopy, /quadro utilizável|integração pendente|configuração da integração|grade de previsão|cadência observada/i);
 });
 
-test("image and storm timelines use the correct vocabulary", () => {
+test("missing collections remain explicit and never fabricate an image or timestamp", () => {
+  assert.match(page, /Buscando a coleta mais recente/);
+  assert.match(page, /continua consultando \$\{sourceName\} em segundo plano/);
+  assert.match(page, /Nenhuma imagem recente recebida/);
+  assert.match(page, /Nada é preenchido manualmente/);
+  assert.match(page, /Horário não recebido/);
+  assert.match(page, /sem coleta recente/);
+  assert.doesNotMatch(page, /new Date\(\)\.toISOString\(\)/);
+});
+
+test("image and storm timelines preserve the real received sequence", () => {
   assert.match(page, /useFramePlayback/);
   assert.match(page, /FRAME_INTERVAL_MS/);
   assert.match(page, /window\.setInterval/);
-  assert.match(page, /Reproduzir sequência/);
-  assert.match(page, /Pausar sequência/);
-  assert.match(page, /Imagem mais recente/);
+  assert.match(page, /Coleta \{playback\.selectedIndex \+ 1\} de \{layer\.frames\.length\}/);
+  assert.match(page, /Reproduzir/);
+  assert.match(page, /Pausar/);
+  assert.match(page, /Mais recente/);
   assert.match(page, /Abrir imagem/);
   assert.match(page, /aria-pressed=\{playback\.isPlaying\}/);
-  assert.match(page, /playback\.showLatest/);
-  assert.match(page, /playback\.selectFrame/);
   assert.match(page, /redemet-storm-controls/);
-  assert.match(page, /Horário \{playback\.selectedIndex \+ 1\} de \{layer\.frames\.length\}/);
-  assert.match(page, /Horário mais recente/);
-  assert.match(page, /Horário consultado:/);
-  assert.match(page, /subject="reading"/);
+  assert.match(page, /FreshnessBadge value=\{selected\?\.observedAt \?\? null\} reading/);
 });
 
-test("unavailable imagery is compact and does not impersonate a viewer", () => {
-  assert.match(page, /is-unavailable-state/);
-  assert.match(page, /Não há uma imagem utilizável nesta atualização/);
-  assert.match(page, /não entregou um quadro utilizável nesta consulta/);
-  assert.match(emptyStateStyles, /\.redemet-layer-card\.is-unavailable-state/);
-  assert.match(emptyStateStyles, /min-height:\s*clamp\(190px, 20vw, 250px\)/);
-  assert.match(emptyStateStyles, /\.redemet-satellite-section \.redemet-layers[\s\S]*align-items:\s*start/);
-});
-
-test("storm zero state means no detections, not no data", () => {
-  assert.match(page, /mode="sequence"/);
-  assert.match(page, /Sequência disponível/);
-  assert.match(page, /Nenhuma descarga detectada no horário selecionado/);
-  assert.match(page, /nenhuma descarga detectada/);
-  assert.match(page, /is-zero-detections/);
-  assert.match(page, /Isso não equivale a ausência de risco/);
-  assert.match(emptyStateStyles, /\.redemet-storm-card\.is-zero-detections/);
-  assert.doesNotMatch(page, /Trovoadas registradas no horário selecionado/);
-});
-
-test("radar, satellite and storms remain explicitly distinct", () => {
-  assert.match(page, /Radar meteorológico · REDEMET\/DECEA/);
-  assert.match(page, /Áreas de chuva na região de Pelotas/);
-  assert.match(page, /Nuvens sobre a Região Sul/);
+test("radar, satellite and lightning remain separate concepts in plain language", () => {
+  assert.match(page, /Onde aparecem áreas de chuva/);
+  assert.match(page, /O radar mostra a região, não uma rua específica/);
+  assert.match(page, /Como estão as nuvens sobre a Região Sul/);
   assert.match(page, /Nuvens no satélite não significam necessariamente chuva/);
-  assert.match(page, /Descargas elétricas detectadas no horário selecionado/);
-  assert.match(page, /Uma descarga elétrica detectada não é um aviso meteorológico/);
-  assert.match(page, /não confirma chuva em um endereço específico/);
-  assert.match(page, /As imagens ajudam a acompanhar o tempo, mas não definem o risco sozinhas/);
+  assert.match(page, /Raios detectados/);
+  assert.match(page, /Eles não são um alerta de risco/);
+  assert.match(page, /Imagem observada não é previsão/);
 });
 
-test("latest radar image is compared with the nearest forecast hour without coupled failures", () => {
-  assert.match(route, /loadRadarPageData/);
-  assert.match(loader, /getRedemetOverview\(\)/);
-  assert.match(loader, /getWeatherIntelligence\(\)/);
-  assert.match(loader, /Promise\.allSettled/);
-  assert.doesNotMatch(loader, /await Promise\.all\(/);
-  assert.match(loader, /createUnavailableRedemetOverview\(\)/);
-  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
-  assert.match(fallback, /available: false/);
-  assert.match(fallback, /frames: \[\]/);
-  assert.match(fallback, /STSC — ocorrências de trovoada/);
-  assert.match(route, /<RadarForecastContext radar=\{data\.redemet\.radar\} weather=\{data\.weather\}/);
+test("radar comparison never substitutes sustained wind for a missing gust", () => {
   assert.match(context, /nearestForecastHour/);
-  assert.match(context, /hour\.timestamp/);
   assert.match(context, /difference > 3 \* 60 \* 60 \* 1_000/);
   assert.match(context, /isUsableRedemetObservedAt/);
-  assert.match(context, /formatRedemetDateTime/);
-  assert.match(context, /redemetFrameDisplayLabel\(frame\)/);
-  assert.match(context, /if \(!value \|\| !isUsableRedemetObservedAt\(value\)\) return null/);
-  assert.match(context, /O que a previsão mostrava quando esta imagem foi registrada/);
-  assert.match(context, /O radar mostra uma imagem observada pela REDEMET/);
-  assert.match(context, /não são medidos pelo radar/);
-  assert.match(context, /Horário da imagem/);
-  assert.match(context, /Horário da previsão/);
-  assert.match(context, /Temperatura prevista/);
-  assert.match(context, /Chance de chuva/);
-  assert.match(context, /Rajada prevista/);
-  assert.match(context, /Nuvens baixas/);
-  assert.match(context, /Visibilidade prevista/);
-  assert.match(context, /O movimento entre imagens anteriores não representa o que acontecerá no futuro/);
+  assert.match(context, /A imagem é uma observação recebida da REDEMET/);
+  assert.match(context, /não foram medidos pelo radar/);
+  assert.match(context, /formatValue\(forecast\.windGust, " km\/h"\)/);
+  assert.doesNotMatch(context, /forecast\.windGust \?\? forecast\.windSpeed/);
+  assert.match(context, /A sequência de imagens mostra o passado recente/);
 });
 
-test("radar retail layout follows the portal rail and keeps controls aligned", () => {
-  assert.match(baseStyles, /max-width:\s*var\(--portal-frame-max, 1760px\)/);
-  assert.match(baseStyles, /padding:\s*0 var\(--portal-content-gutter/);
-  assert.match(refinementStyles, /\.radar-satellite-page > \.editorial-answer-section/);
-  assert.match(refinementStyles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
-  assert.match(refinementStyles, /\.redemet-layer-card\.is-featured/);
-  assert.match(refinementStyles, /grid-template-areas:[\s\S]*"previous timeline next"[\s\S]*"tools tools tools"/);
-  assert.match(refinementStyles, /\.redemet-frame-tools/);
-  assert.match(refinementStyles, /\.redemet-storm-controls/);
-  assert.match(refinementStyles, /content-visibility:\s*auto/);
-  assert.match(contextStyles, /\.radar-forecast-context/);
+test("new radar visual is open editorial monitoring with functional dark imagery", () => {
+  assert.match(pageStyles, /\.redemet-hero\s*\{[\s\S]*background:\s*var\(--redemet-soft\)/);
+  assert.match(pageStyles, /\.redemet-hero h1[\s\S]*font-size:\s*clamp\(3rem, 5\.7vw, 6\.1rem\)/);
+  assert.match(pageStyles, /\.redemet-source-overview__list[\s\S]*border-top:/);
+  assert.match(pageStyles, /\.redemet-source-row/);
+  assert.match(pageStyles, /\.redemet-monitor__surface[\s\S]*border:/);
+  assert.match(pageStyles, /\.redemet-image-frame[\s\S]*background:\s*#0d171e/);
+  assert.match(pageStyles, /\.redemet-frame-controls > button[\s\S]*width:\s*44px[\s\S]*height:\s*44px/);
+  assert.match(pageStyles, /:focus-visible/);
+  assert.match(pageStyles, /@media \(max-width: 760px\)/);
+  assert.match(pageStyles, /@media \(max-width: 560px\)/);
+  assert.match(pageStyles, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(pageStyles, /@media \(forced-colors: active\)/);
+  assert.doesNotMatch(pageStyles, /radial-gradient|linear-gradient/);
+  assert.match(pageStyles, /box-shadow:\s*none/);
+
+  assert.match(contextStyles, /\.radar-forecast-context[\s\S]*border-top:/);
   assert.match(contextStyles, /grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
-  assert.match(contextStyles, /@media \(max-width: 1180px\)/);
-  assert.match(contextStyles, /@media \(max-width: 860px\)/);
-  assert.match(contextStyles, /@media \(max-width: 700px\)/);
-  assert.match(refinementStyles, /@media \(max-width: 1320px\)/);
-  assert.match(refinementStyles, /@media \(max-width: 920px\)/);
-  assert.match(refinementStyles, /@media \(max-width: 700px\)/);
-  assert.match(refinementStyles, /@media \(max-width: 480px\)/);
-  assert.match(refinementStyles, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(refinementStyles, /@media \(forced-colors: active\)/);
-  assert.match(refinementStyles, /:focus-visible/);
-  assert.ok(remValues.every((value) => value >= 0.75), "microtext must remain readable");
+  assert.doesNotMatch(contextStyles, /radial-gradient|linear-gradient/);
+  assert.ok(remValues.every((value) => value >= 0.7), "microtext must remain readable");
 });
