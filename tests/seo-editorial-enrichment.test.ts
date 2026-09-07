@@ -90,12 +90,13 @@ test("chuva conecta medição e previsão sem criar uma segunda camada explicado
   assert.match(rain, /RAIN_CITATIONS/);
   assert.doesNotMatch(rain, /EditorialContentSection|createFaqPageJsonLd|RAIN_PAGE_CONTENT/);
   assert.match(rainAccumulation, /Chuva medida e prevista/);
-  assert.match(rainAccumulation, /Não some os dois valores/);
+  assert.match(rainAccumulation, /Medido e previsto não são somados/);
   assert.match(rainPage, /Chance de chuva nas próximas 12 horas/);
   assert.match(rainPage, /Chuva nos próximos 7 dias/);
   assert.match(rainPage, /INMET para Pelotas/);
   assert.match(rainPage, /to="\/radar-e-satelite-pelotas"/);
   assert.match(rainPage, /to="\/vento-em-pelotas"/);
+  assert.doesNotMatch(rainPage, /planejamento-da-chuva|Menor e maior chance/);
 });
 
 test("vento cobre intenção de hoje e mantém observação separada de previsão", () => {
