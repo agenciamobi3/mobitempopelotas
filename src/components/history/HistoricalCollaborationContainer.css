@@ -1,0 +1,31 @@
+/*
+ * Alinha a colaboração histórica ao mesmo container público usado pelo portal.
+ * O conteúdo interno continua responsável pelo próprio grid; aqui cuidamos só
+ * do eixo horizontal compartilhado entre páginas históricas e demais seções.
+ */
+
+.tp-history-collab-prompt,
+.tp-history-collab {
+  width: min(
+    var(--tp-home-container-max, 1440px),
+    calc(100% - var(--tp-home-container-gutter, 48px))
+  );
+  box-sizing: border-box;
+}
+
+@media (max-width: 1240px) {
+  .tp-history-collab-prompt,
+  .tp-history-collab {
+    width: min(
+      calc(100% - var(--tp-home-container-compact-gutter, 32px)),
+      var(--tp-home-container-compact-max, 1180px)
+    );
+  }
+}
+
+@media (max-width: 780px) {
+  .tp-history-collab-prompt,
+  .tp-history-collab {
+    width: calc(100% - var(--tp-home-container-mobile-gutter, 20px));
+  }
+}

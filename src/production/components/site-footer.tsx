@@ -2,6 +2,7 @@ import { Footer } from "@/components/layout/Footer";
 import type { WeatherData } from "@/production/lib/weather-data";
 
 import "./site-footer-home.css";
+import "./site-footer-viewport.css";
 
 type SiteFooterProps = {
   source?: WeatherData["source"];

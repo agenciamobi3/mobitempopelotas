@@ -5,6 +5,7 @@ import {
 } from "@/lib/history/historical-collaboration";
 
 import "./HistoricalCollaboration.css";
+import "./HistoricalCollaborationContainer.css";
 
 type HistoricalCollaborationProps = {
   context: HistoricalCollaborationContext;

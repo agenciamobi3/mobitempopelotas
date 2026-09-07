@@ -1,0 +1,37 @@
+/*
+ * O shell global do portal é limitado em telas largas. O footer, porém, é uma
+ * superfície de fechamento da página e deve alcançar a viewport inteira.
+ * Apenas o fundo é full-bleed; o conteúdo continua no container canônico.
+ */
+
+.tp-public-service-strip,
+.tp-home-footer-shell {
+  position: relative;
+  left: 50%;
+  width: 100vw;
+  max-width: none;
+  margin-left: -50vw;
+  box-sizing: border-box;
+}
+
+.tp-public-service-strip__inner {
+  width: min(
+    var(--tp-home-container-max, 1440px),
+    calc(100% - var(--tp-home-container-gutter, 48px))
+  );
+}
+
+@media (max-width: 1240px) {
+  .tp-public-service-strip__inner {
+    width: min(
+      calc(100% - var(--tp-home-container-compact-gutter, 32px)),
+      var(--tp-home-container-compact-max, 1180px)
+    );
+  }
+}
+
+@media (max-width: 720px) {
+  .tp-public-service-strip__inner {
+    width: calc(100% - var(--tp-home-container-mobile-gutter, 20px));
+  }
+}
