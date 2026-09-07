@@ -78,30 +78,31 @@ test("recent climate context uses the existing real history dataset", () => {
   assert.match(page, /atualizado em \{formatDateTime\(history\.source\.fetchedAt\)\}/);
 });
 
-test("climate layout follows the shared retail rail and responsive contract", () => {
+test("climate layout follows the clean editorial rail and responsive contract", () => {
   assert.match(styles, /internal-weather-shell--climate \.climate-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /\.climate-chapters\s*\{[\s\S]*?display:\s*none/);
   assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /\.climate-hero__content,[\s\S]*?\.climate-hero__panel[\s\S]*?border-radius:\s*0[\s\S]*?box-shadow:\s*none/);
   assert.match(styles, /content-visibility:\s*auto/);
-  assert.match(styles, /@media \(max-width: 1280px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /@media \(max-width: 1080px\)/);
+  assert.match(styles, /@media \(max-width: 820px\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
-  assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
+  assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
 });
 
-test("climate hero keeps a controlled seasonal accent over the editorial split", () => {
+test("climate hero keeps only restrained seasonal accents", () => {
   assert.match(route, /ClimatePelotasHomeContract\.css/);
-  assert.match(homeContract, /\.climate-hero__content::before/);
-  assert.match(homeContract, /\.climate-hero__panel::before/);
-  assert.match(homeContract, /radial-gradient[\s\S]*linear-gradient/);
+  assert.match(homeContract, /acento sazonal mínimo/i);
   assert.match(homeContract, /:has\(\.lucide-snowflake\)/);
   assert.match(homeContract, /:has\(\.lucide-sun\)/);
   assert.match(homeContract, /:has\(\.lucide-leaf\)/);
-  assert.match(homeContract, /\.climate-hero__recent[\s\S]*border-radius:\s*14px/);
+  assert.match(homeContract, /\.climate-season-grid article\.is-current/);
+  assert.match(homeContract, /\.climate-hero__recent[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(homeContract, /!important/);
 });
 
