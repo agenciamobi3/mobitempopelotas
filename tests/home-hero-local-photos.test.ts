@@ -7,6 +7,9 @@ const RESOLVER_PATH = new URL("../src/production/lib/hero-photo-presentation.ts"
 
 const expectedAssets = [
   "/weather/hero/pelotas-laranjal-chuva.webp",
+  "/weather/hero/pelotas-noite-chuva.png",
+  "/weather/hero/pelotas-noite-tempestade.png",
+  "/weather/hero/pelotas-meio-dia-nublado.png",
   "/weather/hero/pelotas-nevoeiro-centro.webp",
   "/weather/hero/pelotas-laranjal-ceu-aberto.webp",
   "/weather/hero/pelotas-laranjal-ceu-aberto-noite.webp",
@@ -37,6 +40,9 @@ test("o hero estático usa somente o acervo local de Pelotas", async () => {
   assert.match(resolver, /if \(icon === "sun"\) \{\s*return heroPhotos\.clear;/);
   assert.match(resolver, /cloudCover >= 50/);
   assert.match(resolver, /MADRUGADA_END_HOUR = 7/);
+  assert.match(resolver, /MIDDAY_START_HOUR = 11/);
+  assert.match(resolver, /MIDDAY_END_HOUR = 15/);
+  assert.match(resolver, /NIGHT_START_HOUR = 19/);
   assert.match(resolver, /FIM_DE_TARDE_START_HOUR = 16/);
   assert.match(resolver, /FIM_DE_TARDE_END_HOUR = 19/);
   assert.match(resolver, /cloudCover < 50/);
