@@ -16,9 +16,9 @@ export type Flood2001TimelineItem = {
 
 export const FLOOD_2001_KEY_FACTS = [
   {
-    label: "Evento documentado",
+    label: "Data do evento",
     value: "08/10/2001",
-    detail: "madrugada do episódio classificado como ciclone extratropical pela reportagem contemporânea",
+    detail: "madrugada do episódio classificado como ciclone extratropical pela reportagem publicada no dia seguinte",
   },
   {
     label: "Vento em Pelotas",
@@ -26,14 +26,14 @@ export const FLOOD_2001_KEY_FACTS = [
     detail: "valor publicado pela Folha de S.Paulo em 09/10/2001",
   },
   {
-    label: "Avanço no Laranjal",
+    label: "Água no Laranjal",
     value: "~600 m",
-    detail: "seis quadras para dentro da área urbana, segundo a reportagem contemporânea",
+    detail: "seis quadras para dentro da área urbana, segundo a reportagem publicada na época",
   },
   {
     label: "Colônia Z3",
     value: "~3.000 isolados",
-    detail: "estimativa publicada durante o evento; não equivale a número de desabrigados",
+    detail: "estimativa publicada durante o evento; não equivale ao número de desabrigados",
   },
 ] as const;
 
@@ -46,7 +46,7 @@ export const FLOOD_2001_TIMELINE: Flood2001TimelineItem[] = [
       "A Folha de S.Paulo publicou no dia seguinte, atribuindo a classificação a meteorologistas, que um ciclone extratropical atingiu o Rio Grande do Sul durante a madrugada de 8 de outubro.",
       "Em Pelotas, a reportagem registrou vento de 105 km/h. Na Lagoa dos Patos, as ondas chegavam a aproximadamente um metro durante o episódio.",
       "No Laranjal, as águas avançaram seis quadras, cerca de 600 metros, para dentro da área urbana. Na Colônia de Pescadores Z3, aproximadamente 3 mil pessoas ficaram isoladas.",
-      "Os arquivos Hidro exportados para a estação Laranjal 87955000 preservam duas camadas para 08/10/2001. Na série bruta, as leituras são 300 cm às 07h e 280 cm às 17h, com média diária de 290 cm. Na série consistida, a média diária do mesmo dia é 190 cm e o status do valor é 2, Estimado. O Tempo Pelotas mantém as duas versões explícitas em vez de escolher silenciosamente uma delas.",
+      "Os arquivos da estação Laranjal 87955000 guardam duas versões para 08/10/2001. A série bruta registra média diária de 2,90 m. A série consistida registra 1,90 m e marca esse valor como estimado. O Tempo Pelotas mantém as duas versões visíveis em vez de escolher uma delas silenciosamente.",
     ],
     highlight: "105 km/h em Pelotas · avanço de aproximadamente 600 m no Laranjal · régua 87955000: 2,90 m bruto e 1,90 m consistido/estimado · cerca de 3 mil isolados na Z3",
   },
