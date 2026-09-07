@@ -1,0 +1,134 @@
+/*
+ * Compatibilidade final do contexto oficial de chuva.
+ *
+ * RainPageRefinement nasceu com esta seção escura. O contrato editorial
+ * transversal atual normaliza superfícies internas para fundo claro, então os
+ * antigos textos brancos ficavam invisíveis. Esta camada assume explicitamente
+ * a superfície clara e mantém os estados do INMET legíveis em qualquer ordem
+ * de carregamento dos chunks lazy.
+ */
+.internal-weather-shell--rain .rain-page__official {
+  color: #071e2f !important;
+  border: 1px solid rgb(7 30 47 / 8%) !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+}
+
+.internal-weather-shell--rain .rain-page__official .rain-page__section-heading span {
+  color: #168fa3 !important;
+}
+
+.internal-weather-shell--rain .rain-page__official .rain-page__section-heading h2 {
+  color: #071e2f !important;
+}
+
+.internal-weather-shell--rain .rain-page__official .rain-page__section-heading > a {
+  color: #5e2ced !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article {
+  border-color: rgb(7 30 47 / 8%) !important;
+  background: #fbfcfc !important;
+  color: #071e2f !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article.has-alert {
+  border-color: rgb(242 112 53 / 24%) !important;
+  background: #fff8f4 !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article.is-partial {
+  border-style: dashed !important;
+  border-color: rgb(94 44 237 / 18%) !important;
+  background: #faf9ff !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article > div,
+.internal-weather-shell--rain .rain-page__official-grid article > div span {
+  color: #607984 !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article > div svg {
+  color: #168fa3 !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article.has-alert > div svg {
+  color: #d75a2b !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article > strong {
+  color: #071e2f !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-grid article > p {
+  color: #5d737e !important;
+}
+
+.internal-weather-shell--rain .rain-page__official-state {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem 1rem;
+  min-height: 6.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed rgb(94 44 237 / 18%);
+  border-radius: 1rem;
+  background: #faf9ff;
+  color: #526b76;
+}
+
+.internal-weather-shell--rain .rain-page__official-state > svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: #5e2ced;
+}
+
+.internal-weather-shell--rain .rain-page__official-state > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.internal-weather-shell--rain .rain-page__official-state strong {
+  color: #071e2f;
+  font-size: 1rem;
+}
+
+.internal-weather-shell--rain .rain-page__official-state p {
+  max-width: 70ch;
+  margin: 0;
+  color: #607984;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.internal-weather-shell--rain .rain-page__official-state > a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: #5e2ced;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .internal-weather-shell--rain .rain-page__official-state {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--rain .rain-page__official-state > a {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--rain .rain-page__official,
+  .internal-weather-shell--rain .rain-page__official-grid article,
+  .internal-weather-shell--rain .rain-page__official-state {
+    border: 1px solid CanvasText !important;
+    background: Canvas !important;
+    color: CanvasText !important;
+  }
+}

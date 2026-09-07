@@ -17,6 +17,8 @@ import type { DailyForecast } from "@/lib/weather/types";
 import { WeatherIcon } from "@/production/components/weather-icon";
 import { useOpenMeteoIntelligenceRecovery } from "@/production/lib/open-meteo-browser-recovery";
 
+import "./RainOfficialEditorial.css";
+
 function formatFetchedAt(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "horário não informado";
@@ -38,12 +40,10 @@ function formatMillimeters(value: number) {
 }
 
 function activeAlertLabel(count: number) {
-  if (count === 0) return "Nenhum aviso ativo";
   return count === 1 ? "1 aviso ativo" : `${count} avisos ativos`;
 }
 
 function officialPeriodLabel(count: number) {
-  if (count === 0) return "Sem chuva mencionada";
   return count === 1 ? "1 período com chuva" : `${count} períodos com chuva`;
 }
 
@@ -112,6 +112,20 @@ export function RainForecastPageV2({
   const officialPeriods = weather.inmetForecast
     .filter((period) => /chuva|pancada|tempestade|granizo|precipita/i.test(period.summary))
     .slice(0, 4);
+  const inmetStatus = weather.sources.inmet.status;
+  const hasOfficialContent = activeRainAlerts.length > 0 || officialPeriods.length > 0;
+  const showInmetState =
+    inmetStatus === "unavailable" || (inmetStatus !== "live" && !hasOfficialContent);
+  const activeAlertsReading = activeRainAlerts.length
+    ? activeAlertLabel(activeRainAlerts.length)
+    : inmetStatus === "live"
+      ? "Nenhum aviso ativo"
+      : "Consulta parcial";
+  const officialForecastReading = officialPeriods.length
+    ? officialPeriodLabel(officialPeriods.length)
+    : inmetStatus === "live"
+      ? "Sem chuva mencionada"
+      : "Consulta parcial";
 
   return (
     <div className="rain-page">
@@ -220,21 +234,48 @@ export function RainForecastPageV2({
           <Link to="/alertas">Ver avisos oficiais</Link>
         </header>
 
-        <div className="rain-page__official-grid">
-          <article className={activeRainAlerts.length ? "has-alert" : "is-stable"}>
+        {showInmetState ? (
+          <div className="rain-page__official-state" role="status">
+            <RefreshCw aria-hidden="true" />
             <div>
-              {activeRainAlerts.length ? <ShieldAlert aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
-              <span>Avisos de chuva e tempestade</span>
+              <strong>
+                {inmetStatus === "unavailable"
+                  ? "INMET temporariamente indisponível"
+                  : "Consulta do INMET em atualização"}
+              </strong>
+              <p>
+                {inmetStatus === "unavailable"
+                  ? "A consulta oficial não respondeu nesta atualização. A previsão meteorológica do portal continua disponível acima de forma independente."
+                  : "Nenhum dado oficial suficiente foi recebido neste ciclo para afirmar ausência de chuva ou de avisos."}
+              </p>
             </div>
-            <strong>{activeAlertLabel(activeRainAlerts.length)}</strong>
-            {activeRainAlerts.length ? <p>{activeRainAlerts[0]?.headline || activeRainAlerts[0]?.event}</p> : null}
-          </article>
-          <article>
-            <div><Info aria-hidden="true" /><span>Previsão do INMET</span></div>
-            <strong>{officialPeriodLabel(officialPeriods.length)}</strong>
-            {officialPeriods[0]?.summary ? <p>{officialPeriods[0].summary}</p> : null}
-          </article>
-        </div>
+            <Link to="/alertas">Abrir avisos oficiais</Link>
+          </div>
+        ) : (
+          <div className="rain-page__official-grid">
+            <article
+              className={
+                activeRainAlerts.length
+                  ? "has-alert"
+                  : inmetStatus === "live"
+                    ? "is-stable"
+                    : "is-partial"
+              }
+            >
+              <div>
+                {activeRainAlerts.length ? <ShieldAlert aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+                <span>Avisos de chuva e tempestade</span>
+              </div>
+              <strong>{activeAlertsReading}</strong>
+              {activeRainAlerts.length ? <p>{activeRainAlerts[0]?.headline || activeRainAlerts[0]?.event}</p> : null}
+            </article>
+            <article className={inmetStatus === "live" ? "" : "is-partial"}>
+              <div><Info aria-hidden="true" /><span>Previsão do INMET</span></div>
+              <strong>{officialForecastReading}</strong>
+              {officialPeriods[0]?.summary ? <p>{officialPeriods[0].summary}</p> : null}
+            </article>
+          </div>
+        )}
       </section>
 
       <footer className="rain-page__footer">
