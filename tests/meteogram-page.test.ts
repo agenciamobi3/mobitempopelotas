@@ -9,6 +9,8 @@ const page = readFileSync("src/components/weather/MeteogramPage.tsx", "utf8");
 const styles = readFileSync("src/components/weather/MeteogramPage.css", "utf8");
 const refinement = readFileSync("src/components/weather/MeteogramRefinement.css", "utf8");
 const homeContract = readFileSync("src/components/weather/MeteogramHomeContract.css", "utf8");
+const simagro = readFileSync("src/components/weather/SimagroModelProducts.tsx", "utf8");
+const simagroStyles = readFileSync("src/components/weather/SimagroModelProducts.css", "utf8");
 const functionSource = readFileSync("src/lib/weather/meteogram.functions.ts", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const todayAtmosphere = readFileSync("src/components/weather/TodayAtmosphericSignals.tsx", "utf8");
@@ -108,20 +110,21 @@ test("meteogram normalizer preserves hourly volume and atmospheric variables", a
   }
 });
 
-test("meteogram route exposes SEO, FAQ and separate forecast loading", () => {
+test("meteogram route keeps SEO and separate forecast loading without a duplicate editorial layer", () => {
   assert.match(route, /createFileRoute\("\/meteograma-pelotas"\)/);
   assert.match(route, /MeteogramRefinement\.css/);
   assert.match(route, /MeteogramHomeContract\.css/);
-  assert.ok(route.indexOf("MeteogramHomeContract.css") > route.indexOf("MeteogramRefinement.css"));
+  assert.ok(route.indexOf("MeteogramRefinement.css") > route.indexOf("MeteogramHomeContract.css"));
+  assert.ok(route.indexOf("MeteogramRefinement.css") > route.indexOf("MeteogramStateContract.css"));
   assert.match(route, /getWeatherIntelligence\(\)/);
   assert.match(route, /getPelotasMeteogram\(\)/);
   assert.match(route, /Promise\.all/);
-  assert.match(route, /Previsão hora a hora em Pelotas/);
-  assert.match(route, /temperatura, chuva, nuvens, visibilidade, pressão, vento, rajadas e possibilidade de tempestade/i);
-  assert.match(route, /createFaqPageJsonLd\(PAGE_PATH, METEOGRAM_CONTENT\.faqs\)/);
+  assert.match(route, /Meteograma de Pelotas: previsão hora a hora por 48h/);
+  assert.match(route, /temperatura, chuva, nuvens, visibilidade, pressão, vento e rajadas hora a hora/i);
+  assert.match(route, /createEditorialPageJsonLd/);
+  assert.match(route, /about:\s*\[/);
   assert.match(route, /showOfficialAlerts=\{false\}/);
-  assert.match(route, /Os gráficos mostram medições ou previsão/);
-  assert.match(route, /O que é o índice CAPE/);
+  assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|METEOGRAM_CONTENT|como-interpretar-meteograma/);
 });
 
 test("meteogram page provides coordinated controls and practical readings", () => {
@@ -199,32 +202,41 @@ test("meteogram keeps atmospheric forecast separate from observation and hydrolo
   assert.doesNotMatch(`${route}\n${page}`, /SACE|Guaíba|Lagoa dos Patos|nível da água/i);
 });
 
-test("meteogram layout protects retail rail, scrolling charts and responsive states", () => {
+test("meteogram visual refinement removes the old megacard chrome without flattening charts", () => {
   assert.match(styles, /internal-weather-shell--meteogram \.meteogram-hero/);
-  assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
   assert.match(styles, /overflow-x: auto/);
   assert.match(styles, /min-width: 920px/);
-  assert.match(styles, /@media \(max-width: 1280px\)/);
-  assert.match(styles, /@media \(max-width: 920px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
-  assert.match(refinement, /font-size:\s*0\.75rem/);
+
+  assert.match(refinement, /\.meteogram-hero__content,[\s\S]*\.meteogram-hero__panel[\s\S]*box-shadow:\s*none/);
+  assert.match(refinement, /\.meteogram-page \.eyebrow/);
+  assert.match(refinement, /\.meteogram-chapters span/);
+  assert.match(refinement, /\.meteogram-overview,[\s\S]*\.meteogram-chart-card,[\s\S]*box-shadow:\s*none/);
+  assert.match(refinement, /\.meteogram-timeline button\.is-selected[\s\S]*background:\s*#f7f4ff/);
   assert.match(refinement, /grid-auto-flow:\s*column/);
   assert.match(refinement, /grid-template-columns:\s*none/);
-  assert.match(refinement, /grid-auto-columns:\s*minmax\(32px, 1fr\)/);
+  assert.doesNotMatch(refinement, /radial-gradient/);
 });
 
-test("meteogram hero uses color as a technical reading aid, not promotional chrome", () => {
+test("meteogram SIMAGRO block stays complementary and uses direct copy", () => {
+  assert.match(simagro, /Meteogramas WRF e GFS do SIMAGRO RS/);
+  assert.match(simagro, /Gráficos oficiais de modelagem para Pelotas/);
+  assert.match(simagro, /Imagem oficial do SIMAGRO RS/);
+  assert.match(simagro, /Abrir SIMAGRO RS/);
+  assert.doesNotMatch(simagro, /Modelagem complementar|Produto selecionado|O Tempo Pelotas não usa OCR|comparação e contexto/);
+  assert.match(simagroStyles, /box-shadow:\s*none/);
+  assert.doesNotMatch(simagroStyles, /radial-gradient/);
+});
+
+test("meteogram hero keeps controlled technical color while the refinement owns the final surface", () => {
   assert.match(homeContract, /acento técnico controlado/i);
-  assert.match(homeContract, /\.meteogram-hero__panel[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.meteogram-hero__panel article:nth-child\(1\)/);
-  assert.match(homeContract, /\.meteogram-hero__panel article:nth-child\(4\)/);
-  assert.match(homeContract, /\.meteogram-hero__actions a:first-child[\s\S]*linear-gradient/);
+  assert.match(homeContract, /\.meteogram-hero__panel/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(homeContract, /!important/);
+  assert.match(refinement, /\.meteogram-hero__content[\s\S]*background:\s*#fff/);
+  assert.match(refinement, /\.meteogram-hero__panel[\s\S]*background:\s*#f8fbfc/);
 });
 
 test("meteogram is discoverable and cached as an operational page", () => {
