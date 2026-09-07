@@ -74,7 +74,7 @@ function differenceLabel(value: number | null) {
 function buildMetrics(tomorrow: DailyForecast | null): RetailMetric[] {
   return [
     {
-      label: "Mínima prevista",
+      label: "Mínima",
       value: formatValue(tomorrow?.min, "°"),
       icon: Thermometer,
     },
@@ -84,7 +84,7 @@ function buildMetrics(tomorrow: DailyForecast | null): RetailMetric[] {
       icon: CloudRain,
     },
     {
-      label: "Rajada máxima",
+      label: "Rajadas",
       value: formatGust(tomorrow?.windGust),
       icon: Wind,
     },
@@ -130,11 +130,11 @@ export function TomorrowRetailHero({
 
           <p>
             {tomorrow
-              ? `${condition}. A previsão indica mínima de ${tomorrow.min}° e máxima de ${tomorrow.max}°. Veja a chance de chuva, as rajadas e o que pode mudar sua rotina.`
-              : "A previsão para amanhã está sendo atualizada pelas fontes meteorológicas do portal."}
+              ? `${condition}. Mínima de ${tomorrow.min}° e máxima de ${tomorrow.max}°. Veja abaixo a chuva e as rajadas previstas.`
+              : "A previsão de amanhã ainda não está disponível."}
           </p>
 
-          <div className="today-retail-hero__badges" aria-label="Situação da previsão de amanhã">
+          <div className="today-retail-hero__badges" aria-label="Previsão de amanhã">
             <span>
               <CalendarDays aria-hidden="true" /> {formatTomorrowDate(tomorrow)}
             </span>
@@ -143,14 +143,14 @@ export function TomorrowRetailHero({
                 <ShieldAlert aria-hidden="true" /> {alertLabel(officialAlertCount)}
               </Link>
             ) : (
-              <span className="is-stable">Sem aviso oficial listado para Pelotas</span>
+              <span className="is-stable">Sem aviso oficial para Pelotas</span>
             )}
           </div>
 
           <div className="today-retail-hero__actions">
             {hasTomorrow ? (
-              <a className="today-retail-hero__primary" href="#planejamento-amanha">
-                Ver como se preparar <ArrowRight aria-hidden="true" />
+              <a className="today-retail-hero__primary" href="#resumo-amanha">
+                Ver detalhes de amanhã <ArrowRight aria-hidden="true" />
               </a>
             ) : (
               <Link className="today-retail-hero__primary" to="/previsao-7-dias-pelotas">
@@ -172,7 +172,7 @@ export function TomorrowRetailHero({
             style={photoStyle}
             aria-label={
               hasTomorrow
-                ? "Resumo da previsão do tempo para amanhã em Pelotas"
+                ? "Previsão do tempo para amanhã em Pelotas"
                 : "Previsão de amanhã em atualização em Pelotas"
             }
           >
@@ -234,13 +234,13 @@ export function TomorrowRetailHero({
             </div>
           </article>
 
-          <div className="today-retail-hero__tiles tomorrow-retail-hero__tiles" aria-label="Indicadores para amanhã">
+          <div className="today-retail-hero__tiles tomorrow-retail-hero__tiles" aria-label="Dados para amanhã">
             <article>
               <span>
-                <Gauge aria-hidden="true" /> Variação térmica
+                <Gauge aria-hidden="true" /> Variação no dia
               </span>
               <strong>{formatValue(amplitude, "°")}</strong>
-              <small>Diferença entre mínima e máxima</small>
+              <small>Da mínima à máxima</small>
             </article>
 
             <article className="is-rain">
@@ -248,7 +248,7 @@ export function TomorrowRetailHero({
                 <CloudRain aria-hidden="true" /> Volume de chuva
               </span>
               <strong>{formatValue(tomorrow?.precipitation, " mm")}</strong>
-              <small>Estimativa para o dia</small>
+              <small>Total previsto</small>
             </article>
 
             <article className="is-wind">
@@ -256,7 +256,7 @@ export function TomorrowRetailHero({
                 <Thermometer aria-hidden="true" /> Máxima versus hoje
               </span>
               <strong>{differenceLabel(maximumDifference)}</strong>
-              <small>Comparação entre as duas previsões</small>
+              <small>Diferença para hoje</small>
             </article>
 
             <article className="is-sun">
@@ -264,7 +264,7 @@ export function TomorrowRetailHero({
                 <CalendarDays aria-hidden="true" /> Fonte da previsão
               </span>
               <strong>{weather.source.forecastName ?? weather.source.name}</strong>
-              <small>Modelo meteorológico principal</small>
+              <small>Previsão principal</small>
             </article>
           </div>
         </div>
