@@ -28,7 +28,6 @@ const routes = [
     name: "previsao-15-dias",
     path: "/previsao-15-dias-pelotas",
     marker: ".internal-weather-shell--fifteen-day",
-    hiddenSelectors: [".internal-page-chapters"],
   },
   {
     name: "chuva",
@@ -51,7 +50,6 @@ const routes = [
     name: "clima",
     path: "/clima-em-pelotas",
     marker: ".internal-weather-shell--climate",
-    hiddenSelectors: [".climate-chapters"],
   },
   {
     name: "meteograma",
@@ -74,25 +72,21 @@ const routes = [
     name: "estacao-embrapa",
     path: "/estacao-embrapa-pelotas",
     marker: ".internal-weather-shell--embrapa",
-    hiddenSelectors: [".embrapa-v2-chapters"],
   },
   {
     name: "situacao-hidrologica",
     path: "/situacao-hidrologica-pelotas",
     marker: ".internal-weather-shell--hydrology",
-    hiddenSelectors: [".hydrology-v2-chapters"],
   },
   {
     name: "cameras",
     path: "/cameras-ao-vivo-pelotas",
     marker: ".internal-weather-shell--cameras",
-    hiddenSelectors: [".camera-v2-chapters"],
   },
   {
     name: "geadas",
     path: "/mapa-de-geadas-rio-grande-do-sul",
     marker: ".internal-weather-shell--frost",
-    hiddenSelectors: [".frost-v2-chapters"],
   },
   {
     name: "radar-satelite",
@@ -116,7 +110,6 @@ const routes = [
     path: "/tempo-em/rio-grande-rs",
     marker: ".regional-city-page",
     neutralSelectors: [".regional-city-split-hero"],
-    hiddenSelectors: [".internal-page-chapters"],
   },
   {
     name: "canal-sao-goncalo",
@@ -163,7 +156,7 @@ function markdownReport(results) {
 
   for (const result of results) {
     lines.push(
-      `| ${result.route} | ${result.viewport} | ${result.audit.httpStatus} | ${result.audit.hasRouteMarker ? "sim" : "não"} | ${result.audit.h1Count} | ${result.audit.horizontalOverflow}px | ${result.audit.mainContained ? "sim" : "não"} | ${result.audit.neutralViolations.length === 0 ? "ok" : result.audit.neutralViolations.length} | ${result.audit.visibleLegacySelectors.length === 0 ? "oculta" : result.audit.visibleLegacySelectors.length} | ${result.failures.length === 0 ? "aprovado" : "falhou"} |`,
+      `| ${result.route} | ${result.viewport} | ${result.audit.httpStatus} | ${result.audit.hasRouteMarker ? "sim" : "não"} | ${result.audit.h1Count} | ${result.audit.horizontalOverflow}px | ${result.audit.mainContained ? "sim" : "não"} | ${result.audit.neutralViolations.length === 0 ? "ok" : result.audit.neutralViolations.length} | ${result.audit.visibleLegacySelectors.length === 0 ? "oculta/ausente" : result.audit.visibleLegacySelectors.length} | ${result.failures.length === 0 ? "aprovado" : "falhou"} |`,
     );
   }
 
