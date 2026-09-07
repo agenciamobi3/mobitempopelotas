@@ -12,6 +12,8 @@ const today = source("src/routes/tempo-hoje-pelotas.tsx");
 const tomorrow = source("src/routes/tempo-amanha-pelotas.tsx");
 const tomorrowPage = source("src/components/weather/TomorrowForecastPageV3.tsx");
 const sevenDays = source("src/routes/previsao-7-dias-pelotas.tsx");
+const sevenDaysPage = source("src/components/weather/SevenDayForecastPageV2.tsx");
+const forecastHorizonBridge = source("src/components/weather/ForecastHorizonBridge.tsx");
 const fifteenDays = source("src/routes/previsao-15-dias-pelotas.tsx");
 const rain = source("src/routes/chuva-em-pelotas.tsx");
 const wind = source("src/routes/vento-em-pelotas.tsx");
@@ -53,9 +55,17 @@ test("amanhã, 7 dias e 15 dias possuem papéis distintos e navegação progress
   assert.match(tomorrowPage, /INMET e UFPel para amanhã/);
 
   assert.match(sevenDays, /7 dias e semana/);
-  assert.match(sevenDays, /Como fica o tempo em Pelotas nesta semana/);
-  assert.match(sevenDays, /href: "\/previsao-15-dias-pelotas"/);
+  assert.match(sevenDays, /Veja a previsão de 7 dias em Pelotas/);
   assert.match(sevenDays, /previsão do tempo para a semana em Pelotas/i);
+  assert.match(sevenDays, /<ForecastHorizonBridge \/>/);
+  assert.doesNotMatch(sevenDays, /EditorialContentSection|SEVEN_DAY_PAGE_CONTENT|createFaqPageJsonLd/);
+  assert.match(sevenDaysPage, /Previsão dos próximos 7 dias/);
+  assert.match(sevenDaysPage, /Temperaturas nos próximos 7 dias/);
+  assert.match(sevenDaysPage, /Chuva e rajadas nos próximos 7 dias/);
+  assert.match(sevenDaysPage, /INMET e UFPel nos próximos dias/);
+  assert.doesNotMatch(sevenDaysPage, /Resumo da semana|Como interpretar a previsão/);
+  assert.match(forecastHorizonBridge, /to="\/previsao-15-dias-pelotas"/);
+  assert.match(forecastHorizonBridge, /A segunda semana tem mais incerteza/);
 
   assert.match(fifteenDays, /10 e 15 dias/);
   assert.match(fifteenDays, /Os primeiros 10 dias estão dentro desta mesma janela de 15 dias/);
