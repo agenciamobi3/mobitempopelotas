@@ -1,33 +1,33 @@
 /*
  * /tempo-em/<cidade> — identidade local sobre o WeatherSplitHero compartilhado.
- * O componente-base permanece intacto para outras rotas; aqui a primeira dobra
- * ganha o mesmo editorial claro com cor controlada usado no restante do portal.
+ * O componente-base permanece intacto para outras rotas. Nas páginas municipais,
+ * a abertura é editorial, clara e sem chrome de dashboard.
  */
 
 .regional-city-page .regional-city-split-hero {
-  gap: 0;
-  overflow: hidden;
-  border: 1px solid rgb(7 30 47 / 10%);
-  border-radius: 16px;
-  background: #fff;
+  gap: clamp(40px, 7vw, 96px);
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: #f5f8f8;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__copy,
 .regional-city-page .regional-city-split-hero .weather-split-hero__card {
   min-height: 0;
+  overflow: visible;
   border: 0;
   border-radius: 0;
+  background-image: none;
   box-shadow: none;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__copy {
-  align-content: center;
-  padding: clamp(36px, 4.2vw, 60px) clamp(26px, 3.2vw, 42px);
+  align-content: end;
+  padding: clamp(58px, 7vw, 96px) 0 clamp(46px, 6vw, 72px);
   color: #071e2f;
-  background:
-    radial-gradient(circle at 0 100%, rgb(24 189 205 / 11%), transparent 24rem),
-    radial-gradient(circle at 100% 0, rgb(94 44 237 / 8%), transparent 24rem),
-    linear-gradient(145deg, #f7fcfc 0%, #fff 58%, #f8f6ff 100%);
+  background: transparent;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__back {
@@ -44,32 +44,33 @@
   max-width: 12ch;
   margin-top: 10px;
   color: #071e2f;
-  font-size: clamp(2.55rem, 4.6vw, 5rem);
-  font-weight: 790;
-  line-height: 0.98;
-  letter-spacing: -0.06em;
+  font-size: clamp(3rem, 5.7vw, 6rem);
+  font-weight: 760;
+  line-height: 0.94;
+  letter-spacing: -0.065em;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__copy > p {
-  max-width: 66ch;
+  max-width: 72ch;
   color: #58717d;
-  font-size: clamp(0.92rem, 1vw, 1.04rem);
-  line-height: 1.65;
+  font-size: clamp(.96rem, 1.1vw, 1.08rem);
+  line-height: 1.68;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__actions a {
   min-height: 44px;
-  border-color: rgb(7 30 47 / 10%);
+  border-color: rgb(7 30 47 / 12%);
+  border-radius: 10px;
   color: #173847;
-  background: rgb(255 255 255 / 76%);
+  background: #fff;
   box-shadow: none;
   transform: none;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__actions a:first-child {
-  border-color: #087f91;
+  border-color: #071e2f;
   color: #fff;
-  background: linear-gradient(135deg, #087f91 0%, #5e2ced 100%);
+  background: #071e2f;
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__actions a:hover {
@@ -77,69 +78,64 @@
   border-color: rgb(24 189 205 / 34%);
 }
 
-.regional-city-page .regional-city-split-hero .weather-split-hero__card {
-  padding: clamp(28px, 3.2vw, 42px);
+.regional-city-page .regional-city-split-hero .weather-split-hero__card,
+.regional-city-page .regional-city-split-hero .weather-split-hero__card.is-elevated,
+.regional-city-page .regional-city-split-hero .weather-split-hero__card.is-strong,
+.regional-city-page .regional-city-split-hero .weather-split-hero__card.is-unknown {
+  align-self: end;
+  padding: 0 0 0 clamp(22px, 3vw, 36px);
   border-left: 1px solid rgb(7 30 47 / 10%);
   color: #071e2f;
-  background:
-    radial-gradient(circle at 100% 0, rgb(24 189 205 / 9%), transparent 20rem),
-    linear-gradient(145deg, #f2fafb 0%, #fff 58%, #f8f6ff 100%);
+  background: transparent;
 }
 
-.regional-city-page .regional-city-split-hero .weather-split-hero__card.is-elevated {
-  background:
-    radial-gradient(circle at 100% 0, rgb(242 112 53 / 10%), transparent 20rem),
-    linear-gradient(145deg, #fff8f2 0%, #fff 64%);
-}
-
-.regional-city-page .regional-city-split-hero .weather-split-hero__card.is-strong {
-  background:
-    radial-gradient(circle at 100% 0, rgb(231 11 133 / 9%), transparent 20rem),
-    linear-gradient(145deg, #fff6fa 0%, #fff 64%);
-}
-
-.regional-city-page .regional-city-split-hero .weather-split-hero__card.is-unknown {
-  background: linear-gradient(145deg, #f5f8f9, #fff 64%);
-}
-
-.regional-city-page .regional-city-split-hero .weather-split-hero__highlight,
-.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div {
-  border-color: rgb(7 30 47 / 9%);
-  background: rgb(255 255 255 / 74%);
-  box-shadow: none;
+.regional-city-page .regional-city-split-hero .weather-split-hero__card > header {
+  padding-bottom: .9rem;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
 }
 
 .regional-city-page .regional-city-split-hero .weather-split-hero__highlight {
-  border-color: rgb(94 44 237 / 12%);
-  background: #f8f6ff;
-}
-
-.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:first-child {
-  border-color: rgb(24 189 205 / 14%);
-  background: #f2fbfc;
-}
-
-.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:last-child {
-  border-color: rgb(242 112 53 / 12%);
-  background: #fff8f3;
-}
-
-/* Navegação e links operacionais deixam a composição antiga de bloco acoplado. */
-.regional-city-page > .internal-page-chapters {
-  border-radius: 14px;
+  padding: .9rem 0;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
-/*
- * HomeForecastStory pode omitir seus blocos quando uma cidade está em contingência.
- * O índice nunca mantém um link para uma âncora que não existe no DOM atual.
- */
-.regional-city-page:not(:has(#previsao-hoje))
-  > .internal-page-chapters
-  a[href="#previsao-hoje"],
-.regional-city-page:not(:has(#tendencia))
-  > .internal-page-chapters
-  a[href="#tendencia"] {
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div,
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:first-child,
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:last-child {
+  padding: .72rem 0;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:nth-child(odd) {
+  padding-right: .8rem;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+}
+
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:nth-child(even) {
+  padding-left: .8rem;
+}
+
+.regional-city-page .regional-city-split-hero .weather-split-hero__card dl > div:nth-last-child(-n + 2) {
+  border-bottom: 0;
+}
+
+/* O índice numerado antigo permanece apenas por compatibilidade estrutural. */
+.regional-city-page > .internal-page-chapters {
   display: none;
 }
 
@@ -150,10 +146,7 @@
   align-items: center;
 }
 
-.regional-city-page .regional-city-related > div > a {
-  transform: none;
-}
-
+.regional-city-page .regional-city-related > div > a,
 .regional-city-page .regional-city-related > div > a:hover,
 .regional-city-page .regional-city-related > div > a:focus-visible {
   transform: none;
@@ -164,7 +157,11 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .regional-city-page .regional-city-split-hero .weather-split-hero__card {
+  .regional-city-page .regional-city-split-hero .weather-split-hero__card,
+  .regional-city-page .regional-city-split-hero .weather-split-hero__card.is-elevated,
+  .regional-city-page .regional-city-split-hero .weather-split-hero__card.is-strong,
+  .regional-city-page .regional-city-split-hero .weather-split-hero__card.is-unknown {
+    padding: 24px 0 0;
     border-top: 1px solid rgb(7 30 47 / 10%);
     border-left: 0;
   }
@@ -172,26 +169,19 @@
 
 @media (max-width: 720px) {
   .regional-city-page .regional-city-split-hero {
-    border-radius: 12px;
+    gap: 0;
   }
 
   .regional-city-page .regional-city-split-hero .weather-split-hero__copy {
-    padding: 30px 20px;
-    background:
-      radial-gradient(circle at 0 100%, rgb(24 189 205 / 9%), transparent 17rem),
-      linear-gradient(145deg, #f8fcfc, #fff 64%, #f9f7ff);
+    padding: 42px 0 30px;
   }
 
   .regional-city-page .regional-city-split-hero .weather-split-hero__copy h1 {
-    font-size: clamp(2.25rem, 11vw, 3.5rem);
+    font-size: clamp(2.6rem, 13vw, 4rem);
   }
 
   .regional-city-page .regional-city-split-hero .weather-split-hero__card {
-    padding: 24px 20px;
-  }
-
-  .regional-city-page > .internal-page-chapters {
-    border-radius: 12px;
+    padding-bottom: 28px;
   }
 }
 
