@@ -41,7 +41,8 @@ O Tempo Pelotas é um projeto da MOBI feito dentro da comunidade e para uso da c
 - não use etiquetas genéricas apenas para preencher hierarquia visual, como "Arquivo aberto à comunidade", "Memória pública com rastreabilidade" ou equivalentes sem informação concreta;
 - títulos, subtítulos, badges e chamadas devem dizer algo útil sobre o conteúdo, o período, o lugar, a fonte ou a ação disponível;
 - não empilhe uma camada "para leigos" sobre um texto que continua técnico: simplifique o próprio texto principal;
-- uma explicação não deve exigir outra explicação para ser entendida.
+- uma explicação não deve exigir outra explicação para ser entendida;
+- ícones e pequenos elementos visuais devem ajudar a identificar tipos de informação, etapas ou ações reais; não espalhe ícones apenas como decoração nem repita o mesmo sinal onde o texto já separa bem o conteúdo.
 
 ### Termos técnicos e precisão
 

@@ -1,4 +1,18 @@
 import { Link } from "@tanstack/react-router";
+import {
+  ArrowLeftRight,
+  BookOpen,
+  CalendarDays,
+  Camera,
+  Clock,
+  ExternalLink,
+  FileText,
+  MapPin,
+  MapPinned,
+  Ruler,
+  ShieldCheck,
+  Waves,
+} from "lucide-react";
 
 import {
   FLOOD_1941_KEY_FACTS,
@@ -7,6 +21,38 @@ import {
 } from "@/lib/content/flood-1941-pelotas";
 
 import "./Flood2024HistoricalPage.css";
+import "./Flood1941HistoricalPage.css";
+
+const FACT_ICONS = [Ruler, Camera, CalendarDays] as const;
+
+const PAGE_INDEX_ITEMS = [
+  { href: "#o-que-aconteceu-1941", label: "O que aconteceu", icon: MapPin },
+  { href: "#marca-de-288", label: "De onde vêm os 2,88 m", icon: Ruler },
+  { href: "#linha-do-tempo-1941", label: "Maio e junho de 1941", icon: CalendarDays },
+  { href: "#comparacao-2024", label: "Comparação com 2024", icon: ArrowLeftRight },
+  { href: "#fontes-1941", label: "Fontes", icon: BookOpen },
+] as const;
+
+const TIMELINE_ICONS = [Waves, Camera, Clock, CalendarDays, ArrowLeftRight] as const;
+
+const COMPARISON_POINTS = [
+  {
+    icon: Camera,
+    text: "em 1941, a reconstrução depende principalmente de fotos e documentos antigos;",
+  },
+  {
+    icon: Waves,
+    text: "em 2024, havia muito mais medições e registros feitos durante a emergência;",
+  },
+  {
+    icon: Ruler,
+    text: "um nível medido no Canal não representa a altura da água em toda a cidade;",
+  },
+  {
+    icon: ShieldCheck,
+    text: "para decisões de segurança, sempre valem os alertas e as medições atuais.",
+  },
+] as const;
 
 export function Flood1941Hero() {
   return (
@@ -23,13 +69,20 @@ export function Flood1941Hero() {
         </div>
 
         <div className="tp-flood-hero__summary" aria-label="Principais informações documentadas sobre 1941">
-          {FLOOD_1941_KEY_FACTS.map((fact) => (
-            <div key={fact.label}>
-              <span>{fact.label}</span>
-              <strong>{fact.value}</strong>
-              <small>{fact.detail}</small>
-            </div>
-          ))}
+          {FLOOD_1941_KEY_FACTS.map((fact, index) => {
+            const FactIcon = FACT_ICONS[index] ?? FileText;
+
+            return (
+              <div className="tp-flood-1941-fact" key={fact.label}>
+                <div className="tp-flood-1941-fact__label">
+                  <FactIcon className="tp-flood-1941-icon" aria-hidden="true" />
+                  <span>{fact.label}</span>
+                </div>
+                <strong>{fact.value}</strong>
+                <small>{fact.detail}</small>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -39,18 +92,26 @@ export function Flood1941Hero() {
 export function Flood1941HistoricalPage() {
   return (
     <article className="tp-flood-history">
-      <nav className="tp-flood-history__index" aria-label="Nesta página">
+      <nav className="tp-flood-history__index tp-flood-1941-index" aria-label="Nesta página">
         <span>Nesta página</span>
-        <a href="#o-que-aconteceu-1941">O que aconteceu</a>
-        <a href="#marca-de-288">De onde vêm os 2,88 m</a>
-        <a href="#linha-do-tempo-1941">Maio e junho de 1941</a>
-        <a href="#comparacao-2024">Comparação com 2024</a>
-        <a href="#fontes-1941">Fontes</a>
+        {PAGE_INDEX_ITEMS.map((item) => {
+          const ItemIcon = item.icon;
+
+          return (
+            <a href={item.href} key={item.href}>
+              <ItemIcon className="tp-flood-1941-icon" aria-hidden="true" />
+              {item.label}
+            </a>
+          );
+        })}
       </nav>
 
       <section className="tp-flood-history__lead" id="o-que-aconteceu-1941">
         <div>
-          <span>Maio e junho de 1941</span>
+          <span className="tp-flood-1941-kicker">
+            <MapPin className="tp-flood-1941-icon" aria-hidden="true" />
+            Maio e junho de 1941
+          </span>
           <h2>Partes de Pelotas ficaram alagadas por semanas</h2>
         </div>
         <div className="tp-flood-history__lead-copy">
@@ -74,21 +135,29 @@ export function Flood1941HistoricalPage() {
           </p>
         </div>
 
-        <div className="tp-flood-history__chain">
-          <strong>
-            Uma foto antiga da Praça do Porto mostrou um ponto que ainda existe. Esse local ajudou no
-            cálculo da altura da água em 1941.
-          </strong>
-          <p>
-            Depois, os pesquisadores encontraram a mesma marca de 2,88 m em um mapa de 1940. Isso deu
-            mais segurança à comparação usada no Canal São Gonçalo.
-          </p>
+        <div className="tp-flood-history__chain tp-flood-1941-discovery">
+          <span className="tp-flood-1941-discovery__icon" aria-hidden="true">
+            <Camera className="tp-flood-1941-icon" />
+          </span>
+          <div className="tp-flood-1941-discovery__copy">
+            <strong>
+              Uma foto antiga da Praça do Porto mostrou um ponto que ainda existe. Esse local ajudou no
+              cálculo da altura da água em 1941.
+            </strong>
+            <p>
+              Depois, os pesquisadores encontraram a mesma marca de 2,88 m em um mapa de 1940. Isso deu
+              mais segurança à comparação usada no Canal São Gonçalo.
+            </p>
+          </div>
         </div>
       </section>
 
       <section className="tp-flood-explanation" id="marca-de-288">
         <div>
-          <span>Canal São Gonçalo</span>
+          <span className="tp-flood-1941-kicker">
+            <Ruler className="tp-flood-1941-icon" aria-hidden="true" />
+            Canal São Gonçalo
+          </span>
           <h2>De onde vem a marca de 2,88 metros</h2>
         </div>
         <div>
@@ -97,6 +166,29 @@ export function Flood1941HistoricalPage() {
             Como o prédio ainda existe, ele serviu de ponto de referência para estimar a altura que a
             água alcançou em 1941.
           </p>
+
+          <div className="tp-flood-1941-method" aria-label="Como a marca de 2,88 metros foi conferida">
+            <span>
+              <Camera className="tp-flood-1941-icon" aria-hidden="true" />
+              Foto de 1941
+            </span>
+            <b aria-hidden="true">→</b>
+            <span>
+              <MapPin className="tp-flood-1941-icon" aria-hidden="true" />
+              Alfândega
+            </span>
+            <b aria-hidden="true">→</b>
+            <span>
+              <Ruler className="tp-flood-1941-icon" aria-hidden="true" />
+              Cálculo
+            </span>
+            <b aria-hidden="true">→</b>
+            <span>
+              <MapPinned className="tp-flood-1941-icon" aria-hidden="true" />
+              Mapa de 1940
+            </span>
+          </div>
+
           <p>
             Depois do cálculo, os pesquisadores encontraram um mapa de 1940 que também mostrava a marca
             de 2,88 metros. A mesma informação em duas fontes diferentes reforçou o resultado.
@@ -114,7 +206,10 @@ export function Flood1941HistoricalPage() {
 
       <section className="tp-flood-timeline" id="linha-do-tempo-1941" aria-labelledby="tp-flood-1941-timeline-title">
         <header>
-          <span>Maio e junho de 1941</span>
+          <span className="tp-flood-1941-kicker">
+            <CalendarDays className="tp-flood-1941-icon" aria-hidden="true" />
+            Maio e junho de 1941
+          </span>
           <h2 id="tp-flood-1941-timeline-title">O que as fotos e os documentos mostram ao longo das semanas</h2>
           <p>
             Nem todos os dias de 1941 têm registros preservados. Por isso, a linha do tempo mostra
@@ -123,28 +218,38 @@ export function Flood1941HistoricalPage() {
         </header>
 
         <div className="tp-flood-timeline__list">
-          {FLOOD_1941_TIMELINE.map((item) => (
-            <section className="tp-flood-event is-pelotas" key={`${item.date}-${item.title}`}>
-              <div className="tp-flood-event__date">
-                <span>{item.date}</span>
-                <small>Registro histórico</small>
-                <strong>Pelotas / Canal São Gonçalo</strong>
-              </div>
-              <div className="tp-flood-event__body">
-                <h3>{item.title}</h3>
-                {item.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-                {item.highlight ? <b className="tp-flood-event__highlight">{item.highlight}</b> : null}
-              </div>
-            </section>
-          ))}
+          {FLOOD_1941_TIMELINE.map((item, index) => {
+            const TimelineIcon = TIMELINE_ICONS[index] ?? CalendarDays;
+
+            return (
+              <section className="tp-flood-event is-pelotas" key={`${item.date}-${item.title}`}>
+                <div className="tp-flood-event__date">
+                  <span className="tp-flood-1941-event-icon" aria-hidden="true">
+                    <TimelineIcon className="tp-flood-1941-icon" />
+                  </span>
+                  <span>{item.date}</span>
+                  <small>Registro histórico</small>
+                  <strong>Pelotas / Canal São Gonçalo</strong>
+                </div>
+                <div className="tp-flood-event__body">
+                  <h3>{item.title}</h3>
+                  {item.paragraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                  {item.highlight ? <b className="tp-flood-event__highlight">{item.highlight}</b> : null}
+                </div>
+              </section>
+            );
+          })}
         </div>
       </section>
 
       <section className="tp-flood-lessons" id="comparacao-2024">
         <div>
-          <span>1941 e 2024</span>
+          <span className="tp-flood-1941-kicker">
+            <ArrowLeftRight className="tp-flood-1941-icon" aria-hidden="true" />
+            1941 e 2024
+          </span>
           <h2>Em 2024, o Canal voltou à marca de 2,88 m e depois passou dela</h2>
         </div>
         <div>
@@ -157,18 +262,29 @@ export function Flood1941HistoricalPage() {
             A comparação é útil porque usa a referência do Canal São Gonçalo. Números medidos em
             outros lugares não podem ser comparados diretamente como se fossem a mesma régua.
           </p>
-          <ul>
-            <li>em 1941, a reconstrução depende principalmente de fotos e documentos antigos;</li>
-            <li>em 2024, havia muito mais medições e registros feitos durante a emergência;</li>
-            <li>um nível medido no Canal não representa a altura da água em toda a cidade;</li>
-            <li>para decisões de segurança, sempre valem os alertas e as medições atuais.</li>
+          <ul className="tp-flood-1941-comparison-list">
+            {COMPARISON_POINTS.map((item) => {
+              const PointIcon = item.icon;
+
+              return (
+                <li key={item.text}>
+                  <span className="tp-flood-1941-comparison-list__icon" aria-hidden="true">
+                    <PointIcon className="tp-flood-1941-icon" />
+                  </span>
+                  <span>{item.text}</span>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </section>
 
       <section className="tp-flood-sources" id="fontes-1941" aria-labelledby="tp-flood-1941-sources-title">
         <div>
-          <span>Fontes</span>
+          <span className="tp-flood-1941-kicker">
+            <BookOpen className="tp-flood-1941-icon" aria-hidden="true" />
+            Fontes
+          </span>
           <h2 id="tp-flood-1941-sources-title">De onde vêm as informações desta página</h2>
         </div>
         <div>
@@ -179,12 +295,17 @@ export function Flood1941HistoricalPage() {
           </p>
           <div className="tp-flood-related__links">
             {FLOOD_1941_SOURCES.map((source) => (
-              <a href={source.url} target="_blank" rel="noreferrer" key={source.url}>
+              <a className="tp-flood-1941-source-link" href={source.url} target="_blank" rel="noreferrer" key={source.url}>
+                <span className="tp-flood-1941-source-icon" aria-hidden="true">
+                  <FileText className="tp-flood-1941-icon" />
+                </span>
                 <span>
                   {source.name}<br />
                   <small>{source.organization} · {source.role}</small>
                 </span>
-                <span aria-hidden="true">↗</span>
+                <span className="tp-flood-1941-source-external" aria-hidden="true">
+                  <ExternalLink className="tp-flood-1941-icon" />
+                </span>
               </a>
             ))}
           </div>

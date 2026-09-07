@@ -44,7 +44,7 @@ export const Route = createFileRoute("/enchente-1941-pelotas")({
 function Enchente1941PelotasPage() {
   return (
     <ContentPageShell
-      pageClassName="internal-weather-shell--flood-history"
+      pageClassName="internal-weather-shell--flood-history internal-weather-shell--flood-1941"
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
       showHistoricalCollaborationPrompt={false}
     >

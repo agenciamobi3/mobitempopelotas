@@ -4,6 +4,7 @@ import test from "node:test";
 
 const route = readFileSync("src/routes/enchente-1941-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/history/Flood1941HistoricalPage.tsx", "utf8");
+const styles = readFileSync("src/components/history/Flood1941HistoricalPage.css", "utf8");
 const page2024 = readFileSync("src/components/history/Flood2024HistoricalPage.tsx", "utf8");
 const content = readFileSync("src/lib/content/flood-1941-pelotas.ts", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
@@ -38,6 +39,21 @@ test("1941 page keeps the main reading simple instead of stacking a second expla
   assert.match(page, /Partes de Pelotas ficaram alagadas por semanas/);
   assert.match(page, /Nem todos os dias de 1941 têm registros preservados/);
   assert.doesNotMatch(page, /referência altimétrica|documento cartográfico|território urbano|telemetria|registros operacionais muito mais densos/i);
+});
+
+test("1941 uses restrained visual cues to separate information without replacing text", () => {
+  assert.match(route, /internal-weather-shell--flood-1941/);
+  assert.match(page, /from "lucide-react"/);
+  assert.match(page, /tp-flood-1941-fact__label/);
+  assert.match(page, /tp-flood-1941-method/);
+  assert.match(page, /tp-flood-1941-event-icon/);
+  assert.match(page, /tp-flood-1941-comparison-list/);
+  assert.match(page, /tp-flood-1941-source-link/);
+  assert.match(styles, /\.tp-flood-1941-method/);
+  assert.match(styles, /\.tp-flood-1941-event-icon/);
+  assert.match(styles, /\.tp-flood-1941-comparison-list/);
+  assert.match(styles, /\.tp-flood-1941-source-link/);
+  assert.match(styles, /internal-weather-shell--flood-1941 \.tp-history-collab__grid article/);
 });
 
 test("1941 and 2024 are linked without collapsing station references", () => {
