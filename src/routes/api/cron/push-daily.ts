@@ -2,18 +2,9 @@ import { createHash } from "node:crypto";
 
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  parseInmetGmailPubSubEnvelope,
-  processRecentInmetForecastEmails,
-  renewInmetGmailWatch,
-  verifyInmetGmailPubSubRequest,
-} from "@/lib/integrations/inmet-gmail.server";
+import { processRecentInmetForecastEmails } from "@/lib/integrations/inmet-gmail.server";
 import { verifyWeatherAiGithubActionsRequest } from "@/lib/github-actions-oidc.server";
-import {
-  hasBearerSecret,
-  pushJsonResponse,
-  readLimitedJson,
-} from "@/lib/push/push-http.server";
+import { hasBearerSecret, pushJsonResponse } from "@/lib/push/push-http.server";
 import {
   claimPushDispatch,
   recordPushDispatch,
@@ -337,96 +328,11 @@ async function processInmetGmailRecovery(request: Request) {
       ...result,
     });
   } catch (error) {
-    console.error("[push/inmet-gmail] Falha na recuperação do Gmail", {
+    console.error("[push/inmet-gmail] Falha ao consultar o Gmail pelo Lovable", {
       message: error instanceof Error ? error.message : String(error),
     });
     return pushJsonResponse(
       { success: false, error: "Não foi possível processar os e-mails do INMET." },
-      503,
-    );
-  }
-}
-
-async function renewInmetGmailSubscription(request: Request) {
-  if (!hasBearerSecret(request, process.env.CRON_SECRET?.trim())) {
-    return pushJsonResponse({ success: false, error: "Não autorizado." }, 401);
-  }
-
-  try {
-    const watch = await renewInmetGmailWatch();
-    return pushJsonResponse({
-      success: true,
-      kind: "inmet-gmail-watch",
-      ...watch,
-    });
-  } catch (error) {
-    console.error("[push/inmet-gmail] Falha ao renovar Gmail watch", {
-      message: error instanceof Error ? error.message : String(error),
-    });
-    return pushJsonResponse(
-      { success: false, error: "Não foi possível renovar a assinatura do Gmail." },
-      503,
-    );
-  }
-}
-
-async function receiveInmetGmailPush(request: Request) {
-  const sharedSecretAuthorized = hasBearerSecret(request, process.env.CRON_SECRET?.trim());
-  let googleAuthorized = false;
-
-  if (!sharedSecretAuthorized) {
-    try {
-      googleAuthorized = await verifyInmetGmailPubSubRequest(request);
-    } catch (error) {
-      console.error("[push/inmet-gmail] Falha ao validar OIDC do Pub/Sub", {
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
-  if (!sharedSecretAuthorized && !googleAuthorized) {
-    return pushJsonResponse({ success: false, error: "Não autorizado." }, 401);
-  }
-
-  const parsed = await readLimitedJson(request);
-  if (!parsed.ok) return pushJsonResponse({ success: false, error: parsed.error }, parsed.status);
-
-  let notification;
-  try {
-    notification = parseInmetGmailPubSubEnvelope(parsed.value);
-  } catch (error) {
-    console.error("[push/inmet-gmail] Configuração indisponível", {
-      message: error instanceof Error ? error.message : String(error),
-    });
-    return pushJsonResponse(
-      { success: false, error: "Integração Gmail do INMET não configurada." },
-      503,
-    );
-  }
-
-  if (!notification) {
-    return pushJsonResponse({
-      success: true,
-      skipped: true,
-      reason: "irrelevant-or-invalid-notification",
-    });
-  }
-
-  try {
-    const result = await processRecentInmetForecastEmails();
-    return pushJsonResponse({
-      success: true,
-      kind: "inmet-gmail-forecast",
-      aiCalled: false,
-      historyId: notification.historyId,
-      ...result,
-    });
-  } catch (error) {
-    console.error("[push/inmet-gmail] Falha ao processar notificação", {
-      message: error instanceof Error ? error.message : String(error),
-    });
-    return pushJsonResponse(
-      { success: false, error: "Não foi possível processar a atualização do Gmail." },
       503,
     );
   }
@@ -439,13 +345,7 @@ export const Route = createFileRoute("/api/cron/push-daily")({
         const task = new URL(request.url).searchParams.get("task");
         if (task === "weather-ai") return generateWeatherAiSnapshot(request);
         if (task === "inmet-gmail") return processInmetGmailRecovery(request);
-        if (task === "inmet-gmail-watch") return renewInmetGmailSubscription(request);
         return sendDailySummary(request);
-      },
-      POST: ({ request }) => {
-        const task = new URL(request.url).searchParams.get("task");
-        if (task === "inmet-gmail") return receiveInmetGmailPush(request);
-        return pushJsonResponse({ success: false, error: "Tarefa não encontrada." }, 404);
       },
     },
   },
