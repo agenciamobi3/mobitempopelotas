@@ -4,6 +4,15 @@ on:
   schedule:
     - cron: "*/10 * * * *"
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "Executar somente verificação segura ou fluxo normal"
+        required: true
+        default: check
+        type: choice
+        options:
+          - check
+          - delivery
 
 permissions:
   contents: read
@@ -21,13 +30,20 @@ jobs:
       - name: Process recent INMET forecast emails
         env:
           CRON_SECRET: ${{ secrets.TEMPO_PELOTAS_CRON_SECRET }}
-          CRON_URL: https://tempopelotas.com.br/api/cron/push-daily?task=inmet-gmail
+          CRON_BASE_URL: https://tempopelotas.com.br/api/cron/push-daily
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_MODE: ${{ github.event.inputs.mode }}
         run: |
           set -euo pipefail
 
           if [[ -z "${CRON_SECRET:-}" ]]; then
             echo "TEMPO_PELOTAS_CRON_SECRET não está configurado no repositório." >&2
             exit 1
+          fi
+
+          TASK="inmet-gmail"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$RUN_MODE" == "check" ]]; then
+            TASK="inmet-gmail-check"
           fi
 
           curl \
@@ -39,4 +55,4 @@ jobs:
             --header "Authorization: Bearer $CRON_SECRET" \
             --header "Accept: application/json" \
             --header "User-Agent: TempoPelotas-INMET-Gmail-Poll/1.0" \
-            "$CRON_URL"
+            "$CRON_BASE_URL?task=$TASK"
