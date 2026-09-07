@@ -18,9 +18,11 @@ Por isso existe um gate server-only:
 INMET_GMAIL_PUSH_ENABLED=false
 ```
 
-Enquanto o valor não for exatamente `true`, a rota protegida retorna `success/skipped` e **não consulta o Gmail nem tenta enviar notificações**.
+Enquanto o valor não for exatamente `true`, o fluxo normal `task=inmet-gmail` retorna `success/skipped` e **não consulta o Gmail nem tenta enviar notificações**.
 
 A ativação desse flag deve acontecer somente junto da reativação formal do Web Push público. O cron versionado pode permanecer agendado sem furar essa suspensão.
+
+Existe separadamente um modo de **verificação segura** para testar o Gmail real sem abrir a entrega.
 
 ## Arquitetura refinada
 
@@ -60,6 +62,63 @@ Web Push topic=weather + daily_summary
 
 Não existe OAuth próprio do Tempo Pelotas para Gmail, refresh token próprio, Gmail Watch ou Google Cloud Pub/Sub nesse fluxo.
 
+## Verificação segura antes da ativação
+
+A rota protegida abaixo ignora o gate de entrega apenas para **ler e validar** a integração:
+
+```http
+GET /api/cron/push-daily?task=inmet-gmail-check
+Authorization: Bearer $CRON_SECRET
+```
+
+Ela pode ser executada mesmo com:
+
+```env
+INMET_GMAIL_PUSH_ENABLED=false
+```
+
+Esse modo:
+
+- consulta o App Connector Gmail real;
+- usa a mesma busca de INMET + Pelotas + janela de 6 horas;
+- aplica a mesma autenticação de remetente;
+- aplica a mesma classificação sem IA;
+- escolhe a mesma candidata mais recente;
+- consulta `fetchInmetForecast()` para saber qual texto público seria formado;
+- retorna contadores, horário da candidata, um hash curto do ID interno, estado da previsão estruturada e uma prévia do push;
+- **não chama `claim_web_push_dispatch` para essa verificação, não reserva envio e não chama `broadcastPushNotification`**.
+
+A resposta não devolve assunto, corpo, endereço do remetente nem ID bruto do Gmail.
+
+Exemplo conceitual de resposta sanitizada:
+
+```json
+{
+  "success": true,
+  "kind": "inmet-gmail-check",
+  "dispatchAttempted": false,
+  "mode": "check",
+  "forecastEmails": 1,
+  "wouldDispatch": true,
+  "selectedMessage": {
+    "fingerprint": "3c2b18f7a1",
+    "receivedAt": "2026-09-07T07:10:00.000Z"
+  },
+  "structuredForecast": {
+    "status": "live",
+    "periods": 4,
+    "fetchedAt": "2026-09-07T07:12:00.000Z"
+  },
+  "preview": {
+    "title": "INMET atualizou a previsão de Pelotas",
+    "body": "...",
+    "url": "/tempo-hoje-pelotas"
+  }
+}
+```
+
+`wouldDispatch=true` significa apenas que existe uma candidata válida e que, se o pipeline estivesse ativo, ela chegaria à etapa de deduplicação/entrega. **Não significa que a notificação foi enviada.**
+
 ## Conector do Lovable
 
 O runtime usa o gateway do App Connector:
@@ -89,10 +148,11 @@ in:inbox -in:spam -in:trash from:(inmet.gov.br) Pelotas after:<início-da-janela
 
 São considerados no máximo **20 IDs por execução**. O visitante não consegue fornecer `query`, `messageId`, remetente, cidade ou outro parâmetro para pesquisar a caixa postal.
 
-Apenas esta rota protegida inicia o fluxo:
+As duas operações permitidas permanecem atrás do mesmo `CRON_SECRET`:
 
 ```http
 GET /api/cron/push-daily?task=inmet-gmail
+GET /api/cron/push-daily?task=inmet-gmail-check
 Authorization: Bearer $CRON_SECRET
 ```
 
@@ -214,9 +274,9 @@ O backend registra apenas uma impressão curta do ID da mensagem no log, nunca a
 
 Se **todas** as mensagens retornadas pelo Gmail falharem na leitura/avaliação, a execução falha. Se somente parte falhar e o restante puder ser classificado com segurança, o fluxo continua de forma degradada.
 
-## Scheduler
+## Scheduler e execução manual
 
-O workflow `.github/workflows/inmet-gmail-poll.yml` chama a rota a cada **10 minutos**.
+O workflow `.github/workflows/inmet-gmail-poll.yml` chama o fluxo normal a cada **10 minutos**.
 
 Ele usa:
 
@@ -226,16 +286,25 @@ TEMPO_PELOTAS_CRON_SECRET
 
 que deve ter o mesmo valor de `CRON_SECRET` em produção.
 
+No `workflow_dispatch`, o modo padrão é **`check`**. Portanto, ao clicar manualmente em **Run workflow** sem mudar a opção, o GitHub chama:
+
+```text
+task=inmet-gmail-check
+```
+
+Também existe a opção manual `delivery`, mas ela continua sujeita a `INMET_GMAIL_PUSH_ENABLED=true`. Com o flag desligado, essa execução retorna `skipped` e não consulta o Gmail.
+
 O workflow não envia headers de navegador, portanto não entra no bloqueio geográfico aplicado a navegação web. Também não cancela uma execução já iniciada quando outra rodada é enfileirada. Isso evita interromper um request no meio de uma possível entrega.
 
-O GitHub Actions continua sendo uma dependência operacional separada do código. Se o runner não iniciar e aparecer `steps: null`, o polling não ocorreu e isso não deve ser tratado como falha do pipeline do INMET.
+O GitHub Actions continua sendo uma dependência operacional separada do código. Se o runner não iniciar e aparecer `steps: null`, o polling/check não ocorreu e isso não deve ser tratado como falha do pipeline do INMET.
 
 ## Fail-safe
 
 O fluxo prefere não enviar a enviar algo incorreto:
 
-- `INMET_GMAIL_PUSH_ENABLED` diferente de `true` → sai antes de tocar no Gmail;
-- Web Push sem configuração operacional → sai sem consultar a caixa;
+- `INMET_GMAIL_PUSH_ENABLED` diferente de `true` → fluxo normal sai antes de tocar no Gmail;
+- `inmet-gmail-check` → pode ler/validar o Gmail, mas nunca tenta entregar;
+- Web Push sem configuração operacional → fluxo normal sai sem consultar a caixa;
 - conector Gmail do Lovable indisponível → nenhum push;
 - mensagem sem autenticação direta do Gmail para o domínio INMET → ignorada;
 - formato desconhecido → ignorado;
@@ -249,13 +318,15 @@ O fluxo prefere não enviar a enviar algo incorreto:
 
 Para ativar o fluxo de verdade, a ordem correta é:
 
-1. homologar a reativação do Web Push público;
-2. confirmar VAPID, Supabase e inscrições com consentimento;
-3. confirmar o App Connector Gmail na conta correta;
-4. confirmar `CRON_SECRET` e `TEMPO_PELOTAS_CRON_SECRET` equivalentes;
-5. definir `INMET_GMAIL_PUSH_ENABLED=true` no runtime;
-6. executar uma rodada manual protegida;
-7. comprovar uma mensagem real do INMET para Pelotas chegando ao pipeline;
-8. só então considerar o polling automático operacional.
+1. manter `INMET_GMAIL_PUSH_ENABLED=false`;
+2. executar manualmente o workflow no modo `check`;
+3. comprovar que o App Connector Gmail está acessível e que uma mensagem real do INMET para Pelotas é reconhecida;
+4. validar a prévia do texto e o estado da previsão estruturada;
+5. homologar a reativação do Web Push público;
+6. confirmar VAPID, Supabase e inscrições com consentimento;
+7. confirmar `CRON_SECRET` e `TEMPO_PELOTAS_CRON_SECRET` equivalentes;
+8. definir `INMET_GMAIL_PUSH_ENABLED=true` no runtime;
+9. executar uma rodada manual `delivery`;
+10. só então considerar o polling automático operacional.
 
 Não criar OAuth Client ID/Secret, refresh token, tópico Pub/Sub ou Gmail Watch especificamente para esta integração.
