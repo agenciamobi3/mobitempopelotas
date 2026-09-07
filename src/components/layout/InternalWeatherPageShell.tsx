@@ -14,6 +14,7 @@ import type { WeatherData } from "@/production/lib/weather-data";
 import { getWeatherAdvisory, type AdvisoryLevel } from "@/production/lib/weather-insights";
 
 import "./InternalWeatherPageShell.css";
+import "./InternalWeatherCleanHero.css";
 
 const advisoryRank: Record<AdvisoryLevel, number> = {
   normal: 0,
