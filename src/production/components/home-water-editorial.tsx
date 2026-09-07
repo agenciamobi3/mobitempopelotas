@@ -9,7 +9,7 @@ import type { LaranjalLevelData } from "@/production/lib/laranjal-level";
 import "./home-water-editorial.css";
 
 // A Home privilegia a leitura local de Pelotas. Rio Grande e São José do Norte
-// ficam junto do Laranjal como referências do trecho sul/estuário; as demais
+// ficam junto do ponto local como referências do trecho sul/estuário; as demais
 // estações ajudam a explicar o contexto regional que chega até a Lagoa.
 const HOME_LOCAL_ESTUARY_STATION_PRIORITY = ["furg-ccmar", "sao-jose-do-norte"] as const;
 const HOME_REGIONAL_STATION_PRIORITY = ["itapua", "arambare", "sao-lourenco-do-sul"] as const;
@@ -236,6 +236,8 @@ export function HomeWaterEditorial({
   const laranjalTrend = trendLabel(laranjal.trendCmPerHour);
   const laranjalReading = readingStatus(laranjal.status);
   const laranjalAvailable = laranjal.status !== "unavailable" && laranjal.currentLevel !== null;
+  const alternative = laranjal.source.role === "contingency";
+  const localPlace = alternative ? "Pelotas" : "Praia do Laranjal";
 
   return (
     <section
@@ -246,12 +248,17 @@ export function HomeWaterEditorial({
       <header className="tp-home-water__intro">
         <div>
           <span>Lagoa dos Patos · monitoramento local</span>
-          <h2 id="tp-home-water-title">Nível da Lagoa no Laranjal e referências regionais</h2>
+          <h2 id="tp-home-water-title">
+            {alternative
+              ? "Nível da Lagoa em Pelotas e referências regionais"
+              : "Nível da Lagoa no Laranjal e referências regionais"}
+          </h2>
         </div>
         <div className="tp-home-water__intro-context">
           <p>
-            Para Pelotas, a leitura do Laranjal é a referência principal. As demais réguas ajudam a
-            acompanhar como o Guaíba e diferentes pontos da Lagoa dos Patos estão se comportando.
+            {alternative
+              ? "A Estação Laranjal está sem leitura atualizada nesta consulta. O ponto local exibido vem temporariamente da rede CIEX/FURG em Pelotas; as referências regionais continuam com réguas e zeros próprios."
+              : "Para Pelotas, a leitura do Laranjal é a referência local principal. As demais réguas ajudam a acompanhar como o Guaíba e diferentes pontos da Lagoa dos Patos estão se comportando."}
           </p>
           <Link href="/situacao-hidrologica-pelotas">
             Abrir monitoramento hidrológico completo <span aria-hidden="true">→</span>
@@ -263,13 +270,16 @@ export function HomeWaterEditorial({
         <article className={`tp-home-water__focus is-${laranjalTrend.direction}`}>
           <div className="tp-home-water__focus-topline">
             <div>
-              <span>Praia do Laranjal</span>
-              <small>Pelotas / RS · {laranjal.source.station}</small>
+              <span>{localPlace}</span>
+              <small>{laranjal.source.location} · {laranjal.source.station}</small>
             </div>
           </div>
 
           <div className={`tp-home-water__level-card is-${laranjalTrend.direction}`}>
-            <div className="tp-home-water__level" aria-label="Nível atual da Lagoa no Laranjal">
+            <div
+              className="tp-home-water__level"
+              aria-label={`Nível atual da Lagoa ${alternative ? "em Pelotas" : "no Laranjal"}`}
+            >
               <strong>
                 {laranjalAvailable ? formatNumber(laranjal.currentLevel, 2) : "Sem leitura"}
               </strong>
@@ -305,7 +315,8 @@ export function HomeWaterEditorial({
           </div>
 
           <Link href="/nivel-da-lagoa-dos-patos-laranjal">
-            Ver nível e histórico do Laranjal <span aria-hidden="true">→</span>
+            {alternative ? "Ver nível local e detalhes da fonte" : "Ver nível e histórico do Laranjal"}{" "}
+            <span aria-hidden="true">→</span>
           </Link>
 
           <section className="tp-home-water__local-network" aria-labelledby="tp-home-water-estuary-title">
@@ -357,8 +368,10 @@ export function HomeWaterEditorial({
             <span className="is-stable">→ Estável</span>
           </div>
           <small>
-            Rede da Lagoa: {lagoon.source.name} · {lagoon.source.organizations}. Réguas do Guaíba
-            mantêm suas próprias fontes e referências.
+            Fonte local: {laranjal.source.name}
+            {laranjal.source.reference ? ` · ${laranjal.source.reference}` : ""}. Rede da Lagoa:{" "}
+            {lagoon.source.name} · {lagoon.source.organizations}. Réguas do Guaíba mantêm suas próprias
+            fontes e referências.
           </small>
         </div>
         <Link href="/situacao-hidrologica-pelotas">

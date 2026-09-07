@@ -21,13 +21,21 @@ export function canReplaceLaranjalReading(
 
   if (current.currentLevel === null || current.updatedAt === null) return true;
 
+  const currentSource = current.source.key;
+  const nextSource = next.source.key;
+
+  // O seletor server-side já escolheu a fonte correta. Quando a proveniência
+  // muda, não comparamos timestamps nem valores de réguas com referências
+  // verticais diferentes: aceitamos a troca de fonte como uma nova série.
+  if (currentSource && nextSource && currentSource !== nextSource) return true;
+
   const currentTime = readingTime(current.updatedAt);
   const nextTime = readingTime(next.updatedAt);
   if (nextTime === null) return false;
   if (currentTime === null) return true;
 
-  // A mesma medição pode voltar com status/idade atualizados. Uma medição mais
-  // antiga, porém, nunca apaga a última leitura já visível.
+  // Dentro da mesma fonte, a mesma medição pode voltar com status/idade
+  // atualizados. Uma medição mais antiga nunca apaga a última leitura visível.
   return nextTime >= currentTime;
 }
 

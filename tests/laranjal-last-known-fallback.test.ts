@@ -8,6 +8,14 @@ const functionsSource = readFileSync(
   "src/lib/hydrology/laranjal-level.functions.ts",
   "utf8",
 );
+const sourceResolver = readFileSync(
+  "src/lib/hydrology/laranjal-level-source.server.ts",
+  "utf8",
+);
+const selectorSource = readFileSync(
+  "src/lib/hydrology/laranjal-level-selector.ts",
+  "utf8",
+);
 const archiveSource = readFileSync(
   "src/lib/hydrology/laranjal-last-known.server.ts",
   "utf8",
@@ -44,7 +52,7 @@ test("last-known preserva valor e horário reais da Estação Laranjal", () => {
   assert.match(data.error ?? "", /momento da visita/);
 });
 
-test("fallback usa somente histórico da própria Estação Laranjal", () => {
+test("fallback arquivado continua usando somente histórico da própria Estação Laranjal", () => {
   assert.match(archiveSource, /SOURCE_KEY = "labhidrosens-ufpel"/);
   assert.match(archiveSource, /STATION_KEY = "labhidrosens-laranjal"/);
   assert.match(archiveSource, /VARIABLE_KEY = "water_level"/);
@@ -53,26 +61,32 @@ test("fallback usa somente histórico da própria Estação Laranjal", () => {
   assert.doesNotMatch(archiveSource, /ana-rhn-laranjal-87955001/);
 });
 
-test("consulta pública prioriza fonte ao vivo e cai para last-known sem estourar o loader", () => {
+test("consulta pública resolve Lab, CIEX/FURG e last-known sem misturar séries", () => {
   assert.match(functionsSource, /PUBLIC_LARANJAL_SOURCE_DEADLINE_MS = 1_800/);
-  assert.match(functionsSource, /Promise\.all/);
-  assert.match(functionsSource, /fetchLaranjalLevelData\(\{ deadlineMs: PUBLIC_LARANJAL_SOURCE_DEADLINE_MS \}\)/);
-  assert.match(functionsSource, /fetchLastKnownLaranjalLevelData\(\)/);
-  assert.match(functionsSource, /if \(current\.status !== "unavailable"\) return current/);
-  assert.match(functionsSource, /return lastKnown \?\? current/);
+  assert.match(functionsSource, /fetchSelectedLaranjalLevelData/);
+  assert.match(sourceResolver, /Promise\.all/);
+  assert.match(sourceResolver, /fetchLaranjalLevelData/);
+  assert.match(sourceResolver, /fetchCiexFurgPelotasLevelData/);
+  assert.match(sourceResolver, /fetchLastKnownLaranjalLevelData/);
+  assert.match(selectorSource, /if \(lab\.status === "live"\) return lab/);
+  assert.match(selectorSource, /if \(ciexFurg\.status !== "unavailable"\) return ciexFurg/);
+  assert.match(selectorSource, /if \(lab\.status === "stale"\) return lab/);
+  assert.match(selectorSource, /return lastKnownLab \?\? lab/);
 });
 
 test("refresh do Laranjal é local, a cada minuto, e nunca regride a medição visível", () => {
   assert.match(refreshSource, /LARANJAL_REFRESH_INTERVAL_MS = 60_000/);
   assert.match(refreshSource, /window\.setInterval/);
   assert.match(refreshSource, /visibilitychange/);
+  assert.match(refreshSource, /currentSource !== nextSource/);
   assert.match(refreshSource, /return nextTime >= currentTime/);
   assert.match(refreshSource, /current\.currentLevel === null/);
   assert.doesNotMatch(refreshSource, /router\.invalidate/);
 });
 
-test("Hero diferencia leitura atual de última medição disponível", () => {
+test("Hero diferencia leitura atual, alternativa e última medição disponível", () => {
   assert.match(heroSource, /"Sem nova leitura"/);
+  assert.match(heroSource, /"Leitura alternativa atualizada"/);
   assert.match(heroSource, /"Até a última medição"/);
   assert.match(heroSource, /"Última medição: "/);
 });

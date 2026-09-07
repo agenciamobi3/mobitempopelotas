@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { fetchLaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
+import { fetchSelectedLaranjalLevelData } from "@/lib/hydrology/laranjal-level-source.server";
 
 const HEADERS = {
   "Access-Control-Allow-Headers": "Accept, Content-Type",
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/widgets/nivel-laranjal")({
   server: {
     handlers: {
       GET: async () => {
-        const data = await fetchLaranjalLevelData();
+        const data = await fetchSelectedLaranjalLevelData({ deadlineMs: 1_800 });
         return new Response(
           JSON.stringify({
             widget: "nivel-laranjal",

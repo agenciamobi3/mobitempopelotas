@@ -1,4 +1,4 @@
-import { fetchLaranjalLevelData } from "./hydrology/laranjal-level.server";
+import { fetchSelectedLaranjalLevelData } from "./hydrology/laranjal-level-source.server";
 import { absoluteUrl, SITE_DESCRIPTION, SITE_NAME } from "./site-config";
 import { fetchWeatherIntelligence } from "./weather/weather-intelligence.server";
 
@@ -36,7 +36,7 @@ function publicEmbrapaObservation(
   };
 }
 
-function publicLaranjalLevel(level: Awaited<ReturnType<typeof fetchLaranjalLevelData>>) {
+function publicLaranjalLevel(level: Awaited<ReturnType<typeof fetchSelectedLaranjalLevelData>>) {
   return {
     status: level.status,
     current_level_m: level.currentLevel,
@@ -54,10 +54,20 @@ function publicLaranjalLevel(level: Awaited<ReturnType<typeof fetchLaranjalLevel
   };
 }
 
+function laranjalInterpretation(
+  level: Awaited<ReturnType<typeof fetchSelectedLaranjalLevelData>>,
+) {
+  if (level.source.role === "contingency") {
+    return `Leitura local alternativa de ${level.source.station}, fornecida por ${level.source.name}. A série mantém ${level.source.reference ?? "a referência declarada pela fonte"} e não é convertida para a referência da Estação Laranjal.`;
+  }
+
+  return "Medição local da Estação Laranjal. A leitura representa esse ponto específico e deve ser interpretada junto com chuva, vento e orientações oficiais.";
+}
+
 export async function fetchPublicPortalSnapshot() {
   const [weatherIntelligence, laranjalLevel] = await Promise.all([
     fetchWeatherIntelligence(),
-    fetchLaranjalLevelData(),
+    fetchSelectedLaranjalLevelData({ deadlineMs: 2_500 }),
   ]);
   const { weather, brief, intelligence } = weatherIntelligence;
 
@@ -93,8 +103,7 @@ export async function fetchPublicPortalSnapshot() {
       status: laranjalLevel.status === "unavailable" ? "unavailable" : "contextual-monitoring",
       local_level: {
         laranjal: publicLaranjalLevel(laranjalLevel),
-        interpretation:
-          "Medição local da Estação Laranjal. A leitura representa esse ponto específico e deve ser interpretada junto com chuva, vento e orientações oficiais.",
+        interpretation: laranjalInterpretation(laranjalLevel),
       },
       system_note:
         "O nível da Lagoa dos Patos em Pelotas depende de chuva, vento, contribuições das bacias, Canal São Gonçalo e escoamento pela Barra de Rio Grande.",
@@ -145,8 +154,12 @@ export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
       : `${activeAlerts.length} alerta${activeAlerts.length === 1 ? " oficial ativo" : "s oficiais ativos"}: ${activeAlerts.map((alert) => alert.event).join("; ")}.`;
   const laranjalText =
     laranjal.status === "unavailable"
-      ? "A leitura da Estação Laranjal está temporariamente indisponível."
-      : `A última leitura conhecida da Estação Laranjal é de ${formatMetric(laranjal.current_level_m, " m")}${laranjal.age_minutes === null ? "" : `, com idade de ${laranjal.age_minutes} minutos`}.`;
+      ? "A leitura local do nível da Lagoa dos Patos está temporariamente indisponível."
+      : `A última leitura conhecida de ${laranjal.source.station}, por ${laranjal.source.name}, é de ${formatMetric(laranjal.current_level_m, " m")}${laranjal.age_minutes === null ? "" : `, com idade de ${laranjal.age_minutes} minutos`}.`;
+  const laranjalTitle =
+    laranjal.source.role === "contingency"
+      ? "Nível da Lagoa dos Patos em Pelotas"
+      : "Nível da Lagoa dos Patos na Estação Laranjal";
 
   return {
     version: "https://jsonfeed.org/version/1.1",
@@ -184,7 +197,7 @@ export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
       {
         id: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
         url: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
-        title: "Nível da Lagoa dos Patos na Estação Laranjal",
+        title: laranjalTitle,
         content_text: `${laranjalText} Acompanhe a tendência local junto com o contexto meteorológico e as orientações oficiais.`,
         ...(laranjal.updated_at ? { date_modified: laranjal.updated_at } : {}),
         tags: ["hidrologia", "Lagoa dos Patos", "Laranjal", "Pelotas"],

@@ -18,6 +18,17 @@ export type LaranjalLevelPoint = {
   level: number;
 };
 
+export type LaranjalLevelSource = {
+  key?: "labhidrosens" | "ciex-furg";
+  role?: "primary" | "contingency";
+  name: string;
+  station: string;
+  location: string;
+  reference?: string;
+  url: string;
+  fetchedAt: string;
+};
+
 export type LaranjalLevelData = {
   status: LaranjalLevelStatus;
   currentLevel: number | null;
@@ -31,13 +42,7 @@ export type LaranjalLevelData = {
   periodMinimum: number | null;
   periodMaximum: number | null;
   series: LaranjalLevelPoint[];
-  source: {
-    name: "LabHidroSens / UFPel";
-    station: "Estação Laranjal";
-    location: "Praia do Laranjal, Pelotas / RS";
-    url: string;
-    fetchedAt: string;
-  };
+  source: LaranjalLevelSource;
   error: string | null;
 };
 
@@ -48,6 +53,9 @@ type ParsedPoint = LaranjalLevelPoint & {
 type SeriesOptions = {
   forceStale?: boolean;
   error?: string | null;
+  source?: LaranjalLevelSource;
+  staleAfterMinutes?: number;
+  levelPrecisionDigits?: number;
 };
 
 type FetchLaranjalOptions = {
@@ -59,7 +67,24 @@ function round(value: number, digits = 2) {
   return Math.round(value * factor) / factor;
 }
 
-function unavailableData(error: string): LaranjalLevelData {
+export function createLabHidroSensLaranjalSource(fetchedAt = new Date()): LaranjalLevelSource {
+  return {
+    key: "labhidrosens",
+    role: "primary",
+    name: "LabHidroSens / UFPel",
+    station: "Estação Laranjal",
+    location: "Praia do Laranjal, Pelotas / RS",
+    reference: "Referência própria da Estação Laranjal",
+    url: LARANJAL_DASHBOARD_URL,
+    fetchedAt: fetchedAt.toISOString(),
+  };
+}
+
+function unavailableData(
+  error: string,
+  fetchedAt = new Date(),
+  source = createLabHidroSensLaranjalSource(fetchedAt),
+): LaranjalLevelData {
   return {
     status: "unavailable",
     currentLevel: null,
@@ -73,13 +98,7 @@ function unavailableData(error: string): LaranjalLevelData {
     periodMinimum: null,
     periodMaximum: null,
     series: [],
-    source: {
-      name: "LabHidroSens / UFPel",
-      station: "Estação Laranjal",
-      location: "Praia do Laranjal, Pelotas / RS",
-      url: LARANJAL_DASHBOARD_URL,
-      fetchedAt: new Date().toISOString(),
-    },
+    source,
     error,
   };
 }
@@ -151,7 +170,7 @@ function reduceSeries(points: ParsedPoint[]) {
   return reduced;
 }
 
-function parseSeriesPoints(series: LaranjalLevelPoint[]) {
+function parseSeriesPoints(series: LaranjalLevelPoint[], precisionDigits = 2) {
   const validPoints = new Map<number, ParsedPoint>();
 
   for (const point of series) {
@@ -161,7 +180,7 @@ function parseSeriesPoints(series: LaranjalLevelPoint[]) {
     validPoints.set(epoch, {
       epoch,
       timestamp: new Date(epoch).toISOString(),
-      level: round(point.level),
+      level: round(point.level, precisionDigits),
     });
   }
 
@@ -174,18 +193,26 @@ function parseSeriesPoints(series: LaranjalLevelPoint[]) {
 }
 
 /**
- * Constrói o mesmo contrato público a partir de medições já convertidas para
- * metros. É usado tanto pela telemetria ao vivo quanto pelo last-known
- * persistido da própria Estação Laranjal.
+ * Constrói o contrato público a partir de medições já convertidas para metros.
+ * O cálculo de tendência é reutilizado por fontes distintas, mas cada série
+ * conserva sua própria proveniência e referência vertical.
  */
 export function createLaranjalLevelDataFromSeries(
   series: LaranjalLevelPoint[],
   fetchedAt = new Date(),
   options: SeriesOptions = {},
 ): LaranjalLevelData {
-  const points = parseSeriesPoints(series);
+  const source = options.source ?? createLabHidroSensLaranjalSource(fetchedAt);
+  const precisionDigits = options.levelPrecisionDigits ?? 2;
+  const points = parseSeriesPoints(series, precisionDigits);
   const current = points.at(-1);
-  if (!current) return unavailableData("A estação não enviou uma leitura válida neste período.");
+  if (!current) {
+    return unavailableData(
+      "A estação não enviou uma leitura válida neste período.",
+      fetchedAt,
+      source,
+    );
+  }
 
   const change1h = calculateChange(points, current, 1);
   const change6h = calculateChange(points, current, 6);
@@ -193,7 +220,8 @@ export function createLaranjalLevelDataFromSeries(
   const trendSource = change6h ?? change1h;
   const values = points.map((point) => point.level);
   const ageMinutes = Math.max(0, (fetchedAt.getTime() - current.epoch) / 60_000);
-  const stale = options.forceStale === true || ageMinutes > STALE_AFTER_MINUTES;
+  const staleAfterMinutes = options.staleAfterMinutes ?? STALE_AFTER_MINUTES;
+  const stale = options.forceStale === true || ageMinutes > staleAfterMinutes;
 
   return {
     status: stale ? "stale" : "live",
@@ -206,17 +234,14 @@ export function createLaranjalLevelDataFromSeries(
     change1hCm: change1h ? round(change1h.centimeters, 1) : null,
     change6hCm: change6h ? round(change6h.centimeters, 1) : null,
     change24hCm: change24h ? round(change24h.centimeters, 1) : null,
-    periodAverage: round(values.reduce((sum, value) => sum + value, 0) / values.length),
-    periodMinimum: round(Math.min(...values)),
-    periodMaximum: round(Math.max(...values)),
+    periodAverage: round(
+      values.reduce((sum, value) => sum + value, 0) / values.length,
+      precisionDigits,
+    ),
+    periodMinimum: round(Math.min(...values), precisionDigits),
+    periodMaximum: round(Math.max(...values), precisionDigits),
     series: reduceSeries(points),
-    source: {
-      name: "LabHidroSens / UFPel",
-      station: "Estação Laranjal",
-      location: "Praia do Laranjal, Pelotas / RS",
-      url: LARANJAL_DASHBOARD_URL,
-      fetchedAt: fetchedAt.toISOString(),
-    },
+    source,
     error: options.error ?? (stale ? "A estação deixou de enviar novas medições." : null),
   };
 }
@@ -226,12 +251,12 @@ export function normalizeLaranjalTelemetry(
   fetchedAt = new Date(),
 ): LaranjalLevelData {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return unavailableData("A medição do Laranjal retornou um formato inesperado.");
+    return unavailableData("A medição do Laranjal retornou um formato inesperado.", fetchedAt);
   }
 
   const rawPoints = (payload as Record<string, unknown>)[TELEMETRY_KEY];
   if (!Array.isArray(rawPoints)) {
-    return unavailableData("Nenhuma leitura do nível foi encontrada.");
+    return unavailableData("Nenhuma leitura do nível foi encontrada.", fetchedAt);
   }
 
   const validPoints = new Map<number, LaranjalLevelPoint>();

@@ -38,7 +38,7 @@ Regras permanentes:
 | Embrapa | Observação local centralizada; snapshot central vale no máximo 75 s e amostra com mais de 30 min nunca é publicada como `Agora` |
 | INMET | Avisos/produtos oficiais conforme contrato de cada integração |
 | Radar / satélite / STSC | Probes independentes e copy pública sanitizada |
-| Hidrologia | Laranjal, Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
+| Hidrologia | Laranjal usa seleção local explícita: LabHidroSens/UFPel quando atualizado, CIEX/FURG (`sensor_7`) quando o Lab atrasa/falha e last-known do próprio Lab se ambas as consultas correntes falharem; Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
 | Localidades da Lagoa | Hub `/nivel-da-lagoa-dos-patos` + páginas verificadas de Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
 | ANA / SNIRH / RHN | `87955001` permanece readiness/cross-check atual; série histórica `87955000` foi recuperada em bruto e consistido para pesquisa, sem terceira ingestão de runtime |
 | Historical Data Layer | Ativo; classes `observation`, `forecast`, `reanalysis`, `derived` separadas |
@@ -81,6 +81,30 @@ Proteções permanentes:
 - `station.capabilities.riverLevel` é autoridade para decidir se a estação expõe nível;
 - valor bruto/sentinela incompatível não promove estação meteorológica a hidrológica;
 - falha de mapa ou integração regional não derruba a rota inteira.
+
+### 4.1.1 Fonte local do Laranjal e leitura alternativa CIEX/FURG
+
+O contrato local do Laranjal passa a ter seleção explícita de fonte, sem fundir séries com referências verticais diferentes:
+
+1. **LabHidroSens/UFPel** continua prioritário enquanto a leitura estiver `live`;
+2. se o Lab estiver `stale` ou `unavailable`, o portal consulta **CIEX/FURG — Pelotas (`sensor_7`)**;
+3. se a leitura CIEX/FURG também estiver indisponível, o portal preserva a leitura `stale` do Lab ou o **last-known arquivado do próprio Lab**, sem substituí-lo por zero.
+
+Contrato confirmado para CIEX/FURG:
+
+- página pública: `https://monitoramentolagoadospatos.com.br/`;
+- API: `https://api-medidas-porto-7bni.onrender.com`;
+- leitura atual: `/dados/sensor_7`;
+- série recente: `/dados/sensor_7/grafico`;
+- unidade recebida: `cm`;
+- unidade pública do portal: `m`, por conversão estritamente dimensional `cm → m`;
+- referência declarada pela rede: **Referencial vertical brasileiro — Marégrafo de Imbituba/SC**.
+
+A série CIEX/FURG não é anexada nem convertida para a referência própria da Estação Laranjal. Tendência, variações e estatísticas são calculadas dentro da série selecionada; valores absolutos entre LabHidroSens e CIEX/FURG não são subtraídos ou usados para calibrar um ao outro.
+
+O HAR usado para confirmar `sensor_7`, payload, unidade e endpoints é evidência operacional local e **não é versionado**. Secrets, cookies e headers de sessão continuam proibidos no repositório.
+
+A integração LabHidroSens permanece no código nesta fase, inclusive autenticação pública ThingsBoard, IDs necessários, dashboard, adapter e last-known. A remoção só deve ocorrer após confirmação externa de que o LabHidroSens não voltará. Se isso for confirmado, a limpeza deve ser completa: remover o código ThingsBoard e a seleção que perder utilidade, e promover CIEX/FURG de leitura alternativa para **fonte local única**, sem manter código-fantasma.
 
 ### 4.2 Rede da Defesa Civil RS
 
@@ -322,7 +346,7 @@ Documento: `docs/PUBLIC_ROUTE_RESILIENCE.md`.
 
 ## 9. Política ANA/RHN
 
-O Laranjal já possui duas fontes de coleta do projeto. ANA/RHN não será adicionada como terceira fonte nesta fase.
+O Laranjal já possui duas fontes locais de coleta no contrato de produto: LabHidroSens/UFPel como prioridade enquanto `live` e CIEX/FURG `sensor_7` como alternativa quando o Lab atrasa ou falha. Elas preservam referências próprias e não têm séries fundidas. ANA/RHN não será adicionada como terceira fonte nesta fase.
 
 ### 9.1 Estação atual 87955001
 
@@ -404,6 +428,15 @@ Na Defesa Civil RS, os contratos protegem:
 - descoberta por `stationCode` exato;
 - ausência de links dedicados para as cinco candidatas não promovidas.
 
+No nível local do Laranjal, os contratos agora protegem:
+
+- precedência do LabHidroSens/UFPel quando `live`;
+- seleção de CIEX/FURG `sensor_7` quando o Lab estiver `stale` ou `unavailable`;
+- leitura CIEX/FURG em centímetros convertida somente para metros, preservando o referencial do Marégrafo de Imbituba/SC;
+- proibição de fundir ou recalibrar séries LabHidroSens e CIEX/FURG como se compartilhassem datum;
+- last-known do próprio Lab quando as duas consultas correntes não entregam leitura utilizável;
+- copy pública e links de fonte coerentes com a proveniência efetivamente selecionada.
+
 Na observação Embrapa/Home, os contratos agora protegem:
 
 - snapshot central com janela máxima de 75 segundos;
@@ -436,7 +469,7 @@ Na moderação histórica V1, os contratos protegem:
 - painel invisível para snapshot não autorizado;
 - `/painel` permanece `noindex, nofollow`.
 
-`.github/workflows/quality.yml` chama explicitamente contratos de moderação, Defesa Civil, navegação/rodapé e enchente de 2001. `npm test` também descobre os testes de frescor da Embrapa pelo glob geral.
+`.github/workflows/quality.yml` chama explicitamente contratos de moderação, Defesa Civil, navegação/rodapé e enchente de 2001. `npm test` descobre os testes de seleção local do nível no Laranjal pelo glob geral.
 
 GitHub Actions segue apresentando runs que terminam antes do checkout/steps (`steps: null`). Nessa condição, não declarar testes, build, typecheck, lint, `routes:check` ou browser E2E como executados.
 
@@ -468,6 +501,7 @@ Devem permanecer distintos:
 13. Depois da validação da moderação V1, adicionar paginação/filtros e fluxo editorial separado de publicação.
 14. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
 15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+16. Confirmar externamente o destino do LabHidroSens. Se houver confirmação de encerramento definitivo, remover autenticação pública ThingsBoard, IDs, dashboard, adapter Lab e a lógica de seleção que ficar redundante; então CIEX/FURG passa a fonte local única.
 
 ## 15. Documentos principais
 

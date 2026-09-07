@@ -1,6 +1,6 @@
 import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
-import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
+import { fetchLaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import {
   createUnavailableGuaibaObservationData,
   createUnavailableLagoonMonitoringNetworkData,
@@ -29,12 +29,16 @@ function createUnavailableAccuracy(): ForecastAccuracySummary {
 /**
  * A metodologia é uma página de transparência: uma fonte indisponível deve aparecer
  * como indisponível, não impedir a leitura das demais integrações.
+ *
+ * O cartão "Estação Laranjal · LabHidroSens/UFPel" audita deliberadamente a fonte
+ * primária em si. Ele não usa o seletor público, porque isso faria uma leitura CIEX/FURG
+ * aparecer sob o nome do Lab. A rede da Lagoa permanece auditada separadamente.
  */
 export async function loadMethodologyPageData() {
   const [weatherResult, levelResult, redemetResult, guaibaResult, lagoonResult, accuracyResult] =
     await Promise.allSettled([
       getWeatherIntelligence(),
-      getLaranjalLevelData(),
+      fetchLaranjalLevelData({ deadlineMs: 2_500 }),
       getRedemetOverview(),
       getGuaibaObservation(),
       getLagoonMonitoringNetwork(),
