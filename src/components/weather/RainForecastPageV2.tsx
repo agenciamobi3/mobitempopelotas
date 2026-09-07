@@ -10,6 +10,9 @@ import {
 import type { CSSProperties } from "react";
 
 import { InternalPageChapters } from "@/components/weather/InternalWeatherWidgets";
+import { RainAccumulationContext } from "@/components/weather/RainAccumulationContext";
+import { RainHourlyVolumeContext } from "@/components/weather/RainHourlyVolumeContext";
+import type { MeteogramData } from "@/lib/weather/meteogram.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import type { DailyForecast } from "@/lib/weather/types";
 import { WeatherIcon } from "@/production/components/weather-icon";
@@ -18,11 +21,10 @@ import { useOpenMeteoIntelligenceRecovery } from "@/production/lib/open-meteo-br
 import "./RainForecastPageV2.css";
 
 const chapters = [
-  { href: "#chuva-acumulada", label: "Acumulado", detail: "Medido" },
-  { href: "#chuva-por-hora", label: "12 horas", detail: "Chance" },
-  { href: "#volume-de-chuva-por-hora", label: "Volume por hora", detail: "Milímetros" },
+  { href: "#chuva-acumulada", label: "Medido", detail: "Hoje e mês" },
+  { href: "#chuva-por-hora", label: "Próximas horas", detail: "Chance e volume" },
   { href: "#chuva-na-semana", label: "7 dias", detail: "Dia a dia" },
-  { href: "#contexto-oficial-da-chuva", label: "INMET", detail: "Avisos" },
+  { href: "#contexto-oficial-da-chuva", label: "INMET", detail: "Avisos e previsão" },
 ];
 
 function formatFetchedAt(value: string) {
@@ -81,7 +83,13 @@ function EmptyRainPage() {
   );
 }
 
-export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) {
+export function RainForecastPageV2({
+  data,
+  meteogram,
+}: {
+  data: WeatherIntelligenceData;
+  meteogram: MeteogramData;
+}) {
   const recoveredData = useOpenMeteoIntelligenceRecovery(data);
   const weather = recoveredData.weather;
   const hours = weather.hourly.slice(0, 12);
@@ -117,10 +125,12 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
     <div className="rain-v2-page">
       <InternalPageChapters items={chapters} label="Navegação da página de chuva" />
 
+      <RainAccumulationContext data={recoveredData} />
+
       <section className="rain-v2-hourly" id="chuva-por-hora" aria-labelledby="rain-v2-hourly-title">
         <header>
           <h2 id="rain-v2-hourly-title">Chance de chuva nas próximas 12 horas</h2>
-          <Link to="/tempo-hoje-pelotas">Temperatura e vento de hoje</Link>
+          <Link to="/tempo-hoje-pelotas">Tempo de hoje</Link>
         </header>
 
         <div className="rain-v2-hourly__grid" aria-label="Probabilidade de chuva por horário">
@@ -152,6 +162,8 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
           })}
         </div>
       </section>
+
+      <RainHourlyVolumeContext meteogram={meteogram} />
 
       <section className="rain-v2-week" id="chuva-na-semana" aria-labelledby="rain-v2-week-title">
         <header>
@@ -187,7 +199,7 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
                 : "Sem volume previsto"}
             </dd>
           </div>
-          <div><dt>Dias com chuva</dt><dd>{rainyDays.length} de {days.length}</dd></div>
+          <div><dt>Dias com chuva prevista</dt><dd>{rainyDays.length} de {days.length}</dd></div>
         </dl>
       </section>
 
