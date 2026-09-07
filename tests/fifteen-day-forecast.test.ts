@@ -104,13 +104,17 @@ test("hero de 15 dias usa a mesma estrutura retail de hoje, amanhã e 7 dias", (
   assert.match(heroStyles, /@media \(forced-colors: active\)/);
 });
 
-test("página de 15 dias separa as duas semanas com copy direta", () => {
+test("página de 15 dias apresenta as duas semanas em uma única superfície", () => {
   assert.match(page, /days\.slice\(0, 7\)/);
   assert.match(page, /days\.slice\(7, 15\)/);
   assert.match(page, /className="fifteen-day-page"/);
-  assert.match(page, /Primeiros 7 dias/);
-  assert.match(page, /Dias 8 a 15/);
-  assert.match(page, /A segunda semana pode mudar mais\. Confira de novo perto da data\./);
+  assert.match(page, /className="fifteen-day__forecast"/);
+  assert.match(page, /Previsão dos próximos 15 dias/);
+  assert.match(page, /Primeira semana/);
+  assert.match(page, /Segunda semana/);
+  assert.match(page, /Pode mudar mais\. Confira de novo perto da data\./);
+  assert.match(page, /className="fifteen-day__grid is-near"/);
+  assert.match(page, /className="fifteen-day__grid is-extended"/);
   assert.match(page, /Temperaturas nos próximos 15 dias/);
   assert.match(page, /Chuva e rajadas nos próximos 15 dias/);
   assert.match(page, /--fifteen-low/);
@@ -134,22 +138,36 @@ test("cards de 15 dias preservam ausência e evitam rótulos genéricos", () => 
   assert.doesNotMatch(page, /Previsão estendida<\/span>/);
 });
 
-test("estrutura visual de 15 dias usa superfícies simples e o rail meteorológico atual", () => {
+test("estrutura visual de 15 dias reduz módulos e mantém hierarquia meteorológica", () => {
   assert.match(
     shellStyles,
     /\.internal-weather-shell--fifteen-day \.fifteen-day-retail-hero__inner/,
   );
   assert.match(shellStyles, /\.internal-weather-main > \.fifteen-day-page/);
-  assert.match(pageStyles, /\.fifteen-day-page/);
-  assert.match(pageStyles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(pageStyles, /\.internal-weather-shell--fifteen-day \.internal-page-chapters[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(pageStyles, /\.fifteen-day__grid\.is-near[\s\S]*repeat\(7, minmax\(0, 1fr\)\)/);
+  assert.match(pageStyles, /\.fifteen-day__grid\.is-extended[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(pageStyles, /\.fifteen-day__trend-list/);
-  assert.match(pageStyles, /\.fifteen-day__risks-grid/);
+  assert.match(pageStyles, /\.fifteen-day__trend-summary/);
+  assert.match(pageStyles, /\.fifteen-day__risks-grid > article \+ article[\s\S]*border-left/);
+  assert.match(pageStyles, /\.fifteen-day__footer/);
   assert.match(pageStyles, /content-visibility:\s*auto/);
   assert.match(pageStyles, /@media \(max-width: 980px\)/);
   assert.match(pageStyles, /@media \(max-width: 560px\)/);
   assert.match(pageStyles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(pageStyles, /radial-gradient/);
-  assert.doesNotMatch(pageStyles, /box-shadow:\s*0\s+14px/);
+  assert.doesNotMatch(pageStyles, /fifteen-day__source|fifteen-day__related/);
+});
+
+test("rodapé de 15 dias concentra fonte e navegação sem novos cards", () => {
+  assert.match(page, /<footer className="fifteen-day__footer">/);
+  assert.match(page, /forecast\.source\.model/);
+  assert.match(page, /forecast\.source\.returnedDays/);
+  assert.match(page, /to="\/previsao-7-dias-pelotas">7 dias/);
+  assert.match(page, /to="\/tempo-amanha-pelotas">Amanhã/);
+  assert.match(page, /to="\/chuva-em-pelotas">Chuva/);
+  assert.match(page, /to="\/vento-em-pelotas">Vento/);
+  assert.doesNotMatch(page, /className="fifteen-day__source"|className="fifteen-day__related"/);
 });
 
 test("7 dias aponta para 15 dias e sitemap inclui a URL estendida", () => {
