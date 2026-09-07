@@ -63,19 +63,19 @@ test("converted internal weather pages cannot be recarded by lazy CSS", () => {
   assert.match(barrier, /box-shadow:\s*none !important/);
 });
 
-test("old chapter indexes stay hidden on converted pages", () => {
-  for (const selector of [
-    "internal-weather-shell--fifteen-day .internal-page-chapters",
-    "internal-weather-shell--meteogram .internal-page-chapters",
-    "internal-weather-shell--cameras .camera-v2-chapters",
-    "internal-weather-shell--climate .climate-chapters",
-    "internal-weather-shell--hydrology .hydrology-v2-chapters",
-    "internal-weather-shell--frost .frost-v2-chapters",
-    "internal-weather-shell--embrapa .embrapa-v2-chapters",
-  ]) {
-    assert.match(barrier, new RegExp(selector.replaceAll(".", "\\.")));
-  }
+test("only Meteogram still needs a precedence guard for chapter markup", () => {
+  assert.match(barrier, /internal-weather-shell--meteogram \.internal-page-chapters/);
   assert.match(barrier, /display:\s*none !important/);
+  for (const removedSelector of [
+    "internal-weather-shell--fifteen-day .internal-page-chapters",
+    "camera-v2-chapters",
+    "climate-chapters",
+    "hydrology-v2-chapters",
+    "frost-v2-chapters",
+    "embrapa-v2-chapters",
+  ]) {
+    assert.doesNotMatch(barrier, new RegExp(removedSelector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
 });
 
 test("rain, wind and 15-day reuse the retail DOM but keep the clean hero", () => {
