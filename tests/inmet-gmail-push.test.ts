@@ -167,6 +167,24 @@ test("INMET Gmail is fail-closed while Web Push remains suspended", () => {
   assert.match(docs, /Web Push público do Tempo Pelotas permanece suspenso/i);
 });
 
+test("INMET Gmail check can inspect the real connector without attempting delivery", () => {
+  assert.match(server, /export async function inspectRecentInmetForecastEmails/);
+  assert.match(server, /mode: "check"/);
+  assert.match(server, /selectedMessage:\s*\{/);
+  assert.match(server, /fingerprint: messageLogFingerprint\(selected\.id\)/);
+  assert.match(server, /structuredForecast:\s*\{/);
+  assert.match(server, /preview: copy/);
+
+  assert.match(route, /task === "inmet-gmail-check"/);
+  assert.match(route, /processInmetGmailCheck/);
+  assert.match(route, /inspectRecentInmetForecastEmails/);
+  assert.match(route, /dispatchAttempted:\s*false/);
+  assert.match(route, /hasBearerSecret\(request, process\.env\.CRON_SECRET/);
+
+  assert.match(docs, /inmet-gmail-check/i);
+  assert.match(docs, /não reserva.*dispatch|não.*claim_web_push_dispatch/is);
+});
+
 test("INMET Gmail coalesces candidates and deduplicates by public update content", () => {
   assert.match(server, /eligibleForecasts\.sort/);
   assert.match(server, /supersededForecasts/);
@@ -203,9 +221,12 @@ test("INMET Gmail polling stays server-only, protected, deterministic and on dai
   assert.doesNotMatch(route, /verifyInmetGmailPubSubRequest|parseInmetGmailPubSubEnvelope/);
 });
 
-test("INMET Gmail scheduler polls every ten minutes without cancelling an in-flight delivery", () => {
+test("INMET Gmail scheduler polls every ten minutes and defaults manual runs to safe check", () => {
   assert.match(scheduler, /cron:\s*"\*\/10 \* \* \* \*"/);
-  assert.match(scheduler, /task=inmet-gmail/);
+  assert.match(scheduler, /workflow_dispatch:[\s\S]*default:\s*check/);
+  assert.match(scheduler, /options:[\s\S]*- check[\s\S]*- delivery/);
+  assert.match(scheduler, /TASK="inmet-gmail"/);
+  assert.match(scheduler, /TASK="inmet-gmail-check"/);
   assert.match(scheduler, /TEMPO_PELOTAS_CRON_SECRET/);
   assert.match(scheduler, /Authorization: Bearer \$CRON_SECRET/);
   assert.match(scheduler, /cancel-in-progress:\s*false/);
