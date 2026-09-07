@@ -10,7 +10,7 @@ permissions:
 
 concurrency:
   group: inmet-gmail-push-poll
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   poll:
@@ -34,7 +34,9 @@ jobs:
             --fail-with-body \
             --silent \
             --show-error \
-            --max-time 90 \
+            --connect-timeout 15 \
+            --max-time 120 \
             --header "Authorization: Bearer $CRON_SECRET" \
             --header "Accept: application/json" \
+            --header "User-Agent: TempoPelotas-INMET-Gmail-Poll/1.0" \
             "$CRON_URL"
