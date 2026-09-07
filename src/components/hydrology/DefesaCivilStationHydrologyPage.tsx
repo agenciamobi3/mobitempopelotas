@@ -62,14 +62,14 @@ function StationMetrics({ station, waterBodyLabel }: { station: DefesaCivilHydro
         <span className={`defesa-civil-station-page__freshness ${freshness.className}`}>
           <i aria-hidden="true" /> {freshness.label}
         </span>
-        <span>{station.code}</span>
+        <span>Estação {station.code}</span>
       </div>
 
       <div className="defesa-civil-station-page__primary-reading">
         <div>
           <Gauge aria-hidden="true" />
           <span>
-            <small>Nível informado pela estação</small>
+            <small>Nível da estação</small>
             <strong>{level === null ? "Não informado" : `${level} m`}</strong>
             <em>{station.river.name ?? waterBodyLabel}</em>
           </span>
@@ -77,7 +77,7 @@ function StationMetrics({ station, waterBodyLabel }: { station: DefesaCivilHydro
         <div>
           <Clock3 aria-hidden="true" />
           <span>
-            <small>Horário da leitura</small>
+            <small>Horário</small>
             <strong>{formatDateTime(station.observedAt)}</strong>
             <em>{station.basin ?? "Bacia não informada"}</em>
           </span>
@@ -88,7 +88,7 @@ function StationMetrics({ station, waterBodyLabel }: { station: DefesaCivilHydro
         <p className="defesa-civil-station-page__trend">
           <Waves aria-hidden="true" />
           <span>
-            <strong>Tendência informada pela fonte:</strong> {station.river.trend}
+            <strong>Tendência da fonte:</strong> {station.river.trend}
           </span>
         </p>
       ) : null}
@@ -139,20 +139,20 @@ export function DefesaCivilStationHydrologyPage({
       <section className="defesa-civil-station-page__live" aria-labelledby="defesa-civil-live-title">
         <header>
           <div>
-            <span>Leitura oficial</span>
-            <h2 id="defesa-civil-live-title">Última medição recebida da Defesa Civil RS</h2>
+            <span>Última leitura</span>
+            <h2 id="defesa-civil-live-title">Medição recebida da estação</h2>
           </div>
-          <small>Consulta do portal: {formatDateTime(data.source.fetchedAt)}</small>
+          <small>Consulta: {formatDateTime(data.source.fetchedAt)}</small>
         </header>
 
         {available && station ? (
           <StationMetrics station={station} waterBodyLabel={config.waterBodyLabel} />
         ) : (
           <div className="defesa-civil-station-page__unavailable" role="status">
-            <strong>Leitura não disponível nesta consulta</strong>
+            <strong>Leitura não disponível agora</strong>
             <p>
-              O Tempo Pelotas não substitui a ausência por zero, por uma estação vizinha ou por uma
-              classificação de normalidade. Consulte novamente e confirme orientações nos canais oficiais.
+              Não recebemos uma medição válida desta estação nesta consulta. O portal não troca a ausência
+              por zero nem usa uma estação vizinha como se fosse o mesmo ponto.
             </p>
           </div>
         )}
@@ -160,30 +160,29 @@ export function DefesaCivilStationHydrologyPage({
 
       <section className="defesa-civil-station-page__interpretation" aria-labelledby="defesa-civil-reference-title">
         <div>
-          <span>Referência da régua</span>
-          <h2 id="defesa-civil-reference-title">O número só vale na referência deste ponto</h2>
+          <span>Como ler este número</span>
+          <h2 id="defesa-civil-reference-title">Compare esta régua apenas com a própria série</h2>
         </div>
         <p>
-          O nível é apresentado em metros porque essa é a unidade documentada pela API oficial. Isso não
-          significa que a leitura seja uma cota de inundação local. Sem metadado específico de zero da régua,
-          datum ou limiar da estação, o portal não converte o valor em risco e não o compara diretamente com
-          outras réguas.
+          O nível é exibido em metros porque essa é a unidade informada pela fonte. Isso não transforma o
+          valor, sozinho, em cota de atenção ou inundação. Réguas de outros pontos podem usar referências
+          diferentes, por isso o portal não faz conversões automáticas entre elas.
         </p>
       </section>
 
       <nav className="defesa-civil-station-page__links" aria-label="Informações relacionadas">
         <a href={config.weatherPath}>Previsão do tempo em {config.weatherLabel}</a>
-        <a href="/situacao-hidrologica-pelotas">Panorama hidrológico regional</a>
-        <a href="/alertas">Alertas e orientações oficiais</a>
+        <a href="/situacao-hidrologica-pelotas">Situação das águas na região</a>
+        <a href="/alertas">Alertas oficiais</a>
         {config.siblingPath && config.siblingLabel ? <a href={config.siblingPath}>{config.siblingLabel}</a> : null}
       </nav>
 
       <footer className="defesa-civil-station-page__source">
         <div>
-          <strong>Fonte oficial</strong>
+          <strong>Fonte</strong>
           <p>
-            {data.source.name}. O Tempo Pelotas preserva a identificação da estação, o horário e a unidade e
-            não substitui os canais oficiais da Defesa Civil em situações de risco.
+            {data.source.name}. O Tempo Pelotas mantém a identificação da estação, o horário e a unidade
+            recebidos da fonte. Em situação de risco, consulte também os canais oficiais da Defesa Civil.
           </p>
         </div>
         <div>
@@ -191,7 +190,7 @@ export function DefesaCivilStationHydrologyPage({
             Mapa oficial <ExternalLink aria-hidden="true" />
           </a>
           <a href={data.source.documentationUrl} target="_blank" rel="noopener noreferrer">
-            Documentação da API <ExternalLink aria-hidden="true" />
+            Sobre os dados <ExternalLink aria-hidden="true" />
           </a>
         </div>
       </footer>
