@@ -1,4 +1,4 @@
-/* Volume horário: camada técnica complementar da página de chuva. */
+/* Volume por hora: camada funcional da página de chuva. */
 .internal-weather-shell--rain .rain-hourly-volume-context {
   display: grid;
   gap: 1rem;
@@ -16,25 +16,9 @@
   gap: clamp(1rem, 2.8vw, 2.5rem);
 }
 
-.internal-weather-shell--rain .rain-hourly-volume-context__eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: #087f91;
-  font-size: 0.74rem;
-  font-weight: 850;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.internal-weather-shell--rain .rain-hourly-volume-context__eyebrow svg {
-  width: 1rem;
-  height: 1rem;
-}
-
 .internal-weather-shell--rain .rain-hourly-volume-context h2 {
   max-width: 15ch;
-  margin: 0.55rem 0 0;
+  margin: 0;
   color: #071e2f;
   font-size: clamp(1.9rem, 3.4vw, 3.2rem);
   font-weight: 730;
@@ -53,61 +37,60 @@
 
 .internal-weather-shell--rain .rain-hourly-volume-context__summary {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.7rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
 }
 
-.internal-weather-shell--rain .rain-hourly-volume-context__summary article {
+.internal-weather-shell--rain .rain-hourly-volume-context__summary > div {
   display: grid;
-  min-width: 0;
-  min-height: 148px;
-  align-content: start;
-  gap: 0.42rem;
-  padding: 1rem;
-  border: 1px solid rgb(7 30 47 / 8%);
-  border-radius: 13px;
-  background: #fbfcfc;
-  box-shadow: none;
+  gap: 0.25rem;
+  padding: 0 1rem;
+  border-right: 1px solid rgb(7 30 47 / 8%);
 }
 
-.internal-weather-shell--rain .rain-hourly-volume-context__summary svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-bottom: 0.2rem;
+.internal-weather-shell--rain .rain-hourly-volume-context__summary > div:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__summary > div:last-child {
+  border-right: 0;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__summary dt {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #607984;
+  font-size: 0.72rem;
+  font-weight: 780;
+}
+
+.internal-weather-shell--rain .rain-hourly-volume-context__summary dt svg {
+  width: 1rem;
+  height: 1rem;
   color: #087f91;
 }
 
-.internal-weather-shell--rain .rain-hourly-volume-context__summary article:nth-child(2) svg {
+.internal-weather-shell--rain .rain-hourly-volume-context__summary > div:nth-child(2) dt svg {
   color: #5e2ced;
 }
 
-.internal-weather-shell--rain .rain-hourly-volume-context__summary article:nth-child(3) svg {
-  color: #c95c25;
-}
-
-.internal-weather-shell--rain .rain-hourly-volume-context__summary article:nth-child(4) svg {
-  color: #bd176f;
-}
-
-.internal-weather-shell--rain .rain-hourly-volume-context__summary span {
-  color: #607984;
-  font-size: 0.69rem;
-  font-weight: 800;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-}
-
-.internal-weather-shell--rain .rain-hourly-volume-context__summary strong {
+.internal-weather-shell--rain .rain-hourly-volume-context__summary dd {
+  margin: 0;
   color: #071e2f;
-  font-size: clamp(1.25rem, 2vw, 1.75rem);
-  letter-spacing: -0.04em;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
 }
 
 .internal-weather-shell--rain .rain-hourly-volume-context__summary small {
-  margin-top: auto;
   color: #617985;
   font-size: 0.72rem;
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 .internal-weather-shell--rain .rain-hourly-volume-context__timeline {
@@ -169,7 +152,7 @@
   background: rgb(7 30 47 / 7%);
 }
 
-/* O gradiente abaixo é funcional: representa visualmente o volume previsto. */
+/* Gradiente funcional: representa o volume previsto. */
 .internal-weather-shell--rain .rain-hourly-volume-context__timeline i span {
   display: block;
   width: var(--rain-hourly-volume, 0%);
@@ -221,12 +204,6 @@
   line-height: 1.5;
 }
 
-@media (max-width: 980px) {
-  .internal-weather-shell--rain .rain-hourly-volume-context__summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 760px) {
   .internal-weather-shell--rain .rain-hourly-volume-context > header {
     grid-template-columns: minmax(0, 1fr);
@@ -236,6 +213,21 @@
   .internal-weather-shell--rain .rain-hourly-volume-context h2 {
     max-width: 18ch;
   }
+
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary > div,
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary > div:first-child {
+    padding: 0.6rem 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--rain .rain-hourly-volume-context__summary > div:last-child {
+    border-bottom: 0;
+  }
 }
 
 @media (max-width: 520px) {
@@ -243,20 +235,11 @@
     padding: 1rem;
     border-radius: var(--internal-weather-radius-mobile, 12px);
   }
-
-  .internal-weather-shell--rain .rain-hourly-volume-context__summary {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .internal-weather-shell--rain .rain-hourly-volume-context__summary article {
-    min-height: 126px;
-  }
 }
 
 @media (forced-colors: active) {
   .internal-weather-shell--rain :is(
     .rain-hourly-volume-context,
-    .rain-hourly-volume-context__summary article,
     .rain-hourly-volume-context__timeline article
   ) {
     border: 1px solid CanvasText;
