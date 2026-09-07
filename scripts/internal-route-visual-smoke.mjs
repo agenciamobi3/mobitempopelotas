@@ -25,6 +25,12 @@ const routes = [
     marker: ".internal-weather-shell--seven-day",
   },
   {
+    name: "previsao-15-dias",
+    path: "/previsao-15-dias-pelotas",
+    marker: ".internal-weather-shell--fifteen-day",
+    hiddenSelectors: [".internal-page-chapters"],
+  },
+  {
     name: "chuva",
     path: "/chuva-em-pelotas",
     marker: ".internal-weather-shell--rain",
@@ -45,16 +51,19 @@ const routes = [
     name: "clima",
     path: "/clima-em-pelotas",
     marker: ".internal-weather-shell--climate",
+    hiddenSelectors: [".climate-chapters"],
   },
   {
     name: "meteograma",
     path: "/meteograma-pelotas",
     marker: ".internal-weather-shell--meteogram",
+    hiddenSelectors: [".internal-page-chapters"],
   },
   {
     name: "historico-climatico",
     path: "/historico-climatico-pelotas",
     marker: ".internal-weather-shell--history",
+    hiddenSelectors: [".history-chapters"],
   },
   {
     name: "enchente-2024",
@@ -65,11 +74,30 @@ const routes = [
     name: "estacao-embrapa",
     path: "/estacao-embrapa-pelotas",
     marker: ".internal-weather-shell--embrapa",
+    hiddenSelectors: [".embrapa-v2-chapters"],
   },
   {
     name: "situacao-hidrologica",
     path: "/situacao-hidrologica-pelotas",
     marker: ".internal-weather-shell--hydrology",
+    hiddenSelectors: [".hydrology-v2-chapters"],
+  },
+  {
+    name: "cameras",
+    path: "/cameras-ao-vivo-pelotas",
+    marker: ".internal-weather-shell--cameras",
+    hiddenSelectors: [".camera-v2-chapters"],
+  },
+  {
+    name: "geadas",
+    path: "/mapa-de-geadas-rio-grande-do-sul",
+    marker: ".internal-weather-shell--frost",
+    hiddenSelectors: [".frost-v2-chapters"],
+  },
+  {
+    name: "radar-satelite",
+    path: "/radar-e-satelite-pelotas",
+    marker: ".radar-satellite-page",
   },
 ];
 
@@ -85,13 +113,13 @@ function markdownReport(results) {
     `- Candidato: ${baseUrl}`,
     `- Executado em: ${new Date().toISOString()}`,
     "",
-    "| Página | Viewport | HTTP | Shell | H1 | Overflow | Main contido | Superfícies neutras | Estado |",
-    "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    "| Página | Viewport | HTTP | Shell | H1 | Overflow | Main contido | Superfícies neutras | Navegação legada | Estado |",
+    "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
   ];
 
   for (const result of results) {
     lines.push(
-      `| ${result.route} | ${result.viewport} | ${result.audit.httpStatus} | ${result.audit.hasRouteMarker ? "sim" : "não"} | ${result.audit.h1Count} | ${result.audit.horizontalOverflow}px | ${result.audit.mainContained ? "sim" : "não"} | ${result.audit.neutralViolations.length === 0 ? "ok" : result.audit.neutralViolations.length} | ${result.failures.length === 0 ? "aprovado" : "falhou"} |`,
+      `| ${result.route} | ${result.viewport} | ${result.audit.httpStatus} | ${result.audit.hasRouteMarker ? "sim" : "não"} | ${result.audit.h1Count} | ${result.audit.horizontalOverflow}px | ${result.audit.mainContained ? "sim" : "não"} | ${result.audit.neutralViolations.length === 0 ? "ok" : result.audit.neutralViolations.length} | ${result.audit.visibleLegacySelectors.length === 0 ? "oculta" : result.audit.visibleLegacySelectors.length} | ${result.failures.length === 0 ? "aprovado" : "falhou"} |`,
     );
   }
 
@@ -118,6 +146,7 @@ function emptyAudit() {
     horizontalOverflow: 0,
     mainContained: false,
     neutralViolations: [],
+    visibleLegacySelectors: [],
   };
 }
 
@@ -137,6 +166,11 @@ function buildFailures(audit) {
   }
   if (!audit.mainContained) failures.push("conteúdo principal ultrapassa o viewport");
   failures.push(...audit.neutralViolations);
+  failures.push(
+    ...audit.visibleLegacySelectors.map(
+      (selector) => `${selector}: navegação legada voltou a ficar visível`,
+    ),
+  );
 
   return failures;
 }
@@ -172,7 +206,7 @@ try {
           await page.waitForTimeout(400);
 
           const audit = await page.evaluate(
-            ({ marker, neutralSelectors, httpStatus }) => {
+            ({ marker, neutralSelectors, hiddenSelectors, httpStatus }) => {
               const root = document.documentElement;
               const main = document.querySelector("main#conteudo-principal");
               const mainRect = main?.getBoundingClientRect() ?? null;
@@ -189,6 +223,7 @@ try {
               };
               const h1Count = Array.from(document.querySelectorAll("h1")).filter(visible).length;
               const neutralViolations = [];
+              const visibleLegacySelectors = [];
 
               for (const selector of neutralSelectors) {
                 const element = document.querySelector(selector);
@@ -203,6 +238,11 @@ try {
                 }
               }
 
+              for (const selector of hiddenSelectors) {
+                const element = document.querySelector(selector);
+                if (element && visible(element)) visibleLegacySelectors.push(selector);
+              }
+
               return {
                 httpStatus,
                 hasRouteMarker: Boolean(document.querySelector(marker)),
@@ -215,11 +255,13 @@ try {
                   mainRect && mainRect.left >= -1 && mainRect.right <= window.innerWidth + 1,
                 ),
                 neutralViolations,
+                visibleLegacySelectors,
               };
             },
             {
               marker: route.marker,
               neutralSelectors: route.neutralSelectors ?? [],
+              hiddenSelectors: route.hiddenSelectors ?? [],
               httpStatus: response.status(),
             },
           );
@@ -281,7 +323,7 @@ const failures = results.flatMap((result) =>
 
 for (const result of results) {
   console.log(
-    `${result.route} ${result.viewport}: HTTP=${result.audit.httpStatus} shell=${result.audit.hasRouteMarker} h1=${result.audit.h1Count} overflow=${result.audit.horizontalOverflow}px mainContained=${result.audit.mainContained} neutral=${result.audit.neutralViolations.length}`,
+    `${result.route} ${result.viewport}: HTTP=${result.audit.httpStatus} shell=${result.audit.hasRouteMarker} h1=${result.audit.h1Count} overflow=${result.audit.horizontalOverflow}px mainContained=${result.audit.mainContained} neutral=${result.audit.neutralViolations.length} legacyVisible=${result.audit.visibleLegacySelectors.length}`,
   );
 }
 
