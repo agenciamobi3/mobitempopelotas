@@ -15,14 +15,7 @@ import type { ExtendedForecastData } from "@/lib/weather/extended-forecast.types
 import type { DailyForecast } from "@/lib/weather/types";
 import { WeatherIcon } from "@/production/components/weather-icon";
 
-import { InternalPageChapters } from "./InternalWeatherWidgets";
 import "./FifteenDayForecastPage.css";
-
-const chapters = [
-  { href: "#previsao-15-dias-dia-a-dia", label: "Dia a dia", detail: "Os 15 dias" },
-  { href: "#temperaturas-15-dias", label: "Temperaturas", detail: "Mínimas e máximas" },
-  { href: "#chuva-vento-15-dias", label: "Chuva e vento", detail: "Maiores valores" },
-];
 
 function formatMillimeters(value: number) {
   return `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mm`;
@@ -151,8 +144,6 @@ export function FifteenDayForecastPage({ forecast }: { forecast: ExtendedForecas
 
   return (
     <div className="fifteen-day-page">
-      <InternalPageChapters items={chapters} label="Navegação da previsão de 15 dias" />
-
       <section
         className="fifteen-day__forecast"
         id="previsao-15-dias-dia-a-dia"
