@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
-import { RainAccumulationContext } from "@/components/weather/RainAccumulationContext";
 import { RainForecastPageV2 } from "@/components/weather/RainForecastPageV2";
-import { RainHourlyVolumeContext } from "@/components/weather/RainHourlyVolumeContext";
 import { RainRetailHero } from "@/components/weather/RainRetailHero";
 import "@/components/weather/RainPageRefinement.css";
 import { createPageHead } from "@/lib/page-meta";
@@ -83,11 +81,7 @@ function ChuvaPage() {
       )}
     >
       {(recoveredWeather) => (
-        <>
-          <RainAccumulationContext data={recoveredWeather} />
-          <RainForecastPageV2 data={recoveredWeather} />
-          <RainHourlyVolumeContext meteogram={meteogram} />
-        </>
+        <RainForecastPageV2 data={recoveredWeather} meteogram={meteogram} />
       )}
     </InternalWeatherPageShell>
   );
