@@ -30,13 +30,18 @@ export function isPublishableEmbrapaObservation(
 }
 
 /**
- * Mantém o centralizador como caminho rápido, mas um snapshot antigo não pode
- * representar o "Agora". Quando o cron não atualizou o registro nos últimos
- * 75 segundos, fazemos somente uma leitura direta da fonte, sem lease e sem
- * persistência no pageview.
+ * O centralizador é a fonte de leitura do pageview. Um snapshot recente segue
+ * pelo caminho rápido; um snapshot antigo, mas conhecido, é preservado como
+ * último valor observado para páginas históricas e de acumulados.
+ *
+ * A idade da observação continua sendo validada por isPublishableEmbrapaObservation
+ * e por deriveEmbrapaCurrent, portanto um snapshot antigo nunca representa o
+ * "Agora". A consulta direta fica restrita ao caso em que não existe payload
+ * central aproveitável; o cron permanece responsável por renovar a leitura.
  */
 export async function getFreshEmbrapaObservation(): Promise<EmbrapaObservation> {
   const central = await getCentralEmbrapaObservation();
   if (isCentralEmbrapaSnapshotFresh(central)) return central;
+  if (central.status !== "unavailable") return central;
   return fetchEmbrapaObservation();
 }
