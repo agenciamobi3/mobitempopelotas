@@ -120,8 +120,8 @@ test("alerts page states availability and counts directly", () => {
 });
 
 test("monitoring pages use direct labels while retaining necessary explanations", () => {
-  assert.match(radar, /Horário e quantidade de imagens/);
-  assert.match(radar, /Imagem mais recente/);
+  assert.match(radar, /Coletas reais recebidas/);
+  assert.match(radar, /Última coleta recebida/);
   assert.match(frost, /Dados do INMET/);
   assert.match(frost, /Lista de registros/);
   assert.match(embrapa, /Origem dos dados/);
