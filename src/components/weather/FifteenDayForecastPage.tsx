@@ -19,11 +19,9 @@ import { InternalPageChapters } from "./InternalWeatherWidgets";
 import "./FifteenDayForecastPage.css";
 
 const chapters = [
-  { href: "#previsao-15-dias-dia-a-dia", label: "Dias 1–7", detail: "Mais próximos" },
-  { href: "#previsao-estendida-8-15", label: "Dias 8–15", detail: "Segunda semana" },
+  { href: "#previsao-15-dias-dia-a-dia", label: "Dia a dia", detail: "Os 15 dias" },
   { href: "#temperaturas-15-dias", label: "Temperaturas", detail: "Mínimas e máximas" },
   { href: "#chuva-vento-15-dias", label: "Chuva e vento", detail: "Maiores valores" },
-  { href: "#fontes-15-dias", label: "Fonte", detail: "Atualização" },
 ];
 
 function formatMillimeters(value: number) {
@@ -84,7 +82,7 @@ function DayCard({ day, index }: { day: DailyForecast; index: number }) {
   const badge = dayBadge(day, index);
 
   return (
-    <article className={`fifteen-day__day tone-${tone}`}>
+    <article className={`fifteen-day__day tone-${tone}${index === 0 ? " is-today" : ""}`}>
       <header>
         <div>
           <strong>{day.weekday}</strong>
@@ -155,46 +153,52 @@ export function FifteenDayForecastPage({ forecast }: { forecast: ExtendedForecas
     <div className="fifteen-day-page">
       <InternalPageChapters items={chapters} label="Navegação da previsão de 15 dias" />
 
-      <section className="fifteen-day__days" id="previsao-15-dias-dia-a-dia" aria-labelledby="fifteen-day-near-title">
-        <header>
-          <div>
-            <h2 id="fifteen-day-near-title">Primeiros 7 dias</h2>
-          </div>
-          <Link to="/previsao-7-dias-pelotas">Ver página de 7 dias</Link>
+      <section
+        className="fifteen-day__forecast"
+        id="previsao-15-dias-dia-a-dia"
+        aria-labelledby="fifteen-day-forecast-title"
+      >
+        <header className="fifteen-day__section-header">
+          <h2 id="fifteen-day-forecast-title">Previsão dos próximos 15 dias</h2>
         </header>
-        <div className="fifteen-day__grid">
-          {nearDays.map((day, index) => (
-            <DayCard day={day} index={index} key={day.dateIso ?? `${day.weekday}-${day.date}`} />
-          ))}
+
+        <div className="fifteen-day__week">
+          <header className="fifteen-day__week-header">
+            <h3>Primeira semana</h3>
+            <Link to="/previsao-7-dias-pelotas">Ver previsão de 7 dias</Link>
+          </header>
+          <div className="fifteen-day__grid is-near">
+            {nearDays.map((day, index) => (
+              <DayCard day={day} index={index} key={day.dateIso ?? `${day.weekday}-${day.date}`} />
+            ))}
+          </div>
+        </div>
+
+        <div className="fifteen-day__week is-extended" id="previsao-estendida-8-15">
+          <header className="fifteen-day__week-header">
+            <div>
+              <h3>Segunda semana</h3>
+              <p>Pode mudar mais. Confira de novo perto da data.</p>
+            </div>
+          </header>
+          {extendedDays.length > 0 ? (
+            <div className="fifteen-day__grid is-extended">
+              {extendedDays.map((day, offset) => (
+                <DayCard day={day} index={offset + 7} key={day.dateIso ?? `${day.weekday}-${day.date}`} />
+              ))}
+            </div>
+          ) : (
+            <div className="fifteen-day__partial">
+              <TriangleAlert aria-hidden="true" />
+              <p>Os dias 8 a 15 ainda não chegaram nesta atualização.</p>
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="fifteen-day__days is-extended" id="previsao-estendida-8-15" aria-labelledby="fifteen-day-extended-title">
-        <header>
-          <div>
-            <h2 id="fifteen-day-extended-title">Dias 8 a 15</h2>
-            <p>A segunda semana pode mudar mais. Confira de novo perto da data.</p>
-          </div>
-        </header>
-        {extendedDays.length > 0 ? (
-          <div className="fifteen-day__grid">
-            {extendedDays.map((day, offset) => (
-              <DayCard day={day} index={offset + 7} key={day.dateIso ?? `${day.weekday}-${day.date}`} />
-            ))}
-          </div>
-        ) : (
-          <div className="fifteen-day__partial">
-            <TriangleAlert aria-hidden="true" />
-            <p>Os dias 8 a 15 ainda não chegaram nesta atualização.</p>
-          </div>
-        )}
-      </section>
-
       <section className="fifteen-day__trend" id="temperaturas-15-dias" aria-labelledby="fifteen-day-trend-title">
-        <header>
-          <div>
-            <h2 id="fifteen-day-trend-title">Temperaturas nos próximos 15 dias</h2>
-          </div>
+        <header className="fifteen-day__section-header">
+          <h2 id="fifteen-day-trend-title">Temperaturas nos próximos 15 dias</h2>
         </header>
 
         <div className="fifteen-day__trend-list">
@@ -219,38 +223,33 @@ export function FifteenDayForecastPage({ forecast }: { forecast: ExtendedForecas
           })}
         </div>
 
-        <div className="fifteen-day__trend-facts">
-          <article>
-            <Thermometer aria-hidden="true" />
-            <span>Maior máxima</span>
-            <strong>
+        <dl className="fifteen-day__trend-summary">
+          <div>
+            <dt><Thermometer aria-hidden="true" /> Maior máxima</dt>
+            <dd>
               {warmestDays.length === 1
                 ? `${warmestDays[0]?.weekday} · ${maximum}°`
-                : `${maximum}° · empate em ${warmestDays.length} dias`}
-            </strong>
-          </article>
-          <article>
-            <Thermometer aria-hidden="true" />
-            <span>Menor mínima</span>
-            <strong>
+                : `${maximum}° · ${warmestDays.length} dias`}
+            </dd>
+          </div>
+          <div>
+            <dt><Thermometer aria-hidden="true" /> Menor mínima</dt>
+            <dd>
               {coldestDays.length === 1
                 ? `${coldestDays[0]?.weekday} · ${minimum}°`
-                : `${minimum}° · empate em ${coldestDays.length} dias`}
-            </strong>
-          </article>
-          <article>
-            <Gauge aria-hidden="true" />
-            <span>Diferença entre extremos</span>
-            <strong>{maximum - minimum}°</strong>
-          </article>
-        </div>
+                : `${minimum}° · ${coldestDays.length} dias`}
+            </dd>
+          </div>
+          <div>
+            <dt><Gauge aria-hidden="true" /> Diferença</dt>
+            <dd>{maximum - minimum}°</dd>
+          </div>
+        </dl>
       </section>
 
       <section className="fifteen-day__risks" id="chuva-vento-15-dias" aria-labelledby="fifteen-day-risks-title">
-        <header>
-          <div>
-            <h2 id="fifteen-day-risks-title">Chuva e rajadas nos próximos 15 dias</h2>
-          </div>
+        <header className="fifteen-day__section-header">
+          <h2 id="fifteen-day-risks-title">Chuva e rajadas nos próximos 15 dias</h2>
         </header>
 
         <div className="fifteen-day__risks-grid">
@@ -294,18 +293,20 @@ export function FifteenDayForecastPage({ forecast }: { forecast: ExtendedForecas
         </div>
       </section>
 
-      <aside className="fifteen-day__source" id="fontes-15-dias" aria-label="Fonte da previsão de 15 dias">
-        <Info aria-hidden="true" />
+      <footer className="fifteen-day__footer">
         <p>
-          Atualizado em {formatDateTime(forecast.source.fetchedAt)} · Fonte: {forecast.source.model} · {forecast.source.returnedDays} de {forecast.source.requestedDays} dias disponíveis.
+          <Info aria-hidden="true" />
+          <span>
+            Atualizado em {formatDateTime(forecast.source.fetchedAt)} · {forecast.source.model} · {forecast.source.returnedDays} de {forecast.source.requestedDays} dias.
+          </span>
         </p>
-      </aside>
-
-      <nav className="fifteen-day__related" aria-label="Outras previsões de Pelotas">
-        <Link to="/previsao-7-dias-pelotas"><span><strong>Previsão de 7 dias</strong></span><ArrowRight aria-hidden="true" /></Link>
-        <Link to="/tempo-amanha-pelotas"><span><strong>Tempo amanhã</strong></span><ArrowRight aria-hidden="true" /></Link>
-        <Link to="/chuva-em-pelotas"><span><strong>Chuva em Pelotas</strong></span><ArrowRight aria-hidden="true" /></Link>
-      </nav>
+        <nav aria-label="Outras previsões de Pelotas">
+          <Link to="/previsao-7-dias-pelotas">7 dias</Link>
+          <Link to="/tempo-amanha-pelotas">Amanhã</Link>
+          <Link to="/chuva-em-pelotas">Chuva</Link>
+          <Link to="/vento-em-pelotas">Vento</Link>
+        </nav>
+      </footer>
     </div>
   );
 }
