@@ -28,11 +28,14 @@ const internalWeatherStandaloneRoutes = [
   "/situacao-hidrologica-pelotas",
   "/mapa-de-geadas-rio-grande-do-sul",
   "/nivel-do-guaiba",
+  "/nivel-do-canal-sao-goncalo",
+  "/nivel-do-rio-jaguarao",
   "/historia-das-enchentes-pelotas",
   "/enchente-1941-pelotas",
   "/enchente-2001-pelotas",
   "/enchente-2015-pelotas",
   "/enchente-2024-pelotas-laranjal",
+  "/metodologia",
   "/quem-somos",
 ] as const;
 
