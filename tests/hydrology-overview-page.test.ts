@@ -239,30 +239,29 @@ test("hydrology page publishes transparent dataset metadata only with a local re
   assert.match(page, /isAccessibleForFree: true/);
 });
 
-test("hydrology overview follows responsive retail and accessibility contracts", () => {
+test("hydrology overview follows the clean internal editorial layout", () => {
   assert.match(styles, /internal-weather-shell--hydrology \.hydrology-v2-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /background:\s*var\(--hydro-soft\)/);
+  assert.match(styles, /\.hydrology-v2-chapters \{\s*display:\s*none/);
   assert.match(styles, /content-visibility:\s*auto/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
-  assert.match(styles, /@media \(max-width: 1320px\)/);
-  assert.match(styles, /@media \(max-width: 1080px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /@media \(max-width: 1180px\)/);
+  assert.match(styles, /@media \(max-width: 920px\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
+  assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
 });
 
-test("hydrology Home contract restores water identity without overriding source semantics", () => {
-  assert.match(homeContract, /Situação das águas — acento hidrológico/);
-  assert.match(homeContract, /\.hydrology-v2-hero__content::before/);
-  assert.match(homeContract, /\.hydrology-v2-hero__reading::before/);
-  assert.match(homeContract, /radial-gradient/);
-  assert.match(homeContract, /\.hydrology-v2-hero__trend\.is-rising/);
-  assert.match(homeContract, /\.hydrology-v2-hero__trend\.is-falling/);
-  assert.match(homeContract, /\.hydrology-v2-chapters[\s\S]*box-shadow:\s*none/);
-  assert.match(homeContract, /min-height:\s*44px/);
+test("hydrology Home contract keeps water identity without decorative gradients", () => {
+  assert.match(homeContract, /Situação das águas — acento hidrológico discreto/);
+  assert.match(homeContract, /\.hydrology-v2-hero__content,[\s\S]*\.hydrology-v2-hero__reading[\s\S]*background:\s*transparent/);
+  assert.match(homeContract, /\.hydrology-v2-hero__content::before,[\s\S]*\.hydrology-v2-hero__reading::before[\s\S]*display:\s*none/);
+  assert.match(homeContract, /\.hydrology-v2-hero__actions a:first-child[\s\S]*background:\s*#071e2f/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
+  assert.match(homeContract, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(homeContract, /!important/);
 });
