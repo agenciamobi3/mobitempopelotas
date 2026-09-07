@@ -7,7 +7,6 @@ const editorialRouteFiles = [
   "src/routes/chuva-em-pelotas.tsx",
   "src/routes/vento-em-pelotas.tsx",
   "src/routes/radar-e-satelite-pelotas.tsx",
-  "src/routes/meteograma-pelotas.tsx",
   "src/routes/clima-em-pelotas.tsx",
   "src/routes/estacao-embrapa-pelotas.tsx",
   "src/routes/historico-climatico-pelotas.tsx",
@@ -43,6 +42,21 @@ test("seven-day forecast keeps visible direct content without a duplicate editor
   assert.match(page, /Temperaturas nos próximos 7 dias/);
   assert.match(page, /Chuva e rajadas nos próximos 7 dias/);
   assert.match(page, /INMET e UFPel nos próximos dias/);
+});
+
+test("meteogram keeps visible direct content without a duplicate editorial or FAQ layer", () => {
+  const route = read("src/routes/meteograma-pelotas.tsx");
+  const page = read("src/components/weather/MeteogramPage.tsx");
+  const simagro = read("src/components/weather/SimagroModelProducts.tsx");
+
+  assert.match(route, /createEditorialPageJsonLd/);
+  assert.match(route, /about:\s*\[/);
+  assert.match(route, /MeteogramPage/);
+  assert.match(route, /SimagroModelProducts/);
+  assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|METEOGRAM_CONTENT/);
+  assert.match(page, /Como o tempo pode mudar nas próximas horas/);
+  assert.match(page, /Esta página mostra previsão, não medição/);
+  assert.match(simagro, /Meteogramas WRF e GFS do SIMAGRO RS/);
 });
 
 test("core search intents remain distinct and internally connected", () => {
