@@ -5,7 +5,6 @@ import {
   Flood2015HistoricalPage,
 } from "@/components/history/Flood2015HistoricalPage";
 import "@/components/history/Flood2015HistoricalPage.css";
-import { FloodVisitorGuide } from "@/components/history/FloodVisitorGuide";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -47,11 +46,11 @@ export const Route = createFileRoute("/enchente-2015-pelotas")({
 function Enchente2015PelotasPage() {
   return (
     <ContentPageShell
-      pageClassName="internal-weather-shell--flood-history"
+      pageClassName="internal-weather-shell--flood-history internal-weather-shell--flood-2015"
       historicalCollaboration={HISTORICAL_COLLABORATION_CONTEXTS[PAGE_PATH]}
+      showHistoricalCollaborationPrompt={false}
     >
       <Flood2015Hero />
-      <FloodVisitorGuide year="2015" />
       <Flood2015HistoricalPage />
     </ContentPageShell>
   );
