@@ -4,16 +4,32 @@ A Home do Tempo Pelotas usa fotografias locais de Pelotas como fonte visual prim
 
 ## Categorias
 
-- chuva/trovoadas: Praia do Laranjal com chuva;
+- chuva durante o dia: Praia do Laranjal com chuva;
+- chuva à noite: registro local `pelotas-noite-chuva.png`;
+- tempestade durante o dia: mantém o registro de chuva do acervo anterior enquanto não houver foto diurna específica de tempestade;
+- tempestade à noite: registro local `pelotas-noite-tempestade.png`;
 - nevoeiro/neblina: Pelotas sob nevoeiro;
 - céu limpo/sol: Pelotas em condição aberta durante o dia;
 - céu aberto/limpo à noite: Praia do Laranjal sob céu noturno aberto;
 - sol entre nuvens/parcialmente nublado durante o dia: registros locais rotacionados de forma determinística, preservando a divisão por cobertura de nuvens;
 - parcialmente nublado com poucas nuvens no fim de tarde: registro local específico entre 16h e 18h59;
 - parcialmente nublado na madrugada: registro local específico disponível para `partly-cloudy-night` entre 00h e 06h59;
-- nublado: vista urbana de Pelotas com céu variável enquanto não houver um registro específico melhor para céu totalmente fechado.
+- nublado no entorno do meio-dia: `pelotas-meio-dia-nublado.png` entre 11h e 14h59;
+- nublado nos demais horários: mantém o registro-base anterior.
 
 O resolvedor fica em `src/production/lib/hero-photo-presentation.ts`. A condição visual já resolvida é a autoridade para escolher chuva, trovoada, sol e nebulosidade. A narrativa oficial pode complementar a leitura quando não há ícone meteorológico disponível, mas uma menção a chuva futura não pode substituir por foto de chuva um estado atual de `partly-cloudy`.
+
+## Chuva, tempestade e nublado por horário
+
+Os três arquivos adicionados em 07/09/2026 entram de acordo com o próprio estado e o período que representam:
+
+- `pelotas-noite-chuva.png`, do commit `ddc478159b666f868fe6b81e6694e2baadedb144`, é usado quando a condição resolvida é `rain` e a hora local está entre 19h e 06h59;
+- `pelotas-noite-tempestade.png`, do mesmo commit, é usado quando a condição resolvida é `storm` no mesmo período noturno;
+- `pelotas-meio-dia-nublado.png`, do commit `3ec47026de6cb2ac5c42247ee9bed96a23c91f9a`, é usado quando a condição resolvida é `cloud` entre 11h e 14h59.
+
+Fora dessas faixas, o acervo anterior continua sendo usado. A regra é determinística e não usa `Math.random()`. Isso evita mostrar uma fotografia explicitamente noturna durante o dia ou uma imagem identificada como meio-dia em horários incompatíveis.
+
+Chuva e tempestade permanecem estados distintos no resolvedor, mesmo que durante o dia ambos ainda usem a fotografia de chuva já existente. À noite, cada estado passa a ter sua própria fotografia.
 
 ## Rotação de parcialmente nublado
 
@@ -29,6 +45,6 @@ A hora é derivada primeiro de `weather.hourly[0].timestamp`, com fallback para 
 
 A fotografia noturna de céu aberto continua sendo usada quando o texto normalizado identifica céu `aberto`/`limpo` associado à noite ou quando o ícone meteorológico resolvido é `moon`. `partly-cloudy-night` permanece na categoria de céu variável e não deve ser promovido a céu aberto apenas por ocorrer à noite.
 
-Os ativos ficam em `public/weather/hero/`. O AVIF anterior representa a variação historicamente usada para maior cobertura de nuvens; a fotografia adicional do Centro em JPG representa a variação de menor cobertura. Os PNGs adicionais ampliam a rotação contextual de dia, fim de tarde e madrugada. A fotografia `pelotas-laranjal-ceu-aberto-noite.webp` deriva do acervo local enviado para o projeto e é mantida em versão WebP otimizada para uso no hero. Quando a câmera ao vivo da Praia do Laranjal está online, ela mantém prioridade sobre a fotografia estática.
+Os ativos ficam em `public/weather/hero/`. O AVIF anterior representa a variação historicamente usada para maior cobertura de nuvens; a fotografia adicional do Centro em JPG representa a variação de menor cobertura. Os PNGs adicionais ampliam a rotação contextual de dia, meio-dia, fim de tarde, noite e madrugada. A fotografia `pelotas-laranjal-ceu-aberto-noite.webp` deriva do acervo local enviado para o projeto e é mantida em versão WebP otimizada para uso no hero. Quando a câmera ao vivo da Praia do Laranjal está online, ela mantém prioridade sobre a fotografia estática.
 
 Não usar Wikimedia ou bancos genéricos como fonte principal do hero. Novas imagens devem ser locais, categorizadas no resolvedor e manter crédito verdadeiro.
