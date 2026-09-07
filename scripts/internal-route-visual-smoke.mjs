@@ -98,6 +98,50 @@ const routes = [
     name: "radar-satelite",
     path: "/radar-e-satelite-pelotas",
     marker: ".radar-satellite-page",
+    neutralSelectors: [".redemet-hero"],
+  },
+  {
+    name: "tempo-laranjal",
+    path: "/tempo-laranjal-pelotas",
+    marker: "#laranjal-weather-title",
+  },
+  {
+    name: "central-regional",
+    path: "/tempo-na-regiao-sul-rs",
+    marker: ".regional-cities-directory",
+    neutralSelectors: [".regional-cities-hero"],
+  },
+  {
+    name: "cidade-rio-grande",
+    path: "/tempo-em/rio-grande-rs",
+    marker: ".regional-city-page",
+    neutralSelectors: [".regional-city-split-hero"],
+    hiddenSelectors: [".internal-page-chapters"],
+  },
+  {
+    name: "canal-sao-goncalo",
+    path: "/nivel-do-canal-sao-goncalo",
+    marker: ".hydrology-editorial-route",
+    neutralSelectors: [".hydrology-editorial-hero"],
+  },
+  {
+    name: "status-dados",
+    path: "/status-dos-dados",
+    marker: ".data-status-shell",
+    neutralSelectors: [".data-status-hero"],
+  },
+  {
+    name: "metodologia",
+    path: "/metodologia",
+    marker: ".methodology-data-shell",
+    neutralSelectors: [".methodology-hero"],
+    hiddenSelectors: [".methodology-chapter-nav"],
+  },
+  {
+    name: "privacidade",
+    path: "/privacidade-e-dados",
+    marker: ".privacy-data-shell",
+    neutralSelectors: [".privacy-summary"],
   },
 ];
 
