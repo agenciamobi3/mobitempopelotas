@@ -82,17 +82,19 @@ test("regional directory keeps geographic identity on an open editorial canvas",
   assert.doesNotMatch(regionalAccent, /> section:nth-child/);
 });
 
-test("CPPMet keeps the feed layout neutral and adds color only as an editorial accent", () => {
+test("CPPMet keeps the feed open and uses only a restrained journalistic accent", () => {
   const baseIndex = cppmetPage.indexOf("CppmetNewsPage.css");
   const accentIndex = cppmetPage.indexOf("CppmetNewsAccentContract.css");
 
   assert.ok(baseIndex >= 0);
   assert.ok(accentIndex > baseIndex);
   assert.doesNotMatch(cppmetBase, /radial-gradient|linear-gradient/);
-  assert.match(cppmetAccent, /CPPMet \/ UFPel — acento jornalístico/);
-  assert.match(cppmetAccent, /\.cppmet-blog__hero[\s\S]*radial-gradient/);
+  assert.match(cppmetAccent, /CPPMet \/ UFPel — acento jornalístico mínimo/);
+  assert.match(cppmetAccent, /\.cppmet-blog__hero[\s\S]*background:\s*#f5f8f8/);
+  assert.match(cppmetAccent, /\.cppmet-blog__source-bar[\s\S]*background:\s*transparent/);
   assert.match(cppmetAccent, /\.cppmet-blog__card--featured/);
-  assert.match(cppmetAccent, /linear-gradient\(90deg, #18bdcd, #315f70\)/);
+  assert.match(cppmetAccent, /border-top:\s*3px solid #18bdcd/);
   assert.match(cppmetAccent, /min-height:\s*44px/);
+  assert.doesNotMatch(cppmetAccent, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(cppmetAccent, /!important/);
 });
