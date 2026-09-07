@@ -126,14 +126,8 @@
   box-shadow: none !important;
 }
 
-/* Índices numerados antigos não voltam por precedência. */
-.internal-weather-shell--fifteen-day .internal-page-chapters,
-.internal-weather-shell--meteogram .internal-page-chapters,
-.internal-weather-shell--cameras .camera-v2-chapters,
-.internal-weather-shell--climate .climate-chapters,
-.internal-weather-shell--hydrology .hydrology-v2-chapters,
-.internal-weather-shell--frost .frost-v2-chapters,
-.internal-weather-shell--embrapa .embrapa-v2-chapters {
+/* O Meteograma é o único convertido que ainda mantém índice legado no markup. */
+.internal-weather-shell--meteogram .internal-page-chapters {
   display: none !important;
 }
 
