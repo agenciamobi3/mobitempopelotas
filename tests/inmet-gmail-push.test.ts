@@ -5,6 +5,7 @@ import test from "node:test";
 import {
   buildInmetForecastPushCopy,
   classifyInmetEmail,
+  isPelotasInmetMessage,
   isTrustedInmetMessage,
 } from "@/lib/integrations/inmet-gmail";
 
@@ -34,13 +35,31 @@ test("INMET Gmail classifier ignores confirmation and recognizes forecast withou
   assert.equal(classifyInmetEmail("Comunicado administrativo", "Cadastro atualizado."), "other");
 });
 
-test("INMET Gmail only trusts aligned inmet.gov.br messages with SPF and DMARC pass", () => {
+test("INMET Gmail requires the message to target Pelotas", () => {
+  assert.equal(
+    isPelotasInmetMessage(
+      "INMET - Previsão por E-mail",
+      "Previsão meteorológica para Pelotas - RS.",
+    ),
+    true,
+  );
+  assert.equal(
+    isPelotasInmetMessage(
+      "INMET - Previsão por E-mail",
+      "Previsão meteorológica para Rio Grande - RS.",
+    ),
+    false,
+  );
+});
+
+test("INMET Gmail only trusts a Google authentication result aligned to inmet.gov.br", () => {
+  const validAuthentication =
+    "mx.google.com; spf=pass smtp.mailfrom=sepre2.df@inmet.gov.br; dmarc=pass header.from=inmet.gov.br";
+
   assert.equal(
     isTrustedInmetMessage({
       from: "sepre2.df@inmet.gov.br",
-      authenticationResults: [
-        "spf=pass smtp.mailfrom=sepre2.df@inmet.gov.br; dmarc=pass header.from=inmet.gov.br",
-      ],
+      authenticationResults: [validAuthentication],
     }),
     true,
   );
@@ -49,7 +68,7 @@ test("INMET Gmail only trusts aligned inmet.gov.br messages with SPF and DMARC p
     isTrustedInmetMessage({
       from: "INMET <alerta@example.com>",
       authenticationResults: [
-        "spf=pass smtp.mailfrom=example.com; dmarc=pass header.from=example.com",
+        "mx.google.com; spf=pass smtp.mailfrom=example.com; dmarc=pass header.from=example.com",
       ],
     }),
     false,
@@ -58,7 +77,29 @@ test("INMET Gmail only trusts aligned inmet.gov.br messages with SPF and DMARC p
   assert.equal(
     isTrustedInmetMessage({
       from: "sepre2.df@inmet.gov.br",
-      authenticationResults: ["spf=pass; dmarc=fail header.from=inmet.gov.br"],
+      authenticationResults: [
+        "mx.google.com; spf=pass smtp.mailfrom=sepre2.df@inmet.gov.br; dmarc=fail header.from=inmet.gov.br",
+      ],
+    }),
+    false,
+  );
+
+  assert.equal(
+    isTrustedInmetMessage({
+      from: "sepre2.df@inmet.gov.br",
+      authenticationResults: [
+        "attacker.example; spf=pass smtp.mailfrom=sepre2.df@inmet.gov.br; dmarc=pass header.from=inmet.gov.br",
+      ],
+    }),
+    false,
+  );
+
+  assert.equal(
+    isTrustedInmetMessage({
+      from: "sepre2.df@inmet.gov.br",
+      authenticationResults: [
+        "mx.google.com; spf=pass smtp.mailfrom=attacker.example; dmarc=pass header.from=inmet.gov.br",
+      ],
     }),
     false,
   );
@@ -108,12 +149,41 @@ test("INMET Gmail runtime uses the Lovable connector without custom Google crede
   assert.match(server, /GOOGLE_MAIL_API_KEY/);
   assert.match(server, /X-Connection-Api-Key/);
   assert.match(server, /\/users\/me\/messages/);
-  assert.match(server, /from:\(inmet\.gov\.br\) newer_than:1d/);
   assert.match(server, /MAX_MESSAGES_PER_RUN = 20/);
+  assert.match(server, /FIXED_INMET_QUERY_PREFIX[\s\S]*Pelotas/);
+  assert.match(server, /after:\$\{afterUnixSeconds\}/);
 
   assert.doesNotMatch(server, /gmail\.googleapis\.com|oauth2\.googleapis\.com/i);
   assert.doesNotMatch(server, /INMET_GMAIL_CLIENT_ID|INMET_GMAIL_CLIENT_SECRET|INMET_GMAIL_REFRESH_TOKEN/);
   assert.doesNotMatch(server, /GOOGLE_JWKS_URL|PubSub|pubsub|GmailWatch|renewInmetGmailWatch/);
+});
+
+test("INMET Gmail is fail-closed while Web Push remains suspended", () => {
+  assert.match(server, /INMET_GMAIL_PUSH_ENABLED/);
+  assert.match(server, /configuration\.enabled/);
+  assert.match(server, /reason = "feature-disabled"/);
+  assert.match(server, /reason = "web-push-unavailable"/);
+  assert.match(envExample, /^INMET_GMAIL_PUSH_ENABLED=false$/m);
+  assert.match(docs, /Web Push público do Tempo Pelotas permanece suspenso/i);
+});
+
+test("INMET Gmail coalesces candidates and deduplicates by public update content", () => {
+  assert.match(server, /eligibleForecasts\.sort/);
+  assert.match(server, /supersededForecasts/);
+  assert.match(server, /dispatchForecastUpdate\(selected\.receivedAtMs\)/);
+  assert.match(server, /copy\.title.*copy\.body.*copy\.url/s);
+  assert.match(server, /inmet-gmail-\$\{localDateKey/);
+  assert.doesNotMatch(server, /function dispatchFingerprint\(messageId/);
+  assert.match(docs, /somente a mais recente pode avançar/i);
+  assert.match(docs, /fingerprint da atualização pública/i);
+});
+
+test("INMET Gmail ignores ARC as a substitute and tolerates partial message failures", () => {
+  assert.match(server, /headerValues\(message\.payload, "Authentication-Results"\)/);
+  assert.doesNotMatch(server, /ARC-Authentication-Results/);
+  assert.match(server, /messageErrors/);
+  assert.match(server, /messageFingerprint: messageLogFingerprint\(id\)/);
+  assert.match(server, /summary\.messageErrors === ids\.length/);
 });
 
 test("INMET Gmail polling stays server-only, protected, deterministic and on daily_summary", () => {
@@ -122,6 +192,7 @@ test("INMET Gmail polling stays server-only, protected, deterministic and on dai
   assert.match(server, /claimPushDispatch/);
   assert.match(server, /fetchInmetForecast/);
   assert.match(server, /isTrustedInmetMessage/);
+  assert.match(server, /isPelotasInmetMessage/);
   assert.doesNotMatch(server, /gemini|openai|generateWeatherAiSnapshot|GEMINI_API_KEY/i);
 
   assert.match(route, /task === "inmet-gmail"/);
@@ -132,15 +203,17 @@ test("INMET Gmail polling stays server-only, protected, deterministic and on dai
   assert.doesNotMatch(route, /verifyInmetGmailPubSubRequest|parseInmetGmailPubSubEnvelope/);
 });
 
-test("INMET Gmail scheduler polls every ten minutes without AI or browser headers", () => {
+test("INMET Gmail scheduler polls every ten minutes without cancelling an in-flight delivery", () => {
   assert.match(scheduler, /cron:\s*"\*\/10 \* \* \* \*"/);
   assert.match(scheduler, /task=inmet-gmail/);
   assert.match(scheduler, /TEMPO_PELOTAS_CRON_SECRET/);
   assert.match(scheduler, /Authorization: Bearer \$CRON_SECRET/);
+  assert.match(scheduler, /cancel-in-progress:\s*false/);
+  assert.match(scheduler, /User-Agent: TempoPelotas-INMET-Gmail-Poll\/1\.0/);
   assert.doesNotMatch(scheduler, /gemini|openai|weather-ai|Sec-Fetch/i);
 });
 
-test("INMET Gmail configuration is owned by Lovable, not duplicated in env files", () => {
+test("INMET Gmail connector credentials stay owned by Lovable", () => {
   assert.doesNotMatch(
     envExample,
     /^INMET_GMAIL_(?:USER|CLIENT_ID|CLIENT_SECRET|REFRESH_TOKEN|QUERY|MAX_AGE_MINUTES|PUBSUB_[A-Z_]+)=/m,
@@ -148,7 +221,7 @@ test("INMET Gmail configuration is owned by Lovable, not duplicated in env files
   assert.doesNotMatch(envExample, /^LOVABLE_API_KEY=/m);
   assert.doesNotMatch(envExample, /^GOOGLE_MAIL_API_KEY=/m);
 
-  assert.match(docs, /App Connector Gmail já conectado/i);
+  assert.match(docs, /App Connector/i);
   assert.match(docs, /não usa Gemini, OpenAI/i);
   assert.match(docs, /Não criar OAuth Client ID\/Secret, refresh token, tópico Pub\/Sub ou Gmail Watch/i);
 });
