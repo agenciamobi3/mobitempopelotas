@@ -84,29 +84,30 @@ test("history table remains an accessible daily reference", () => {
   assert.match(page, /Como os dados funcionam/);
 });
 
-test("history refinement follows the current retail layout and accessibility rules", () => {
+test("history refinement follows the clean internal editorial layout", () => {
   assert.match(styles, /internal-weather-shell--history \.history-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
-  assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /background:\s*var\(--history-soft\)/);
+  assert.match(styles, /\.history-chapters \{\s*display:\s*none/);
   assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
-  assert.match(styles, /@media \(max-width: 1180px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /@media \(max-width: 1080px\)/);
+  assert.match(styles, /@media \(max-width: 820px\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
+  assert.doesNotMatch(styles, /box-shadow:\s*(?!none)/);
+  assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
 });
 
-test("history hero uses documentary color without implying official climatology", () => {
-  assert.match(homeContract, /acento documental/i);
-  assert.match(homeContract, /\.history-hero__content[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.history-period-card[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.history-period-overview article:nth-child\(1\)/);
-  assert.match(homeContract, /\.history-period-overview article:nth-child\(4\)/);
-  assert.match(homeContract, /\.history-period-source[\s\S]*background:\s*#f9fbfb/);
-  assert.match(homeContract, /\.history-hero__actions a:first-child[\s\S]*linear-gradient/);
+test("history hero keeps a restrained documentary accent without decoration", () => {
+  assert.match(homeContract, /acento documental discreto/i);
+  assert.match(homeContract, /\.history-hero__content,[\s\S]*\.history-period-card[\s\S]*background:\s*transparent/);
+  assert.match(homeContract, /\.history-period-overview article[\s\S]*box-shadow:\s*none/);
+  assert.match(homeContract, /\.history-hero__actions a:first-child[\s\S]*background:\s*#071e2f/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(homeContract, /!important/);
 });
