@@ -103,28 +103,30 @@ test("accessible table preserves the exact returned observations", () => {
   assert.match(page, /até 60 registros recentes/);
 });
 
-test("frost page follows responsive retail and accessibility contracts", () => {
+test("frost page follows the clean internal editorial layout", () => {
   assert.match(styles, /internal-weather-shell--frost \.frost-v2-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
+  assert.match(styles, /background:\s*var\(--frost-soft\)/);
+  assert.match(styles, /\.frost-v2-chapters \{\s*display:\s*none/);
   assert.match(styles, /grid-template-columns: repeat\(5, minmax\(0, 1fr\)\)/);
   assert.match(styles, /content-visibility:\s*auto/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
-  assert.match(styles, /@media \(max-width: 1280px\)/);
-  assert.match(styles, /@media \(max-width: 980px\)/);
-  assert.match(styles, /@media \(max-width: 680px\)/);
+  assert.match(styles, /@media \(max-width: 1180px\)/);
+  assert.match(styles, /@media \(max-width: 820px\)/);
+  assert.match(styles, /@media \(max-width: 620px\)/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
+  assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
 });
 
 test("frost hero uses a restrained cold accent without flattening status semantics", () => {
-  assert.match(homeContract, /acento frio e técnico/i);
-  assert.match(homeContract, /\.frost-v2-hero__content[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.frost-v2-hero__summary[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(homeContract, /\.frost-v2-hero__summary dl > div:first-child/);
-  assert.match(homeContract, /\.frost-v2-hero__summary dl > div:last-child/);
-  assert.match(homeContract, /\.frost-v2-hero__actions a:first-child[\s\S]*linear-gradient/);
+  assert.match(homeContract, /acento frio e discreto/i);
+  assert.match(homeContract, /\.frost-v2-hero__content,[\s\S]*\.frost-v2-hero__summary[\s\S]*background:\s*transparent/);
+  assert.match(homeContract, /\.frost-v2-hero__summary dl > div[\s\S]*box-shadow:\s*none/);
+  assert.match(homeContract, /\.frost-v2-hero__actions a:first-child[\s\S]*background:\s*#071e2f/);
+  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(homeContract, /!important/);
 });
