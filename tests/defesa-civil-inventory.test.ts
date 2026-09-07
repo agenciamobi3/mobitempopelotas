@@ -9,6 +9,7 @@ const endpoint = readFileSync("src/routes/api/defesa-civil/stations.ts", "utf8")
 const regionalRegistry = readFileSync("src/lib/hydrology/defesa-civil-regional-pages.ts", "utf8");
 const regionalModule = readFileSync("src/components/regional/RegionalCityDefesaCivil.tsx", "utf8");
 const dedicatedPage = readFileSync("src/components/hydrology/DefesaCivilStationHydrologyPage.tsx", "utf8");
+const dedicatedStyles = readFileSync("src/components/hydrology/DefesaCivilStationHydrologyPage.css", "utf8");
 const jaguaraoRoute = readFileSync("src/routes/nivel-do-rio-jaguarao.tsx", "utf8");
 const saoGoncaloRoute = readFileSync("src/routes/nivel-do-canal-sao-goncalo.tsx", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
@@ -116,10 +117,18 @@ test("dedicated Defesa Civil pages preserve local reference and never synthesize
   assert.match(dedicatedPage, /station\.river\.trend/);
   assert.match(dedicatedPage, /station\.rain\.h1Mm/);
   assert.match(dedicatedPage, /station\.rain\.h24Mm/);
-  assert.match(dedicatedPage, /não substitui a ausência por zero/);
-  assert.match(dedicatedPage, /não significa que a leitura seja uma cota de inundação local/);
-  assert.match(dedicatedPage, /não o compara diretamente com\s+outras réguas/);
+  assert.match(dedicatedPage, /não troca a ausência\s+por zero/);
+  assert.match(dedicatedPage, /não transforma o\s+valor, sozinho, em cota de atenção ou inundação/);
+  assert.match(dedicatedPage, /não faz conversões automáticas entre elas/);
   assert.doesNotMatch(dedicatedPage, /\?\?\s*0\b/);
+});
+
+test("dedicated Defesa Civil pages use the clean editorial surface contract", () => {
+  assert.match(dedicatedStyles, /--station-soft:\s*#f5f8f8/);
+  assert.match(dedicatedStyles, /\.defesa-civil-station-page__hero[\s\S]*border-bottom:/);
+  assert.match(dedicatedStyles, /\.defesa-civil-station-page__primary-reading[\s\S]*border-bottom:/);
+  assert.doesNotMatch(dedicatedStyles, /box-shadow:/);
+  assert.match(dedicatedStyles, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
 test("Jaguarão and Canal São Gonçalo routes are indexable, source-backed and distinct from weather pages", () => {
@@ -135,7 +144,7 @@ test("Jaguarão and Canal São Gonçalo routes are indexable, source-backed and 
   assert.match(saoGoncaloRoute, /stationCode: "DCRS-00063"/);
   assert.match(saoGoncaloRoute, /loader: \(\) => getDefesaCivilHydroData\(\)/);
   assert.match(saoGoncaloRoute, /weatherPath: "\/tempo-em\/capao-do-leao-rs"/);
-  assert.match(saoGoncaloRoute, /não deve ser confundido com a régua do Cais do Porto em Pelotas/);
+  assert.match(saoGoncaloRoute, /não é a mesma do Porto de Pelotas/);
   assert.match(saoGoncaloRoute, /location: PAGE_LOCATION/);
   assert.match(saoGoncaloRoute, /addressLocality: "Capão do Leão"/);
 
