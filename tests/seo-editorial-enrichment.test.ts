@@ -124,8 +124,9 @@ test("meteograma, clima e histórico recente não disputam a mesma intenção", 
   assert.doesNotMatch(meteogram, /EditorialContentSection|createFaqPageJsonLd|METEOGRAM_CONTENT/);
   assert.match(meteogramPage, /to="\/vento-em-pelotas"/);
   assert.match(meteogramPage, /to="\/tempo-hoje-pelotas"/);
-  assert.match(meteogramPage, /Esta página mostra previsão, não medição/);
-  assert.match(simagro, /Meteogramas WRF e GFS do SIMAGRO RS/);
+  assert.match(meteogramPage, /Medições reais ficam separadas no Tempo de hoje/);
+  assert.doesNotMatch(meteogramPage, /Esta página mostra previsão, não medição|Como o tempo pode mudar nas próximas horas/);
+  assert.match(simagro, /Meteogramas do SIMAGRO RS/);
 
   assert.match(climate, /Clima de Pelotas: estações do ano e climatologia/);
   assert.match(climate, /Qual é a diferença entre clima e histórico de 30 dias/);
