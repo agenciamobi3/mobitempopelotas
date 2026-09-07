@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 06/09/2026  
+Última atualização: 07/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -36,7 +36,7 @@ Regras permanentes:
 | Open-Meteo | Principal; contingência/last-good preserva estado e timestamp sem mascarar falha |
 | MET Norway | Contingência compartilhada quando aplicável |
 | Embrapa | Observação local centralizada; snapshot central vale no máximo 75 s e amostra com mais de 30 min nunca é publicada como `Agora` |
-| INMET | Avisos/produtos oficiais conforme contrato de cada integração |
+| INMET | Avisos/produtos oficiais conforme o contrato de cada integração; pipeline Gmail → previsão estruturada → Web Push preparado, porém fail-closed por `INMET_GMAIL_PUSH_ENABLED` enquanto o Web Push público estiver suspenso |
 | Radar / satélite / STSC | Probes independentes e copy pública sanitizada |
 | Hidrologia | Laranjal usa seleção local explícita: LabHidroSens/UFPel quando atualizado, CIEX/FURG (`sensor_7`) quando o Lab atrasa/falha e last-known do próprio Lab se ambas as consultas correntes falharem; Guaíba, Lagoa dos Patos, SACE e Defesa Civil degradam independentemente |
 | Localidades da Lagoa | Hub `/nivel-da-lagoa-dos-patos` + páginas verificadas de Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
@@ -319,6 +319,30 @@ Documento: `docs/HISTORICAL_MODERATION_V1.md`.
 
 Open-Meteo é a previsão principal. MET Norway atua como contingência quando aplicável. Embrapa permanece como observação local centralizada. INMET fornece avisos e produtos oficiais conforme contratos específicos.
 
+### 8.1 Gatilho INMET por Gmail
+
+O pipeline de **Previsões por E-mail do INMET** está preparado na `main`, sem IA e sem OAuth/Pub/Sub próprios. Ele reutiliza o App Connector Gmail do Lovable somente em rota server-only protegida por `CRON_SECRET`.
+
+Enquanto `INMET_GMAIL_PUSH_ENABLED` não for exatamente `true`, a execução termina como `skipped` **antes de consultar o Gmail ou o Web Push**. Esse gate preserva a decisão vigente de manter o Web Push público suspenso até estabilidade sustentada; o workflow agendado pode existir sem reativar silenciosamente notificações.
+
+Quando futuramente ativado, o contrato exige:
+
+- busca server-only limitada ao domínio INMET, à palavra `Pelotas` e à janela operacional de 6 horas;
+- validação redundante de Pelotas no assunto/corpo antes de qualquer disparo;
+- um mesmo `Authentication-Results` iniciado por `mx.google.com;` com `spf=pass`, `smtp.mailfrom` em `inmet.gov.br`, `dmarc=pass` e `header.from=inmet.gov.br`;
+- `From` visível terminado exatamente em `@inmet.gov.br`;
+- `ARC-Authentication-Results` não substitui essa prova direta;
+- confirmação, mensagem desconhecida e previsão de outra cidade são ignoradas;
+- se existirem várias previsões válidas, somente a mais recente avança e as anteriores são contabilizadas como superseded;
+- o e-mail é apenas gatilho; números públicos vêm de `fetchInmetForecast()` e não do corpo da mensagem;
+- fingerprint combina data local e conteúdo público, evitando duplicar dois IDs Gmail que produzam a mesma atualização;
+- previsão normal continua em `daily_summary`; ela nunca é promovida a `weather_alerts` apenas por vir do INMET;
+- falha de uma mensagem degrada o lote; somente a impossibilidade de avaliar todas as candidatas torna a execução erro.
+
+O scheduler versionado em `.github/workflows/inmet-gmail-poll.yml` chama a rota a cada 10 minutos, usa o mesmo segredo de `CRON_SECRET` por `TEMPO_PELOTAS_CRON_SECRET` e não cancela uma execução já iniciada. Isso é estado de código; enquanto GitHub Actions continuar encerrando runs com `steps: null`, execução real do polling não está comprovada.
+
+Documento: `docs/INMET_GMAIL_PUSH.md`.
+
 Em 06/09/2026 foi reproduzida na Home uma regressão de recência: o shell/fallback carregava corretamente e, depois da hidratação, uma leitura central antiga da Embrapa era promovida novamente a `Agora`. O snapshot observado era de **05/09 às 08:56**.
 
 A auditoria do Supabase confirmou que:
@@ -446,6 +470,19 @@ Na observação Embrapa/Home, os contratos agora protegem:
 - ausência de invalidação global por minuto;
 - cache antigo não volta a ser promovido a `Agora` durante a recuperação da Home.
 
+No gatilho INMET por Gmail, os contratos agora protegem:
+
+- gate fail-closed por `INMET_GMAIL_PUSH_ENABLED=false` enquanto Web Push estiver suspenso;
+- conexão Gmail exclusivamente pelo App Connector do Lovable, sem OAuth/refresh token/PubSub próprios;
+- escopo obrigatório Pelotas e janela de 6 horas;
+- autenticação direta `mx.google.com` com SPF, envelope sender e DMARC alinhados ao domínio INMET;
+- ausência de ARC como substituto da autenticação direta;
+- coalescência: apenas a previsão válida mais recente avança;
+- deduplicação por conteúdo público e data local, não apenas por ID da mensagem;
+- falha parcial de leitura sem derrubar candidatos seguros;
+- zero IA nesse caminho e separação `daily_summary` versus `weather_alerts`;
+- scheduler a cada 10 minutos sem `cancel-in-progress` da execução já iniciada.
+
 Na enchente de 2001, os contratos agora protegem:
 
 - 300 cm às 07h e 280 cm às 17h na camada bruta de 08/10/2001;
@@ -501,7 +538,8 @@ Devem permanecer distintos:
 13. Depois da validação da moderação V1, adicionar paginação/filtros e fluxo editorial separado de publicação.
 14. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
 15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
-16. Confirmar externamente o destino do LabHidroSens. Se houver confirmação de encerramento definitivo, remover autenticação pública ThingsBoard, IDs, dashboard, adapter Lab e a lógica de seleção que ficar redundante; então CIEX/FURG passa a fonte local única.
+16. Quando a suspensão do Web Push for encerrada, validar primeiro VAPID, Supabase e inscrições/consentimento; depois confirmar o App Connector Gmail, definir `INMET_GMAIL_PUSH_ENABLED=true`, executar uma rodada manual protegida e comprovar um e-mail real do INMET para Pelotas antes de chamar o scheduler de operacional.
+17. Confirmar externamente o destino do LabHidroSens. Se houver confirmação de encerramento definitivo, remover autenticação pública ThingsBoard, IDs, dashboard, adapter Lab e a lógica de seleção que ficar redundante; então CIEX/FURG passa a fonte local única.
 
 ## 15. Documentos principais
 
@@ -520,6 +558,7 @@ Devem permanecer distintos:
 - `docs/NAVIGATION_RUNTIME_RECOVERY_2026-08-27.md` — navegação e recuperação;
 - `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — scheduler e monitor;
 - `docs/ANA_RHN_INTEGRATION.md` — política readiness-only da ANA/RHN e separação 87955000/87955001;
+- `docs/INMET_GMAIL_PUSH.md` — gatilho INMET por App Connector Gmail, gate de ativação, autenticação, coalescência e deduplicação;
 - `docs/REDEMET_OPERATIONS.md` — REDEMET;
 - `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências;
 - `docs/FORECAST_15_DAY_IMPLEMENTATION_2026-08-26.md` — previsão de 15 dias;
