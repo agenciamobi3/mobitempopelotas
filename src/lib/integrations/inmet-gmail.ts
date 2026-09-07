@@ -2,6 +2,8 @@ import type { InmetForecast } from "@/lib/weather/official-sources.types";
 
 const TIMEZONE = "America/Sao_Paulo";
 const MAX_PUBLIC_COPY_CHARS = 240;
+const MAX_CLASSIFICATION_BODY_CHARS = 12_000;
+const MAX_TARGET_BODY_CHARS = 24_000;
 
 export type InmetEmailKind = "confirmation" | "forecast" | "other";
 
@@ -21,7 +23,7 @@ function extractEmailAddress(value: string) {
 
 export function classifyInmetEmail(subject: string, body: string): InmetEmailKind {
   const normalizedSubject = normalizeText(subject);
-  const normalizedBody = normalizeText(body.slice(0, 12_000));
+  const normalizedBody = normalizeText(body.slice(0, MAX_CLASSIFICATION_BODY_CHARS));
   const combined = `${normalizedSubject} ${normalizedBody}`;
 
   if (
@@ -44,6 +46,26 @@ export function classifyInmetEmail(subject: string, body: string): InmetEmailKin
   return "other";
 }
 
+export function isPelotasInmetMessage(subject: string, body: string) {
+  const combined = normalizeText(`${subject} ${body.slice(0, MAX_TARGET_BODY_CHARS)}`);
+  return /\bpelotas\b/.test(combined);
+}
+
+function isTrustedGoogleAuthenticationResult(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!/^mx\.google\.com\s*;/i.test(normalized)) return false;
+
+  const spfPass = /\bspf=pass\b/i.test(normalized);
+  const smtpMailFromInmet =
+    /\bsmtp\.mailfrom\s*=\s*(?:[^@\s;]+@)?(?:[a-z0-9-]+\.)*inmet\.gov\.br\b/i.test(
+      normalized,
+    );
+  const dmarcPass = /\bdmarc=pass\b/i.test(normalized);
+  const alignedFrom = /\bheader\.from\s*=\s*inmet\.gov\.br\b/i.test(normalized);
+
+  return spfPass && smtpMailFromInmet && dmarcPass && alignedFrom;
+}
+
 export function isTrustedInmetMessage(input: {
   from: string;
   authenticationResults: readonly string[];
@@ -51,12 +73,7 @@ export function isTrustedInmetMessage(input: {
   const address = extractEmailAddress(input.from);
   if (!/^[^@\s]+@inmet\.gov\.br$/.test(address)) return false;
 
-  const authentication = input.authenticationResults.join(" ");
-  const spfPass = /\bspf=pass\b/i.test(authentication);
-  const dmarcPass = /\bdmarc=pass\b/i.test(authentication);
-  const alignedFrom = /header\.from\s*=\s*inmet\.gov\.br\b/i.test(authentication);
-
-  return spfPass && dmarcPass && alignedFrom;
+  return input.authenticationResults.some(isTrustedGoogleAuthenticationResult);
 }
 
 function localDateKey(date: Date) {
