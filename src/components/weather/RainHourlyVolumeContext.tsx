@@ -40,15 +40,12 @@ function formatMm(value: number | null | undefined) {
 }
 
 function chanceLabel(value: number | null | undefined) {
-  return value === null || value === undefined
-    ? "chance não informada"
-    : `${Math.round(value)}% de chance`;
+  return value === null || value === undefined ? "chance não informada" : `${Math.round(value)}%`;
 }
 
 function wetHours(hours: MeteogramHour[]) {
   return hours.filter(
-    (hour) =>
-      hour.precipitationMm !== null && hour.precipitationMm >= MEASURABLE_RAIN_MM,
+    (hour) => hour.precipitationMm !== null && hour.precipitationMm >= MEASURABLE_RAIN_MM,
   );
 }
 
@@ -76,8 +73,8 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
   const firstWet = wet[0] ?? null;
   const maximum = Math.max(0.1, ...values);
   const noPositiveVolumeDetail = hasCompleteVolumeWindow
-    ? "Sem volume previsto no período"
-    : "Sem volume positivo entre os horários informados";
+    ? "Sem volume previsto"
+    : "Sem volume positivo nos horários informados";
 
   return (
     <section
@@ -87,49 +84,34 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
     >
       <header>
         <div>
-          <span className="rain-hourly-volume-context__eyebrow">
-            <CloudRain aria-hidden="true" /> Volume por hora
-          </span>
-          <h2 id="rain-hourly-volume-title">Quanto de chuva o modelo prevê em cada horário</h2>
+          <h2 id="rain-hourly-volume-title">Volume de chuva por hora</h2>
         </div>
-        <p>
-          Além da chance percentual, o perfil detalhado do Open-Meteo estima o volume de precipitação
-          em milímetros para cada hora. São valores de previsão, não chuva já medida em Pelotas.
-        </p>
+        <p>Milímetros previstos nas próximas 12 horas. Não é chuva já medida.</p>
       </header>
 
       <div className="rain-hourly-volume-context__summary" aria-label="Resumo do volume previsto">
         <article>
           <Droplets aria-hidden="true" />
-          <span>{hasCompleteVolumeWindow ? "Total nas próximas 12h" : "Total parcial disponível"}</span>
+          <span>{hasCompleteVolumeWindow ? "Total em 12 h" : "Total parcial"}</span>
           <strong>{formatMm(total)}</strong>
-          <small>
-            {hasCompleteVolumeWindow
-              ? "Soma dos volumes horários disponíveis"
-              : `${availableVolumeHours.length} de ${hours.length} horários têm volume informado`}
-          </small>
+          {!hasCompleteVolumeWindow ? <small>{availableVolumeHours.length} de {hours.length} horários informados</small> : null}
         </article>
         <article>
           <CloudRain aria-hidden="true" />
-          <span>Maior volume em uma hora</span>
+          <span>Maior volume em 1 h</span>
           <strong>{peak ? formatMm(peak.precipitationMm) : "Nenhum"}</strong>
           <small>{peak ? `Por volta de ${formatHour(peak.timestamp)}` : noPositiveVolumeDetail}</small>
         </article>
         <article>
           <Droplets aria-hidden="true" />
-          <span>Horas com volume ≥ 0,1 mm</span>
+          <span>Horas com 0,1 mm ou mais</span>
           <strong>{wet.length}</strong>
-          <small>Entre os {availableVolumeHours.length} horários com volume informado</small>
         </article>
         <article>
           <Info aria-hidden="true" />
-          <span>Primeiro volume previsto</span>
+          <span>Primeiro volume</span>
           <strong>{firstWet ? formatHour(firstWet.timestamp) : "Nenhum"}</strong>
-          <small>
-            {firstWet ? formatMm(firstWet.precipitationMm) : hasCompleteVolumeWindow
-              ? "Sem volume ≥ 0,1 mm no período"
-              : "Sem volume ≥ 0,1 mm entre os horários informados"}
-          </small>
+          {firstWet ? <small>{formatMm(firstWet.precipitationMm)}</small> : null}
         </article>
       </div>
 
@@ -149,7 +131,7 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
               </header>
               <div>
                 <strong>{formatMm(hour.precipitationMm)}</strong>
-                <small>{volumeKnown ? "volume previsto" : "volume não informado"}</small>
+                <small>{volumeKnown ? "previsto" : "não informado"}</small>
               </div>
               <i aria-hidden="true"><span /></i>
             </article>
@@ -161,10 +143,7 @@ export function RainHourlyVolumeContext({ meteogram }: { meteogram: MeteogramDat
         <Database aria-hidden="true" />
         <span>
           <strong>{meteogram.source.name} · {meteogram.source.model}</strong>
-          <small>
-            Perfil horário atualizado em {formatDateTime(meteogram.source.fetchedAt)}. Chance e volume
-            são grandezas diferentes e podem mudar conforme o modelo é recalculado.
-          </small>
+          <small>Atualizado em {formatDateTime(meteogram.source.fetchedAt)}</small>
         </span>
       </footer>
     </section>
