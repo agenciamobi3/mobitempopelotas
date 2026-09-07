@@ -60,9 +60,10 @@ test("páginas regionais usam o main semântico fornecido pelo layout global", (
 
 test("páginas regionais reutilizam os componentes meteorológicos sem duplicar a grade", () => {
   assert.match(heroSource, /<WeatherSplitHero/);
-  assert.match(pageSource, /<InternalPageChapters/);
   assert.match(pageSource, /<HomeForecastStory/);
   assert.match(pageSource, /internal-forecast-widget regional-city-shared-forecast/);
+  assert.doesNotMatch(pageSource, /InternalPageChapters/);
+  assert.doesNotMatch(pageSource, /regionalSections|pageSections/);
   assert.doesNotMatch(pageSource, /<RegionalCityHourlySection/);
   assert.doesNotMatch(pageSource, /regional-city-summary/);
   assert.doesNotMatch(pageSource, /className="regional-city-forecast"/);
@@ -151,13 +152,12 @@ test("camada local transforma o hero compartilhado em abertura editorial limpa",
   assert.match(accentCss, /\.weather-split-hero__card\.is-elevated/);
   assert.match(accentCss, /\.weather-split-hero__card\.is-strong/);
   assert.match(accentCss, /\.weather-split-hero__card\.is-unknown/);
-  assert.match(accentCss, /\.internal-page-chapters[\s\S]*display:\s*none/);
   assert.match(accentCss, /min-height:\s*44px/);
   assert.doesNotMatch(accentCss, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(accentCss, /!important/);
 });
 
-test("âncoras regionais continuam disponíveis mesmo sem índice visual", () => {
+test("âncoras regionais permanecem disponíveis sem índice visual ou markup morto", () => {
   for (const anchor of [
     "#avisos-municipais",
     "#previsao-hoje",
@@ -165,9 +165,9 @@ test("âncoras regionais continuam disponíveis mesmo sem índice visual", () =>
     "#como-interpretar-previsao-regional",
     "#cidades-proximas",
   ]) {
-    assert.match(pageSource, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    assert.match(`${pageSource}\n${heroSource}`, new RegExp(anchor.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
-  assert.match(identityCss, /\.regional-city-page > \.internal-page-chapters[\s\S]*display:\s*none/);
+  assert.doesNotMatch(pageSource, /InternalPageChapters|regionalSections|pageSections/);
 });
 
 test("aviso municipal segue o mesmo contrato visual do painel INMET interno", () => {
