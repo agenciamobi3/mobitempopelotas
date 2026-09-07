@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Info, Layers3 } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 import "./SimagroModelProducts.css";
@@ -12,8 +12,6 @@ const PRODUCTS = [
     id: "wrf",
     label: "WRF",
     title: "Meteograma WRF para Pelotas",
-    description:
-      "Produto gráfico do modelo WRF disponibilizado pelo SIMAGRO RS para Pelotas.",
     imageUrl:
       "https://simagro.rs.gov.br/data/produtos/latest/meteogramas/meteograma_wrf_4914.png",
   },
@@ -21,8 +19,6 @@ const PRODUCTS = [
     id: "gfs",
     label: "GFS",
     title: "Meteograma GFS para Pelotas",
-    description:
-      "Produto gráfico do modelo GFS disponibilizado pelo SIMAGRO RS para Pelotas.",
     imageUrl:
       "https://simagro.rs.gov.br/data/produtos/latest/meteogramas/meteograma_gfs_4914.png",
   },
@@ -30,8 +26,6 @@ const PRODUCTS = [
     id: "agro",
     label: "GFS Agro",
     title: "Agrometeograma GFS para Pelotas",
-    description:
-      "Versão agrometeorológica do produto GFS disponibilizada pelo SIMAGRO RS.",
     imageUrl:
       "https://simagro.rs.gov.br/data/produtos/latest/meteogramas/agrometeograma_gfs_4914.png",
   },
@@ -53,16 +47,9 @@ export function SimagroModelProducts() {
     >
       <header>
         <div>
-          <span className="simagro-model-products__eyebrow">
-            <Layers3 aria-hidden="true" /> Modelagem complementar · SIMAGRO RS
-          </span>
-          <h2 id="simagro-model-products-title">Veja também os meteogramas WRF e GFS para Pelotas</h2>
+          <h2 id="simagro-model-products-title">Meteogramas WRF e GFS do SIMAGRO RS</h2>
         </div>
-        <p>
-          Estes gráficos são produtos visuais de modelagem publicados pelo SIMAGRO RS. Eles servem para
-          comparação e contexto. Os valores horários principais desta página continuam vindo das fontes
-          estruturadas identificadas no próprio Tempo Pelotas.
-        </p>
+        <p>Gráficos oficiais de modelagem para Pelotas. Os valores principais da página continuam na previsão hora a hora acima.</p>
       </header>
 
       <div className="simagro-model-products__tabs" aria-label="Escolha o produto do SIMAGRO RS">
@@ -82,11 +69,7 @@ export function SimagroModelProducts() {
 
       <figure className="simagro-model-products__viewer">
         <div className="simagro-model-products__viewer-heading">
-          <div>
-            <span>Produto selecionado</span>
-            <strong>{selected.title}</strong>
-            <small>{selected.description}</small>
-          </div>
+          <strong>{selected.title}</strong>
           <a href={SIMAGRO_URL} target="_blank" rel="noopener noreferrer">
             Abrir SIMAGRO RS <ExternalLink aria-hidden="true" />
           </a>
@@ -94,11 +77,8 @@ export function SimagroModelProducts() {
 
         {failed ? (
           <div className="simagro-model-products__unavailable" role="status">
-            <strong>O gráfico do SIMAGRO não carregou nesta consulta.</strong>
-            <span>
-              O restante do meteograma continua disponível. Você também pode consultar o produto
-              diretamente no portal oficial do SIMAGRO RS.
-            </span>
+            <strong>O gráfico não carregou.</strong>
+            <span>Consulte o produto diretamente no SIMAGRO RS.</span>
           </div>
         ) : (
           <img
@@ -116,12 +96,7 @@ export function SimagroModelProducts() {
         )}
 
         <figcaption>
-          <Info aria-hidden="true" />
-          <span>
-            O arquivo é exibido como imagem oficial da fonte. O Tempo Pelotas não usa OCR nem leitura de
-            pixels para transformar esse gráfico em temperatura, chuva, vento ou qualquer outro valor
-            numérico. Confira no próprio gráfico a data, o ciclo e a legenda do produto.
-          </span>
+          Imagem oficial do SIMAGRO RS. Data, ciclo e legenda ficam no próprio gráfico.
         </figcaption>
       </figure>
     </section>
