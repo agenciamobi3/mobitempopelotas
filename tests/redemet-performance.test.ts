@@ -135,16 +135,17 @@ test("radar parser keeps only the requested station from the official response s
   assert.equal(santiago.frames[0].bounds.north, -25.5734);
 });
 
-test("radar request follows the HAR contract and keeps Santiago as operational fallback", () => {
+test("radar request follows the HAR contract and keeps station choice in the data layer", () => {
   assert.match(radarServer, /const DEFAULT_RADAR_AREA = "sg";/);
   assert.match(radarServer, /const FALLBACK_RADAR_AREAS = \["sg", "cn"\]/);
+  assert.match(radarServer, /sg: \{ name: "Santiago", sourceLabel: "Radar de Santiago \/ RS" \}/);
   assert.doesNotMatch(radarServer, /searchParams\.set\("area"/);
   assert.match(radarServer, /searchParams\.set\("anima", String\(frameCount\)\)/);
   assert.match(radarServer, /searchParams\.set\("api_key", key\)/);
   assert.match(radarServer, /boundsContainPoint\(frame\.bounds, PELOTAS_COORDINATES\)/);
   assert.match(envExample, /^REDEMET_RADAR_AREA=sg$/m);
-  assert.match(radarPage, /Radar meteorológico de Santiago com cobertura sobre Pelotas/);
-  assert.doesNotMatch(radarPage, /"Radar meteorológico de Canguçu"/);
+  assert.match(radarPage, /Radar de chuva em Pelotas/);
+  assert.doesNotMatch(radarPage, /Radar meteorológico de (?:Santiago|Canguçu)/);
 });
 
 test("STSC parser accepts the response shape observed in the REDEMET HAR", () => {
