@@ -264,12 +264,7 @@ export function RainRetailHero({
           </article>
 
           <div className="today-retail-hero__tiles rain-retail-hero__tiles" aria-label="Destaques da chuva">
-            <article className="is-rain">
-              <span><CloudRain aria-hidden="true" /> Maior chance</span>
-              <strong>{formatChance(highestRainChance)}</strong>
-              <small>{hourlyChanceDetail}</small>
-            </article>
-            <article>
+            <article className="is-volume">
               <span><Umbrella aria-hidden="true" /> Maior volume</span>
               <strong>{hasPositiveRainVolume ? highestVolumeDay?.weekday : hasDailyForecast ? "Sem volume previsto" : "—"}</strong>
               <small>{hasPositiveRainVolume ? formatMillimeters(highestVolumeDay?.precipitation) : hasDailyForecast ? "Próximos 7 dias" : "Em atualização"}</small>
@@ -277,10 +272,6 @@ export function RainRetailHero({
             <article className="is-wind">
               <span><Wind aria-hidden="true" /> Rajada com chuva</span>
               <strong>{formatGust(strongestWetGust)}</strong>
-            </article>
-            <article className="is-sun">
-              <span><Gauge aria-hidden="true" /> Fonte</span>
-              <strong>{weather.source.forecastName ?? weather.source.name}</strong>
             </article>
           </div>
         </div>
