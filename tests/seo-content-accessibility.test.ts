@@ -4,7 +4,6 @@ import test from "node:test";
 
 const editorialRouteFiles = [
   "src/routes/alertas.tsx",
-  "src/routes/previsao-7-dias-pelotas.tsx",
   "src/routes/chuva-em-pelotas.tsx",
   "src/routes/vento-em-pelotas.tsx",
   "src/routes/radar-e-satelite-pelotas.tsx",
@@ -22,7 +21,7 @@ function read(path: string) {
   return readFileSync(path, "utf8");
 }
 
-test("content routes expose visible answers and FAQ structured data", () => {
+test("content routes with dedicated editorial blocks expose visible answers and FAQ structured data", () => {
   for (const path of editorialRouteFiles) {
     const source = read(path);
 
@@ -30,6 +29,20 @@ test("content routes expose visible answers and FAQ structured data", () => {
     assert.match(source, /createFaqPageJsonLd/);
     assert.match(source, /about:\s*\[/);
   }
+});
+
+test("seven-day forecast keeps visible direct content without a duplicate editorial or FAQ layer", () => {
+  const route = read("src/routes/previsao-7-dias-pelotas.tsx");
+  const page = read("src/components/weather/SevenDayForecastPageV2.tsx");
+
+  assert.match(route, /createEditorialPageJsonLd/);
+  assert.match(route, /about:\s*\[/);
+  assert.match(route, /ForecastHorizonBridge/);
+  assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|SEVEN_DAY_PAGE_CONTENT/);
+  assert.match(page, /Previsão dos próximos 7 dias/);
+  assert.match(page, /Temperaturas nos próximos 7 dias/);
+  assert.match(page, /Chuva e rajadas nos próximos 7 dias/);
+  assert.match(page, /INMET e UFPel nos próximos dias/);
 });
 
 test("core search intents remain distinct and internally connected", () => {
