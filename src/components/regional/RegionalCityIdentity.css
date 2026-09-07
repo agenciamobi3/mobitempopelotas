@@ -10,7 +10,6 @@
 
 .regional-city-page > :is(
     .home-inmet-alerts,
-    .internal-page-chapters,
     .regional-city-shared-forecast,
     .regional-city-context,
     .regional-city-related,
@@ -26,21 +25,18 @@
 .regional-city-page > section.regional-city-official-alert {
   width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
   max-width: var(--regional-frame-max);
-  margin: clamp(24px, 3vw, 42px) auto 0;
+  margin: clamp(28px, 4vw, 52px) auto 0;
   padding: 0;
   scroll-margin-top: 7.75rem;
 }
 
+/* Índice legado mantido apenas no markup para compatibilidade. */
 .regional-city-page > .internal-page-chapters {
-  margin-top: 0;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  border-top: 0;
-  border-radius: 0 0 0.95rem 0.95rem;
-  box-shadow: 0 12px 36px rgb(7 30 47 / 5%);
+  display: none;
 }
 
 .regional-city-page > .regional-city-shared-forecast {
-  margin-top: clamp(22px, 2.6vw, 38px);
+  margin-top: clamp(34px, 5vw, 64px);
   scroll-margin-top: 7.75rem;
 }
 
@@ -66,25 +62,24 @@
 }
 
 .regional-city-page > section.regional-city-context {
-  margin: clamp(22px, 2.6vw, 38px) auto 0;
-  padding: clamp(42px, 5vw, 82px) var(--regional-gutter);
+  margin: clamp(34px, 5vw, 64px) auto 0;
+  padding: clamp(46px, 6vw, 78px) 0;
 }
 
 .regional-city-page > section.regional-city-related {
-  margin: clamp(22px, 2.6vw, 38px) auto 0;
-  padding: clamp(36px, 4.7vw, 72px) var(--regional-gutter);
+  margin: 0 auto;
+  padding: clamp(46px, 6vw, 78px) 0;
 }
 
 .regional-city-page > footer.regional-city-sources {
-  margin: clamp(22px, 2.6vw, 38px) auto 0;
-  padding: 22px var(--regional-gutter);
+  margin: 0 auto;
+  padding: 22px 0 0;
 }
 
 .regional-city-official-alert.home-inmet-alerts.is-unverified[data-alert-period="none"] {
   border-color: rgb(24 189 205 / 20%);
-  background:
-    linear-gradient(90deg, rgb(24 189 205 / 5%), transparent 30%),
-    rgb(255 255 255 / 96%);
+  background: #fff;
+  box-shadow: none;
 }
 
 .regional-city-official-alert.home-inmet-alerts.is-unverified[data-alert-period="none"]
@@ -94,15 +89,15 @@
 
 .regional-city-official-alert .home-inmet-alerts__aside > a {
   display: inline-flex;
-  min-height: 39px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
   padding: 0 0.9rem;
-  border-radius: 999px;
+  border-radius: 10px;
   background: #071e2f;
   color: #fff;
-  font-size: 0.62rem;
+  font-size: 0.64rem;
   font-weight: 780;
   white-space: nowrap;
 }
@@ -127,17 +122,7 @@
   }
 }
 
-@media (max-width: 1180px) {
-  .regional-city-page > .internal-page-chapters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 760px) {
-  .regional-city-page > .internal-page-chapters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .regional-city-shared-forecast .home-forecast-heading {
     grid-template-columns: 1fr;
     gap: 1.25rem;
@@ -156,24 +141,24 @@
   }
 
   .regional-city-page > section.regional-city-official-alert {
-    margin-top: 14px;
+    margin-top: 18px;
   }
 
   .regional-city-page > .regional-city-shared-forecast {
-    margin-top: 16px;
-    padding: 1rem;
-    border-radius: 1rem;
+    margin-top: 30px;
+    padding: 0;
+    border-radius: 0;
   }
 
   .regional-city-page > section.regional-city-context,
   .regional-city-page > section.regional-city-related {
-    margin-top: 16px;
-    padding: 28px 16px;
+    margin-top: 0;
+    padding: 34px 0;
   }
 
   .regional-city-page > footer.regional-city-sources {
-    margin-top: 16px;
-    padding: 20px 16px;
+    margin-top: 0;
+    padding: 20px 0 0;
   }
 
   #avisos-municipais,
@@ -182,21 +167,6 @@
   #como-interpretar-previsao-regional,
   #cidades-proximas {
     scroll-margin-top: 5.75rem;
-  }
-}
-
-@media (max-width: 520px) {
-  .regional-city-page > .internal-page-chapters {
-    display: flex;
-    overflow-x: auto;
-    grid-template-columns: none;
-    scroll-snap-type: x proximity;
-  }
-
-  .regional-city-page > .internal-page-chapters a {
-    min-width: 9.5rem;
-    flex: 0 0 9.5rem;
-    scroll-snap-align: start;
   }
 }
 
