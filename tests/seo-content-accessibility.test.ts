@@ -7,7 +7,6 @@ const editorialRouteFiles = [
   "src/routes/vento-em-pelotas.tsx",
   "src/routes/radar-e-satelite-pelotas.tsx",
   "src/routes/clima-em-pelotas.tsx",
-  "src/routes/estacao-embrapa-pelotas.tsx",
   "src/routes/historico-climatico-pelotas.tsx",
   "src/routes/cameras-ao-vivo-pelotas.tsx",
   "src/routes/mapa-de-geadas-rio-grande-do-sul.tsx",
@@ -95,14 +94,16 @@ test("core search intents remain distinct and internally connected", () => {
   assert.match(situation, /\/enchente-2024-pelotas-laranjal/);
 });
 
-test("monitoring content distinguishes observation, imagery, history and telemetry", () => {
+test("monitoring content distinguishes imagery, history, hydrology and local observation", () => {
   const source = read("src/lib/editorial-content.ts");
+  const localMonitoring = read("src/components/weather/HomeLocalMonitoring.tsx");
   assert.match(source, /RADAR_EDITORIAL_CONTENT/);
-  assert.match(source, /EMBRAPA_EDITORIAL_CONTENT/);
   assert.match(source, /HISTORY_EDITORIAL_CONTENT/);
   assert.match(source, /CAMERAS_EDITORIAL_CONTENT/);
   assert.match(source, /HYDROLOGY_EDITORIAL_CONTENT/);
   assert.match(source, /LARANJAL_LEVEL_EDITORIAL_CONTENT/);
+  assert.match(localMonitoring, /Rede de Monitoramento Hidrometeorológico/);
+  assert.match(localMonitoring, /estações confirmadas em Pelotas/);
   assert.match(source, /não substituem alertas oficiais/i);
   assert.match(source, /normal climatológica/i);
   assert.match(source, /não deve ser interpretada isoladamente/i);
