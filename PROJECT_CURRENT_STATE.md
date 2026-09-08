@@ -37,7 +37,7 @@ Regras permanentes:
 | Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã, contexto INMET/UFPel, FAQ e recuperação shell-first |
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
 | Radar / satélite / STSC | Página dedicada usa coletas reais e horário da própria fonte, com recuperação pós-hidratação quando o SSR não conclui a composição no budget |
-| Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; referências verticais não são fundidas |
+| Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` também usa inventário regional e cartografia ANA/SNIRH, sem promover essas camadas a medição do Laranjal |
 | Defesa Civil dedicada | `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo` são as duas intenções hidrológicas regionais promovidas para URL própria |
 | Lagoa dos Patos | Hub + cinco localidades verificadas: Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
 | Arquivo de enchentes | Hub + páginas de 1941, 2001, 2015 e 2024 |
@@ -46,7 +46,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade do commit `74d3abb` concluiu `failure` com `steps: null` |
+| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34268597429` concluiu `failure` com `steps: null` |
 
 ## 3. Stack e budgets públicos
 
@@ -235,9 +235,23 @@ Cada ponto preserva a própria referência. O portal não publica um “nível �
 
 ### 7.4 ANA / RHN
 
-`87955001` permanece readiness/cross-check, sem terceira ingestão pública nesta fase. A série histórica `87955000` foi recuperada para pesquisa e continua separada da telemetria atual até existir documentação de zero/RN/datum que autorize qualquer junção.
+A ANA/RHN tem dois papéis distintos no produto:
 
-Detalhes: `docs/ANA_RHN_INTEGRATION.md` e `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
+1. **leitura atual do Laranjal** — `87955001` permanece readiness/cross-check, sem terceira ingestão pública nesta fase; a referência vertical continua não confirmada e `publishableMeasurement=false` permanece válido;
+2. **contexto regional público** — `/situacao-hidrologica-pelotas` consulta o inventário oficial de estações em até 180 km de Pelotas e pode desenhar rios principais e massas d'água das camadas públicas ANA/SNIRH.
+
+O inventário regional publica somente metadados concretos devolvidos pela rede, como nome, município, rio/bacia, responsável, operadora, situação cadastral e instrumentos. Proximidade não cria associação automática com uma página ou régua.
+
+Cartografia oficial usada no mapa regional:
+
+- `RiosPrincipais/MapServer/0` — rios principais, com nome `NORIOCOMP` quando publicado;
+- `Hidrografia/MapServer/2` — massas d'água, com `NOME_ESP`/`NOME_ALT` quando publicados.
+
+As geometrias são recortadas e simplificadas somente para desenho no mapa. Não produzem medição, distância hidrológica, área de risco, alerta ou diagnóstico de inundação. Inventário, rios e massas d'água degradam isoladamente.
+
+A série histórica `87955000` foi recuperada para pesquisa e continua separada da telemetria atual até existir documentação de zero/RN/datum que autorize qualquer junção.
+
+Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md` e `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
 
 ## 8. Radar, satélite e alertas
 
@@ -349,13 +363,14 @@ A consolidação de 08/09 atualizou contratos para:
 - footer compartilhado sem inventário repetido de fornecedores;
 - retirada de links públicos para a antiga Estação Embrapa;
 - proteção contra shell duplicado em rotas autocontidas;
-- `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles, corpo aberto e índice de capítulos visualmente reduzido, preservando dados, fontes, SEO e estados indisponíveis.
+- `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles, corpo aberto e índice de capítulos visualmente reduzido, preservando dados, fontes, SEO e estados indisponíveis;
+- inventário regional ANA/SNIRH em `/situacao-hidrologica-pelotas`, com mapa MapLibre, hidrografia oficial opcional e separação explícita da medição atual do Laranjal.
 
 O smoke visual interno não trata mais redirects aposentados como páginas que deveriam possuir H1, shell e namespace visual próprios.
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34253683259`, ligada ao commit `74d3abb3825d8f9a2b9da9e179c045b1eadfb08a`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
+A infraestrutura do runner continua sendo uma limitação externa. Na run `34268597429`, ligada ao commit `28d217362eed2500c7db3e54dd34c123be4f26b7`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
 
 Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
 
@@ -383,7 +398,8 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 9. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
 10. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
 11. Validar visualmente `/tempo-amanha-pelotas` em desktop e mobile no domínio canônico após a propagação do novo bundle, sem tratar preview isolado como prova de produção.
-12. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`; depois avançar para `NotasConsistencia` da histórica `87955000` e a ficha cadastral da `87955001`.
+13. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
@@ -394,6 +410,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/REDEMET_OPERATIONS.md` — radar, satélite e STSC;
 - `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências das fontes;
 - `docs/ANA_RHN_INTEGRATION.md` — política ANA/RHN e separação 87955000/87955001;
+- `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md` — inventário e cartografia regional ANA/SNIRH;
 - `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md` — auditoria dos arquivos Hidro;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
 - `docs/HISTORICAL_MODERATION_V1.md` — moderação histórica;
