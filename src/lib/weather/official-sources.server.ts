@@ -1,66 +1,21 @@
 import { fetchCppmetForecast } from "./cppmet.server";
-import { getFreshEmbrapaObservation } from "./embrapa-current.server";
 import { fetchResilientInmetForecast } from "./inmet-forecast-resilient.server";
 import { fetchInmetStationReference } from "./inmet-station.server";
 import { fetchStableInmetAlerts } from "./inmet-stable.server";
 import type {
   CppmetForecast,
-  EmbrapaObservation,
   InmetAlerts,
   InmetForecast,
   InmetStationReference,
   OfficialWeatherSources,
-  TimedObservation,
 } from "./official-sources.types";
 import { OFFICIAL_SOURCE_DEADLINE_MS } from "./source-policy.ts";
 
-const EMBRAPA_URL = "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm";
 const INMET_ALERTS_URL = "https://apiprevmet3.inmet.gov.br/avisos/rss";
 const INMET_FORECAST_URL = "https://portal.inmet.gov.br/";
 const INMET_STATION_URL = "https://apiprevmet3.inmet.gov.br/estacao/proxima/4314407";
 const INMET_PORTAL_URL = "https://avisos.inmet.gov.br/";
 const CPPMET_URL = "https://wp.ufpel.edu.br/cppmet/";
-
-function emptyTimedObservation(): TimedObservation {
-  return { value: null, time: null };
-}
-
-function unavailableEmbrapa(error: string): EmbrapaObservation {
-  return {
-    status: "unavailable",
-    current: {
-      temperature: null,
-      humidity: null,
-      feelsLike: null,
-      dewPoint: null,
-      pressure: null,
-      pressureTrend: null,
-      windDirection: null,
-      windSpeed: null,
-      sunrise: null,
-      sunset: null,
-    },
-    extremes: {
-      temperatureMin: emptyTimedObservation(),
-      temperatureMax: emptyTimedObservation(),
-      humidityMin: emptyTimedObservation(),
-      humidityMax: emptyTimedObservation(),
-      windSpeedMax: emptyTimedObservation(),
-    },
-    accumulated: { rainDaily: null, rainMonthly: null, rainAnnual: null },
-    source: {
-      name: "Embrapa Clima Temperado",
-      station: "Posto Meteorológico da Sede",
-      url: EMBRAPA_URL,
-      latitude: -31.7,
-      longitude: -52.4,
-      altitude: 57,
-      fetchedAt: new Date().toISOString(),
-      observationTime: null,
-    },
-    error,
-  };
-}
 
 function unavailableInmet(error: string): InmetAlerts {
   return {
@@ -137,13 +92,7 @@ async function settleWithin<T>(
 }
 
 export async function fetchOfficialWeatherSources(): Promise<OfficialWeatherSources> {
-  const [embrapa, inmet, inmetForecast, inmetStation, cppmet] = await Promise.all([
-    settleWithin(
-      getFreshEmbrapaObservation(),
-      "Embrapa",
-      OFFICIAL_SOURCE_DEADLINE_MS.embrapa,
-      unavailableEmbrapa,
-    ),
+  const [inmet, inmetForecast, inmetStation, cppmet] = await Promise.all([
     settleWithin(
       fetchStableInmetAlerts(),
       "INMET",
@@ -171,14 +120,12 @@ export async function fetchOfficialWeatherSources(): Promise<OfficialWeatherSour
   ]);
 
   const degradedSources: OfficialWeatherSources["degradedSources"] = [];
-  if (embrapa.status !== "live") degradedSources.push("embrapa");
   if (inmet.status !== "live") degradedSources.push("inmet");
   if (inmetForecast.status !== "live") degradedSources.push("inmet-forecast");
   if (inmetStation.status !== "live") degradedSources.push("inmet-station");
   if (cppmet.status !== "live") degradedSources.push("cppmet");
 
   return {
-    embrapa,
     inmet,
     inmetForecast,
     inmetStation,
