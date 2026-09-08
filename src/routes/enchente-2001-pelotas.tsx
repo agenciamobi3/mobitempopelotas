@@ -1,10 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { AnaRhnHistoricalConsistency } from "@/components/history/AnaRhnHistoricalConsistency";
 import {
   Flood2001Hero,
   Flood2001HistoricalPage,
 } from "@/components/history/Flood2001HistoricalPage";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
+import {
+  createUnavailableAnaRhnHistoricalConsistency,
+} from "@/lib/hydrology/ana-rhn-consistency.server";
+import { getAnaRhnHistoricalConsistency } from "@/lib/hydrology/ana-rhn-consistency.functions";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
@@ -34,13 +39,29 @@ export const Route = createFileRoute("/enchente-2001-pelotas")({
           "Canal São Gonçalo",
           "Lagoa dos Patos",
           "História das inundações em Pelotas",
+          "Estação Laranjal 87955000",
+          "Consistência da série histórica ANA",
         ],
       }),
     ]),
+  loader: async () => {
+    try {
+      return {
+        consistency: await getAnaRhnHistoricalConsistency(),
+      };
+    } catch {
+      return {
+        consistency: createUnavailableAnaRhnHistoricalConsistency(),
+      };
+    }
+  },
+  staleTime: 6 * 60 * 60 * 1_000,
   component: Enchente2001PelotasPage,
 });
 
 function Enchente2001PelotasPage() {
+  const data = Route.useLoaderData();
+
   return (
     <ContentPageShell
       pageClassName="internal-weather-shell--flood-history internal-weather-shell--flood-2001"
@@ -49,6 +70,7 @@ function Enchente2001PelotasPage() {
     >
       <Flood2001Hero />
       <Flood2001HistoricalPage />
+      <AnaRhnHistoricalConsistency data={data.consistency} />
     </ContentPageShell>
   );
 }
