@@ -17,16 +17,17 @@ test("dedicated internal pages load the shared clean hero contract", () => {
     /import "\.\/InternalWeatherPageShell\.css";\s*import "\.\/InternalWeatherCleanHero\.css";/,
   );
 
-  for (const namespace of ["rain", "wind", "fifteen-day", "meteogram"]) {
+  for (const namespace of ["rain", "wind", "meteogram"]) {
     assert.match(cleanHero, new RegExp(`internal-weather-shell--${namespace}`));
   }
 
-  assert.doesNotMatch(cleanHero, /internal-weather-shell--today/);
-  assert.doesNotMatch(cleanHero, /internal-weather-shell--tomorrow/);
-  assert.doesNotMatch(cleanHero, /internal-weather-shell--seven-day/);
+  for (const namespace of ["today", "tomorrow", "seven-day", "fifteen-day"]) {
+    assert.doesNotMatch(cleanHero, new RegExp(`internal-weather-shell--${namespace}`));
+  }
 });
 
 test("clean hero follows the flood editorial split without promotional chrome", () => {
+  assert.match(cleanHero, /Esta folha permanece apenas para Chuva, Vento e Meteograma/);
   assert.match(cleanHero, /background:\s*#f5f8f8 !important/);
   assert.match(
     cleanHero,
