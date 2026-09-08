@@ -1,3 +1,5 @@
+import { getAnaRhnRegionalHydrography } from "./ana-rhn-hydrography.functions";
+import { createUnavailableAnaRhnHydrography } from "./ana-rhn-hydrography.server";
 import { getAnaRhnRegionalInventory } from "./ana-rhn-regional.functions";
 import type { AnaRhnRegionalInventoryData } from "./ana-rhn-regional.server";
 import { getDefesaCivilHydroData } from "./defesa-civil-rs.functions";
@@ -205,6 +207,7 @@ export async function loadHydrologyOverviewPageData() {
     saceResult,
     defesaCivilResult,
     anaRhnRegionalResult,
+    anaRhnHydrographyResult,
   ] = await Promise.allSettled([
     settlePageDependency(() => getWeatherIntelligence(), createUnavailableWeatherIntelligence),
     settlePageDependency(() => getLaranjalLevelData(), createUnavailableLaranjalLevelData),
@@ -219,6 +222,10 @@ export async function loadHydrologyOverviewPageData() {
       () => getAnaRhnRegionalInventory(),
       createUnavailableAnaRhnRegionalInventoryData,
     ),
+    settlePageDependency(
+      () => getAnaRhnRegionalHydrography(),
+      createUnavailableAnaRhnHydrography,
+    ),
   ]);
 
   return {
@@ -231,6 +238,10 @@ export async function loadHydrologyOverviewPageData() {
     anaRhnRegional: settledValueOrFallback(
       anaRhnRegionalResult,
       createUnavailableAnaRhnRegionalInventoryData,
+    ),
+    anaRhnHydrography: settledValueOrFallback(
+      anaRhnHydrographyResult,
+      createUnavailableAnaRhnHydrography,
     ),
   };
 }
