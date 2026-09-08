@@ -11,7 +11,7 @@ test("Laranjal page places monitoring history after the ANA registry profile", (
   assert.match(route, /LaranjalMonitoringHistory/);
   assert.match(
     route,
-    /<AnaRhnLaranjalStationProfile data=\{data\.anaRhnProfile\} \/>\s*<LaranjalMonitoringHistory \/>\s*<LaranjalEmbedGuide \/>/,
+    /<AnaRhnLaranjalStationProfile data=\{data\.anaRhnProfile\} \/>\s*<LaranjalMonitoringHistory anaRhnProfile=\{data\.anaRhnProfile\} \/>\s*<LaranjalEmbedGuide \/>/,
   );
 });
 
@@ -27,11 +27,22 @@ test("monitoring history keeps concrete dates and named sources", () => {
   assert.match(component, /ahoradosul\.com\.br\/conteudos\/2026\/08\/16/);
 });
 
-test("monitoring history does not manufacture vertical continuity", () => {
+test("ANA milestone is derived from the live 87955001 inventory instead of a copied date", () => {
+  assert.match(component, /profile\.status !== "live"/);
+  assert.match(component, /instrument\.label === "Telemetria"/);
+  assert.match(component, /telemetric\?\.startedAt/);
+  assert.match(component, /ANA registra a identidade telemétrica 87955001 no Laranjal/);
+  assert.match(component, /Cadastro público ANA\/SNIRH da estação 87955001/);
+  assert.match(component, /não demonstra que ela seja o mesmo equipamento anunciado pela Prefeitura em 2025/);
+  assert.doesNotMatch(component, /dateIso: "2026-06-08"/);
+});
+
+test("monitoring history does not manufacture vertical or hardware continuity", () => {
   assert.match(component, /não comprova/);
   assert.match(component, /mesmo hardware, zero de régua, RN ou datum vertical/);
-  assert.match(component, /mantém as identidades e referências separadas/);
-  assert.doesNotMatch(component, /87955001[^\n]{0,120}mesmo sensor/i);
+  assert.match(component, /cadastro da 87955001 é posterior ao anúncio municipal de 2025/);
+  assert.match(component, /mantém as referências separadas/);
+  assert.doesNotMatch(component, /87955001[^\n]{0,120}é o mesmo sensor/i);
   assert.doesNotMatch(component, /87955001[^\n]{0,120}mesmo zero/i);
 });
 
@@ -41,5 +52,4 @@ test("monitoring history stays editorial and open instead of becoming another ca
   assert.match(styles, /@media \(max-width: 700px\)/);
   assert.doesNotMatch(styles, /box-shadow/);
   assert.doesNotMatch(styles, /border-radius/);
-}
-);
+});
