@@ -55,6 +55,30 @@ Fonte:
 
 A mesma informação foi republicada pelo Sanep.
 
+## 8 de junho de 2026 — cadastro ANA registra a identidade telemétrica 87955001
+
+O inventário público da Rede Hidrometeorológica Nacional registra a estação `LARANJAL` com código adicional `87955001` como estação telemétrica sob responsabilidade e operação da UFPel.
+
+Na evidência cadastral consolidada no projeto:
+
+- `EstacaoTelemetrica=Sim`;
+- `EstacaoTelemetricaInicio=08/06/2026`;
+- `Descricao=LARANJAL TELEMÉTRICA`;
+- responsável: UFPel;
+- operadora: UFPel;
+- município: Pelotas/RS;
+- corpo hídrico: Lagoa dos Patos.
+
+Esse é o primeiro marco documental recuperado que liga diretamente o código **87955001** à identidade telemétrica atual do Laranjal.
+
+Ele não prova, porém, que a estação cadastrada em junho de 2026 seja exatamente o mesmo hardware anunciado pela Prefeitura em junho de 2025. O anúncio municipal não publicou código de estação, número de série, RN, zero da régua ou documento de instalação que permita fechar essa identidade.
+
+Fonte:
+
+- inventário público ANA/SNIRH — Rede Hidrometeorológica Nacional, consultado pelo adapter `ana-rhn-laranjal-profile.server.ts`.
+
+A seção pública não fixa essa data em código: o marco é gerado a partir de `EstacaoTelemetricaInicio` quando o cadastro `87955001` responde e contém uma data válida.
+
 ## 16 de agosto de 2026 — monitoramento de Pelotas na rede CIEX/FURG
 
 Reportagem do A Hora do Sul registra que o nível da Lagoa no Laranjal passou a integrar o monitoramento do CIEX/FURG.
@@ -73,13 +97,21 @@ Fonte:
 
 - A Hora do Sul, 16/08/2026: `https://ahoradosul.com.br/conteudos/2026/08/16/nivel-da-lagoa-no-laranjal-passa-a-integrar-monitoramento-do-ciex-furg/`
 
-## Relação com a estação ANA 87955001
+## Relação entre o sensor anunciado em 2025 e a estação 87955001
 
-O cadastro e o adapter ANA do Tempo Pelotas tratam `87955001` como identidade telemétrica atual do Laranjal.
+As evidências agora formam uma sequência mais estreita:
 
-A cronologia acima **não prova** que:
+1. em 27/06/2025, Prefeitura e UFPel anunciam um sensor da ANA próximo ao Trapiche;
+2. em 08/06/2026, o inventário ANA passa a registrar a identidade telemétrica `87955001` no Laranjal, sob responsabilidade/operação da UFPel;
+3. em agosto de 2026, o monitoramento de Pelotas aparece integrado ao CIEX/FURG e os dados do HidroSens são descritos como disponibilizados à ANA e ao CIEX.
 
-- o sensor anunciado pela Prefeitura em 2025 seja exatamente o mesmo hardware cadastrado posteriormente como `87955001`;
+Essa sequência é compatível com uma evolução do mesmo ecossistema de monitoramento, mas **não é prova documental de identidade de hardware**.
+
+Nas superfícies públicas pesquisadas em 08/09/2026 não foi localizado documento que relacione explicitamente o sensor anunciado em 2025 ao código `87955001` por número de série, código ANA, ficha de instalação ou memória de nivelamento.
+
+Portanto, o portal não afirma que:
+
+- o sensor anunciado pela Prefeitura em 2025 seja exatamente o mesmo hardware cadastrado como `87955001`;
 - a estação `87955001` reutilize o mesmo zero físico da régua observada pelo HidroSens em 2024;
 - o sensor telemétrico compartilhe RN ou datum com a histórica `87955000`;
 - a referência vertical da rede CIEX/FURG possa ser aplicada a qualquer uma dessas outras séries.
@@ -88,12 +120,12 @@ Até existir documentação específica, hardware, códigos de estação, régua
 
 ## Uso público
 
-Componente:
+Componentes:
 
 - `src/components/hydrology/LaranjalMonitoringHistory.tsx`
 - `src/components/hydrology/LaranjalMonitoringHistory.module.css`
 
-A seção pública apresenta somente os três marcos documentados e deixa a ressalva técnica resumida no fechamento.
+A seção pública apresenta três marcos editoriais fixos e acrescenta dinamicamente o marco cadastral da `87955001` quando o inventário ANA devolve `EstacaoTelemetricaInicio` válido.
 
 Não exibe:
 
@@ -111,7 +143,7 @@ Contrato:
 
 O documento `docs/ANA_RHN_VERTICAL_REFERENCE_GATE_87955001_2026-09-08.md` continua sendo a fonte de verdade para eventual uso da medição ANA.
 
-Esta cronologia acrescenta contexto histórico, mas não altera:
+Esta cronologia acrescenta contexto histórico e vínculo cadastral com o código atual, mas não altera:
 
 - `verticalReference=null`;
 - `publishableMeasurement=false`;
