@@ -56,8 +56,8 @@ const unavailableSource = {
   name: "MOBI Tempo Pelotas",
   url: "/metodologia",
   isFallback: true,
-  observationName: "Embrapa Clima Temperado",
-  observationUrl: "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm",
+  observationName: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
+  observationUrl: "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa",
   forecastName: "Fontes meteorológicas em atualização",
   forecastUrl: "/metodologia",
 } satisfies WeatherData["source"];
