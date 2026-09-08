@@ -1,13 +1,17 @@
 type DataSourceCardProps = {
   name: string;
   description: string;
+  role?: string;
 };
 
-export function DataSourceCard({ name, description }: DataSourceCardProps) {
+export function DataSourceCard({ name, description, role }: DataSourceCardProps) {
   return (
-    <article className="rounded-2xl border p-5">
-      <h3 className="font-semibold">{name}</h3>
-      <p className="mt-2 text-sm">{description}</p>
+    <article className="about-source-row">
+      <div>
+        {role ? <span>{role}</span> : null}
+        <h3>{name}</h3>
+      </div>
+      <p>{description}</p>
     </article>
   );
 }
