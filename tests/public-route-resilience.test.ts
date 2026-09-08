@@ -13,6 +13,10 @@ const browserWeatherRecovery = readFileSync(
   "utf8",
 );
 const sourcePolicy = readFileSync("src/lib/weather/source-policy.ts", "utf8");
+const currentObservation = readFileSync(
+  "src/lib/weather/defesa-civil-current.server.ts",
+  "utf8",
+);
 const openMeteoDirect = readFileSync("src/lib/weather/open-meteo.server.ts", "utf8");
 const openMeteoResilient = readFileSync(
   "src/lib/weather/open-meteo-resilient.server.ts",
@@ -20,7 +24,6 @@ const openMeteoResilient = readFileSync(
 );
 const openMeteoEdge = readFileSync("src/lib/weather/open-meteo-edge.server.ts", "utf8");
 const metNorway = readFileSync("src/lib/weather/met-norway.server.ts", "utf8");
-const embrapaCentral = readFileSync("src/lib/weather/embrapa-central.server.ts", "utf8");
 const inmetStable = readFileSync("src/lib/weather/inmet-stable.server.ts", "utf8");
 const staleClientRecovery = readFileSync("src/lib/stale-client-recovery.ts", "utf8");
 const publicNavigationGuard = readFileSync(
@@ -80,14 +83,23 @@ test("recuperacao meteorologica no navegador captura falha sincrona da server fu
   assert.doesNotMatch(browserWeatherRecovery, /void getWeatherIntelligence\(\)/);
 });
 
-test("fontes oficiais possuem budgets individuais abaixo da barreira global", () => {
-  assert.match(sourcePolicy, /embrapa: 2_200/);
+test("fontes oficiais ativas possuem budgets individuais abaixo da barreira global", () => {
   assert.match(sourcePolicy, /inmet: 3_200/);
   assert.match(sourcePolicy, /cppmet: 2_400/);
-  assert.match(sourcePolicy, /embrapa: 2_600/);
   assert.match(sourcePolicy, /inmet: 3_600/);
   assert.match(sourcePolicy, /inmetForecast: 4_000/);
   assert.match(sourcePolicy, /cppmet: 2_800/);
+  assert.doesNotMatch(sourcePolicy, /embrapa/);
+});
+
+test("Agora da Defesa Civil é local, recente e não cai para município vizinho", () => {
+  assert.match(currentObservation, /DCRS-00039/);
+  assert.match(currentObservation, /DCRS-00062/);
+  assert.match(currentObservation, /CURRENT_MAX_AGE_MINUTES = 30/);
+  assert.match(currentObservation, /PELOTAS_CURRENT_STATION_CODE_SET\.has\(station\.code\)/);
+  assert.match(currentObservation, /station\.weather\.temperatureC !== null/);
+  assert.match(currentObservation, /windGust: station\.weather\.windMaximumKmh/);
+  assert.doesNotMatch(currentObservation, /windMaximumKmh \?\?/);
 });
 
 test("open meteo publico prioriza origem direta validada e curta antes da contingencia", () => {
@@ -119,19 +131,6 @@ test("contingencia Open-Meteo lê cache persistido antes de configuração e Edg
 test("met norway possui timeout curto para nao reter o baseline", () => {
   assert.match(metNorway, /REQUEST_TIMEOUT_MS = 1_800/);
   assert.match(metNorway, /AbortSignal\.timeout\(REQUEST_TIMEOUT_MS\)/);
-});
-
-test("embrapa no pageview apenas le cache central e nunca dispara refresh persistente", () => {
-  assert.match(embrapaCentral, /PUBLIC_READ_TIMEOUT_MS = 800/);
-  assert.match(embrapaCentral, /\.abortSignal\(querySignal\)/);
-  assert.match(embrapaCentral, /export async function refreshCentralEmbrapaObservation/);
-
-  const publicGetter =
-    embrapaCentral
-      .split("export async function getCentralEmbrapaObservation")[1]
-      ?.split("function safeTokenEqual")[0] ?? "";
-  assert.match(publicGetter, /readCurrentRow\(AbortSignal\.timeout\(PUBLIC_READ_TIMEOUT_MS\)\)/);
-  assert.doesNotMatch(publicGetter, /refreshCentralEmbrapaObservation/);
 });
 
 test("inmet limita, prioriza e aborta enriquecimento rss dentro do deadline", () => {
