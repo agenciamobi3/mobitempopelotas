@@ -53,7 +53,7 @@ function extractClock(value: string | null | undefined) {
 }
 
 function updateLabel(weather: WeatherData) {
-  const updateValue = weather.current.observedAt ?? weather.current.updatedAt ?? weather.source.name;
+  const updateValue = weather.current.source.observedAt ?? weather.current.updatedAt;
   const clock = extractClock(updateValue);
   if (clock) return `Leitura das ${clock}`;
   return weather.current.available ? "Leitura recente" : "Medição local indisponível";
