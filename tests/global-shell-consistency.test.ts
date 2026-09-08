@@ -40,10 +40,11 @@ test("navegação institucional existe em definições canônicas do shell", () 
     "Câmeras ao vivo",
     "Situação das águas",
     "Avisos oficiais",
+    "Dados e fontes",
   ]) {
     assert.match(globalHeader, new RegExp(label));
   }
-  assert.doesNotMatch(globalHeader, /Estação Embrapa|\/estacao-embrapa-pelotas/);
+  assert.doesNotMatch(globalHeader, /Estação Embrapa|\/estacao-embrapa-pelotas|to="\/metodologia"/);
 
   for (const label of [
     "Chuva em Pelotas",
@@ -52,12 +53,13 @@ test("navegação institucional existe em definições canônicas do shell", () 
     "Enchente de 2024",
     "Tempo na Zona Sul",
     "Clima de Pelotas",
-    "REDEMET/DECEA",
+    "Dados e fontes",
     "Ecossistema MOBI",
   ]) {
     assert.match(globalFooter, new RegExp(label));
   }
 
+  assert.doesNotMatch(globalFooter, /FOOTER_SOURCE_GROUPS|FooterSourceMap|REDEMET\/DECEA|MKS \/ Qualle Control/);
   assert.match(publicSources, /Defesa Civil RS — Rede Hidrometeorológica/);
   assert.doesNotMatch(publicSources, /Embrapa Clima Temperado/);
 });
@@ -66,4 +68,5 @@ test("rodapé público não mantém uma implementação alternativa oculta", () 
   assert.doesNotMatch(globalFooter, /FooterVariant|getFooterLead|editorial-footer-shell/);
   assert.equal((globalFooter.match(/<EmergencyFooterStrip \/>/g) ?? []).length, 1);
   assert.match(globalFooter, /className="tp-home-footer-shell"/);
+  assert.match(globalFooter, /Origem, uso e status de cada fonte/);
 });
