@@ -38,7 +38,7 @@ export const Route = createFileRoute("/vento-em-pelotas")({
           "Previsão de vento por hora em Pelotas",
           "Maiores rajadas nas próximas 24 horas",
           "Previsão de rajadas para 7 dias",
-          "Vento observado pela Embrapa em Pelotas",
+          "Vento observado pela Rede de Monitoramento Hidrometeorológico da Defesa Civil RS",
           "Avisos oficiais de vento em Pelotas",
         ],
       }),
