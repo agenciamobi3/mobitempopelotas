@@ -1,81 +1,41 @@
-import type { EmbrapaObservation } from "./official-sources.types";
 import type {
   AggregatedCurrentProvenance,
   AggregatedCurrentWeather,
 } from "./aggregated-weather.types";
+import type { CurrentWeatherObservation } from "./current-observation.types";
 
 export const OBSERVATION_MAX_AGE_MINUTES = 30;
 
-const TIMEZONE = "America/Sao_Paulo";
-
-function clockToMinutes(value: string | null) {
-  if (!value) return null;
-  const match = value.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return null;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  if (hours > 23 || minutes > 59) return null;
-  return hours * 60 + minutes;
-}
-
-function formatFetchedClock(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: TIMEZONE,
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(date);
-}
-
-function elapsedSinceFetchMinutes(fetchedAt: string, now: Date) {
-  const fetchedTime = new Date(fetchedAt).getTime();
-  if (!Number.isFinite(fetchedTime)) return null;
-  return Math.max(0, (now.getTime() - fetchedTime) / 60_000);
-}
-
 export function getObservationAgeMinutes(
-  observation: EmbrapaObservation,
+  observation: CurrentWeatherObservation,
   now = new Date(),
 ) {
-  const elapsedSinceFetch = elapsedSinceFetchMinutes(observation.source.fetchedAt, now);
-  if (elapsedSinceFetch === null) return null;
-
-  const observedMinutes = clockToMinutes(observation.source.observationTime);
-  // A página Current_Monitor nem sempre publica o horário da amostra. Nesse caso,
-  // a idade verificável é o tempo decorrido desde a última consulta HTTP bem-sucedida.
-  if (observedMinutes === null) {
-    return observation.status === "unavailable" ? null : elapsedSinceFetch;
-  }
-
-  const fetchedMinutes = clockToMinutes(formatFetchedClock(observation.source.fetchedAt));
-  if (fetchedMinutes === null) return null;
-
-  let sourceLagMinutes = fetchedMinutes - observedMinutes;
-  if (sourceLagMinutes < -5) sourceLagMinutes += 24 * 60;
-
-  return Math.max(0, sourceLagMinutes) + elapsedSinceFetch;
+  const observedAt = observation.source.observedAt;
+  if (!observedAt) return null;
+  const observedTime = new Date(observedAt).getTime();
+  if (!Number.isFinite(observedTime)) return null;
+  return Math.max(0, (now.getTime() - observedTime) / 60_000);
 }
 
-export function canUseEmbrapaObservation(
-  observation: EmbrapaObservation,
+export function canUseCurrentObservation(
+  observation: CurrentWeatherObservation,
   ageMinutes: number | null,
 ) {
-  if (observation.status === "unavailable" || observation.current.temperature === null) {
-    return false;
-  }
+  if (observation.status !== "live" || observation.current.temperature === null) return false;
   if (ageMinutes === null) return false;
   return ageMinutes <= OBSERVATION_MAX_AGE_MINUTES;
 }
 
 /**
- * Constrói a leitura atual EXCLUSIVAMENTE a partir da Embrapa.
- * Campos não medidos (condition, icon, visibility, windGust) permanecem null.
- * Se a observação não for utilizável, retorna { current: null, provenance: {} }.
+ * Constrói o "Agora" exclusivamente a partir de uma estação observacional recente
+ * da Rede de Monitoramento Hidrometeorológico da Defesa Civil RS. Previsão não é
+ * usada para preencher campos ausentes de observação.
  */
-export function deriveEmbrapaCurrent(observation: EmbrapaObservation, ageMinutes: number | null) {
-  const usable = canUseEmbrapaObservation(observation, ageMinutes);
+export function deriveObservedCurrent(
+  observation: CurrentWeatherObservation,
+  ageMinutes: number | null,
+) {
+  const usable = canUseCurrentObservation(observation, ageMinutes);
   if (!usable) {
     return {
       usable: false,
@@ -94,27 +54,26 @@ export function deriveEmbrapaCurrent(observation: EmbrapaObservation, ageMinutes
     humidity: c.humidity === null ? null : Math.round(c.humidity),
     pressure: c.pressure === null ? null : Math.round(c.pressure),
     windSpeed: c.windSpeed === null ? null : Math.round(c.windSpeed),
-    windGust: null,
+    windGust: c.windGust === null ? null : Math.round(c.windGust),
     windDirection: c.windDirection,
     visibilityKm: null,
-    sunrise: c.sunrise,
-    sunset: c.sunset,
-    observedAt: observation.source.observationTime ?? observation.source.fetchedAt,
+    sunrise: null,
+    sunset: null,
+    observedAt: observation.source.observedAt,
     icon: null,
   };
 
   const provenance: AggregatedCurrentProvenance = {};
   const mark = (field: keyof AggregatedCurrentProvenance, value: unknown) => {
-    if (value !== null && value !== undefined) provenance[field] = "embrapa";
+    if (value !== null && value !== undefined) provenance[field] = "defesa-civil-rs";
   };
   mark("temperature", current.temperature);
   mark("feelsLike", current.feelsLike);
   mark("humidity", current.humidity);
   mark("pressure", current.pressure);
   mark("windSpeed", current.windSpeed);
+  mark("windGust", current.windGust);
   mark("windDirection", current.windDirection);
-  mark("sunrise", current.sunrise);
-  mark("sunset", current.sunset);
   mark("observedAt", current.observedAt);
 
   return { usable: true, current, provenance };
