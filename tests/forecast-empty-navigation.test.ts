@@ -72,17 +72,16 @@ test("weekly hero does not keep page anchors when daily forecast is absent", () 
   assert.match(sevenDayHero, /Sem rajadas/);
 });
 
-test("rain hero chooses only anchors backed by the available forecast series", () => {
+test("rain hero has no promotional page anchors and remains useful in partial states", () => {
   assert.match(rainHero, /const hasHourlyForecast = hours\.length > 0/);
   assert.match(rainHero, /const hasDailyForecast = days\.length > 0/);
-  assert.match(rainHero, /hasHourlyForecast \? \(/);
-  assert.match(rainHero, /href="#chuva-por-hora"/);
-  assert.match(rainHero, /hasDailyForecast \? \(/);
-  assert.match(rainHero, /href="#chuva-na-semana"/);
-  assert.match(rainHero, /to="\/tempo-hoje-pelotas"/);
-  assert.match(rainHero, /to="\/previsao-7-dias-pelotas"/);
-  assert.match(rainHero, /hour\.windGust !== null/);
-  assert.doesNotMatch(rainHero, /hour\.windGust \?\? hour\.windSpeed/);
+  assert.match(rainHero, /A chance de chuva por horário está disponível/);
+  assert.match(rainHero, /A previsão diária de chuva está disponível/);
+  assert.match(rainHero, /A chuva medida nas últimas 24 horas está disponível/);
+  assert.match(rainHero, /Os dados de chuva estão em atualização/);
+  assert.match(rainHero, /Medição em atualização/);
+  assert.match(rainHero, /Previsão em atualização/);
+  assert.doesNotMatch(rainHero, /href="#chuva-|today-retail-hero|getRetailWeatherPhoto/);
 });
 
 test("shared forecast story never relabels sustained wind as a gust", () => {
