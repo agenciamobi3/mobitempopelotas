@@ -1,4 +1,13 @@
 /* Hero editorial limpo, alinhado ao sistema visual das páginas históricas. */
+.internal-weather-shell--tomorrow .internal-weather-hero-frame {
+  width: 100%;
+  margin-top: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .tomorrow-retail-hero {
   position: relative;
   isolation: isolate;
