@@ -30,7 +30,7 @@ function gust(value: number | null | undefined) {
 }
 
 function sourceName(source: WeatherSourceKey | null | undefined) {
-  if (source === "embrapa") return "Estação Embrapa";
+  if (source === "defesa-civil-rs") return "Defesa Civil RS";
   if (source === "open-meteo") return "Open-Meteo";
   if (source === "met-norway") return "MET Norway";
   if (source === "inmet") return "INMET";
@@ -88,9 +88,8 @@ export function WindForecastPageV3({ data }: { data: WeatherIntelligenceData }) 
     <div className="wind-page">
       <section className="wind-page__provenance" id="procedencia" aria-labelledby="wind-page-provenance-title">
         <div>
-          <span>Origem dos dados</span>
+          <span>Fontes</span>
           <h2 id="wind-page-provenance-title">Vento atual e previsão</h2>
-          <p>O vento atual e a direção observada podem ter origens diferentes. A previsão das próximas horas é indicada separadamente.</p>
         </div>
         <dl>
           <div><dt>Vento agora</dt><dd>{sourceName(windSource)}</dd></div>
@@ -216,7 +215,7 @@ export function WindForecastPageV3({ data }: { data: WeatherIntelligenceData }) 
       <footer className="wind-page__footer">
         <Info aria-hidden="true" />
         <p>Última atualização: {formatDateTime(weather.source.fetchedAt)} · Vento atual: {sourceName(windSource)} · Direção atual: {sourceName(directionSource)} · Previsão: {provider}.</p>
-        <Link to="/metodologia">Metodologia</Link>
+        <Link to="/status-dos-dados">Dados e fontes</Link>
       </footer>
     </div>
   );
