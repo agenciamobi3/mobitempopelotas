@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
-import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
 import { AnaRhnRegionalStations } from "@/components/hydrology/AnaRhnRegionalStations";
 import { DefesaCivilHydroNetwork } from "@/components/hydrology/DefesaCivilHydroNetwork";
 import { HydrologyCurrentSituationAnswer } from "@/components/hydrology/HydrologyCurrentSituationAnswer";
@@ -16,7 +15,6 @@ import {
   SaceGuaibaRenderScope,
 } from "@/components/hydrology/SaceGuaibaContext";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
-import { HYDROLOGY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { loadHydrologyOverviewPageData } from "@/lib/hydrology/public-hydrology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
@@ -27,69 +25,41 @@ const PAGE_DESCRIPTION =
 const PAGE_PATH = "/situacao-hidrologica-pelotas";
 
 const HYDROLOGY_PAGE_CONTENT = {
-  ...HYDROLOGY_EDITORIAL_CONTENT,
-  eyebrow: "Como acompanhar os níveis da água",
-  title: "Entenda o que cada estação mostra e por que os valores não são iguais",
+  eyebrow: "Antes de comparar os níveis",
+  title: "Quatro cuidados para interpretar as medições",
   answer:
-    "A Estação Laranjal é a leitura local apresentada para Pelotas. Os demais pontos da Lagoa dos Patos e da Rede da Defesa Civil RS ajudam a entender a situação regional. O mapa da ANA/SNIRH acrescenta estações cadastradas, rios principais e massas d’água oficiais no entorno, sem transformar esses pontos automaticamente em novas leituras do Laranjal. O SACE Guaíba entra como contexto complementar a montante. Cada estação usa seu próprio local, horário e referência de medição.",
+    "Cada número pertence a uma estação, a um horário e à referência usada naquela medição. Para acompanhar a situação, prefira observar a evolução do mesmo ponto ao longo do tempo e use classificações de atenção, alerta ou inundação somente no contexto em que a própria fonte as publicou.",
   facts: [
-    "O mapa regional usa coordenadas do inventário de estações da Rede Hidrometeorológica Nacional e, quando disponíveis, as camadas públicas de rios principais e massas d’água da ANA/SNIRH.",
-    "A presença de uma estação no inventário não significa que sua leitura seja usada como nível atual do Laranjal.",
-    "A Estação Laranjal é a referência local do portal e não recebe automaticamente as cotas de outras estações.",
-    "Uma leitura atrasada aparece como último valor conhecido e não como nível atual.",
-    "Itapuã, Arambaré, São Lourenço do Sul e Rio Grande ajudam a acompanhar diferentes partes da Lagoa dos Patos.",
-    "A Rede de Monitoramento Hidrometeorológico da Defesa Civil RS é apresentada antes do SACE no panorama regional desta página.",
-    "Como contexto complementar a montante, o SACE mostra a situação de rios como Jacuí, Taquari-Antas, Caí, Sinos e Gravataí, além do Delta e do Guaíba.",
-    "As categorias Atenção, Alerta e Inundação pertencem à estação que as publicou e não são convertidas em classificação para o Laranjal.",
-    "Vento, chuva, armazenamento de água, Canal São Gonçalo, drenagem local e saída oceânica podem influenciar a evolução em Pelotas.",
-    "Quando uma estação não transmite, não há dado atual para interpretar; isso não significa que o nível esteja normal.",
+    "Números de réguas diferentes não devem ser subtraídos ou tratados como equivalentes sem uma referência comum documentada.",
+    "O horário faz parte da leitura: um valor atrasado é a última informação conhecida, não o nível atual.",
+    "As estações da ANA/SNIRH no mapa mostram a rede oficial da região; elas não substituem automaticamente a medição local usada no Laranjal.",
+    "Para decisões de segurança, prevalecem os avisos e as orientações da Defesa Civil e das autoridades responsáveis.",
   ],
   faqs: [
     {
       question: "Há enchente em Pelotas hoje?",
       answer:
-        "O Tempo Pelotas não confirma enchente ou risco para a cidade a partir de uma única régua. A página reúne as leituras mais recentes disponíveis do Laranjal, Lagoa dos Patos, Guaíba e redes regionais, preservando horário e classificação de cada fonte. Para decisões de segurança, consulte a Defesa Civil e as autoridades locais.",
+        "Uma única régua não confirma a situação de toda a cidade. Esta página reúne as leituras disponíveis e mantém o horário e a origem de cada uma. Para decisões de segurança, consulte a Defesa Civil e as autoridades locais.",
     },
     {
-      question: "Existe risco de enchente em Pelotas?",
+      question: "Posso comparar diretamente o nível do Laranjal com o Guaíba?",
       answer:
-        "Nível de uma estação, chuva ou vento isolados não bastam para afirmar risco para toda a cidade. O portal mostra os sinais disponíveis sem convertê-los automaticamente em alerta. Quando houver orientação oficial, ela deve prevalecer para decisões de segurança.",
+        "Não. São pontos diferentes e podem usar referências diferentes. O mais útil é acompanhar a tendência de cada estação em sua própria série.",
     },
-    ...HYDROLOGY_EDITORIAL_CONTENT.faqs,
     {
-      question: "O que são as estações da ANA mostradas nesta página?",
+      question: "O que significa quando uma leitura está atrasada?",
       answer:
-        "São pontos encontrados no cadastro público da Rede Hidrometeorológica Nacional em torno de Pelotas. A seção reproduz informações do inventário oficial, como localização, responsável, operadora e instrumentos cadastrados. O mapa também pode mostrar rios principais e massas d’água publicados pela ANA/SNIRH. Esses pontos não substituem automaticamente a leitura local do Laranjal.",
+        "Significa que aquele é o último valor conhecido. O portal mantém o horário visível e não apresenta dado antigo como se fosse uma medição atual.",
+    },
+    {
+      question: "As estações da ANA mostradas no mapa são novas leituras do Laranjal?",
+      answer:
+        "Não. Elas fazem parte do inventário oficial da Rede Hidrometeorológica Nacional e ajudam a localizar o monitoramento existente na região. Uma estação só entra como medição local quando existe um contrato de fonte e referência adequado para esse uso.",
     },
     {
       question: "Qual é o papel do SACE Guaíba nesta página?",
       answer:
-        "O SACE é usado como contexto complementar a montante. Ele ajuda a observar a situação oficial de rios que alimentam o Guaíba, mas não substitui a leitura local do Laranjal nem as medições da Defesa Civil RS e não é convertido em previsão automática para Pelotas.",
-    },
-    {
-      question: "Uma estação elevada no SACE significa que o Laranjal vai subir?",
-      answer:
-        "Não necessariamente. A situação dos rios ajuda a entender o cenário, mas o nível no Laranjal também depende do tempo de deslocamento da água, do Guaíba, da Lagoa dos Patos, do vento, da chuva local e da saída em Rio Grande.",
-    },
-    {
-      question: "O que significa acima de normal no SACE?",
-      answer:
-        "Significa que aquela estação foi publicada em uma categoria diferente de Normal, como Atenção, Alerta ou Inundação. A página reproduz a classificação da própria estação sem transformá-la em risco para Pelotas.",
-    },
-    {
-      question: "O nível do Laranjal pode ser comparado diretamente com o nível do Guaíba?",
-      answer:
-        "Não. As estações ficam em locais diferentes e usam referências e instrumentos próprios. O mais útil é acompanhar a tendência e a evolução de cada ponto ao longo do tempo.",
-    },
-    {
-      question: "Uma leitura antiga ainda aparece na página?",
-      answer:
-        "Pode aparecer como última leitura conhecida, sempre acompanhada do horário e da idade calculada. Ela não é apresentada como nível atual.",
-    },
-    {
-      question: "Ausência de transmissão significa que o rio está normal?",
-      answer:
-        "Não. Significa apenas que não há uma leitura atual disponível naquela estação. O estado do rio não deve ser concluído sem dados válidos.",
+        "Ele acrescenta contexto dos rios e do Guaíba a montante. Suas classificações permanecem ligadas às próprias estações e não são convertidas automaticamente em previsão ou alerta para Pelotas.",
     },
   ],
   relatedLinks: [
@@ -220,7 +190,6 @@ function SituacaoHidrologicaPage() {
           <HydrologySectionBoundary label="Contexto complementar · SACE Guaíba">
             <SaceGuaibaContext data={data.sace} />
           </HydrologySectionBoundary>
-          <OfficialDataAccessNotice scope="hydrology" />
           <EditorialContentSection
             id="como-interpretar-situacao-das-aguas"
             content={HYDROLOGY_PAGE_CONTENT}
