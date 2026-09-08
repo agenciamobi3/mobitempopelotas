@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
-import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
 import { LaranjalEmbedGuide } from "@/components/embed/LaranjalEmbedGuide";
 import { AnaRhnLaranjalStationProfile } from "@/components/hydrology/AnaRhnLaranjalStationProfile";
 import { HydrologyEditorialHero } from "@/components/hydrology/HydrologyEditorialHero";
@@ -168,7 +167,6 @@ function NivelLagoaPage() {
       <HydrologyEditorialHero level={level} variant="detail" />
       <LaranjalLevelPage weather={data.weather} level={level} />
       <AnaRhnLaranjalStationProfile data={data.anaRhnProfile} />
-      <OfficialDataAccessNotice scope="hydrology" />
       <LaranjalEmbedGuide />
       <EditorialContentSection id="como-interpretar-nivel-laranjal" content={LARANJAL_PAGE_CONTENT} />
     </div>
