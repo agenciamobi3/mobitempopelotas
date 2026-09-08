@@ -9,12 +9,12 @@ import type { WeatherData } from "@/production/lib/weather-data";
 
 const dashboardFooterSource = {
   name: "Tempo Pelotas",
-  url: "/metodologia",
+  url: "/status-dos-dados",
   isFallback: false,
-  observationName: "Fontes meteorológicas do portal",
-  observationUrl: "/metodologia",
-  forecastName: "Metodologia e transparência",
-  forecastUrl: "/metodologia",
+  observationName: "Dados e fontes do portal",
+  observationUrl: "/status-dos-dados",
+  forecastName: "Dados e fontes do portal",
+  forecastUrl: "/status-dos-dados",
 } satisfies WeatherData["source"];
 
 type AuthenticatedAccount = Extract<AccountSnapshot, { status: "authenticated" }>;
