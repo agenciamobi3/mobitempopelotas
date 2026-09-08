@@ -1,0 +1,199 @@
+.section {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: clamp(2rem, 4vw, 3.5rem) 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: end;
+}
+
+.header p {
+  margin: 0 0 0.55rem;
+  color: #087f91;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.header h2 {
+  max-width: 760px;
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.header span {
+  display: block;
+  margin-top: 0.65rem;
+  color: #51646e;
+  font-size: 1rem;
+}
+
+.header a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #5e2ced;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.header a:hover,
+.header a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+
+.header a svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 2rem 0 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+}
+
+.facts > div {
+  min-width: 0;
+  padding: 1rem 1.2rem 1rem 0;
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.facts > div:not(:nth-child(4n + 1)) {
+  padding-left: 1.2rem;
+  border-left: 1px solid rgb(7 30 47 / 8%);
+}
+
+.facts dt {
+  margin-bottom: 0.35rem;
+  color: #71808a;
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.facts dd {
+  margin: 0;
+  color: #102f3d;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.instruments {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1fr);
+  gap: 2rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.instruments h3 {
+  margin: 0;
+  color: #102f3d;
+  font-size: 1rem;
+}
+
+.instruments > div {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.instruments p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  margin: 0;
+  color: #52636d;
+}
+
+.instruments strong {
+  color: #102f3d;
+}
+
+.instruments span {
+  color: #71808a;
+}
+
+.note {
+  max-width: 900px;
+  padding-top: 1.5rem;
+}
+
+.note p {
+  margin: 0;
+  color: #4d616c;
+  line-height: 1.7;
+}
+
+.note small {
+  display: block;
+  margin-top: 0.7rem;
+  color: #74858d;
+}
+
+@media (max-width: 900px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .facts > div:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .facts > div:nth-child(even) {
+    padding-left: 1.1rem;
+    border-left: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .instruments {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .section {
+    width: min(100% - 1.25rem, 1180px);
+  }
+
+  .header {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .facts > div,
+  .facts > div:nth-child(even),
+  .facts > div:nth-child(odd) {
+    padding: 0.9rem 0;
+    border-left: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .section,
+  .facts,
+  .facts > div,
+  .instruments {
+    border-color: CanvasText;
+  }
+}
