@@ -1,16 +1,16 @@
 import type {
   CppmetForecastItem,
-  EmbrapaObservation,
   InmetAlert,
   InmetForecastPeriod,
   InmetStationReference,
   OfficialSourceStatus,
 } from "./official-sources.types";
+import type { CurrentWeatherObservation } from "./current-observation.types";
 import type { DailyForecast, ForecastSourceKey, HourlyForecast, WeatherIconName } from "./types";
 
 export type { ForecastSourceKey };
 
-export type WeatherSourceKey = "embrapa" | "inmet" | "cppmet" | ForecastSourceKey;
+export type WeatherSourceKey = "defesa-civil-rs" | "inmet" | "cppmet" | ForecastSourceKey;
 
 export type AggregatedWeatherStatus = "live" | "degraded" | "unavailable";
 export type WeatherConfidence = "high" | "medium" | "low";
@@ -72,7 +72,7 @@ export type WeatherSourceHealth = {
 export type AggregatedWeatherQuality = {
   score: number;
   confidence: WeatherConfidence;
-  currentSource: "embrapa" | ForecastSourceKey | null;
+  currentSource: "defesa-civil-rs" | ForecastSourceKey | null;
   forecastSource: ForecastSourceKey | null;
   forecastProvider: string | null;
   degradedSources: WeatherSourceKey[];
@@ -87,7 +87,7 @@ export type AggregatedWeatherData = {
   currentProvenance: AggregatedCurrentProvenance;
   hourly: HourlyForecast[];
   daily: DailyForecast[];
-  observation: EmbrapaObservation;
+  observation: CurrentWeatherObservation;
   alerts: InmetAlert[];
   inmetForecast: InmetForecastPeriod[];
   inmetStation: InmetStationReference["station"];
