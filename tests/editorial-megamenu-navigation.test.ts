@@ -18,7 +18,6 @@ const requiredPublicNavigationPaths = [
   "/vento-em-pelotas",
   "/meteograma-pelotas",
   "/radar-e-satelite-pelotas",
-  "/estacao-embrapa-pelotas",
   "/mapa-de-geadas-rio-grande-do-sul",
   "/cameras-ao-vivo-pelotas",
   "/alertas",
@@ -37,7 +36,6 @@ const requiredPublicNavigationPaths = [
   "/historico-climatico-pelotas",
   "/blog",
   "/status-dos-dados",
-  "/metodologia",
 ] as const;
 
 function escapeRegExp(value: string) {
@@ -89,6 +87,8 @@ test("atalhos estaticos principais do megamenu pertencem ao inventario indexavel
       `${path} deve existir em PUBLIC_ROUTES antes de aparecer no header`,
     );
   }
+
+  assert.doesNotMatch(publicRoutes, /path:\s*"\/metodologia"|path:\s*"\/estacao-embrapa-pelotas"/);
 });
 
 test("regional shortcuts preserve TanStack typed dynamic navigation", () => {
