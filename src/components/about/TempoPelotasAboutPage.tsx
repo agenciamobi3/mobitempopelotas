@@ -1,29 +1,28 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
-import { DataSourceCard } from "./DataSourceCard";
 import "./TempoPelotasAboutPage.css";
 
 const processSteps = [
   {
     number: "01",
-    title: "Buscamos os dados",
-    description: "O portal consulta fontes meteorológicas, hidrológicas e de monitoramento identificadas em cada página.",
+    title: "Coletamos informações públicas",
+    description: "O portal consulta fontes meteorológicas, hidrológicas e de monitoramento usadas nas páginas do Tempo Pelotas.",
   },
   {
     number: "02",
-    title: "Preservamos a origem",
-    description: "Horário, instituição, estado da coleta e limitações acompanham o dado sempre que a fonte fornece essas informações.",
+    title: "Preservamos a fonte",
+    description: "A origem e o horário acompanham a informação publicada sempre que estão disponíveis.",
   },
   {
     number: "03",
-    title: "Organizamos para leitura local",
-    description: "Temperatura, chuva, vento, níveis, radar e outros registros são apresentados com linguagem mais simples e contexto para Pelotas e região.",
+    title: "Organizamos para Pelotas",
+    description: "Os dados são apresentados de forma direta, com foco em Pelotas e na Região Sul do Rio Grande do Sul.",
   },
   {
     number: "04",
-    title: "Mostramos quando algo falha",
-    description: "Uma fonte atrasada ou indisponível não vira zero nem dado inventado. O estado da informação deve continuar visível.",
+    title: "Indicamos indisponibilidade",
+    description: "Quando uma fonte não entrega um dado utilizável, o portal informa a indisponibilidade em vez de inventar um valor.",
   },
 ] as const;
 
@@ -33,15 +32,14 @@ export function TempoPelotasAboutPage() {
       <header className="about-hero">
         <div className="about-hero__copy">
           <span>Tempo Pelotas · projeto da MOBI</span>
-          <h1>Dados públicos, contexto local e uma leitura mais simples do tempo e das águas.</h1>
+          <h1>Informação meteorológica e hidrológica para Pelotas e região.</h1>
           <p>
-            O Tempo Pelotas reúne informações meteorológicas, ambientais e hidrológicas em um só
-            lugar. A proposta é aproximar dados técnicos da rotina de quem vive, trabalha, estuda ou
-            pesquisa em Pelotas e na Região Sul do Rio Grande do Sul.
+            O Tempo Pelotas reúne previsão, observações, alertas, radar, satélite, níveis das águas e
+            conteúdo histórico em um portal público voltado à comunidade.
           </p>
           <div className="about-hero__actions">
-            <Link to="/metodologia">Como os dados funcionam <ArrowRight aria-hidden="true" /></Link>
-            <Link to="/status-dos-dados">Status das fontes</Link>
+            <Link to="/status-dos-dados">Dados e fontes <ArrowRight aria-hidden="true" /></Link>
+            <Link to="/tempo-hoje-pelotas">Tempo hoje</Link>
           </div>
         </div>
 
@@ -64,16 +62,16 @@ export function TempoPelotasAboutPage() {
       <section className="about-intro" aria-labelledby="about-mission-title">
         <div>
           <span>Nossa missão</span>
-          <h2 id="about-mission-title">Transformar consulta técnica em informação que faça sentido para a comunidade.</h2>
+          <h2 id="about-mission-title">Facilitar o acesso da comunidade a informações úteis sobre tempo e águas.</h2>
         </div>
         <div>
           <p>
             O portal não substitui as instituições responsáveis pelas medições, previsões ou alertas.
-            Ele organiza essas informações, preserva a fonte e oferece contexto para facilitar a leitura.
+            Cada informação mantém a atribuição da fonte correspondente.
           </p>
           <p>
-            Isso inclui diferenciar observação de previsão, indicar quando uma leitura está atrasada e
-            evitar preencher lacunas com números que a fonte não publicou.
+            Medições, previsões e avisos são apresentados separadamente para que o visitante saiba o
+            que foi observado, o que é estimativa e o que é comunicação oficial.
           </p>
         </div>
       </section>
@@ -81,7 +79,7 @@ export function TempoPelotasAboutPage() {
       <section className="about-process" aria-labelledby="about-process-title">
         <header>
           <span>Como funciona</span>
-          <h2 id="about-process-title">Da fonte até a tela, sem esconder o caminho.</h2>
+          <h2 id="about-process-title">Da fonte até a página.</h2>
         </header>
         <div className="about-process__steps">
           {processSteps.map((step) => (
@@ -97,40 +95,16 @@ export function TempoPelotasAboutPage() {
       <section className="about-sources" aria-labelledby="about-sources-title">
         <header>
           <div>
-            <span>Fontes e instituições</span>
-            <h2 id="about-sources-title">Cada informação deve chegar com origem identificável.</h2>
+            <span>Dados e fontes</span>
+            <h2 id="about-sources-title">A origem dos dados fica concentrada em uma página pública.</h2>
           </div>
           <p>
-            As fontes utilizadas variam conforme a página e a disponibilidade da integração. O nome,
-            horário e papel de cada fonte aparecem junto dos dados sempre que possível.
+            A página Dados e fontes informa quais serviços estão em uso, o que cada um fornece, o
+            estado atual e o horário da última verificação.
           </p>
         </header>
-        <div className="about-sources__list">
-          <DataSourceCard
-            role="Meteorologia e avisos"
-            name="INMET"
-            description="Previsões, estações, avisos oficiais e outros dados meteorológicos utilizados conforme a disponibilidade de cada serviço."
-          />
-          <DataSourceCard
-            role="Observação local"
-            name="Embrapa Clima Temperado"
-            description="Medições meteorológicas locais do posto de referência em Pelotas, incluindo temperatura, umidade, vento e acumulados quando publicados."
-          />
-          <DataSourceCard
-            role="Meteorologia regional"
-            name="CPPMet / UFPel"
-            description="Publicações e informações meteorológicas regionais produzidas pelo Centro de Pesquisas e Previsões Meteorológicas da UFPel."
-          />
-          <DataSourceCard
-            role="Radar, satélite e raios"
-            name="REDEMET / DECEA"
-            description="Imagens e registros de monitoramento usados na leitura regional de chuva, nuvens e atividade elétrica."
-          />
-          <DataSourceCard
-            role="Monitoramento hidrológico"
-            name="CIEX / FURG e redes locais"
-            description="Leituras de nível utilizadas em páginas hidrológicas, sempre mantendo separadas as referências e séries de cada estação."
-          />
+        <div className="about-hero__actions">
+          <Link to="/status-dos-dados">Consultar dados e fontes <ArrowRight aria-hidden="true" /></Link>
         </div>
       </section>
 
@@ -141,8 +115,8 @@ export function TempoPelotasAboutPage() {
         </div>
         <div>
           <p>
-            A MOBI desenvolve a plataforma, as integrações, a experiência de navegação e as camadas de
-            apresentação que conectam diferentes serviços em uma interface pública.
+            A MOBI desenvolve e mantém a plataforma, a experiência de navegação e a publicação das
+            informações reunidas pelo portal.
           </p>
           <p>
             A autoria da tecnologia não transforma a MOBI na fonte dos dados externos. Medições,
@@ -154,27 +128,24 @@ export function TempoPelotasAboutPage() {
       <section className="about-directory" aria-labelledby="about-directory-title">
         <header>
           <span>O que você encontra</span>
-          <h2 id="about-directory-title">Um portal para acompanhar o presente e entender o passado.</h2>
+          <h2 id="about-directory-title">Acompanhe o presente e consulte o histórico.</h2>
         </header>
         <nav aria-label="Áreas do Tempo Pelotas">
           <Link to="/tempo-hoje-pelotas"><strong>Tempo agora e hoje</strong><span>Condição, próximas horas e previsão diária.</span></Link>
-          <Link to="/radar-e-satelite-pelotas"><strong>Radar e satélite</strong><span>Coletas recentes e horários reais das fontes.</span></Link>
-          <Link to="/situacao-hidrologica-pelotas"><strong>Situação das águas</strong><span>Níveis, estações e contexto hidrológico regional.</span></Link>
+          <Link to="/radar-e-satelite-pelotas"><strong>Radar e satélite</strong><span>Imagens meteorológicas recentes e seus horários.</span></Link>
+          <Link to="/situacao-hidrologica-pelotas"><strong>Situação das águas</strong><span>Níveis e contexto hidrológico regional.</span></Link>
           <Link to="/historia-das-enchentes-pelotas"><strong>Arquivo histórico</strong><span>Eventos de 1941, 2001, 2015 e 2024.</span></Link>
-          <Link to="/tempo-na-regiao-sul-rs"><strong>Região Sul do RS</strong><span>Previsão municipal e comparação entre cidades.</span></Link>
+          <Link to="/tempo-na-regiao-sul-rs"><strong>Região Sul do RS</strong><span>Previsão municipal para cidades acompanhadas pelo portal.</span></Link>
         </nav>
       </section>
 
       <footer className="about-transparency">
         <div>
           <span>Transparência</span>
-          <h2>Quer saber de onde veio um número?</h2>
-          <p>
-            Consulte a metodologia e o status operacional das integrações. Quando uma fonte não
-            responde, esse estado deve aparecer em vez de ser escondido por uma aparência de normalidade.
-          </p>
+          <h2>Quer saber de onde veio uma informação?</h2>
+          <p>Consulte a página única de dados e fontes do Tempo Pelotas.</p>
         </div>
-        <Link to="/metodologia">Ver metodologia <ArrowRight aria-hidden="true" /></Link>
+        <Link to="/status-dos-dados">Ver dados e fontes <ArrowRight aria-hidden="true" /></Link>
       </footer>
     </div>
   );
