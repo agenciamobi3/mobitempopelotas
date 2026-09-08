@@ -28,7 +28,7 @@ const megaMenus = [
       "/radar-e-satelite-pelotas",
       "/meteograma-pelotas",
       "/mapa-de-geadas-rio-grande-do-sul",
-      "/metodologia",
+      "/status-dos-dados",
     ],
     featured: {
       eyebrow: "Veja agora",
@@ -52,7 +52,7 @@ const megaMenus = [
           { label: "Clima de Pelotas", to: "/clima-em-pelotas", description: "Entenda as estações do ano e por que o tempo varia na cidade." },
           { label: "Previsão hora a hora", to: "/meteograma-pelotas", description: "Compare temperatura, chuva, nuvens, visibilidade, pressão e vento." },
           { label: "Histórico de 30 dias", to: "/historico-climatico-pelotas", description: "Compare máximas, mínimas, chuva e rajadas dos últimos dias." },
-          { label: "Como os dados funcionam", to: "/metodologia", description: "Veja de onde vêm os dados, quando atualizam e quais são seus limites." },
+          { label: "Dados e fontes", to: "/status-dos-dados", description: "Veja de onde vêm os dados, quais informações cada fonte fornece e seu estado atual." },
         ],
       },
     ],
@@ -107,10 +107,10 @@ const megaMenus = [
         ],
       },
       {
-        title: "Alertas e explicações",
+        title: "Alertas e fontes",
         links: [
           { label: "Avisos oficiais", to: "/alertas", description: "Consulte os avisos meteorológicos que incluem Pelotas." },
-          { label: "Entenda as medições", to: "/metodologia", description: "Saiba de onde vêm os dados e como interpretar cada leitura." },
+          { label: "Dados e fontes", to: "/status-dos-dados", description: "Veja a origem, o estado e o uso de cada fonte publicada no portal." },
         ],
       },
     ],
@@ -165,7 +165,7 @@ export function Header({ advisoryLevel = "normal" }: { advisoryLevel?: AdvisoryL
               <span>Tempo, previsão e monitoramento local</span>
             </div>
             <nav className="editorial-utility-navigation" aria-label="Links institucionais">
-              <Link to="/metodologia" aria-label="Conhecer as fontes e a metodologia do Tempo Pelotas">Como os dados funcionam</Link>
+              <Link to="/status-dos-dados" aria-label="Consultar os dados e as fontes do Tempo Pelotas">Dados e fontes</Link>
               <Link to="/cameras-ao-vivo-pelotas" aria-label="Ver câmeras ao vivo de Pelotas e região">Câmeras ao vivo</Link>
             </nav>
           </div>
