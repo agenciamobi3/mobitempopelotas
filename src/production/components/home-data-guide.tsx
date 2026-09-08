@@ -7,7 +7,7 @@ import "./home-data-guide.css";
 const dataTypes = [
   {
     label: "Observação",
-    text: "É o que foi realmente medido por uma estação. Na Home, a Embrapa é a principal referência meteorológica local quando a leitura está disponível.",
+    text: "É o que foi realmente medido por uma estação identificada. Horário e fonte acompanham a leitura quando disponíveis.",
   },
   {
     label: "Previsão",
@@ -15,7 +15,7 @@ const dataTypes = [
   },
   {
     label: "Aviso oficial",
-    text: "É um comunicado emitido por órgão competente, como o INMET. Tem natureza diferente da previsão e da interpretação editorial do portal.",
+    text: "É um comunicado emitido por órgão competente. Tem natureza diferente da previsão e da interpretação editorial do portal.",
   },
   {
     label: "Radar e satélite",
@@ -33,7 +33,7 @@ export function HomeDataGuide() {
       <header className="tp-home-guide__intro">
         <div>
           <span>Entenda os dados</span>
-          <h2 id="tp-home-guide-title">Nem toda informação meteorológica significa a mesma coisa</h2>
+          <h2 id="tp-home-guide-title">Medição, previsão e aviso são informações diferentes</h2>
           <p>{HOME_EDITORIAL_CONTENT.answer}</p>
         </div>
       </header>
@@ -63,19 +63,17 @@ export function HomeDataGuide() {
 
         <nav className="tp-home-guide__related" aria-label="Informações relacionadas">
           <span>Transparência</span>
-          <h3>Fontes e aprofundamento</h3>
+          <h3>Dados e fontes</h3>
           <ul>
-            {HOME_EDITORIAL_CONTENT.relatedLinks.map((link) => (
-              <li key={link.href}>
-                <Link to={link.href}>
-                  <span>
-                    <strong>{link.label}</strong>
-                    <small>{link.description}</small>
-                  </span>
-                  <b aria-hidden="true">→</b>
-                </Link>
-              </li>
-            ))}
+            <li>
+              <Link to="/status-dos-dados">
+                <span>
+                  <strong>Ver dados e fontes</strong>
+                  <small>Origem, uso, estado atual e horário de verificação.</small>
+                </span>
+                <b aria-hidden="true">→</b>
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
