@@ -4,7 +4,7 @@ import type { EditorialInternalPath } from "@/lib/editorial-content";
 
 import "./HomeExplorePortal.css";
 
-type ExplorePath = EditorialInternalPath | "/nivel-da-lagoa-dos-patos";
+type ExplorePath = EditorialInternalPath | "/nivel-da-lagoa-dos-patos" | "/status-dos-dados";
 
 type ExploreGroup = {
   eyebrow: string;
@@ -35,7 +35,7 @@ const exploreGroups: ReadonlyArray<ExploreGroup> = [
     eyebrow: "Monitoramento",
     title: "Consulte medições e imagens da região",
     links: [
-      { label: "Rede Defesa Civil RS", to: "/metodologia" },
+      { label: "Rede Defesa Civil RS", to: "/situacao-hidrologica-pelotas" },
       { label: "Radar e satélite", to: "/radar-e-satelite-pelotas" },
       { label: "Câmeras ao vivo", to: "/cameras-ao-vivo-pelotas" },
       { label: "Histórico climático", to: "/historico-climatico-pelotas" },
@@ -43,12 +43,12 @@ const exploreGroups: ReadonlyArray<ExploreGroup> = [
   },
   {
     eyebrow: "Águas e fontes",
-    title: "Aprofunde Lagoa, hidrologia e metodologia",
+    title: "Consulte níveis e a origem dos dados",
     links: [
       { label: "Situação das águas", to: "/situacao-hidrologica-pelotas" },
       { label: "Nível da Lagoa dos Patos", to: "/nivel-da-lagoa-dos-patos" },
       { label: "Nível no Laranjal", to: "/nivel-da-lagoa-dos-patos-laranjal" },
-      { label: "Fontes e metodologia", to: "/metodologia" },
+      { label: "Dados e fontes", to: "/status-dos-dados" },
     ],
   },
 ];
@@ -65,7 +65,7 @@ export function HomeExplorePortal() {
         <h2 id="tp-home-explore-title">Aprofunde o que importa para você</h2>
         <p>
           A página inicial resume a situação. As páginas abaixo concentram previsão detalhada,
-          monitoramento, águas e metodologia sem repetir toda a informação aqui.
+          monitoramento, águas e informações sobre as fontes.
         </p>
       </header>
 
