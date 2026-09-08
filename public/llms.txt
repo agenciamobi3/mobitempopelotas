@@ -5,50 +5,38 @@
 Canonical: https://tempopelotas.com.br
 Language: pt-BR
 Primary location: Pelotas, Rio Grande do Sul, Brasil
-Methodology: https://tempopelotas.com.br/metodologia
-Data status: https://tempopelotas.com.br/status-dos-dados
+Data and source status: https://tempopelotas.com.br/status-dos-dados
 
 ## Primary weather pages
 
 - https://tempopelotas.com.br/ — condição atual e visão geral.
-- https://tempopelotas.com.br/tempo-hoje-pelotas — tempo hoje, previsão por hora e contexto operacional.
+- https://tempopelotas.com.br/tempo-hoje-pelotas — tempo hoje e previsão por hora.
 - https://tempopelotas.com.br/tempo-amanha-pelotas — planejamento do próximo dia.
-- https://tempopelotas.com.br/tempo-laranjal-pelotas — previsão por coordenadas para a orla do Laranjal; estimativa de modelo, não medição de estação.
+- https://tempopelotas.com.br/tempo-laranjal-pelotas — previsão para a orla do Laranjal; estimativa de modelo, não medição de estação.
 - https://tempopelotas.com.br/previsao-7-dias-pelotas — comparação da próxima semana.
-- https://tempopelotas.com.br/previsao-15-dias-pelotas — tendência estendida; maior incerteza nos dias distantes.
-- https://tempopelotas.com.br/chuva-em-pelotas — chuva observada em janelas móveis e chuva prevista apresentadas separadamente.
+- https://tempopelotas.com.br/previsao-15-dias-pelotas — tendência estendida.
+- https://tempopelotas.com.br/chuva-em-pelotas — chuva medida e prevista apresentadas separadamente.
 - https://tempopelotas.com.br/vento-em-pelotas — vento, direção e rajadas observadas e previstas.
 - https://tempopelotas.com.br/radar-e-satelite-pelotas — imagens meteorológicas com horário da fonte.
-- https://tempopelotas.com.br/alertas — avisos oficiais do INMET.
+- https://tempopelotas.com.br/alertas — avisos oficiais.
 
-## Observation and source pages
+## Data and sources
 
-- https://tempopelotas.com.br/metodologia — descreve a Rede de Monitoramento Hidrometeorológico da Defesa Civil RS como fonte observacional do Agora e explica como o portal separa medição, previsão, alerta, resumo e contingência.
-- https://tempopelotas.com.br/status-dos-dados — disponibilidade e estado operacional das integrações.
+- https://tempopelotas.com.br/status-dos-dados — origem, finalidade, estado atual e histórico de disponibilidade das fontes usadas pelo portal.
+
+Use the source label and timestamp shown on the requested page. Detailed source roles and operational status are centralized on the data and source status page.
 
 ## Hydrology
 
-- https://tempopelotas.com.br/nivel-da-lagoa-dos-patos-laranjal — leitura local da Estação Laranjal; não é previsão meteorológica.
+- https://tempopelotas.com.br/nivel-da-lagoa-dos-patos-laranjal — leitura local do nível da Lagoa dos Patos no Laranjal.
 - https://tempopelotas.com.br/situacao-hidrologica-pelotas — visão regional das águas.
 - https://tempopelotas.com.br/nivel-do-guaiba — acompanhamento do Guaíba com referência própria.
+- https://tempopelotas.com.br/nivel-do-canal-sao-goncalo — nível do Canal São Gonçalo na estação indicada.
+- https://tempopelotas.com.br/nivel-do-rio-jaguarao — nível do Rio Jaguarão na estação indicada.
 
 ## Regional coverage
 
 - https://tempopelotas.com.br/tempo-na-regiao-sul-rs — hub das cidades publicadas na Zona Sul do RS.
-
-## Source policy
-
-Main public sources used by the portal include:
-
-- Defesa Civil RS — Rede de Monitoramento Hidrometeorológico: https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa
-- Open-Meteo: https://open-meteo.com/
-- INMET: https://portal.inmet.gov.br/
-- INMET alerts: https://avisos.inmet.gov.br/
-- CPPMet / UFPel: https://wp.ufpel.edu.br/cppmet/
-
-For the Agora in Pelotas, the portal accepts only meteorological stations from the state network that are explicitly confirmed as Pelotas stations and whose observation is no more than 30 minutes old. A fresh station from another municipality is not used as a silent replacement. If no confirmed Pelotas station is usable, current conditions remain unavailable instead of being filled with a forecast model.
-
-Always prefer the source label, station and timestamp shown on the requested page. Source availability can degrade independently.
 
 ## Interpretation rules
 
@@ -56,13 +44,13 @@ Always prefer the source label, station and timestamp shown on the requested pag
 - Forecast is not an official alert.
 - An unavailable value is not zero and is not evidence of normal conditions.
 - A stale measurement must not be described as current.
-- Rain accumulations from the state network are rolling windows such as 1 h, 6 h and 24 h; 24 h must not be described as a calendar-day total.
+- Rolling rain accumulations must not be described as calendar-day totals unless the source explicitly defines them that way.
 - Rain already measured must not be automatically added to future forecast volume when their time windows may overlap.
 - Sustained wind must not be substituted for a missing gust measurement.
 - Water-level gauges with different vertical references must not be directly converted or compared without compatible metadata.
-- Radar and satellite images are the most recent frames returned by their sources; they are not necessarily real-time images.
+- Radar and satellite images are the latest frames returned by their sources; they are not necessarily real-time images.
 - Historical flood marks must not be transferred to a different gauge or vertical reference.
-- The Laranjal weather page uses a forecast grid near the orla; the Laranjal water-level page uses a separate hydrological measurement and the two must not be conflated.
+- Weather forecasts and water-level measurements are separate datasets and must not be conflated.
 
 ## Citation guidance
 
