@@ -14,7 +14,7 @@ function retiredResponse() {
       message:
         "Este endpoint foi aposentado. A observação atual do Tempo Pelotas usa a Rede de Monitoramento Hidrometeorológico da Defesa Civil RS.",
       replacement: "/pelotas.json",
-      methodology: "/metodologia",
+      data_sources: "/status-dos-dados",
     }),
     { status: 410, headers: RESPONSE_HEADERS },
   );
