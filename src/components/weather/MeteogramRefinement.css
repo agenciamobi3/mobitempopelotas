@@ -91,10 +91,6 @@
   box-shadow: none;
 }
 
-.internal-weather-shell--meteogram .internal-page-chapters {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
 .internal-weather-shell--meteogram .meteogram-page {
   gap: clamp(1rem, 2vw, 1.4rem);
 }
@@ -296,10 +292,6 @@
 }
 
 @media (max-width: 980px) {
-  .internal-weather-shell--meteogram .internal-page-chapters {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .internal-weather-shell--meteogram .meteogram-selected-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -320,10 +312,6 @@
 
   .internal-weather-shell--meteogram .meteogram-hero__panel {
     padding: 1rem;
-  }
-
-  .internal-weather-shell--meteogram .internal-page-chapters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .internal-weather-shell--meteogram .meteogram-selected-grid {
