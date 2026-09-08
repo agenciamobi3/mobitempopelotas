@@ -1,20 +1,16 @@
-import { ExternalLink, MapPin, Radio, Waves } from "lucide-react";
+import { CheckCircle2, ExternalLink, MapPin, Radio } from "lucide-react";
 
 import type {
   AnaRhnRegionalInventoryData,
   AnaRhnRegionalStation,
 } from "@/lib/hydrology/ana-rhn-regional.server";
+import { AnaRhnRegionalMap } from "./AnaRhnRegionalMap";
 
 import "./AnaRhnRegionalStations.css";
 
 type AnaRhnRegionalStationsProps = {
   data: AnaRhnRegionalInventoryData;
 };
-
-const PELOTAS = { latitude: -31.7719, longitude: -52.3371 } as const;
-const PLOT_WIDTH = 680;
-const PLOT_HEIGHT = 430;
-const PLOT_PADDING = 42;
 
 function formatDistance(value: number) {
   return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(value)} km`;
@@ -39,40 +35,9 @@ function stationContext(station: AnaRhnRegionalStation) {
   return [station.river, station.subBasin ?? station.basin].filter(Boolean).join(" · ");
 }
 
-function plotPoints(stations: AnaRhnRegionalStation[]) {
-  const coordinates = [
-    ...stations.map((station) => ({ latitude: station.latitude, longitude: station.longitude })),
-    PELOTAS,
-  ];
-  const latitudes = coordinates.map(({ latitude }) => latitude);
-  const longitudes = coordinates.map(({ longitude }) => longitude);
-  const minLatitude = Math.min(...latitudes);
-  const maxLatitude = Math.max(...latitudes);
-  const minLongitude = Math.min(...longitudes);
-  const maxLongitude = Math.max(...longitudes);
-  const latitudeSpan = Math.max(0.1, maxLatitude - minLatitude);
-  const longitudeSpan = Math.max(0.1, maxLongitude - minLongitude);
-
-  const project = (latitude: number, longitude: number) => ({
-    x:
-      PLOT_PADDING +
-      ((longitude - minLongitude) / longitudeSpan) * (PLOT_WIDTH - PLOT_PADDING * 2),
-    y:
-      PLOT_HEIGHT -
-      PLOT_PADDING -
-      ((latitude - minLatitude) / latitudeSpan) * (PLOT_HEIGHT - PLOT_PADDING * 2),
-  });
-
-  return {
-    stations: stations.map((station) => ({ ...station, point: project(station.latitude, station.longitude) })),
-    pelotas: project(PELOTAS.latitude, PELOTAS.longitude),
-  };
-}
-
 export function AnaRhnRegionalStations({ data }: AnaRhnRegionalStationsProps) {
   if (data.status !== "live" || data.stations.length === 0) return null;
 
-  const points = plotPoints(data.stations);
   const operatingCount = data.stations.filter((station) => station.operating === true).length;
   const telemetryCount = data.stations.filter((station) =>
     station.instruments.includes("Telemetria"),
@@ -91,27 +56,7 @@ export function AnaRhnRegionalStations({ data }: AnaRhnRegionalStationsProps) {
       </header>
 
       <div className="ana-rhn-regional__overview">
-        <figure className="ana-rhn-regional__plot" aria-labelledby="ana-rhn-regional-plot-title">
-          <figcaption id="ana-rhn-regional-plot-title">Distribuição geográfica das estações encontradas</figcaption>
-          <svg viewBox={`0 0 ${PLOT_WIDTH} ${PLOT_HEIGHT}`} role="img" aria-label="Posição relativa das estações ANA e de Pelotas">
-            <path d="M42 110 H638 M42 215 H638 M42 320 H638" aria-hidden="true" />
-            <path d="M165 42 V388 M340 42 V388 M515 42 V388" aria-hidden="true" />
-
-            {points.stations.map((station) => (
-              <g key={station.id} transform={`translate(${station.point.x} ${station.point.y})`}>
-                <circle r={station.operating === true ? 7 : 5} />
-                <title>{`${station.name} · ${stationPlace(station)} · ${formatDistance(station.distanceKm)} de Pelotas`}</title>
-              </g>
-            ))}
-
-            <g className="ana-rhn-regional__pelotas" transform={`translate(${points.pelotas.x} ${points.pelotas.y})`}>
-              <circle r="12" />
-              <circle r="4" />
-              <text x="16" y="5">Pelotas</text>
-            </g>
-          </svg>
-          <p>Os pontos usam as coordenadas publicadas no inventário da rede. Pelotas aparece apenas como referência de localização.</p>
-        </figure>
+        <AnaRhnRegionalMap stations={data.stations} />
 
         <div className="ana-rhn-regional__numbers" aria-label="Resumo do inventário consultado">
           <article>
@@ -119,7 +64,7 @@ export function AnaRhnRegionalStations({ data }: AnaRhnRegionalStationsProps) {
             <div><strong>{data.stations.length}</strong><span>estações encontradas</span></div>
           </article>
           <article>
-            <Waves aria-hidden="true" />
+            <CheckCircle2 aria-hidden="true" />
             <div><strong>{operatingCount}</strong><span>marcadas como operando</span></div>
           </article>
           <article>
