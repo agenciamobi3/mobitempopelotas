@@ -38,25 +38,23 @@ test("rain body owns one current visual hierarchy instead of layered V2 styleshe
   assert.doesNotMatch(`${page}\n${styles}`, /rain-v2-/);
 });
 
-test("rain hero keeps measured and forecast rain distinct without duplicate tiles", () => {
-  assert.match(hero, /Chuva em Pelotas <span>hoje<\/span>/);
-  assert.match(hero, /label: "Medido"/);
-  assert.match(hero, /label: "Hoje previsto"/);
-  assert.match(hero, /label: "7 dias"/);
+test("rain hero keeps measured and forecast rain distinct in its own editorial DOM", () => {
+  assert.match(hero, /Chuva em Pelotas hoje/);
+  assert.match(hero, /Medido em 24 h/);
+  assert.match(hero, /Hoje previsto/);
+  assert.match(hero, /Próximos 7 dias/);
   assert.match(hero, /Maior chance nas próximas 12 horas/);
-  assert.match(hero, /Ver medido e previsto/);
-  assert.match(hero, /Ver próximas horas/);
-  assert.match(hero, /getRetailWeatherPhoto/);
-  assert.match(hero, /today-retail-hero__current-photo/);
-  assert.match(hero, /Maior volume/);
-  assert.match(hero, /Rajada com chuva/);
-  assert.doesNotMatch(hero, /<span><CloudRain aria-hidden="true" \/> Maior chance<\/span>/);
-  assert.doesNotMatch(hero, /<span><Gauge aria-hidden="true" \/> Fonte<\/span>/);
+  assert.match(hero, /Defesa Civil RS · janela móvel/);
+  assert.match(hero, /rain-retail-hero__summary/);
+  assert.match(hero, /rain-retail-hero__facts/);
+  assert.doesNotMatch(hero, /today-retail-hero|getRetailWeatherPhoto|current-photo|photo-credit/);
+  assert.doesNotMatch(hero, /today-retail-hero-backgrounds|TodayRetailHeroPhoto\.css|TodayRetailHero\.css/);
+  assert.doesNotMatch(hero, /Ver medido e previsto|Ver próximas horas/);
 });
 
 test("rain zero-volume and zero-chance states do not invent peaks", () => {
-  assert.match(hero, /hasPositiveRainVolume/);
-  assert.match(hero, /Sem volume previsto/);
+  assert.match(hero, /!wettestDay \|\| wettestDay\.precipitation <= 0/);
+  assert.match(hero, /Sem volume acumulado previsto/);
   assert.match(page, /hasPositiveRainVolume/);
   assert.match(page, /Sem volume previsto/);
   assert.match(hero, /const hasPositiveRainChance = \(highestRainChance \?\? 0\) > 0/);
@@ -110,8 +108,14 @@ test("rain visual contract uses current retail composition", () => {
   assert.doesNotMatch(styles, /rain-v2-/);
 });
 
-test("rain experience keeps the current Home rail and hero", () => {
-  assert.match(shellStyles, /--internal-weather-frame-max:\s*var\(--tp-home-container-max, 1440px\)/);
-  assert.match(shellStyles, /\.internal-weather-shell--rain \.rain-retail-hero__inner[\s\S]*width:\s*100%[\s\S]*max-width:\s*none/);
-  assert.doesNotMatch(heroStyles, /max-width:\s*var\(--internal-weather-frame-max\)/);
+test("rain hero owns the Home rail without a generic shell override", () => {
+  assert.match(
+    heroStyles,
+    /\.internal-weather-shell--rain \.rain-retail-hero__inner[\s\S]*--tp-home-container-max, 1440px[\s\S]*--tp-home-container-gutter, 48px/,
+  );
+  assert.match(heroStyles, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(heroStyles, /@media \(max-width: 1100px\)/);
+  assert.match(heroStyles, /@media \(max-width: 720px\)/);
+  assert.match(heroStyles, /@media \(forced-colors: active\)/);
+  assert.doesNotMatch(shellStyles, /\.internal-weather-shell--rain \.rain-retail-hero__inner/);
 });
