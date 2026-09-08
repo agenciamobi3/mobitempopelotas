@@ -5,7 +5,7 @@ import test from "node:test";
 const todayComponent = readFileSync("src/components/weather/TodayForecastPageV5.tsx", "utf8");
 const tomorrowComponent = readFileSync("src/components/weather/TomorrowForecastPageV3.tsx", "utf8");
 const todayHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "utf8");
-const todayHeroStyles = readFileSync("src/components/weather/TodayRetailHero.css", "utf8");
+const todayHeroStyles = readFileSync("src/components/weather/TodayEditorialHero.css", "utf8");
 const internalWidgets = readFileSync("src/components/weather/InternalWeatherWidgets.tsx", "utf8");
 const internalWidgetStyles = readFileSync("src/components/weather/InternalWeatherWidgets.css", "utf8");
 const shellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
@@ -99,6 +99,7 @@ test("daily pages share the Home rail and retain mobile rendering contracts", ()
   assert.match(shellStyles, /--internal-weather-frame-gutter:\s*var\(--tp-home-container-gutter, 48px\)/);
   assert.doesNotMatch(shellStyles, /internal-weather-shell--today \.today-retail-hero__inner/);
   assert.doesNotMatch(shellStyles, /internal-weather-shell--tomorrow \.tomorrow-retail-hero__inner/);
+  assert.match(todayHeroStyles, /\.internal-weather-shell--today \.today-retail-hero__inner/);
   assert.match(todayHeroStyles, /var\(--tp-home-container-max, 1440px\)/);
   assert.match(todayHeroStyles, /@media \(max-width: 720px\)/);
   assert.match(internalWidgetStyles, /content-visibility:\s*auto/);
