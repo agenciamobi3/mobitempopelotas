@@ -19,6 +19,12 @@ const exportAuditDoc = readFileSync(
   "utf8",
 );
 
+const BLOCKING_REASONS = [
+  "vertical-reference-unconfirmed",
+  "station-specific-leveling-not-recovered",
+  "historical-current-vertical-continuity-unproven",
+] as const;
+
 const sanitizedLaranjalPayload = {
   displayFieldName: "Parametro",
   features: [
@@ -60,15 +66,39 @@ test("ANA RHN public adapter preserves the verified current station identity and
   assert.equal(snapshot.sourceDataStatus, "Sem dados de referencia");
 });
 
-test("ANA RHN closes unit and timezone but keeps publication blocked by vertical reference", () => {
+test("ANA RHN closes unit and timezone but keeps publication blocked by vertical evidence", () => {
   const snapshot = parseAnaRhnPublicPayload(sanitizedLaranjalPayload);
 
   assert.equal(snapshot.unit, "cm");
   assert.equal(snapshot.timeZone, "America/Sao_Paulo");
   assert.equal(snapshot.verticalReference, null);
   assert.equal(snapshot.publishableMeasurement, false);
-  assert.deepEqual(snapshot.blockingReasons, ["vertical-reference-unconfirmed"]);
+  assert.deepEqual(snapshot.blockingReasons, BLOCKING_REASONS);
+  assert.deepEqual(snapshot.verticalReferenceEvidence, {
+    status: "unconfirmed",
+    stationSpecificGaugeZeroDocumented: false,
+    stationSpecificRnDocumented: false,
+    stationSpecificLevelingRecovered: false,
+    historical87955000ContinuityDocumented: false,
+    inventoryAltitudeAcceptedAsGaugeZero: false,
+    cotaLayerProvidesVerticalReference: false,
+  });
   assert.equal(snapshot.rawValue, 116);
+});
+
+test("a normal data-status label cannot unlock the ANA measurement without vertical evidence", () => {
+  const payload = structuredClone(sanitizedLaranjalPayload);
+  payload.features[0].attributes.Status_Dado = "Normal";
+
+  const snapshot = parseAnaRhnPublicPayload(payload);
+
+  assert.equal(snapshot.status, "source-live");
+  assert.equal(snapshot.sourceDataStatus, "Normal");
+  assert.equal(snapshot.rawValue, 116);
+  assert.equal(snapshot.verticalReference, null);
+  assert.equal(snapshot.verticalReferenceEvidence.status, "unconfirmed");
+  assert.equal(snapshot.publishableMeasurement, false);
+  assert.deepEqual(snapshot.blockingReasons, BLOCKING_REASONS);
 });
 
 test("ANA RHN public query is fixed to the official HTTPS ArcGIS host and contains no credential", () => {
@@ -83,6 +113,15 @@ test("ANA RHN public query is fixed to the official HTTPS ArcGIS host and contai
   assert.equal(url.searchParams.has("api_key"), false);
   assert.equal(url.username, "");
   assert.equal(url.password, "");
+});
+
+test("current-data layer does not pretend to provide RN, datum or gauge-zero reference", () => {
+  const url = buildAnaRhnPublicStationUrl("87955001");
+  const outFields = url.searchParams.get("outFields") ?? "";
+
+  assert.doesNotMatch(outFields, /Altitude|RN|Datum|Benchmark|Zero/i);
+  assert.equal(source.includes("inventoryAltitudeAcceptedAsGaugeZero: false"), true);
+  assert.equal(source.includes("cotaLayerProvidesVerticalReference: false"), true);
 });
 
 test("historical 87955000 and current 87955001 stay separate while their operational split is documented", () => {
@@ -130,7 +169,7 @@ test("historical series is recovered without turning a legacy service or raw fil
   assert.match(integrationDoc, /não deve virar dependência nova de runtime/);
   assert.match(integrationDoc, /arquivos MDB\/CSV\/TXT recebidos para pesquisa não são versionados/);
   assert.doesNotMatch(source, /HidroSerieHistorica/);
-  assert.doesNotMatch(source, /87955000/);
+  assert.doesNotMatch(source, /fetch.*87955000|Codigo=87955000/);
 });
 
 test("ANA RHN adapter treats a missing expected station as unavailable without fabricating a zero", () => {
@@ -141,7 +180,8 @@ test("ANA RHN adapter treats a missing expected station as unavailable without f
   assert.equal(snapshot.unit, "cm");
   assert.equal(snapshot.timeZone, "America/Sao_Paulo");
   assert.equal(snapshot.publishableMeasurement, false);
-  assert.deepEqual(snapshot.blockingReasons, ["vertical-reference-unconfirmed"]);
+  assert.deepEqual(snapshot.blockingReasons, BLOCKING_REASONS);
+  assert.equal(snapshot.verticalReferenceEvidence.status, "unconfirmed");
   assert.match(snapshot.error ?? "", /estação ANA\/RHN esperada/i);
 });
 
