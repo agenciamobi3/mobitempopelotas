@@ -1,15 +1,7 @@
 /*
  * Limpeza editorial compartilhada das páginas internas já convertidas.
- *
- * Quase todos os índices do antigo layout já foram removidos do próprio JSX.
- * O Meteograma ainda preserva temporariamente InternalPageChapters, portanto
- * esta é a única navegação legada que precisa de uma barreira visual aqui.
  * Hoje, Amanhã e 7 dias permanecem deliberadamente fora deste contrato.
  */
-
-.internal-weather-shell--meteogram .internal-page-chapters {
-  display: none !important;
-}
 
 /*
  * 15 dias: as três grandes áreas são capítulos editoriais abertos. Os cards
