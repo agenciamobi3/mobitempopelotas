@@ -1,32 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CURRENT_DATA_NO_STORE_HEADERS } from "@/lib/current-data-cache";
-import {
-  getFreshEmbrapaObservation,
-  isPublishableEmbrapaObservation,
-} from "@/lib/weather/embrapa-current.server";
-
 const RESPONSE_HEADERS = {
-  ...CURRENT_DATA_NO_STORE_HEADERS,
+  "Cache-Control": "no-store, max-age=0",
   "Content-Type": "application/json; charset=utf-8",
   "X-Content-Type-Options": "nosniff",
-  "X-Robots-Tag": "noindex, follow",
+  "X-Robots-Tag": "noindex, nofollow",
 } as const;
 
-async function currentEmbrapaObservation() {
-  const observation = await getFreshEmbrapaObservation();
-  const publishable = isPublishableEmbrapaObservation(observation);
-
-  return new Response(JSON.stringify(observation), {
-    status: publishable ? 200 : 503,
-    headers: RESPONSE_HEADERS,
-  });
+function retiredResponse() {
+  return new Response(
+    JSON.stringify({
+      status: "retired",
+      message:
+        "Este endpoint foi aposentado. A observação atual do Tempo Pelotas usa a Rede de Monitoramento Hidrometeorológico da Defesa Civil RS.",
+      replacement: "/pelotas.json",
+      methodology: "/metodologia",
+    }),
+    { status: 410, headers: RESPONSE_HEADERS },
+  );
 }
 
 export const Route = createFileRoute("/api/weather/embrapa")({
   server: {
     handlers: {
-      GET: () => currentEmbrapaObservation(),
+      GET: () => retiredResponse(),
     },
   },
 });
