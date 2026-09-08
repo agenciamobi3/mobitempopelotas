@@ -47,6 +47,17 @@ function stateFromDefesaCivil(
   return "operational";
 }
 
+function hydrologyDataCondition(
+  status: "live" | "stale" | "unavailable",
+  liveMessage: string,
+) {
+  if (status === "live") return liveMessage;
+  if (status === "stale") {
+    return "Existe uma última leitura conhecida, mas ela está atrasada e não é tratada como nível atual.";
+  }
+  return "O Tempo Pelotas não recebeu uma leitura utilizável para publicação nesta verificação.";
+}
+
 function latestCheckedAt(values: Array<string | null | undefined>, fallback: string) {
   const valid = values
     .filter((value): value is string => Boolean(value))
@@ -270,16 +281,21 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
   }
 
   if (laranjalResult.status === "fulfilled") {
-    const state = stateFromHydrology(laranjalResult.value.status);
+    const data = laranjalResult.value;
+    const state = stateFromHydrology(data.status);
     services.push({
       id: "laranjal-level",
       name: "Nível da Lagoa dos Patos no Laranjal",
-      provider: laranjalResult.value.source.name,
+      provider: data.source.name,
       category: "Hidrologia",
       state,
       detail: detailForState(state),
-      checkedAt: laranjalResult.value.source.fetchedAt || checkedAt,
-      sourceUrl: laranjalResult.value.source.url,
+      dataCondition: hydrologyDataCondition(
+        data.status,
+        `Leitura recente disponível para ${data.source.station}, pela fonte ${data.source.name}.`,
+      ),
+      checkedAt: data.source.fetchedAt || checkedAt,
+      sourceUrl: data.source.url,
     });
   } else {
     services.push({
@@ -289,21 +305,28 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       category: "Hidrologia",
       state: "offline",
       detail: detailForState("offline"),
+      dataCondition:
+        "O Tempo Pelotas não recebeu uma leitura utilizável para publicação nesta verificação.",
       checkedAt,
     });
   }
 
   if (guaibaResult.status === "fulfilled") {
-    const state = stateFromHydrology(guaibaResult.value.status);
+    const data = guaibaResult.value;
+    const state = stateFromHydrology(data.status);
     services.push({
       id: "guaiba-level",
       name: "Nível do Guaíba",
-      provider: guaibaResult.value.source.name,
+      provider: data.source.name,
       category: "Hidrologia",
       state,
       detail: detailForState(state),
-      checkedAt: guaibaResult.value.source.fetchedAt || checkedAt,
-      sourceUrl: guaibaResult.value.source.url,
+      dataCondition: hydrologyDataCondition(
+        data.status,
+        `Leitura recente disponível para ${data.station}.`,
+      ),
+      checkedAt: data.source.fetchedAt || checkedAt,
+      sourceUrl: data.source.url,
     });
   } else {
     services.push({
@@ -313,24 +336,44 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       category: "Hidrologia",
       state: "offline",
       detail: detailForState("offline"),
+      dataCondition:
+        "O Tempo Pelotas não recebeu uma leitura utilizável para publicação nesta verificação.",
       checkedAt,
     });
   }
 
   if (lagoonResult.status === "fulfilled") {
-    const state = stateFromRegionalHydrology(lagoonResult.value.status);
+    const data = lagoonResult.value;
+    const state = stateFromRegionalHydrology(data.status);
+    const liveCount = data.observations.filter((observation) => observation.status === "live").length;
+    const staleCount = data.observations.filter((observation) => observation.status === "stale").length;
+    const unavailableCount = data.observations.filter(
+      (observation) => observation.status === "unavailable",
+    ).length;
+    const dataCondition =
+      data.status === "live"
+        ? `Todas as ${data.total} estações têm leitura recente nesta verificação.`
+        : data.status === "partial"
+          ? `${liveCount} de ${data.total} estações têm leitura recente${
+              staleCount > 0 ? `; ${staleCount} têm somente leitura atrasada` : ""
+            }${unavailableCount > 0 ? `; ${unavailableCount} estão sem leitura utilizável` : ""}.`
+          : data.status === "stale"
+            ? `Nenhuma das ${data.total} estações tem leitura recente; ${staleCount} ainda têm somente o último valor atrasado.`
+            : `Nenhuma das ${data.total} estações entregou leitura utilizável nesta verificação do Tempo Pelotas.`;
+
     services.push({
       id: "lagoon-regional-network",
       name: "Rede regional da Lagoa dos Patos",
-      provider: lagoonResult.value.source.organizations,
+      provider: data.source.organizations,
       category: "Hidrologia",
       state,
       detail:
         state === "operational"
-          ? `${lagoonResult.value.available} de ${lagoonResult.value.total} estações com leitura disponível.`
+          ? `${data.available} de ${data.total} estações com leitura disponível.`
           : detailForState(state),
-      checkedAt: lagoonResult.value.source.fetchedAt || checkedAt,
-      sourceUrl: lagoonResult.value.source.url,
+      dataCondition,
+      checkedAt: data.source.fetchedAt || checkedAt,
+      sourceUrl: data.source.url,
     });
   } else {
     services.push({
@@ -340,6 +383,8 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       category: "Hidrologia",
       state: "offline",
       detail: detailForState("offline"),
+      dataCondition:
+        "O Tempo Pelotas não recebeu leituras utilizáveis da rede regional nesta verificação.",
       checkedAt,
       sourceUrl: "https://monitoramentolagoadospatos.com.br/",
     });
@@ -371,7 +416,14 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       ),
     );
     const service = services.at(-1);
-    if (service) service.sourceUrl = data.source.mapUrl;
+    if (service) {
+      service.sourceUrl = data.source.mapUrl;
+      service.dataCondition = currentStation
+        ? `Leitura recente elegível para compor o Agora em Pelotas: ${currentStation.name} (${currentStation.code}).`
+        : data.status === "live" || data.status === "partial"
+          ? "Nenhuma estação elegível de Pelotas tem leitura recente para compor o Agora nesta verificação."
+          : "O Tempo Pelotas não tem uma leitura elegível disponível para o Agora nesta verificação.";
+    }
   } else {
     services.push(
       weatherService(
@@ -383,11 +435,25 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       ),
     );
     const service = services.at(-1);
-    if (service) service.sourceUrl = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
+    if (service) {
+      service.sourceUrl = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
+      service.dataCondition =
+        "O Tempo Pelotas não tem uma leitura elegível disponível para o Agora nesta verificação.";
+    }
   }
 
   if (anaRhnResult.status === "fulfilled") {
     const snapshot = anaRhnResult.value;
+    const publicationBlocked =
+      snapshot.publishableMeasurement === false && snapshot.verticalReference === null;
+    const hasMeasurement = snapshot.rawValue !== null && snapshot.rawObservedAt !== null;
+    const dataCondition =
+      snapshot.status === "source-live" && hasMeasurement && publicationBlocked
+        ? `A ANA fornece uma medição para a estação ${snapshot.stationCode}, mas o Tempo Pelotas não a publica como nível do Laranjal porque a referência vertical específica permanece não confirmada.`
+        : snapshot.status === "source-live"
+          ? `A consulta da estação ${snapshot.stationCode} respondeu, mas não há medição habilitada para publicação no nível do Laranjal.`
+          : `O Tempo Pelotas não confirmou uma medição utilizável da estação ${snapshot.stationCode} nesta verificação; a ANA continua fora da leitura pública do Laranjal.`;
+
     services.push({
       id: "ana-rhn",
       name: "Rede Hidrometeorológica Nacional",
@@ -398,6 +464,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
         snapshot.status === "source-live"
           ? `A fonte respondeu para a estação ${snapshot.stationCode}, mas seus dados ainda não são usados nas leituras públicas do Laranjal.`
           : "A fonte ainda não está sendo usada nas leituras públicas do Laranjal.",
+      dataCondition,
       checkedAt: snapshot.fetchedAt || checkedAt,
       sourceUrl: snapshot.source.url,
     });
@@ -409,6 +476,8 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       category: "Hidrologia",
       state: "implementation",
       detail: "A fonte ainda não está sendo usada nas leituras públicas do Laranjal.",
+      dataCondition:
+        "O Tempo Pelotas não confirmou uma medição utilizável da estação 87955001 nesta verificação; a ANA continua fora da leitura pública do Laranjal.",
       checkedAt,
       sourceUrl: "https://www.snirh.gov.br/hidroweb/",
     });
