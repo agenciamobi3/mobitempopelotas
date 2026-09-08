@@ -31,8 +31,7 @@
 .ana-rhn-station h3,
 .ana-rhn-station p,
 .ana-rhn-regional__footer h3,
-.ana-rhn-regional__footer p,
-.ana-rhn-regional__plot p {
+.ana-rhn-regional__footer p {
   margin: 0;
 }
 
@@ -57,65 +56,6 @@
   grid-template-columns: minmax(0, 1fr) minmax(250px, 0.34fr);
   gap: clamp(20px, 3vw, 34px);
   align-items: stretch;
-}
-
-.ana-rhn-regional__plot {
-  display: grid;
-  gap: 12px;
-  margin: 0;
-  padding: clamp(18px, 2.5vw, 26px);
-  border: 1px solid rgb(7 30 47 / 9%);
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 74% 18%, rgb(24 189 205 / 9%), transparent 18rem),
-    linear-gradient(160deg, #fbfdfd, #f6faf9);
-}
-
-.ana-rhn-regional__plot figcaption {
-  color: #071e2f;
-  font-size: 0.86rem;
-  font-weight: 800;
-}
-
-.ana-rhn-regional__plot svg {
-  width: 100%;
-  height: auto;
-  min-height: 280px;
-}
-
-.ana-rhn-regional__plot svg > path {
-  fill: none;
-  stroke: rgb(7 30 47 / 7%);
-  stroke-width: 1;
-}
-
-.ana-rhn-regional__plot svg > g:not(.ana-rhn-regional__pelotas) circle {
-  fill: #5e2ced;
-  stroke: #fff;
-  stroke-width: 3;
-  filter: drop-shadow(0 2px 4px rgb(7 30 47 / 14%));
-}
-
-.ana-rhn-regional__pelotas circle:first-child {
-  fill: rgb(24 189 205 / 18%);
-  stroke: #18bdcd;
-  stroke-width: 2;
-}
-
-.ana-rhn-regional__pelotas circle:nth-child(2) {
-  fill: #078997;
-}
-
-.ana-rhn-regional__pelotas text {
-  fill: #071e2f;
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.ana-rhn-regional__plot p {
-  color: #6d818a;
-  font-size: 0.76rem;
-  line-height: 1.5;
 }
 
 .ana-rhn-regional__numbers {
@@ -326,15 +266,6 @@
     padding: 42px 0;
   }
 
-  .ana-rhn-regional__plot {
-    padding: 14px;
-    border-radius: 12px;
-  }
-
-  .ana-rhn-regional__plot svg {
-    min-height: 220px;
-  }
-
   .ana-rhn-regional__numbers,
   .ana-rhn-regional__stations,
   .ana-rhn-regional__footer {
@@ -374,7 +305,6 @@
 }
 
 @media (forced-colors: active) {
-  .ana-rhn-regional__plot,
   .ana-rhn-regional__stations,
   .ana-rhn-regional__numbers {
     border-color: CanvasText;
