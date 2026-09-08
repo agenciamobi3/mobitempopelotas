@@ -7,6 +7,10 @@ const hero = readFileSync("src/components/weather/TomorrowRetailHero.tsx", "utf8
 const heroStyles = readFileSync("src/components/weather/TomorrowRetailHero.css", "utf8");
 const page = readFileSync("src/components/weather/TomorrowForecastPageV3.tsx", "utf8");
 const pageStyles = readFileSync("src/components/weather/TomorrowForecastPageV3.css", "utf8");
+const editorialRefinement = readFileSync(
+  "src/components/weather/TomorrowForecastEditorialRefinement.css",
+  "utf8",
+);
 const shellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
 const photoMap = readFileSync(
   "src/components/weather/today-retail-hero-backgrounds.ts",
@@ -17,6 +21,7 @@ test("tomorrow route uses the shared shell with a dedicated editorial hero", () 
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /TomorrowRetailHero/);
   assert.match(route, /TomorrowForecastPageV3/);
+  assert.match(route, /TomorrowForecastEditorialRefinement\.css/);
   assert.match(route, /pageClassName="internal-weather-shell--tomorrow"/);
   assert.match(route, /hero=\{\(\{ weather: productionWeather, advisoryLevel, officialAlertCount \}\)/);
   assert.match(route, /Veja a previsão do tempo para amanhã em Pelotas/);
@@ -84,6 +89,19 @@ test("tomorrow content uses direct language without generic section tags", () =>
   assert.doesNotMatch(page, /Dúvidas sobre o tempo de amanhã em Pelotas/);
   assert.doesNotMatch(page, /As respostas usam os dados disponíveis para amanhã/);
   assert.doesNotMatch(page, /Transforme a previsão em decisões simples|contexto complementar|novas rodadas/);
+});
+
+test("tomorrow chapter navigation is visually reduced to an editorial index", () => {
+  assert.match(editorialRefinement, /\.internal-weather-shell--tomorrow \.internal-page-chapters/);
+  assert.match(editorialRefinement, /border-radius:\s*0/);
+  assert.match(editorialRefinement, /background:\s*transparent/);
+  assert.match(editorialRefinement, /box-shadow:\s*none/);
+  assert.match(
+    editorialRefinement,
+    /\.internal-page-chapters a > span,[\s\S]*\.internal-page-chapters a > small[\s\S]*display:\s*none/,
+  );
+  assert.match(editorialRefinement, /overflow-x:\s*auto/);
+  assert.match(editorialRefinement, /@media \(max-width: 760px\)/);
 });
 
 test("tomorrow zero states do not invent gusts or erase positive rain volume", () => {
