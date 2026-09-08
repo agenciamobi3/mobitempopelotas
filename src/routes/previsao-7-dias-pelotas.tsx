@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { ForecastHorizonBridge } from "@/components/weather/ForecastHorizonBridge";
 import { SevenDayForecastPageV2 } from "@/components/weather/SevenDayForecastPageV2";
+import "@/components/weather/SevenDayForecastEditorialRefinement.css";
 import { SevenDayRetailHero } from "@/components/weather/SevenDayRetailHero";
 import { createPageHead } from "@/lib/page-meta";
 import { CORE_WEATHER_CITATIONS } from "@/lib/seo-source-citations";
