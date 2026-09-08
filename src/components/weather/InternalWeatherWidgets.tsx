@@ -74,7 +74,7 @@ function sourceName(
   source: string | null | undefined,
   forecastProvider: string | null | undefined,
 ) {
-  if (source === "embrapa") return "Embrapa";
+  if (source === "defesa-civil-rs") return "Defesa Civil RS";
   if (source === "inmet") return "INMET";
   if (source === "cppmet") return "CPPMet/UFPel";
   if (source === "met-norway") return "MET Norway";
@@ -127,7 +127,7 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
   const hasMeasurement =
     current?.temperature !== null && current?.temperature !== undefined;
   const observed =
-    hasMeasurement && weather.currentProvenance.temperature === "embrapa";
+    hasMeasurement && weather.currentProvenance.temperature === "defesa-civil-rs";
   const forecastProvider = weather.quality.forecastProvider;
 
   const metrics = current
@@ -166,8 +166,8 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
         <span className="eyebrow">Condição atual</span>
         <h2 id="internal-observation-title">Temperatura e condições agora em Pelotas</h2>
         <p>Cada valor mostra de onde veio e quando foi atualizado.</p>
-        <Link to="/estacao-embrapa-pelotas">
-          Ver todas as medições da estação <span aria-hidden="true">→</span>
+        <Link to="/metodologia">
+          Ver rede observacional e metodologia <span aria-hidden="true">→</span>
         </Link>
       </div>
 
@@ -177,11 +177,11 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
             <small className="internal-observation-status">
               {observed ? (
                 <>
-                  <CheckCircle2 aria-hidden="true" /> Medição da Estação Embrapa
+                  <CheckCircle2 aria-hidden="true" /> Medição da Rede Defesa Civil RS
                 </>
               ) : (
                 <>
-                  <Info aria-hidden="true" /> Estimativa do modelo para agora
+                  <Info aria-hidden="true" /> Origem observacional não confirmada
                 </>
               )}
             </small>
