@@ -18,7 +18,7 @@ import { WeatherEditorialHero } from "./WeatherEditorialHero";
 import "./WeatherHome.css";
 
 const sourceLabels: Record<WeatherSourceKey, string> = {
-  embrapa: "Embrapa Clima Temperado",
+  "defesa-civil-rs": "Defesa Civil RS",
   inmet: "INMET",
   cppmet: "CPPMet / UFPel",
   "open-meteo": "Open-Meteo",
@@ -167,8 +167,8 @@ export function WeatherHome({
       ) : null}
 
       <p className="weather-source-note">
-        Dados consolidados por MOBI Tempo Pelotas a partir de Embrapa Clima Temperado, INMET,
-        CPPMet/UFPel, REDEMET/DECEA, LabHidroSens/UFPel, Nível Guaíba, FURG & Portos RS e{" "}
+        Dados consolidados por MOBI Tempo Pelotas a partir da Rede de Monitoramento Hidrometeorológico
+        da Defesa Civil RS, INMET, CPPMet/UFPel, REDEMET/DECEA, fontes hidrológicas identificadas e{" "}
         {weather.quality.forecastProvider ?? "modelo meteorológico"}. Consulta realizada em{" "}
         {formatFetchedAt(weather.source.fetchedAt)}.
         {degradedSources.length > 0
