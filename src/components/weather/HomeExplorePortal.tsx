@@ -35,7 +35,7 @@ const exploreGroups: ReadonlyArray<ExploreGroup> = [
     eyebrow: "Monitoramento",
     title: "Consulte medições e imagens da região",
     links: [
-      { label: "Estação Embrapa", to: "/estacao-embrapa-pelotas" },
+      { label: "Rede Defesa Civil RS", to: "/metodologia" },
       { label: "Radar e satélite", to: "/radar-e-satelite-pelotas" },
       { label: "Câmeras ao vivo", to: "/cameras-ao-vivo-pelotas" },
       { label: "Histórico climático", to: "/historico-climatico-pelotas" },
