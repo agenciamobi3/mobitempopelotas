@@ -126,37 +126,7 @@
   box-shadow: none !important;
 }
 
-/*
- * Chuva e Vento ainda reutilizam o DOM retail legado e recebem neutralização
- * cromática aqui. Hoje, Amanhã, 7 dias e 15 dias possuem heroes próprios.
- */
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  )
-  :is(.today-retail-hero, .rain-retail-hero) {
-  border: 0 !important;
-  border-radius: 0 !important;
-  background-color: var(--route-editorial-soft) !important;
-  background-image: none !important;
-  box-shadow: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  )
-  :is(.today-retail-hero, .rain-retail-hero)::before,
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  )
-  :is(.today-retail-hero, .rain-retail-hero)::after {
-  display: none !important;
-  content: none !important;
-  background: none !important;
-  box-shadow: none !important;
-}
+/* Heroes meteorológicos principais agora possuem contratos próprios por rota. */
 
 /* Clima e situação das águas têm hero próprio em duas colunas. */
 .internal-weather-shell--climate .climate-hero,
