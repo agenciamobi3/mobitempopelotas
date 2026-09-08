@@ -107,11 +107,12 @@ test("visitor copy does not convert the ANA score into percentage or event score
   assert.doesNotMatch(component, /de 10|de 100|percentual|% de consistência/i);
 });
 
-test("2001 route loads consistency independently and renders it only through fail-closed component", () => {
-  assert.match(route, /getAnaRhnHistoricalConsistency/);
-  assert.match(route, /createUnavailableAnaRhnHistoricalConsistency/);
+test("2001 route delegates consistency to the server function and keeps presentation fail-closed", () => {
+  assert.match(route, /loader: \(\) => getAnaRhnHistoricalConsistency\(\)/);
+  assert.doesNotMatch(route, /ana-rhn-consistency\.server/);
+  assert.doesNotMatch(route, /createUnavailableAnaRhnHistoricalConsistency/);
   assert.match(route, /staleTime: 6 \* 60 \* 60 \* 1_000/);
-  assert.match(route, /AnaRhnHistoricalConsistency data=\{data\.consistency\}/);
+  assert.match(route, /AnaRhnHistoricalConsistency data=\{consistency\}/);
   assert.match(component, /if \(data\.status !== "live"\) return null/);
   assert.match(component, /if \(data\.classification === null && data\.score === null\) return null/);
 });
