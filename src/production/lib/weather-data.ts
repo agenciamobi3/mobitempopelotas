@@ -105,6 +105,9 @@ export type WeatherData = {
   };
 };
 
+const DEFESA_CIVIL_MAP_URL = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
+const DEFESA_CIVIL_SOURCE_NAME = "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico";
+
 /**
  * Estado vazio para falhas totais de carregamento.
  * Não contém números demonstrativos nem valores meteorológicos inventados.
@@ -128,8 +131,8 @@ export const fallbackWeatherData: WeatherData = {
     updatedAt: null,
     icon: null,
     source: {
-      name: "Embrapa Clima Temperado",
-      url: "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm",
+      name: DEFESA_CIVIL_SOURCE_NAME,
+      url: DEFESA_CIVIL_MAP_URL,
       kind: "unavailable",
       observedAt: null,
     },
@@ -151,8 +154,8 @@ export const fallbackWeatherData: WeatherData = {
     name: "Dados meteorológicos indisponíveis",
     url: "/metodologia",
     isFallback: true,
-    observationName: "Embrapa Clima Temperado",
-    observationUrl: "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm",
+    observationName: DEFESA_CIVIL_SOURCE_NAME,
+    observationUrl: DEFESA_CIVIL_MAP_URL,
     forecastName: "Previsão indisponível",
     forecastUrl: "/metodologia",
   },
