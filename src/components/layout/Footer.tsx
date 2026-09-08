@@ -25,7 +25,7 @@ const footerGroups = [
     title: "Monitoramento",
     links: [
       { label: "Radar e satélite", ariaLabel: "Acompanhar radar e satélite meteorológico para Pelotas e região", to: "/radar-e-satelite-pelotas" },
-      { label: "Estação Embrapa", ariaLabel: "Consultar dados meteorológicos da estação Embrapa em Pelotas", to: "/estacao-embrapa-pelotas" },
+      { label: "Rede Defesa Civil RS", ariaLabel: "Consultar a rede observacional usada pelo Tempo Pelotas e sua metodologia", to: "/metodologia" },
       { label: "Câmeras ao vivo", ariaLabel: "Ver câmeras ao vivo de Pelotas e região", to: "/cameras-ao-vivo-pelotas" },
       { label: "Mapa de geadas", ariaLabel: "Consultar ocorrências de geada registradas pelo INMET no Rio Grande do Sul", to: "/mapa-de-geadas-rio-grande-do-sul" },
       { label: "Avisos oficiais", ariaLabel: "Consultar avisos meteorológicos oficiais para Pelotas", to: "/alertas" },
