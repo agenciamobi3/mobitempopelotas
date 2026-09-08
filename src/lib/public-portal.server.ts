@@ -16,23 +16,19 @@ function formatMetric(value: number | null, unit: string) {
 }
 
 function latestTimestamp(values: Array<string | null>) {
-  return (
-    values
-      .filter((value): value is string => value !== null)
-      .sort()
-      .at(-1) ?? null
-  );
+  return values.filter((value): value is string => value !== null).sort().at(-1) ?? null;
 }
 
-function publicEmbrapaObservation(
+function publicCurrentObservation(
   observation: Awaited<ReturnType<typeof fetchWeatherIntelligence>>["weather"]["observation"],
 ) {
   return {
     status: observation.status,
+    station: observation.station,
     current: observation.current,
-    extremes: observation.extremes,
-    accumulated: observation.accumulated,
+    rain: observation.rain,
     source: observation.source,
+    error: observation.error,
   };
 }
 
@@ -72,7 +68,7 @@ export async function fetchPublicPortalSnapshot() {
   const { weather, brief, intelligence } = weatherIntelligence;
 
   return {
-    schema_version: "2.0",
+    schema_version: "2.1",
     generated_at: new Date().toISOString(),
     location: LOCATION,
     status: weather.status,
@@ -85,9 +81,9 @@ export async function fetchPublicPortalSnapshot() {
       alerts: weather.alerts,
       official_forecast: weather.officialForecast,
       observed: {
-        embrapa: {
-          ...publicEmbrapaObservation(weather.observation),
-          usable_as_current: weather.quality.currentSource === "embrapa",
+        defesa_civil_rs: {
+          ...publicCurrentObservation(weather.observation),
+          usable_as_current: weather.quality.currentSource === "defesa-civil-rs",
         },
       },
       quality: weather.quality,
@@ -113,7 +109,7 @@ export async function fetchPublicPortalSnapshot() {
       today: absoluteUrl("/tempo-hoje-pelotas"),
       forecast: absoluteUrl("/previsao-7-dias-pelotas"),
       alerts: absoluteUrl("/alertas"),
-      embrapa_station: absoluteUrl("/estacao-embrapa-pelotas"),
+      monitoring_network: absoluteUrl("/situacao-hidrologica-pelotas"),
       hydrology: absoluteUrl("/situacao-hidrologica-pelotas"),
       laranjal_level: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
       methodology: absoluteUrl("/metodologia"),
@@ -130,12 +126,10 @@ export type PublicPortalSnapshot = Awaited<ReturnType<typeof fetchPublicPortalSn
 export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
   const current = snapshot.weather.current;
   const today = snapshot.weather.daily[0];
-  const embrapa = snapshot.weather.observed.embrapa;
+  const observation = snapshot.weather.observed.defesa_civil_rs;
   const laranjal = snapshot.hydrology.local_level.laranjal;
   const activeAlerts = snapshot.weather.alerts.filter((alert) => alert.period === "active");
-  const alertModifiedAt = latestTimestamp(
-    activeAlerts.map((alert) => alert.sentAt ?? alert.startsAt),
-  );
+  const alertModifiedAt = latestTimestamp(activeAlerts.map((alert) => alert.sentAt ?? alert.startsAt));
 
   const currentTitle =
     current?.temperature === null || current?.temperature === undefined
@@ -144,10 +138,10 @@ export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
   const forecastDetails = today
     ? ` Hoje, mínima de ${today.min} °C, máxima de ${today.max} °C e ${today.rainChance === null ? `${today.precipitationMm} mm de precipitação previstos` : `${today.rainChance}% de chance de chuva`}.`
     : "";
-  const embrapaText =
-    !embrapa.usable_as_current || !current
-      ? "A Embrapa não forneceu uma leitura recente e verificável para uso como condição atual."
-      : `A estação da Embrapa informou ${formatMetric(current.temperature, " °C")}, umidade de ${formatMetric(current.humidity, "%")} e vento de ${formatMetric(current.windSpeed, " km/h")}.`;
+  const observationText =
+    !observation.usable_as_current || !current
+      ? "A rede estadual não forneceu uma estação meteorológica recente e verificável para uso como condição atual."
+      : `A estação ${observation.station.name}${observation.station.code ? ` (${observation.station.code})` : ""} da Defesa Civil RS informou ${formatMetric(current.temperature, " °C")}, umidade de ${formatMetric(current.humidity, "%")}, vento médio de ${formatMetric(current.windSpeed, " km/h")} e rajada de ${formatMetric(current.windGust, " km/h")}.`;
   const alertText =
     activeAlerts.length === 0
       ? "Nenhum alerta oficial ativo para Pelotas ou contexto regional foi identificado na consulta atual."
@@ -188,11 +182,12 @@ export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
         tags: ["INMET", "alertas", "Pelotas", "Defesa Civil"],
       },
       {
-        id: absoluteUrl("/estacao-embrapa-pelotas"),
-        url: absoluteUrl("/estacao-embrapa-pelotas"),
-        title: "Observação meteorológica da Embrapa em Pelotas",
-        content_text: embrapaText,
-        tags: ["Embrapa", "observação", "Pelotas", "chuva medida"],
+        id: absoluteUrl("/situacao-hidrologica-pelotas"),
+        url: absoluteUrl("/situacao-hidrologica-pelotas"),
+        title: "Rede de Monitoramento Hidrometeorológico da Defesa Civil RS",
+        content_text: observationText,
+        ...(observation.source.observedAt ? { date_modified: observation.source.observedAt } : {}),
+        tags: ["Defesa Civil RS", "observação", "Pelotas", "monitoramento hidrometeorológico"],
       },
       {
         id: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
