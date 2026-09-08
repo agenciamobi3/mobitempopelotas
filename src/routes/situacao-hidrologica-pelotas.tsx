@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
+import { AnaRhnRegionalStations } from "@/components/hydrology/AnaRhnRegionalStations";
 import { DefesaCivilHydroNetwork } from "@/components/hydrology/DefesaCivilHydroNetwork";
 import { HydrologyCurrentSituationAnswer } from "@/components/hydrology/HydrologyCurrentSituationAnswer";
 import {
@@ -30,10 +31,10 @@ const HYDROLOGY_PAGE_CONTENT = {
   eyebrow: "Como acompanhar os níveis da água",
   title: "Entenda o que cada estação mostra e por que os valores não são iguais",
   answer:
-    "A Estação Laranjal é a leitura local apresentada para Pelotas. Os demais pontos da Lagoa dos Patos e da Rede da Defesa Civil RS ajudam a entender a situação regional. O SACE Guaíba entra como contexto complementar a montante. Cada estação usa seu próprio local, horário e referência de medição, por isso os números não devem ser comparados por simples subtração.",
+    "A Estação Laranjal é a leitura local apresentada para Pelotas. Os demais pontos da Lagoa dos Patos e da Rede da Defesa Civil RS ajudam a entender a situação regional. O inventário da ANA/SNIRH mostra onde existem estações oficiais próximas, sem transformar esses pontos automaticamente em novas leituras do Laranjal. O SACE Guaíba entra como contexto complementar a montante. Cada estação usa seu próprio local, horário e referência de medição.",
   facts: [
-    "O Tempo Pelotas possui acesso autorizado à plataforma integrada da ANA para coleta e exibição de informações hidrometeorológicas da Rede Hidrometeorológica Nacional; a integração dessas estações está sendo implantada gradualmente.",
-    "A Rede Hidrometeorológica Nacional integra o SNIRH e reúne dados observados como níveis, vazões e chuvas, mantendo identificação própria de cada estação.",
+    "O inventário da ANA/SNIRH mostra estações cadastradas na Rede Hidrometeorológica Nacional próximas de Pelotas, com localização, instituições responsáveis, situação cadastral e instrumentos informados pela própria rede.",
+    "A presença de uma estação no inventário não significa que sua leitura seja usada como nível atual do Laranjal.",
     "A Estação Laranjal é a referência local do portal e não recebe automaticamente as cotas de outras estações.",
     "Uma leitura atrasada aparece como último valor conhecido e não como nível atual.",
     "Itapuã, Arambaré, São Lourenço do Sul e Rio Grande ajudam a acompanhar diferentes partes da Lagoa dos Patos.",
@@ -56,9 +57,9 @@ const HYDROLOGY_PAGE_CONTENT = {
     },
     ...HYDROLOGY_EDITORIAL_CONTENT.faqs,
     {
-      question: "Como o Tempo Pelotas pretende usar os dados da ANA e da RHN?",
+      question: "O que são as estações da ANA mostradas nesta página?",
       answer:
-        "O portal possui acesso autorizado à plataforma integrada da ANA para coleta e exibição de informações hidrometeorológicas da Rede Hidrometeorológica Nacional. A integração está sendo implantada de forma gradual, validando unidade, referência, horário e situação de cada estação antes de incorporá-la às páginas públicas.",
+        "São pontos encontrados no cadastro público da Rede Hidrometeorológica Nacional em torno de Pelotas. A seção reproduz informações do inventário oficial, como localização, responsável, operadora e instrumentos cadastrados. Esses pontos não substituem automaticamente a leitura local do Laranjal.",
     },
     {
       question: "Qual é o papel do SACE Guaíba nesta página?",
@@ -149,7 +150,7 @@ export const Route = createFileRoute("/situacao-hidrologica-pelotas")({
           "Rede Hidrometeorológica Nacional",
           "Agência Nacional de Águas e Saneamento Básico",
           "Sistema Nacional de Informações sobre Recursos Hídricos",
-          "Portal HidroWeb e Hidrotelemetria",
+          "Estações hidrometeorológicas próximas de Pelotas",
           "Medições de nível na região",
           "Situação das águas em Pelotas",
           "Medições automáticas da Lagoa dos Patos",
@@ -204,6 +205,9 @@ function SituacaoHidrologicaPage() {
                 sace={data.sace}
               />
             </SaceGuaibaRenderScope>
+          </HydrologySectionBoundary>
+          <HydrologySectionBoundary label="Estações oficiais ANA/SNIRH na região">
+            <AnaRhnRegionalStations data={data.anaRhnRegional} />
           </HydrologySectionBoundary>
           <HydrologySectionBoundary label="Rede da Defesa Civil RS">
             <DefesaCivilHydroNetwork data={data.defesaCivil} />
