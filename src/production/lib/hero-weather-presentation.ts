@@ -19,8 +19,8 @@ function normalized(value: string | null | undefined) {
 }
 
 /**
- * A Embrapa fornece a medição, mas não uma condição visual auditável.
- * Para não atribuir uma condição prevista à estação, o ícone usa nesta ordem:
+ * A rede estadual fornece medições, mas não uma condição visual auditável para o ponto.
+ * Para não atribuir condição prevista à estação, o ícone usa nesta ordem:
  * condição observada explícita, previsão horária, previsão diária e narrativa oficial.
  */
 export function resolveHeroWeatherIcon(
@@ -39,4 +39,3 @@ export function resolveHeroWeatherIcon(
   if (/sol|ensolarado|ceu claro/.test(text)) return "sun";
   return "cloud";
 }
-
