@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { InternalPageChapters } from "@/components/weather/InternalWeatherWidgets";
 import type { MeteogramData, MeteogramHour } from "@/lib/weather/meteogram.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
@@ -30,14 +29,6 @@ type ChartSeries = {
 const CHART_WIDTH = 1120;
 const CHART_HEIGHT = 290;
 const CHART_PADDING = { top: 28, right: 26, bottom: 48, left: 62 } as const;
-
-const chapters = [
-  { href: "#linha-do-tempo-meteograma", label: "Horários", detail: "24 ou 48 horas" },
-  { href: "#temperatura-orvalho", label: "Temperatura", detail: "Sensação e orvalho" },
-  { href: "#chuva-umidade", label: "Chuva", detail: "Chance e volume" },
-  { href: "#nuvens-visibilidade", label: "Nuvens", detail: "Camadas e visibilidade" },
-  { href: "#vento-pressao", label: "Vento", detail: "Rajadas e pressão" },
-];
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "horário não informado";
@@ -496,8 +487,6 @@ export function MeteogramPage({
 
   return (
     <div className="meteogram-page">
-      <InternalPageChapters items={chapters} label="Navegação do meteograma" />
-
       <section className="meteogram-overview" id="linha-do-tempo-meteograma" aria-labelledby="meteogram-overview-title">
         <header>
           <h2 id="meteogram-overview-title">Previsão por hora</h2>
