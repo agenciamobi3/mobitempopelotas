@@ -46,17 +46,7 @@
   box-shadow: none;
 }
 
-/* Heroes editoriais de Hoje, Amanhã, 7 dias e 15 dias possuem rails próprios
- * em seus CSS dedicados. A regra genérica permanece apenas nas superfícies que
- * ainda usam o layout retail compartilhado. */
-.internal-weather-shell--rain .rain-retail-hero__inner {
-  width: 100%;
-  max-width: none;
-  margin-inline: auto;
-  padding-right: var(--internal-weather-section-padding);
-  padding-left: var(--internal-weather-section-padding);
-  box-sizing: border-box;
-}
+/* Heroes meteorológicos principais possuem rails próprios em seus CSS dedicados. */
 
 .internal-weather-main > *,
 .internal-weather-main > .daily-page,
