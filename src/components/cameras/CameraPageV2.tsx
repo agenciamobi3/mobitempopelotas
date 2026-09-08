@@ -62,7 +62,7 @@ const stateCopy: Record<
 };
 
 const sourceNames: Record<WeatherSourceKey, string> = {
-  embrapa: "Embrapa",
+  "defesa-civil-rs": "Defesa Civil RS",
   inmet: "INMET",
   cppmet: "CPPMet/UFPel",
   "open-meteo": "Open-Meteo",

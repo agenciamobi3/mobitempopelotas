@@ -8,7 +8,7 @@ import {
 import type { WeatherBrief, WeatherIntelligenceData } from "./weather-intelligence.types";
 
 const SOURCE_LABELS: Record<WeatherSourceKey, string> = {
-  embrapa: "Embrapa",
+  "defesa-civil-rs": "Defesa Civil RS",
   inmet: "INMET",
   cppmet: "CPPMet",
   "open-meteo": "Open-Meteo",
