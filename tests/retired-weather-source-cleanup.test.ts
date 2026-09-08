@@ -36,6 +36,6 @@ test("Agora é restrito às estações confirmadas de Pelotas", () => {
 
 test("URL histórica da estação não continua servindo uma integração aposentada", () => {
   assert.match(retiredPage, /redirect/);
-  assert.match(retiredPage, /to: "\/metodologia"/);
+  assert.match(retiredPage, /to: "\/status-dos-dados"/);
   assert.match(retiredPage, /statusCode: 301/);
 });
