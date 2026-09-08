@@ -67,11 +67,6 @@ const CLIMATE_CONTENT = {
       description: "Compare máximas, mínimas, chuva e rajadas do período recente sem tratá-lo como climatologia.",
     },
     {
-      label: "Estação Embrapa em Pelotas",
-      href: "/estacao-embrapa-pelotas" as const,
-      description: "Consulte medições locais e o histórico observacional de 24 horas da estação.",
-    },
-    {
       label: "Mapa de geadas observadas no RS",
       href: "/mapa-de-geadas-rio-grande-do-sul" as const,
       description: "Veja registros observados de geada em estações do INMET sem confundi-los com previsão futura.",
@@ -87,9 +82,9 @@ const CLIMATE_CONTENT = {
       description: "Acompanhe a previsão detalhada de temperatura, chuva, nuvens, visibilidade, pressão e vento por até 48 horas.",
     },
     {
-      label: "Como os dados funcionam",
+      label: "Dados e fontes",
       href: "/status-dos-dados" as const,
-      description: "Veja de onde vêm os dados, quando atualizam e quais são seus limites.",
+      description: "Veja a origem dos dados, o estado atual das fontes e a última verificação.",
     },
   ],
 };
