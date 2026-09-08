@@ -10,6 +10,7 @@ import {
 const route = readFileSync("src/routes/situacao-hidrologica-pelotas.tsx", "utf8");
 const loader = readFileSync("src/lib/hydrology/public-hydrology-page-loader.ts", "utf8");
 const component = readFileSync("src/components/hydrology/AnaRhnRegionalStations.tsx", "utf8");
+const map = readFileSync("src/components/hydrology/AnaRhnRegionalMap.tsx", "utf8");
 
 const sanitizedInventoryPayload = {
   features: [
@@ -128,4 +129,13 @@ test("hydrology overview loads and renders ANA inventory only when useful", () =
   assert.match(component, /Estações oficiais na região de Pelotas/);
   assert.match(component, /Instrumentos cadastrados:/);
   assert.match(component, /Como interpretar esta seção/);
+});
+
+test("regional ANA stations use the existing MapLibre stack and keep list fallback", () => {
+  assert.match(component, /AnaRhnRegionalMap stations=\{data\.stations\}/);
+  assert.match(map, /import\("maplibre-gl"\)/);
+  assert.match(map, /tiles\.openfreemap\.org\/styles\/liberty/);
+  assert.match(map, /ANA \/ SNIRH \/ Rede Hidrometeorológica Nacional/);
+  assert.match(map, /As estações e seus dados cadastrais continuam disponíveis logo abaixo/);
+  assert.match(map, /PELOTAS: \[number, number\] = \[-52\.3371, -31\.7719\]/);
 });
