@@ -7,7 +7,7 @@ export function createUnavailableWeatherCameras(
     cameras: [],
     source: {
       name: "Fontes públicas de câmeras",
-      url: "/metodologia",
+      url: "/status-dos-dados",
       fetchedAt: new Date().toISOString(),
     },
     warning,
