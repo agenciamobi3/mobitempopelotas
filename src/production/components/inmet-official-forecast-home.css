@@ -1,6 +1,6 @@
 /*
- * Previsão oficial do INMET — Data Journalism Premium.
- * Composição autocontida da Home: superfície contínua, hairlines e hierarquia tipográfica.
+ * Previsão oficial do INMET.
+ * Composição autocontida da Home com hierarquia tipográfica e fonte visível.
  */
 
 .tp-home-inmet {
@@ -285,32 +285,15 @@
 }
 
 .tp-home-inmet__footer {
-  display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(280px, 0.82fr);
-  gap: clamp(26px, 4vw, 54px);
+  display: flex;
+  justify-content: flex-end;
   padding: 15px clamp(30px, 4vw, 52px) 17px;
   border-top: 1px solid var(--tp-inmet-line);
   background: #f8faf9;
-}
-
-.tp-home-inmet__footer > div {
-  display: grid;
-  align-content: start;
-  gap: 3px;
-}
-
-.tp-home-inmet__footer > div:last-child {
-  justify-items: end;
   text-align: right;
 }
 
-.tp-home-inmet__footer strong {
-  color: #203b4b;
-  font-size: 0.74rem;
-}
-
 .tp-home-inmet__footer span {
-  max-width: 76ch;
   color: #74868f;
   font-size: 0.69rem;
   line-height: 1.55;
@@ -383,12 +366,8 @@
   }
 
   .tp-home-inmet__footer {
-    grid-template-columns: 1fr;
+    justify-content: flex-start;
     padding-inline: 20px;
-  }
-
-  .tp-home-inmet__footer > div:last-child {
-    justify-items: start;
     text-align: left;
   }
 }
