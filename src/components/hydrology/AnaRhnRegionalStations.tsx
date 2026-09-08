@@ -1,5 +1,6 @@
 import { CheckCircle2, ExternalLink, MapPin, Radio } from "lucide-react";
 
+import type { AnaRhnHydrographyData } from "@/lib/hydrology/ana-rhn-hydrography.server";
 import type {
   AnaRhnRegionalInventoryData,
   AnaRhnRegionalStation,
@@ -10,6 +11,7 @@ import "./AnaRhnRegionalStations.css";
 
 type AnaRhnRegionalStationsProps = {
   data: AnaRhnRegionalInventoryData;
+  hydrography: AnaRhnHydrographyData;
 };
 
 function formatDistance(value: number) {
@@ -35,7 +37,7 @@ function stationContext(station: AnaRhnRegionalStation) {
   return [station.river, station.subBasin ?? station.basin].filter(Boolean).join(" · ");
 }
 
-export function AnaRhnRegionalStations({ data }: AnaRhnRegionalStationsProps) {
+export function AnaRhnRegionalStations({ data, hydrography }: AnaRhnRegionalStationsProps) {
   if (data.status !== "live" || data.stations.length === 0) return null;
 
   const operatingCount = data.stations.filter((station) => station.operating === true).length;
@@ -56,7 +58,7 @@ export function AnaRhnRegionalStations({ data }: AnaRhnRegionalStationsProps) {
       </header>
 
       <div className="ana-rhn-regional__overview">
-        <AnaRhnRegionalMap stations={data.stations} />
+        <AnaRhnRegionalMap stations={data.stations} hydrography={hydrography} />
 
         <div className="ana-rhn-regional__numbers" aria-label="Resumo do inventário consultado">
           <article>
@@ -111,7 +113,7 @@ export function AnaRhnRegionalStations({ data }: AnaRhnRegionalStationsProps) {
         <div>
           <h3>Como interpretar esta seção</h3>
           <p>
-            Este inventário mostra estações cadastradas na rede nacional próximas de Pelotas. Ele não substitui a leitura atual do Laranjal e não transforma automaticamente uma estação próxima em referência para a cidade. Situação, instrumentos e instituições são reproduzidos do cadastro consultado.
+            Este inventário mostra estações cadastradas na rede nacional próximas de Pelotas. O mapa acrescenta rios principais e massas d’água publicados pela ANA/SNIRH quando essas camadas estão disponíveis. Isso não substitui a leitura atual do Laranjal nem transforma automaticamente uma estação próxima em referência para a cidade.
           </p>
         </div>
         <a href={data.source.layerUrl} target="_blank" rel="noreferrer">
