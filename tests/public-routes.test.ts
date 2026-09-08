@@ -24,7 +24,7 @@ const CRITICAL_PUBLIC_ROUTES = [
   "/enchente-2024-pelotas-laranjal",
   "/cameras-ao-vivo-pelotas",
   "/tempo-na-regiao-sul-rs",
-  "/metodologia",
+  "/status-dos-dados",
   "/privacidade-e-dados",
 ] as const;
 
@@ -87,12 +87,14 @@ test("o sitemap corresponde à árvore gerada pelo TanStack Router", () => {
   }
 });
 
-test("preserva páginas essenciais para visitantes leigos", () => {
+test("preserva páginas essenciais e indexa uma única página para dados e fontes", () => {
   const paths = new Set(PUBLIC_ROUTES.map((route) => route.path));
 
   for (const route of CRITICAL_PUBLIC_ROUTES) {
     assert.ok(paths.has(route), `rota pública essencial ausente: ${route}`);
   }
+
+  assert.equal(paths.has("/metodologia"), false, "o alias legado não deve permanecer no sitemap");
 });
 
 test("mantém atualização frequente nas páginas operacionais", () => {
@@ -107,6 +109,7 @@ test("mantém atualização frequente nas páginas operacionais", () => {
     "/nivel-da-lagoa-dos-patos-laranjal",
     "/nivel-do-guaiba",
     "/cameras-ao-vivo-pelotas",
+    "/status-dos-dados",
   ];
 
   for (const path of hourlyRoutes) {
