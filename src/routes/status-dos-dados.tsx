@@ -205,6 +205,11 @@ function DataStatusPage() {
                         </div>
                         <p className="data-status-service__usage">{usage}</p>
                         {showDetail ? <p className="data-status-service__detail">{service.detail}</p> : null}
+                        {service.dataCondition ? (
+                          <p className="data-status-service__detail">
+                            <strong>Condição do dado:</strong> {service.dataCondition}
+                          </p>
+                        ) : null}
                         <footer>
                           <span>Verificado em {formatCheckedAt(service.checkedAt)}</span>
                           {service.sourceUrl ? <a href={service.sourceUrl} target="_blank" rel="noopener noreferrer">Abrir fonte</a> : null}
