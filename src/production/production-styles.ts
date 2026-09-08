@@ -15,7 +15,6 @@ import "./styles/hydrology-monitor-grid.css";
 import "./styles/guaiba-card.css";
 import "./styles/guaiba-card-refinement.css";
 import "./styles/laranjal-level-card.css";
-import "./styles/embrapa-observation.css";
 import "./styles/footer.css";
 import "./styles/footer-resources.css";
 import "./styles/interface-fixes.css";
