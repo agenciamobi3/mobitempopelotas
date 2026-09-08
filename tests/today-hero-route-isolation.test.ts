@@ -2,19 +2,24 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const css = readFileSync("src/components/weather/TodayRetailHeroRefinement.css", "utf8");
+const css = readFileSync("src/components/weather/TodayEditorialHero.css", "utf8");
 
-test("Today hero refinement cannot leak into shared weekly hero classes", () => {
-  assert.match(css, /chunks CSS podem continuar montados após navegação SPA/);
-  assert.doesNotMatch(css, /(^|\n)\s*\.today-retail-hero/m);
+test("Today editorial hero cannot leak into other route hero classes", () => {
+  assert.match(css, /Prefixado pela rota/);
+  assert.doesNotMatch(css, /(^|\n)\s*\.today-retail-hero\s*\{/m);
   assert.match(css, /\.internal-weather-shell--today \.today-retail-hero__inner/);
-  assert.match(css, /\.internal-weather-shell--today \.today-retail-hero__current-metrics/);
+  assert.match(css, /\.internal-weather-shell--today \.today-retail-hero__facts/);
+  assert.doesNotMatch(css, /internal-weather-shell--tomorrow|internal-weather-shell--rain|internal-weather-shell--wind/);
 });
 
-test("Today hero keeps usable narrow-screen typography and touch targets", () => {
-  assert.match(css, /\.today-retail-hero__badges > a\s*\{[\s\S]*min-height:\s*44px/);
-  assert.match(css, /@media \(max-width: 420px\)[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(css, /\.today-retail-hero__current-metrics > div:last-child\s*\{[\s\S]*grid-column:\s*1 \/ -1/);
-  assert.match(css, /@media \(max-width: 360px\)/);
+test("Today editorial hero keeps readable narrow-screen hierarchy", () => {
+  assert.match(css, /@media \(max-width: 1100px\)/);
+  assert.match(css, /@media \(max-width: 720px\)/);
+  assert.match(
+    css,
+    /@media \(max-width: 720px\)[\s\S]*\.today-retail-hero__facts[\s\S]*grid-template-columns:\s*1fr/,
+  );
+  assert.match(css, /var\(--tp-home-container-mobile-gutter, 20px\)/);
+  assert.match(css, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(css, /font-size:\s*0\.(?:4\d|5[0-7])rem/);
 });
