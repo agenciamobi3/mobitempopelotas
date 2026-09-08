@@ -14,7 +14,7 @@ const simagroStyles = readFileSync("src/components/weather/SimagroModelProducts.
 const functionSource = readFileSync("src/lib/weather/meteogram.functions.ts", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const todayAtmosphere = readFileSync("src/components/weather/TodayAtmosphericSignals.tsx", "utf8");
-const header = readFileSync("src/components/layout/Header.tsx", "utf8");
+const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 
 function series(length: number, read: (index: number) => number | null) {
   return Array.from({ length }, (_, index) => read(index));
@@ -235,7 +235,8 @@ test("meteogram is discoverable and cached as an operational page", () => {
   assert.match(publicRoutes, /path: "\/meteograma-pelotas", changeFrequency: "hourly"/);
   assert.match(todayAtmosphere, /to="\/meteograma-pelotas"/);
   assert.match(todayAtmosphere, /Ver previsão detalhada de 24 e 48 horas/);
-  assert.match(header, /Previsão hora a hora/);
+  assert.match(header, /label: "Meteograma"/);
+  assert.match(header, /Temperatura, chuva, pressão, nuvens e vento hora a hora/);
   assert.match(header, /"\/meteograma-pelotas"/);
   assert.match(functionSource, /max-age=300/);
   assert.match(functionSource, /stale-while-revalidate=600/);
