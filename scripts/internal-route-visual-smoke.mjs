@@ -131,6 +131,12 @@ const routes = [
     hiddenSelectors: [".methodology-chapter-nav"],
   },
   {
+    name: "quem-somos",
+    path: "/quem-somos",
+    marker: ".about-page",
+    neutralSelectors: [".about-hero"],
+  },
+  {
     name: "privacidade",
     path: "/privacidade-e-dados",
     marker: ".privacy-data-shell",
