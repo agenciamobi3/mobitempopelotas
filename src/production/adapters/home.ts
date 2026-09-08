@@ -9,6 +9,8 @@ import { resolveMoonPhase } from "../lib/astronomy.ts";
 import type { WeatherAiSummaries } from "@/production/lib/weather-ai-summary";
 import type { AstronomyData, CurrentWeather, WeatherData } from "@/production/lib/weather-data";
 
+const DATA_SOURCES_URL = "/status-dos-dados";
+
 function formatUpdatedAt(value: string | null | undefined) {
   if (!value) return null;
   const date = new Date(value);
@@ -157,12 +159,12 @@ export function toProductionWeatherData(data: AggregatedWeatherData): WeatherDat
     astronomy: resolveAstronomy(data),
     source: {
       name: "MOBI Tempo Pelotas",
-      url: "/metodologia",
+      url: DATA_SOURCES_URL,
       isFallback: data.status !== "live",
       observationName: observationSourceName(data),
       observationUrl: data.observation.source.url,
       forecastName: data.quality.forecastProvider ?? "Previsão meteorológica indisponível",
-      forecastUrl: "/metodologia",
+      forecastUrl: DATA_SOURCES_URL,
     },
   };
 }
