@@ -107,6 +107,7 @@ export type WeatherData = {
 
 const DEFESA_CIVIL_MAP_URL = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
 const DEFESA_CIVIL_SOURCE_NAME = "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico";
+const DATA_SOURCES_URL = "/status-dos-dados";
 
 /**
  * Estado vazio para falhas totais de carregamento.
@@ -152,11 +153,11 @@ export const fallbackWeatherData: WeatherData = {
   },
   source: {
     name: "Dados meteorológicos indisponíveis",
-    url: "/metodologia",
+    url: DATA_SOURCES_URL,
     isFallback: true,
     observationName: DEFESA_CIVIL_SOURCE_NAME,
     observationUrl: DEFESA_CIVIL_MAP_URL,
     forecastName: "Previsão indisponível",
-    forecastUrl: "/metodologia",
+    forecastUrl: DATA_SOURCES_URL,
   },
 };
