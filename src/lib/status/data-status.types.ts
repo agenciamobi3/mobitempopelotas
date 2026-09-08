@@ -14,6 +14,7 @@ export type ServiceStatus = {
   category: ServiceCategory;
   state: ServiceState;
   detail: string;
+  dataCondition?: string;
   checkedAt: string;
   sourceUrl?: string;
 };
