@@ -1,5 +1,7 @@
 import { getAnaRhnRegionalHydrography } from "./ana-rhn-hydrography.functions";
 import { createUnavailableAnaRhnHydrography } from "./ana-rhn-hydrography.server";
+import { getAnaRhnLaranjalStationProfile } from "./ana-rhn-laranjal-profile.functions";
+import { createUnavailableAnaRhnLaranjalStationProfile } from "./ana-rhn-laranjal-profile.server";
 import { getAnaRhnRegionalInventory } from "./ana-rhn-regional.functions";
 import type { AnaRhnRegionalInventoryData } from "./ana-rhn-regional.server";
 import { getDefesaCivilHydroData } from "./defesa-civil-rs.functions";
@@ -187,14 +189,22 @@ export async function loadGuaibaPageData() {
 }
 
 export async function loadLaranjalHydrologyPageData() {
-  const [weatherResult, levelResult] = await Promise.allSettled([
+  const [weatherResult, levelResult, anaRhnProfileResult] = await Promise.allSettled([
     settlePageDependency(() => getWeatherIntelligence(), createUnavailableWeatherIntelligence),
     settlePageDependency(() => getLaranjalLevelData(), createUnavailableLaranjalLevelData),
+    settlePageDependency(
+      () => getAnaRhnLaranjalStationProfile(),
+      createUnavailableAnaRhnLaranjalStationProfile,
+    ),
   ]);
 
   return {
     weather: settledValueOrFallback(weatherResult, createUnavailableWeatherIntelligence),
     level: settledValueOrFallback(levelResult, createUnavailableLaranjalLevelData),
+    anaRhnProfile: settledValueOrFallback(
+      anaRhnProfileResult,
+      createUnavailableAnaRhnLaranjalStationProfile,
+    ),
   };
 }
 
