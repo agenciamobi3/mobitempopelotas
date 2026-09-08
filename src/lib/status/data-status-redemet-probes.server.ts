@@ -22,13 +22,6 @@ const REDEMET_SERVICE_IDS = new Set([
   "inmet-satellite",
 ]);
 
-const ANA_RHN_PREVIOUS_BLOCKING_COPIES = [
-  "medição segue bloqueada até confirmar unidade, referência vertical e timezone.",
-  "unidade (cm) e timezone foram confirmados; a medição segue bloqueada até confirmar a referência vertical específica da estação.",
-] as const;
-const ANA_RHN_CURRENT_READINESS_COPY =
-  "ANA/RHN permanece somente como readiness/cross-check nesta fase porque o Laranjal já é coberto por duas fontes de coleta do projeto. Unidade (cm) e timezone estão confirmados; a referência vertical permanece não confirmada.";
-
 type ProbeLayer = RedemetImageLayerResponse | RedemetStormLayerResponse;
 type ProbeProvider = RedemetImageLayerResponse["provider"];
 
@@ -50,7 +43,7 @@ function timeoutLayer(provider: ProbeProvider, label: string): RedemetImageLayer
     frames: [],
     currentIndex: 0,
     updatedAt: new Date().toISOString(),
-    error: `O probe independente excedeu ${PROBE_DEADLINE_MS / 1_000} s. Isso indica timeout desta integração, não indisponibilidade global da fonte oficial.`,
+    error: "A fonte não respondeu dentro do tempo desta verificação.",
   };
 }
 
@@ -67,13 +60,10 @@ async function settleProbe(definition: ProbeDefinition): Promise<ProbeLayer> {
         );
       }),
     ]);
-  } catch (error) {
+  } catch {
     return {
       ...timeoutLayer(definition.provider, definition.name),
-      error:
-        error instanceof Error
-          ? `Falha do probe independente: ${error.message}`
-          : "Falha desconhecida do probe independente.",
+      error: "A fonte não entregou dados utilizáveis nesta verificação.",
     };
   } finally {
     if (timeout) clearTimeout(timeout);
@@ -113,10 +103,12 @@ function serviceFromProbe(
       : `${layer.frames.length} quadros utilizáveis`;
   const detail =
     state === "operational"
-      ? `Probe independente respondeu com ${frameDetail}.`
+      ? `Fonte respondeu com ${frameDetail}.`
       : state === "implementation" && definition.id === "inmet-satellite"
-        ? "O produto público de satélite do INMET permanece referenciado, mas o upstream recusa a integração server-side com HTTP 403. Este estado descreve a integração do Tempo Pelotas e não indisponibilidade do serviço público do INMET."
-        : layer.error || "A integração não retornou dado utilizável nesta verificação independente.";
+        ? "O produto público existe, mas a consulta automática do Tempo Pelotas não está disponível nesta integração."
+        : state === "partial"
+          ? "A fonte respondeu, mas não entregou uma imagem utilizável nesta verificação."
+          : "A fonte não entregou dados utilizáveis nesta verificação.";
 
   return {
     id: definition.id,
@@ -130,20 +122,6 @@ function serviceFromProbe(
       "officialUrl" in layer && typeof layer.officialUrl === "string"
         ? layer.officialUrl
         : definition.sourceUrl,
-  };
-}
-
-function normalizeAnaRhnImplementationDetail(service: ServiceStatus): ServiceStatus {
-  if (service.id !== "ana-rhn") return service;
-
-  const previousCopy = ANA_RHN_PREVIOUS_BLOCKING_COPIES.find((copy) =>
-    service.detail.includes(copy),
-  );
-  if (!previousCopy) return service;
-
-  return {
-    ...service,
-    detail: service.detail.replace(previousCopy, ANA_RHN_CURRENT_READINESS_COPY),
   };
 }
 
@@ -187,11 +165,6 @@ export async function collectIndependentRedemetServices(
   );
 }
 
-/**
- * Mantém o restante do overview existente, mas substitui exclusivamente Radar,
- * STSC e os dois satélites por probes das próprias integrações. O monitor deixa
- * de inferir a saúde de uma fonte a partir do loader/composição da página Radar.
- */
 export async function collectDataStatusWithIndependentRedemet(): Promise<DataStatusOverview> {
   const checkedAt = new Date().toISOString();
   const [overview, redemetServices] = await Promise.all([
@@ -200,9 +173,7 @@ export async function collectDataStatusWithIndependentRedemet(): Promise<DataSta
   ]);
 
   const services = [
-    ...overview.services
-      .filter((service) => !REDEMET_SERVICE_IDS.has(service.id))
-      .map(normalizeAnaRhnImplementationDetail),
+    ...overview.services.filter((service) => !REDEMET_SERVICE_IDS.has(service.id)),
     ...redemetServices,
   ];
 
