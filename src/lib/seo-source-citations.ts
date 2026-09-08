@@ -1,7 +1,7 @@
 import { absoluteUrl } from "./site-config";
 
 export const SEO_SOURCE_URLS = {
-  methodology: absoluteUrl("/metodologia"),
+  methodology: absoluteUrl("/status-dos-dados"),
   defesaCivilRs: "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa",
   openMeteo: "https://open-meteo.com/",
   inmet: "https://portal.inmet.gov.br/",
