@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
-  Activity,
   AlertTriangle,
   ArrowLeft,
-  ArrowRight,
   CheckCircle2,
   Clock3,
   CloudSun,
@@ -17,7 +15,6 @@ import {
   RefreshCw,
   Scale,
   ShieldCheck,
-  Sparkles,
   Waves,
   type LucideIcon,
 } from "lucide-react";
@@ -45,7 +42,6 @@ type SourceDisplayStatus =
   | LaranjalLevelData["status"]
   | GuaibaObservationData["status"]
   | LagoonMonitoringNetworkData["status"];
-
 type SourceCategory = "meteorology" | "hydrology";
 
 type SourceCard = {
@@ -78,27 +74,27 @@ const statusLabels: Record<SourceDisplayStatus, string> = {
 const validationRules = [
   {
     icon: FileCheck2,
-    title: "Cada informação mantém sua origem",
+    title: "Observação e previsão são séries diferentes",
     description:
-      "A página identifica a instituição responsável e registra quando a fonte foi consultada.",
+      "O Agora só usa uma estação meteorológica recente da rede estadual. Modelos de previsão não preenchem uma observação ausente.",
   },
   {
     icon: Clock3,
     title: "Dados antigos não aparecem como atuais",
     description:
-      "Leituras atrasadas recebem aviso. Quando útil, o último valor conhecido continua visível com seu horário.",
+      "Para o Agora, a estação precisa ter leitura recente. Leituras atrasadas permanecem identificadas em contextos próprios.",
   },
   {
     icon: Scale,
-    title: "Diferenças entre fontes são consideradas",
+    title: "Cada medição pertence ao seu ponto",
     description:
-      "Medições e previsões podem discordar porque usam locais, horários e métodos diferentes. Diferenças relevantes reduzem a confiança exibida.",
+      "Temperatura, vento, chuva e nível representam a estação indicada, não uma interpolação automática de toda a cidade.",
   },
   {
     icon: ShieldCheck,
     title: "Valores ausentes não viram zero",
     description:
-      "Chance de chuva, rajada ou qualquer outro valor não informado continua marcado como indisponível.",
+      "Rajada, chuva, pressão ou qualquer outro valor não publicado permanece indisponível.",
   },
   {
     icon: AlertTriangle,
@@ -110,7 +106,7 @@ const validationRules = [
     icon: RefreshCw,
     title: "Falhas das fontes ficam visíveis",
     description:
-      "Quando uma instituição não responde, a página usa outra fonte compatível ou informa a indisponibilidade.",
+      "Quando uma fonte não responde, o portal informa a indisponibilidade ou usa apenas uma contingência semanticamente compatível.",
   },
 ] as const;
 
@@ -118,7 +114,6 @@ function formatDateTime(value: string | null) {
   if (!value) return "Horário não informado";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Horário não informado";
-
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
@@ -130,7 +125,6 @@ function latestTimestamp(values: Array<string | null | undefined>) {
   const timestamps = values
     .map((value) => (value ? new Date(value).getTime() : Number.NaN))
     .filter(Number.isFinite);
-
   return timestamps.length ? new Date(Math.max(...timestamps)).toISOString() : null;
 }
 
@@ -138,8 +132,7 @@ function redemetSourceCard(redemet: RedemetOverview): SourceCard {
   const products = [redemet.radar, redemet.satellite, redemet.inmetSatellite, redemet.storms];
   const configured = products.filter((source) => source.configured).length;
   const available = products.filter((source) => source.available).length;
-  const fetchedAt =
-    latestTimestamp(products.map((source) => source.updatedAt)) ?? new Date().toISOString();
+  const fetchedAt = latestTimestamp(products.map((source) => source.updatedAt)) ?? new Date().toISOString();
   const status: SourceDisplayStatus =
     available === products.length ? "live" : available > 0 ? "partial" : "unavailable";
 
@@ -148,11 +141,11 @@ function redemetSourceCard(redemet: RedemetOverview): SourceCard {
     category: "meteorology",
     name: "Radar, satélites e trovoadas",
     organization: "REDEMET / DECEA e INMET",
-    role: "Imagens e ocorrências na região",
+    role: "Monitoramento remoto da região",
     description:
       available > 0
-        ? `${available} de ${products.length} informações estão disponíveis. A REDEMET fornece radar, satélite regional e registros de trovoadas; o INMET complementa com imagens GOES da Região Sul.`
-        : "Nenhuma imagem ou ocorrência pôde ser exibida nesta atualização. O portal não cria imagens ou ecos quando a fonte não responde.",
+        ? `${available} de ${products.length} produtos estão disponíveis. Radar e satélite ajudam a acompanhar sistemas meteorológicos, mas não substituem a estação usada no Agora.`
+        : "Nenhuma imagem ou ocorrência pôde ser exibida nesta atualização. O portal não cria imagens quando a fonte não responde.",
     detail:
       configured === products.length
         ? "Todos os serviços esperados foram reconhecidos."
@@ -164,33 +157,36 @@ function redemetSourceCard(redemet: RedemetOverview): SourceCard {
   };
 }
 
-function createSourceCards({
-  weather,
-  level,
-  redemet,
-  guaiba,
-  lagoon,
-}: MethodologyPageProps): SourceCard[] {
+function createSourceCards(props: MethodologyPageProps): SourceCard[] {
+  const { weather, level, redemet, guaiba, lagoon } = props;
   const sourceHealth = weather.weather.sources;
+  const observation = weather.weather.observation;
+  const observationHealth = sourceHealth["defesa-civil-rs"];
   const forecastSource = weather.weather.quality.forecastSource ?? "open-meteo";
   const forecastHealth = sourceHealth[forecastSource];
   const usesMetNorway = forecastSource === "met-norway";
   const forecastProvider =
     weather.weather.quality.forecastProvider ?? (usesMetNorway ? "MET Norway" : "Open-Meteo");
+  const stationDetail = observation.station.code
+    ? `${observation.station.name} · ${observation.station.code}`
+    : observation.station.name;
 
   return [
     {
-      id: "embrapa",
+      id: "defesa-civil-rs",
       category: "meteorology",
-      name: "Estação meteorológica de Pelotas",
-      organization: "Embrapa Clima Temperado",
-      role: "Medições locais",
+      name: "Rede de Monitoramento Hidrometeorológico",
+      organization: "Defesa Civil RS / Casa Militar",
+      role: "Fonte do Agora meteorológico",
       description:
-        "Temperatura, umidade, pressão, vento, extremos e acumulados medidos no Posto Meteorológico da Sede, em Pelotas.",
-      detail: sourceHealth.embrapa.reason,
-      status: sourceHealth.embrapa.status,
-      fetchedAt: sourceHealth.embrapa.fetchedAt,
-      url: weather.weather.observation.source.url,
+        "O portal seleciona a estação meteorológica recente e mais próxima de Pelotas com temperatura utilizável. Temperatura, sensação, umidade, pressão, vento, rajada e chuva são mantidos como medições do ponto indicado.",
+      detail:
+        observation.status === "live"
+          ? `Estação atual: ${stationDetail}${observation.station.distanceFromPelotasKm === null ? "" : ` · ${Math.round(observation.station.distanceFromPelotasKm)} km de Pelotas`}.`
+          : observation.error,
+      status: observationHealth.status,
+      fetchedAt: observationHealth.fetchedAt,
+      url: observation.source.url,
       icon: Gauge,
     },
     {
@@ -200,7 +196,7 @@ function createSourceCards({
       organization: "INMET",
       role: "Previsão municipal e alertas",
       description:
-        "Previsão para Pelotas, avisos oficiais por área e informações da estação de referência. Esses dados complementam a medição atual da Embrapa.",
+        "O INMET complementa o portal com avisos oficiais, previsão municipal e metadados de estação. Esses dados não substituem a observação atual da rede estadual.",
       detail: sourceHealth.inmet.reason,
       status: sourceHealth.inmet.status,
       fetchedAt: sourceHealth.inmet.fetchedAt,
@@ -212,7 +208,7 @@ function createSourceCards({
       category: "meteorology",
       name: "Previsão regional da UFPel",
       organization: "CPPMet / UFPel",
-      role: "Previsão para a região",
+      role: "Contexto meteorológico regional",
       description:
         "Condição prevista, temperaturas e textos publicados pelo Centro de Pesquisas e Previsões Meteorológicas da UFPel.",
       detail: sourceHealth.cppmet.reason,
@@ -227,9 +223,9 @@ function createSourceCards({
       category: "meteorology",
       name: "Previsão detalhada por hora e por dia",
       organization: forecastProvider,
-      role: usesMetNorway ? "Previsão usada quando a principal falha" : "Previsão detalhada principal",
+      role: usesMetNorway ? "Contingência de previsão" : "Previsão detalhada principal",
       description: usesMetNorway
-        ? "O MET Norway é usado quando a previsão principal não entrega dados utilizáveis. Informações não publicadas continuam indisponíveis."
+        ? "O MET Norway é usado quando a previsão principal não entrega dados utilizáveis. Ele continua sendo previsão, nunca uma medição atual."
         : "O Open-Meteo fornece previsão detalhada de temperatura, chuva e vento. Esses valores são estimativas de modelo, não medições atuais.",
       detail: forecastHealth.reason,
       status: forecastHealth.status,
@@ -243,7 +239,7 @@ function createSourceCards({
       id: "laranjal",
       category: "hydrology",
       name: "Estação Laranjal",
-      organization: "LabHidroSens / UFPel",
+      organization: level.source.name,
       role: "Medição local da Lagoa dos Patos",
       description:
         "Medição do nível na Praia do Laranjal, com última leitura, evolução recente e aviso quando o dado está atrasado.",
@@ -261,9 +257,7 @@ function createSourceCards({
       role: "Nível do Guaíba em Porto Alegre",
       description:
         "Leitura usada para acompanhar a situação regional. O nível do Guaíba não determina sozinho o nível observado em Pelotas.",
-      detail:
-        guaiba.error ??
-        `Estação usada nesta atualização: ${guaiba.station}. Outra fonte compatível pode ser usada quando necessário.`,
+      detail: guaiba.error ?? `Estação usada nesta atualização: ${guaiba.station}.`,
       status: guaiba.status,
       fetchedAt: guaiba.source.fetchedAt,
       url: guaiba.source.url,
@@ -275,7 +269,7 @@ function createSourceCards({
       name: "Pontos da Lagoa dos Patos",
       organization: lagoon.source.organizations,
       role: "Medições em diferentes partes da Lagoa",
-      description: `${lagoon.available} de ${lagoon.total} estações têm leitura disponível. A rede acompanha pontos entre Itapuã, Arambaré, São Lourenço do Sul, Rio Grande e São José do Norte.`,
+      description: `${lagoon.available} de ${lagoon.total} estações têm leitura disponível. A rede acompanha diferentes pontos do sistema lagunar.`,
       detail: lagoon.error ?? lagoon.source.reference,
       status: lagoon.status,
       fetchedAt: lagoon.source.fetchedAt,
@@ -293,13 +287,10 @@ function StatusIcon({ status }: { status: SourceDisplayStatus }) {
 
 function SourceCardItem({ source }: { source: SourceCard }) {
   const Icon = source.icon;
-
   return (
     <article className="methodology-source-card" data-category={source.category}>
       <div className="methodology-source-topline">
-        <span className="methodology-source-icon">
-          <Icon aria-hidden="true" />
-        </span>
+        <span className="methodology-source-icon"><Icon aria-hidden="true" /></span>
         <span className={`methodology-source-status methodology-source-status-${source.status}`}>
           <StatusIcon status={source.status} /> {statusLabels[source.status]}
         </span>
@@ -310,12 +301,7 @@ function SourceCardItem({ source }: { source: SourceCard }) {
       <div className="methodology-source-description">{source.description}</div>
       {source.detail ? <div className="methodology-source-detail">{source.detail}</div> : null}
       <small>Atualizada em {formatDateTime(source.fetchedAt)}</small>
-      <a
-        href={source.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`Abrir página de ${source.organization} em nova aba`}
-      >
+      <a href={source.url} target="_blank" rel="noopener noreferrer">
         Abrir página original <ExternalLink aria-hidden="true" />
       </a>
     </article>
@@ -323,7 +309,6 @@ function SourceCardItem({ source }: { source: SourceCard }) {
 }
 
 export function MethodologyPage(props: MethodologyPageProps) {
-  const { weather } = props;
   const cards = createSourceCards(props);
   const meteorologyCards = cards.filter((source) => source.category === "meteorology");
   const hydrologyCards = cards.filter((source) => source.category === "hydrology");
@@ -332,30 +317,21 @@ export function MethodologyPage(props: MethodologyPageProps) {
     (source) => source.status === "partial" || source.status === "stale",
   ).length;
   const unavailableSources = cards.filter((source) => source.status === "unavailable").length;
-  const confidence = confidenceLabels[weather.weather.quality.confidence];
+  const confidence = confidenceLabels[props.weather.weather.quality.confidence];
   const updatedAt = latestTimestamp([
-    weather.intelligence.generatedAt,
+    props.weather.intelligence.generatedAt,
     ...cards.map((source) => source.fetchedAt),
   ]);
-  const synthesisLabel =
-    weather.intelligence.origin === "gemini" ? "Resumo com apoio do Gemini" : "Resumo montado pelo portal";
-  const synthesisDetail =
-    weather.intelligence.origin === "gemini"
-      ? `${weather.intelligence.model ?? "Modelo configurado"}; os números continuam ligados às fontes identificadas.`
-      : "O texto foi montado por regras do portal, sem completar números ausentes.";
 
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: "Como os dados do Tempo Pelotas funcionam",
     description:
-      "Origem dos dados meteorológicos e de nível, regras de verificação, fontes alternativas e limites do Tempo Pelotas.",
+      "Origem dos dados meteorológicos e hidrológicos, regras de verificação, contingências e limites do Tempo Pelotas.",
     inLanguage: "pt-BR",
     dateModified: updatedAt,
-    publisher: {
-      "@type": "Organization",
-      name: "Tempo Pelotas",
-    },
+    publisher: { "@type": "Organization", name: "Tempo Pelotas" },
   };
 
   return (
@@ -373,164 +349,55 @@ export function MethodologyPage(props: MethodologyPageProps) {
           <p className="methodology-kicker">Como os dados funcionam</p>
           <h1>De onde vêm as informações do Tempo Pelotas</h1>
           <p className="methodology-lead">
-            O portal reúne medições locais, previsões, alertas oficiais, imagens e níveis da água. Esta
-            página mostra quem fornece cada informação, quando ela foi atualizada e o que acontece quando
-            uma fonte falha.
+            O Agora meteorológico usa a Rede de Monitoramento Hidrometeorológico da Defesa Civil RS.
+            Previsão, alertas, radar e hidrologia permanecem identificados como camadas diferentes.
           </p>
         </div>
-
-        <aside className="methodology-quality" aria-label="Qualidade dos dados e situação das fontes">
-          <div className="methodology-quality-heading">
-            <Activity aria-hidden="true" />
-            <span>Qualidade dos dados do tempo</span>
-          </div>
-          <strong>{weather.weather.quality.score}/100</strong>
-          <span
-            className={`methodology-confidence methodology-confidence-${weather.weather.quality.confidence}`}
-          >
-            {confidence}
-          </span>
-          <dl>
-            <div>
-              <dt>Fontes verificadas</dt>
-              <dd>{cards.length}</dd>
-            </div>
-            <div>
-              <dt>Disponíveis</dt>
-              <dd>{operationalSources}</dd>
-            </div>
-            <div>
-              <dt>Parciais ou atrasadas</dt>
-              <dd>{degradedSources}</dd>
-            </div>
-            <div>
-              <dt>Indisponíveis</dt>
-              <dd>{unavailableSources}</dd>
-            </div>
-          </dl>
-          <div className="methodology-synthesis-state">
-            <Sparkles aria-hidden="true" />
-            <div>
-              <small>Como o resumo foi escrito</small>
-              <strong>{synthesisLabel}</strong>
-              <span>{synthesisDetail}</span>
-            </div>
-          </div>
-          <small>Última verificação em {formatDateTime(updatedAt)}</small>
+        <aside className="methodology-hero-status" aria-label="Estado das fontes">
+          <div><strong>{operationalSources}</strong><span>fontes disponíveis</span></div>
+          <div><strong>{degradedSources}</strong><span>com restrição</span></div>
+          <div><strong>{unavailableSources}</strong><span>indisponíveis</span></div>
+          <p>{confidence}</p>
+          <small>Última composição: {formatDateTime(updatedAt)}</small>
         </aside>
       </header>
 
-      <section
-        className="methodology-section methodology-sources-section"
-        id="fontes-ativas"
-        aria-labelledby="methodology-sources-title"
-      >
-        <div className="methodology-section-heading">
-          <div>
-            <p className="methodology-kicker">Fontes desta atualização</p>
-            <h2 id="methodology-sources-title">Quem fornece cada informação</h2>
-          </div>
-          <p>
-            Uma fonte pode estar disponível, parcial, atrasada ou indisponível sem impedir que as demais
-            continuem funcionando.
-          </p>
+      <section className="methodology-explainer" aria-labelledby="methodology-principle-title">
+        <div>
+          <span>Regra central</span>
+          <h2 id="methodology-principle-title">Medição é medição. Previsão é previsão.</h2>
         </div>
+        <p>
+          Quando não há uma estação meteorológica recente da rede estadual, o portal prefere mostrar
+          o Agora como indisponível em vez de preencher a lacuna com uma estimativa de modelo.
+        </p>
+      </section>
 
-        <div className="methodology-source-groups">
-          <section className="methodology-source-group is-meteorology" aria-labelledby="meteorology-sources-title">
-            <header className="methodology-source-group-heading">
-              <div>
-                <span>01</span>
-                <div>
-                  <p>Previsão, alertas e medições</p>
-                  <h3 id="meteorology-sources-title">Tempo</h3>
-                </div>
-              </div>
-              <small>{meteorologyCards.length} fontes verificadas</small>
-            </header>
-            <div className="methodology-source-grid">
-              {meteorologyCards.map((source) => <SourceCardItem source={source} key={source.id} />)}
-            </div>
-          </section>
-
-          <section className="methodology-source-group is-hydrology" aria-labelledby="hydrology-sources-title">
-            <header className="methodology-source-group-heading">
-              <div>
-                <span>02</span>
-                <div>
-                  <p>Níveis e mudanças recentes</p>
-                  <h3 id="hydrology-sources-title">Águas</h3>
-                </div>
-              </div>
-              <small>{hydrologyCards.length} fontes verificadas</small>
-            </header>
-            <div className="methodology-source-grid">
-              {hydrologyCards.map((source) => <SourceCardItem source={source} key={source.id} />)}
-            </div>
-            <p className="methodology-hydrology-note">
-              Cada estação usa uma referência própria. Valores do Laranjal, do Cais Mauá e das estações
-              da FURG/Portos RS não devem ser comparados diretamente como se partissem do mesmo zero.
-            </p>
-          </section>
+      <section className="methodology-sources" aria-labelledby="methodology-meteorology-title">
+        <header className="methodology-section-heading">
+          <span>Meteorologia</span>
+          <h2 id="methodology-meteorology-title">Observação, previsão, alertas e monitoramento</h2>
+        </header>
+        <div className="methodology-source-grid">
+          {meteorologyCards.map((source) => <SourceCardItem key={source.id} source={source} />)}
         </div>
       </section>
 
-      <section
-        className="methodology-section methodology-pipeline"
-        id="fluxo-dados"
-        aria-labelledby="pipeline-title"
-      >
-        <div className="methodology-section-heading">
-          <div>
-            <p className="methodology-kicker">Caminho dos dados</p>
-            <h2 id="pipeline-title">Como uma informação chega à tela</h2>
-          </div>
-          <p>
-            Antes de exibir um valor, o portal verifica a origem, o horário, a unidade e possíveis
-            diferenças entre as fontes disponíveis.
-          </p>
+      <section className="methodology-sources" aria-labelledby="methodology-hydrology-title">
+        <header className="methodology-section-heading">
+          <span>Hidrologia</span>
+          <h2 id="methodology-hydrology-title">Níveis e pontos do sistema lagunar</h2>
+        </header>
+        <div className="methodology-source-grid">
+          {hydrologyCards.map((source) => <SourceCardItem key={source.id} source={source} />)}
         </div>
-
-        <ol className="methodology-pipeline-grid">
-          <li>
-            <span>01</span>
-            <Database aria-hidden="true" />
-            <h3>Consulta</h3>
-            <p>As fontes são consultadas separadamente para que uma falha não interrompa toda a página.</p>
-          </li>
-          <li>
-            <span>02</span>
-            <FileCheck2 aria-hidden="true" />
-            <h3>Organização</h3>
-            <p>Datas, horários e unidades são organizados sem preencher informações que não foram publicadas.</p>
-          </li>
-          <li>
-            <span>03</span>
-            <Scale aria-hidden="true" />
-            <h3>Conferência</h3>
-            <p>Medições e previsões são comparadas para identificar atrasos e diferenças importantes.</p>
-          </li>
-          <li>
-            <span>04</span>
-            <Sparkles aria-hidden="true" />
-            <h3>Exibição</h3>
-            <p>O resumo organiza as informações para leitura sem alterar os números recebidos das fontes.</p>
-          </li>
-        </ol>
       </section>
 
-      <section className="methodology-section" id="regras-integridade" aria-labelledby="methodology-rules-title">
-        <div className="methodology-section-heading">
-          <div>
-            <p className="methodology-kicker">Verificações do portal</p>
-            <h2 id="methodology-rules-title">Como evitamos apresentar certezas falsas</h2>
-          </div>
-          <p>
-            A página procura facilitar a leitura sem transformar previsão em medição ou esconder que uma
-            fonte está atrasada ou indisponível.
-          </p>
-        </div>
-
+      <section className="methodology-rules" aria-labelledby="methodology-rules-title">
+        <header className="methodology-section-heading">
+          <span>Validação</span>
+          <h2 id="methodology-rules-title">Regras usadas antes de mostrar um dado</h2>
+        </header>
         <div className="methodology-rules-grid">
           {validationRules.map((rule) => {
             const Icon = rule.icon;
@@ -545,67 +412,15 @@ export function MethodologyPage(props: MethodologyPageProps) {
         </div>
       </section>
 
-      <section className="methodology-section" id="tipos-informacao" aria-labelledby="methodology-differences-title">
-        <div className="methodology-section-heading">
-          <div>
-            <p className="methodology-kicker">Como interpretar</p>
-            <h2 id="methodology-differences-title">Medição, previsão e resumo não são a mesma coisa</h2>
-          </div>
-        </div>
-
-        <div className="methodology-definition-grid">
-          <article>
-            <Gauge aria-hidden="true" />
-            <h3>Medição</h3>
-            <p>
-              É o valor registrado por um instrumento em local e horário específicos, como a temperatura
-              da Embrapa ou os níveis do Laranjal e do Cais Mauá.
-            </p>
-          </article>
-          <article>
-            <CloudSun aria-hidden="true" />
-            <h3>Previsão</h3>
-            <p>
-              É uma estimativa produzida por modelos ou por um órgão meteorológico. Pode mudar entre
-              atualizações e não garante que o fenômeno ocorrerá exatamente como indicado.
-            </p>
-          </article>
-          <article>
-            <Sparkles aria-hidden="true" />
-            <h3>Resumo</h3>
-            <p>
-              É o texto que organiza os dados para leitura rápida. Ele não substitui os números, os
-              alertas oficiais ou a avaliação de profissionais responsáveis.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section className="methodology-warning" id="limites-uso" aria-labelledby="methodology-warning-title">
-        <AlertTriangle aria-hidden="true" />
+      <section className="methodology-closing" aria-labelledby="methodology-closing-title">
+        <Info aria-hidden="true" />
         <div>
-          <p className="methodology-kicker">Limites de uso</p>
-          <h2 id="methodology-warning-title">O portal não substitui autoridades e serviços de emergência</h2>
+          <h2 id="methodology-closing-title">Fonte visível antes da interpretação</h2>
           <p>
-            O Tempo Pelotas não determina evacuações, não garante que uma rua irá alagar e não calcula o
-            nível futuro do Laranjal apenas pelo Guaíba. Em risco iminente, siga a Defesa Civil, o INMET e
-            as autoridades responsáveis.
+            Em situações de risco, consulte os avisos e orientações dos órgãos responsáveis. O Tempo
+            Pelotas organiza e contextualiza dados públicos, mas não substitui a autoridade oficial.
           </p>
-        </div>
-      </section>
-
-      <section className="methodology-actions" aria-label="Outras páginas para consulta">
-        <div>
-          <p className="methodology-kicker">Consulte as informações</p>
-          <h2>Abra a página adequada para cada necessidade</h2>
-        </div>
-        <div>
-          <Link className="methodology-primary-action" to="/tempo-hoje-pelotas">
-            Previsão de hoje <ArrowRight aria-hidden="true" />
-          </Link>
-          <Link className="methodology-secondary-action" to="/radar-e-satelite-pelotas">Radar e satélite</Link>
-          <Link className="methodology-secondary-action" to="/situacao-hidrologica-pelotas">Situação das águas</Link>
-          <Link className="methodology-secondary-action" to="/alertas">Alertas oficiais</Link>
+          <Link to="/alertas">Ver alertas oficiais</Link>
         </div>
       </section>
     </div>
