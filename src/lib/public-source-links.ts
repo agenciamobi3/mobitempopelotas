@@ -5,11 +5,6 @@ export type PublicSourceLink = {
 };
 
 export const PUBLIC_DATA_SOURCE_LINKS = {
-  embrapa: {
-    label: "Embrapa Clima Temperado",
-    url: "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm",
-    ariaLabel: "Abrir dados meteorológicos da Embrapa Clima Temperado em nova aba",
-  },
   inmet: {
     label: "INMET",
     url: "https://portal.inmet.gov.br/",
@@ -41,9 +36,9 @@ export const PUBLIC_DATA_SOURCE_LINKS = {
     ariaLabel: "Abrir o portal oficial do SIMAGRO RS em nova aba",
   },
   defesaCivilRs: {
-    label: "Defesa Civil RS",
-    url: "https://sistemas.defesacivil.rs.gov.br/api-redehidrometeorologica",
-    ariaLabel: "Abrir a documentação oficial da Rede Hidrometeorológica da Defesa Civil RS em nova aba",
+    label: "Defesa Civil RS — Rede Hidrometeorológica",
+    url: "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa",
+    ariaLabel: "Abrir o mapa oficial da Rede Hidrometeorológica da Defesa Civil RS em nova aba",
   },
   casaMilitarRs: {
     label: "Casa Militar RS",
@@ -96,7 +91,7 @@ export const FOOTER_SOURCE_GROUPS = [
   {
     title: "Previsão e observação",
     sources: [
-      PUBLIC_DATA_SOURCE_LINKS.embrapa,
+      PUBLIC_DATA_SOURCE_LINKS.defesaCivilRs,
       PUBLIC_DATA_SOURCE_LINKS.inmet,
       PUBLIC_DATA_SOURCE_LINKS.cppmet,
       PUBLIC_DATA_SOURCE_LINKS.openMeteo,
@@ -110,7 +105,6 @@ export const FOOTER_SOURCE_GROUPS = [
   {
     title: "Águas",
     sources: [
-      PUBLIC_DATA_SOURCE_LINKS.defesaCivilRs,
       PUBLIC_DATA_SOURCE_LINKS.casaMilitarRs,
       PUBLIC_DATA_SOURCE_LINKS.mks,
       PUBLIC_DATA_SOURCE_LINKS.labHidroSens,
