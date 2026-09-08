@@ -79,7 +79,8 @@ test("current condition uses field-level origin and plain labels", () => {
 
 test("home local monitoring explains station scope and rolling rain window", () => {
   assert.match(localMonitoring, /Rede de Monitoramento Hidrometeorológico/);
-  assert.match(localMonitoring, /estação meteorológica recente e próxima de Pelotas/);
+  assert.match(localMonitoring, /estações confirmadas em Pelotas/);
+  assert.match(localMonitoring, /leitura de até 30 minutos/);
   assert.match(localMonitoring, /Chuva em 24 h/);
   assert.match(localMonitoring, /janela móvel/);
   assert.match(localMonitoring, /Rajada medida/);
