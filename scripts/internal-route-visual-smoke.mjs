@@ -67,11 +67,6 @@ const routes = [
     marker: ".internal-weather-shell--flood-history",
   },
   {
-    name: "estacao-embrapa",
-    path: "/estacao-embrapa-pelotas",
-    marker: ".internal-weather-shell--embrapa",
-  },
-  {
     name: "situacao-hidrologica",
     path: "/situacao-hidrologica-pelotas",
     marker: ".internal-weather-shell--hydrology",
@@ -120,12 +115,6 @@ const routes = [
     path: "/status-dos-dados",
     marker: ".data-status-shell",
     neutralSelectors: [".data-status-hero"],
-  },
-  {
-    name: "metodologia",
-    path: "/metodologia",
-    marker: ".methodology-data-shell",
-    neutralSelectors: [".methodology-hero"],
   },
   {
     name: "quem-somos",
