@@ -10,7 +10,7 @@ const homeContract = readFileSync(
   "utf8",
 );
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
-const header = readFileSync("src/components/layout/Header.tsx", "utf8");
+const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 
 const climateSource = `${route}\n${page}`;
 
@@ -106,9 +106,9 @@ test("climate hero keeps only restrained seasonal accents", () => {
   assert.doesNotMatch(homeContract, /!important/);
 });
 
-test("climate route is discoverable through sitemap and monitoring navigation", () => {
+test("climate route is discoverable through sitemap and canonical editorial navigation", () => {
   assert.match(publicRoutes, /path: "\/clima-em-pelotas", changeFrequency: "daily"/);
   assert.match(header, /"\/clima-em-pelotas"/);
   assert.match(header, /label: "Clima de Pelotas"/);
-  assert.match(header, /Entenda as estações do ano e por que o tempo varia na cidade/);
+  assert.match(header, /Estações do ano, Lagoa dos Patos e dinâmica do clima local/);
 });
