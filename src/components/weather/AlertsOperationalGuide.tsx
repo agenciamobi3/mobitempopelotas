@@ -2,12 +2,15 @@ import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
   ArrowRight,
+  CloudRain,
   ExternalLink,
   MapPin,
   MessageSquareText,
   Radio,
+  Satellite,
   ShieldAlert,
   Smartphone,
+  Wind,
 } from "lucide-react";
 
 import {
@@ -60,6 +63,39 @@ function channelAction(banner: SafetyBanner) {
   return null;
 }
 
+function formatNumber(value: number | null, suffix: string, digits = 0) {
+  if (value === null) return "Não informado";
+  return `${new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: digits,
+  }).format(value)}${suffix}`;
+}
+
+function forecastContext(data: WeatherIntelligenceData) {
+  const hourly = data.weather.hourly.slice(0, 24);
+  const firstTwelve = hourly.slice(0, 12);
+  const probabilities = firstTwelve
+    .map((item) => item.precipitationProbability)
+    .filter((value): value is number => value !== null);
+  const precipitation = hourly
+    .map((item) => item.precipitationMm)
+    .filter((value): value is number => value !== null && value !== undefined);
+  const gusts = hourly
+    .map((item) => item.windGust)
+    .filter((value): value is number => value !== null);
+
+  return {
+    hours: hourly.length,
+    rainProbability: probabilities.length ? Math.max(...probabilities) : null,
+    rainProbabilityKnown: probabilities.length,
+    rainVolume: precipitation.length
+      ? precipitation.reduce((total, value) => total + value, 0)
+      : null,
+    rainVolumeKnown: precipitation.length,
+    maximumGust: gusts.length ? Math.max(...gusts) : null,
+    gustKnown: gusts.length,
+  };
+}
+
 export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData }) {
   const alerts = data.weather.alerts;
   const inmet = data.weather.sources.inmet;
@@ -67,6 +103,7 @@ export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData
   const regional = alerts.filter((alert) => alert.relevance === "regional").length;
   const statewide = alerts.filter((alert) => alert.relevance === "state").length;
   const broaderScope = regional + statewide;
+  const forecast = forecastContext(data);
 
   return (
     <div className="alerts-operational-guide">
@@ -128,6 +165,68 @@ export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData
       </section>
 
       <section
+        className="alerts-forecast-context"
+        id="contexto-previsao-alertas"
+        aria-labelledby="alerts-forecast-context-title"
+      >
+        <header className="alerts-operational-heading">
+          <div>
+            <span>Previsão, não alerta</span>
+            <h2 id="alerts-forecast-context-title">O que a previsão indica para as próximas horas</h2>
+          </div>
+          <p>
+            Estes valores vêm da série de previsão meteorológica do portal. Eles ajudam a acompanhar o
+            cenário, mas não criam, elevam ou cancelam um aviso oficial do INMET.
+          </p>
+        </header>
+
+        <div className="alerts-forecast-context__metrics">
+          <article>
+            <CloudRain aria-hidden="true" />
+            <span>Maior chance de chuva</span>
+            <strong>{formatNumber(forecast.rainProbability, "%")}</strong>
+            <small>
+              {forecast.rainProbabilityKnown
+                ? `Maior valor entre ${forecast.rainProbabilityKnown} horários disponíveis nas próximas 12 h`
+                : "Probabilidade horária não informada"}
+            </small>
+          </article>
+          <article>
+            <CloudRain aria-hidden="true" />
+            <span>Volume previsto</span>
+            <strong>{formatNumber(forecast.rainVolume, " mm", 1)}</strong>
+            <small>
+              {forecast.rainVolumeKnown
+                ? `Soma de ${forecast.rainVolumeKnown} de ${forecast.hours || 24} horários disponíveis`
+                : "Volume horário não informado"}
+            </small>
+          </article>
+          <article>
+            <Wind aria-hidden="true" />
+            <span>Maior rajada prevista</span>
+            <strong>{formatNumber(forecast.maximumGust, " km/h")}</strong>
+            <small>
+              {forecast.gustKnown
+                ? `Maior rajada entre ${forecast.gustKnown} horários disponíveis`
+                : "Rajada não informada; vento sustentado não é usado como substituto"}
+            </small>
+          </article>
+        </div>
+
+        <div className="alerts-forecast-context__links" aria-label="Acompanhar o cenário meteorológico">
+          <Link to="/chuva-em-pelotas">
+            Chuva em Pelotas <ArrowRight aria-hidden="true" />
+          </Link>
+          <Link to="/vento-em-pelotas">
+            Vento em Pelotas <ArrowRight aria-hidden="true" />
+          </Link>
+          <Link to="/radar-e-satelite-pelotas">
+            <Satellite aria-hidden="true" /> Radar e satélite
+          </Link>
+        </div>
+      </section>
+
+      <section
         className="alerts-civil-defense"
         id="canais-defesa-civil"
         aria-labelledby="alerts-civil-defense-title"
@@ -163,10 +262,6 @@ export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData
                     <a href={action.href} target="_blank" rel="noopener noreferrer">
                       {action.label} <ExternalLink aria-hidden="true" />
                     </a>
-                  ) : action.href.startsWith("/") ? (
-                    <Link to={action.href as "/alertas"}>
-                      {action.label} <ArrowRight aria-hidden="true" />
-                    </Link>
                   ) : (
                     <a href={action.href}>
                       {action.label} <ArrowRight aria-hidden="true" />
