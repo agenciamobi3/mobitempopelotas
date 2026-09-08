@@ -90,13 +90,13 @@ async function check(name, operation) {
 }
 
 await check("www converge para o host canônico", async () => {
-  const source = new URL("/metodologia?origem=seo-smoke", `${baseUrl}/`);
+  const source = new URL("/status-dos-dados?origem=seo-smoke", `${baseUrl}/`);
   source.hostname = `www.${parsedBaseUrl.hostname}`;
   const response = await request(source.href, { redirect: "manual" });
   const target = redirectTarget(response, source.href);
 
   assert([301, 302, 307, 308].includes(response.status), `HTTP ${response.status}`);
-  assert(target === absoluteUrl("/metodologia?origem=seo-smoke"), `Destino incorreto: ${target}`);
+  assert(target === absoluteUrl("/status-dos-dados?origem=seo-smoke"), `Destino incorreto: ${target}`);
 
   if ([302, 307].includes(response.status)) {
     throw new ExternalWarning(
@@ -134,7 +134,9 @@ await check("sitemap publica apenas o host canônico", async () => {
   assert(response.status === 200, `HTTP ${response.status}`);
   assert(!xml.includes(wwwOrigin), "Sitemap contém host www");
   assert(xml.includes(absoluteUrl("/")), "Home canônica ausente");
-  return "sem URLs www; host canônico presente";
+  assert(xml.includes(absoluteUrl("/status-dos-dados")), "Página canônica de dados e fontes ausente");
+  assert(!xml.includes(absoluteUrl("/metodologia")), "Sitemap ainda publica a rota aposentada /metodologia");
+  return "sem URLs www; host canônico e dados/fontes presentes; metodologia fora do sitemap";
 });
 
 await check("Open Graph da Home usa o PNG social", async () =>
