@@ -34,7 +34,6 @@ export const PUBLIC_ROUTES: PublicRouteEntry[] = [
   { path: "/nivel-do-canal-sao-goncalo", changeFrequency: "hourly", priority: 0.78 },
   { path: "/nivel-do-guaiba", changeFrequency: "hourly", priority: 0.8 },
   { path: "/nivel-do-rio-jaguarao", changeFrequency: "hourly", priority: 0.78 },
-  { path: "/estacao-embrapa-pelotas", changeFrequency: "hourly", priority: 0.7 },
   { path: "/clima-em-pelotas", changeFrequency: "daily", priority: 0.78 },
   { path: "/historico-climatico-pelotas", changeFrequency: "daily", priority: 0.7 },
   { path: "/historia-das-enchentes-pelotas", changeFrequency: "monthly", priority: 0.8 },
