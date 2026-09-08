@@ -11,7 +11,7 @@ const rain = readFileSync("src/components/weather/RainForecastPageV2.tsx", "utf8
 const wind = readFileSync("src/components/weather/WindForecastPageV3.tsx", "utf8");
 const alerts = readFileSync("src/components/weather/WeatherAlertsPage.tsx", "utf8");
 const meteogram = readFileSync("src/components/weather/MeteogramPage.tsx", "utf8");
-const embrapa = readFileSync("src/components/embrapa/EmbrapaStationPageV2.tsx", "utf8");
+const localMonitoring = readFileSync("src/components/weather/HomeLocalMonitoring.tsx", "utf8");
 const cameras = readFileSync("src/components/cameras/CameraPageV2.tsx", "utf8");
 const frost = readFileSync("src/components/inmet/FrostMapPageV2.tsx", "utf8");
 const radar = readFileSync("src/components/redemet/RedemetOverview.tsx", "utf8");
@@ -27,7 +27,7 @@ const primaryVisitorSources = [header, widgets, atmosphere, tomorrow, sevenDay, 
 const auditedVisitorSources = [
   ...primaryVisitorSources,
   meteogram,
-  embrapa,
+  localMonitoring,
   cameras,
   frost,
   radar,
@@ -55,27 +55,35 @@ test("main menu uses language visitors can understand without portal jargon", ()
   assert.doesNotMatch(header, />Explorar </);
 });
 
-test("monitoring menu descriptions match the purpose of all eight pages", () => {
+test("monitoring menu descriptions match the active monitoring surfaces", () => {
   assert.match(header, /Veja áreas de chuva, imagens de satélite e trovoadas na região\./);
   assert.match(header, /Consulte registros de geada nas estações do INMET no Rio Grande do Sul\./);
-  assert.match(header, /Veja temperatura, umidade, vento e chuva medidos em Pelotas\./);
+  assert.match(header, /Consulte estações meteorológicas e hidrológicas da rede estadual/);
   assert.match(header, /Veja imagens locais e saiba se a transmissão está ao vivo ou gravada\./);
   assert.match(header, /Entenda as estações do ano e por que o tempo varia na cidade\./);
   assert.match(header, /Compare temperatura, chuva, nuvens, visibilidade, pressão e vento\./);
   assert.match(header, /Compare máximas, mínimas, chuva e rajadas dos últimos dias\./);
   assert.match(header, /Veja de onde vêm os dados, quando atualizam e quais são seus limites\./);
+  assert.doesNotMatch(header, /Estação Embrapa/);
 });
 
 test("current condition uses field-level origin and plain labels", () => {
-  assert.match(widgets, /currentProvenance\.temperature === "embrapa"/);
+  assert.match(widgets, /currentProvenance\.temperature === "defesa-civil-rs"/);
   assert.match(widgets, /Temperatura e condições agora em Pelotas/);
-  assert.match(widgets, /Medição da Estação Embrapa/);
-  assert.match(widgets, /Estimativa do modelo para agora/);
+  assert.match(widgets, /Medição da Rede Defesa Civil RS/);
+  assert.match(widgets, /Origem observacional não confirmada/);
   assert.match(widgets, /Vento agora/);
   assert.match(widgets, /Atualizado em/);
-  assert.doesNotMatch(widgets, /quality\.currentSource === "embrapa"/);
-  assert.doesNotMatch(widgets, /Vento observado/);
-  assert.doesNotMatch(widgets, /Leitura atualizada em/);
+  assert.doesNotMatch(widgets, /Estação Embrapa|quality\.currentSource === "embrapa"/);
+});
+
+test("home local monitoring explains station scope and rolling rain window", () => {
+  assert.match(localMonitoring, /Rede de Monitoramento Hidrometeorológico/);
+  assert.match(localMonitoring, /estação meteorológica recente e próxima de Pelotas/);
+  assert.match(localMonitoring, /Chuva em 24 h/);
+  assert.match(localMonitoring, /janela móvel/);
+  assert.match(localMonitoring, /Rajada medida/);
+  assert.match(localMonitoring, /nenhum valor de modelo é exibido como “Agora”/);
 });
 
 test("atmospheric section explains technical indices in familiar language", () => {
@@ -124,8 +132,8 @@ test("monitoring pages use direct labels while retaining necessary explanations"
   assert.match(radar, /Última coleta recebida/);
   assert.match(frost, /Dados do INMET/);
   assert.match(frost, /Lista de registros/);
-  assert.match(embrapa, /Origem dos dados/);
-  assert.match(embrapa, /Situação da estação/);
+  assert.match(localMonitoring, /Defesa Civil RS/);
+  assert.match(localMonitoring, /Condições registradas agora/);
   assert.match(cameras, /Vídeo disponível/);
   assert.match(cameras, /Origem do vídeo/);
   assert.match(climate, /Tempo mostra o presente; clima descreve muitos anos/);
