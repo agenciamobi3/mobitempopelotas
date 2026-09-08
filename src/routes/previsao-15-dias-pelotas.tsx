@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { FifteenDayForecastHero } from "@/components/weather/FifteenDayForecastHero";
 import { FifteenDayForecastPage } from "@/components/weather/FifteenDayForecastPage";
+import "@/components/weather/FifteenDayForecastEditorialRefinement.css";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
 import { loadPublicExtendedForecastPage } from "@/lib/weather/extended-forecast-page-loader";
