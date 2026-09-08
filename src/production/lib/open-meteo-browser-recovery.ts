@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 
 import { reconcileDailyTemperatures } from "@/lib/weather/daily-temperature-reconciliation";
-import type { EmbrapaObservation } from "@/lib/weather/official-sources.types";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import type {
   DailyForecast,
@@ -13,10 +12,9 @@ import { fallbackWeatherData } from "./weather-data.ts";
 
 const OPEN_METEO_URL = "https://open-meteo.com/";
 const REQUEST_TIMEOUT_MS = 12_000;
-const EMBRAPA_BROWSER_TIMEOUT_MS = 3_000;
 const HOURLY_RECOVERY_LIMIT = 24;
 const sourceLabels = {
-  embrapa: "Embrapa",
+  "defesa-civil-rs": "Defesa Civil RS",
   inmet: "INMET",
   cppmet: "CPPMet",
   "open-meteo": "Open-Meteo",
@@ -118,10 +116,7 @@ function normalizeHourly(payload: OpenMeteoPayload): HourlyForecast[] | null {
     return null;
   }
 
-  const start = Math.max(
-    0,
-    times.findIndex((time) => time >= currentTime),
-  );
+  const start = Math.max(0, times.findIndex((time) => time >= currentTime));
   const result: HourlyForecast[] = [];
 
   for (let offset = 0; offset < HOURLY_RECOVERY_LIMIT; offset += 1) {
@@ -214,9 +209,7 @@ export function needsOpenMeteoRecovery(weather: WeatherData) {
   return (
     weather.hourly.length < 7 ||
     weather.daily.length === 0 ||
-    weather.hourly.some(
-      (hour) => hour.precipitation === null || hour.windGust === null,
-    ) ||
+    weather.hourly.some((hour) => hour.precipitation === null || hour.windGust === null) ||
     weather.daily.some((day) => day.rainChance === null || day.windGust === null)
   );
 }
@@ -289,137 +282,6 @@ function fetchForecastPayload(signal: AbortSignal) {
   });
 }
 
-function fetchEmbrapaObservation(signal: AbortSignal) {
-  return fetch("/api/weather/embrapa", {
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-    signal,
-  }).then(async (response) => {
-    const payload = (await response.json()) as EmbrapaObservation;
-    if (!response.ok) throw new Error(`Embrapa respondeu com status ${response.status}`);
-    return payload;
-  });
-}
-
-function observationAgeMinutes(observation: EmbrapaObservation) {
-  const value = observation.source.observationTime ?? observation.source.fetchedAt;
-  const timestamp = Date.parse(value);
-  if (!Number.isFinite(timestamp)) return null;
-  return Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
-}
-
-function hasUsableEmbrapaObservation(observation: EmbrapaObservation) {
-  return observation.status !== "unavailable" && observation.current.temperature !== null;
-}
-
-function currentProvenanceFromEmbrapa(observation: EmbrapaObservation) {
-  const provenance: WeatherIntelligenceData["weather"]["currentProvenance"] = {};
-  const current = observation.current;
-  const observedAt = observation.source.observationTime ?? observation.source.fetchedAt;
-
-  if (current.temperature !== null) provenance.temperature = "embrapa";
-  if (current.feelsLike !== null) provenance.feelsLike = "embrapa";
-  if (current.humidity !== null) provenance.humidity = "embrapa";
-  if (current.pressure !== null) provenance.pressure = "embrapa";
-  if (current.windSpeed !== null) provenance.windSpeed = "embrapa";
-  if (current.windDirection !== null) provenance.windDirection = "embrapa";
-  if (current.sunrise !== null) provenance.sunrise = "embrapa";
-  if (current.sunset !== null) provenance.sunset = "embrapa";
-  if (observedAt) provenance.observedAt = "embrapa";
-
-  return provenance;
-}
-
-export function recoverWeatherIntelligenceFromEmbrapa(
-  data: WeatherIntelligenceData,
-  observation: EmbrapaObservation,
-): WeatherIntelligenceData {
-  if (!hasUsableEmbrapaObservation(observation)) return data;
-
-  const current = observation.current;
-  const observedAt = observation.source.observationTime ?? observation.source.fetchedAt;
-  const degradedSources = data.weather.quality.degradedSources.filter(
-    (source) => source !== "embrapa",
-  );
-  const now = new Date().toISOString();
-  const forecastAvailable = data.weather.hourly.length > 0 || data.weather.daily.length > 0;
-  const status = forecastAvailable && degradedSources.length === 0 ? "live" : "degraded";
-  const message =
-    degradedSources.length === 0
-      ? null
-      : `Dados disponíveis em modo degradado. Fontes com restrição: ${degradedSources.map((source) => sourceLabels[source]).join(", ")}.`;
-  const today = data.weather.daily[0] ?? null;
-  const observedText = `Agora, a Embrapa registra ${Math.round(current.temperature as number)} °C em Pelotas`;
-  const forecastText = today
-    ? `Hoje, a previsão indica mínima de ${today.min} °C, máxima de ${today.max} °C${today.rainChance === null ? "" : ` e ${today.rainChance}% de chance de chuva`}`
-    : null;
-
-  return {
-    ...data,
-    weather: {
-      ...data.weather,
-      status,
-      current: {
-        city: "Pelotas",
-        state: "RS",
-        temperature: current.temperature,
-        feelsLike: current.feelsLike,
-        condition: null,
-        humidity: current.humidity,
-        pressure: current.pressure,
-        windSpeed: current.windSpeed,
-        windGust: null,
-        windDirection: current.windDirection,
-        visibilityKm: null,
-        sunrise: current.sunrise,
-        sunset: current.sunset,
-        observedAt,
-        icon: null,
-      },
-      currentProvenance: currentProvenanceFromEmbrapa(observation),
-      observation,
-      sources: {
-        ...data.weather.sources,
-        embrapa: {
-          source: "embrapa",
-          status: observation.status,
-          role: "observation",
-          fetchedAt: observation.source.fetchedAt,
-          usable: true,
-          reason: null,
-        },
-      },
-      quality: {
-        ...data.weather.quality,
-        currentSource: "embrapa",
-        degradedSources,
-        observationAgeMinutes: observationAgeMinutes(observation),
-        notes: [
-          ...data.weather.quality.notes.filter((note) => !/Embrapa/i.test(note)),
-          "Observação atual recuperada do centralizador da Embrapa após a hidratação.",
-        ],
-      },
-      source: {
-        ...data.weather.source,
-        fetchedAt: now,
-      },
-      message,
-    },
-    brief: {
-      ...data.brief,
-      headline: `${Math.round(current.temperature as number)} °C em Pelotas`,
-      summary: [observedText, forecastText].filter(Boolean).join(". ") + ".",
-      cautions: data.brief.cautions.filter((caution) => !/Embrapa/i.test(caution)),
-    },
-    intelligence: {
-      ...data.intelligence,
-      origin: "deterministic",
-      model: null,
-      generatedAt: now,
-    },
-  };
-}
-
 export function needsOpenMeteoIntelligenceRecovery(data: WeatherIntelligenceData) {
   return (
     data.weather.quality.forecastSource !== "open-meteo" ||
@@ -442,7 +304,7 @@ function recoveredBrief(
   const currentText =
     current?.temperature === null || current?.temperature === undefined
       ? null
-      : `Agora, a Embrapa registra ${Math.round(current.temperature)} °C em Pelotas`;
+      : `Agora, a estação ${data.weather.observation.station.name} da Defesa Civil RS registra ${Math.round(current.temperature)} °C em Pelotas`;
   const todayText = today
     ? `Hoje, a previsão indica mínima de ${today.min} °C, máxima de ${today.max} °C e ${today.rainChance === null ? `${today.precipitation} mm de precipitação` : `${today.rainChance}% de chance de chuva`}`
     : null;
@@ -488,10 +350,7 @@ export function recoverWeatherIntelligenceFromOpenMeteo(
   );
   if (!production) return null;
 
-  const reconciledDaily = reconcileDailyTemperatures(
-    production.daily,
-    data.weather.inmetForecast,
-  );
+  const reconciledDaily = reconcileDailyTemperatures(production.daily, data.weather.inmetForecast);
   const hourly = production.hourly.map((hour) => ({
     time: hour.time === "Próxima hora" ? "Agora" : hour.time,
     timestamp: hour.timestamp,
@@ -585,53 +444,26 @@ export function useOpenMeteoIntelligenceRecovery(baseline: WeatherIntelligenceDa
 
   useEffect(() => {
     setData(baseline);
+    if (!needsOpenMeteoIntelligenceRecovery(baseline)) return;
 
-    const forecastController = new AbortController();
-    const embrapaController = new AbortController();
-    const forecastTimeout = window.setTimeout(
-      () => forecastController.abort(),
-      REQUEST_TIMEOUT_MS,
-    );
-    const embrapaTimeout = window.setTimeout(
-      () => embrapaController.abort(),
-      EMBRAPA_BROWSER_TIMEOUT_MS,
-    );
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     let active = true;
 
-    if (needsOpenMeteoIntelligenceRecovery(baseline)) {
-      void fetchForecastPayload(forecastController.signal)
-        .then((payload) => {
-          if (!active) return;
-          setData((current) => recoverWeatherIntelligenceFromOpenMeteo(current, payload) ?? current);
-        })
-        .catch(() => {
-          // O documento já existe; falha da recuperação de previsão não afeta a navegação.
-        })
-        .finally(() => window.clearTimeout(forecastTimeout));
-    } else {
-      window.clearTimeout(forecastTimeout);
-    }
-
-    if (baseline.weather.quality.currentSource !== "embrapa" || baseline.weather.current === null) {
-      void fetchEmbrapaObservation(embrapaController.signal)
-        .then((observation) => {
-          if (!active) return;
-          setData((current) => recoverWeatherIntelligenceFromEmbrapa(current, observation));
-        })
-        .catch(() => {
-          // A leitura observada permanece indisponível sem impedir previsão ou documento.
-        })
-        .finally(() => window.clearTimeout(embrapaTimeout));
-    } else {
-      window.clearTimeout(embrapaTimeout);
-    }
+    void fetchForecastPayload(controller.signal)
+      .then((payload) => {
+        if (!active) return;
+        setData((current) => recoverWeatherIntelligenceFromOpenMeteo(current, payload) ?? current);
+      })
+      .catch(() => {
+        // O documento SSR permanece válido; a recuperação do navegador reforça apenas a previsão.
+      })
+      .finally(() => window.clearTimeout(timeout));
 
     return () => {
       active = false;
-      forecastController.abort();
-      embrapaController.abort();
-      window.clearTimeout(forecastTimeout);
-      window.clearTimeout(embrapaTimeout);
+      controller.abort();
+      window.clearTimeout(timeout);
     };
   }, [baseline]);
 
