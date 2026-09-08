@@ -1,0 +1,381 @@
+/* Refinamento editorial específico de /tempo-hoje-pelotas. */
+.internal-weather-shell--today .internal-weather-main {
+  padding-top: clamp(12px, 1.5vw, 18px);
+}
+
+.internal-weather-shell--today .today-v5-page {
+  gap: 0;
+  padding-bottom: 0;
+}
+
+.internal-weather-shell--today .internal-page-chapters {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--today .internal-page-chapters a,
+.internal-weather-shell--today .internal-page-chapters a:nth-child(2),
+.internal-weather-shell--today .internal-page-chapters a:nth-child(-n + 2) {
+  min-height: 0;
+  padding: 14px 12px;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+  border-bottom: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .internal-page-chapters a:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .internal-page-chapters a:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--today .internal-page-chapters span,
+.internal-weather-shell--today .internal-page-chapters small {
+  display: none;
+}
+
+.internal-weather-shell--today .internal-page-chapters strong {
+  color: #526b78;
+  font-size: 0.66rem;
+  font-weight: 780;
+  text-align: center;
+  white-space: normal;
+}
+
+.internal-weather-shell--today .internal-page-chapters a:first-child strong {
+  text-align: left;
+}
+
+.internal-weather-shell--today .internal-page-chapters a:last-child strong {
+  text-align: right;
+}
+
+.internal-weather-shell--today .internal-page-chapters a:hover,
+.internal-weather-shell--today .internal-page-chapters a:focus-visible {
+  background: transparent;
+  color: #087f91;
+}
+
+.internal-weather-shell--today .internal-forecast-widget,
+.internal-weather-shell--today .today-resources,
+.internal-weather-shell--today .internal-observation-widget,
+.internal-weather-shell--today .today-atmosphere,
+.internal-weather-shell--today .internal-practical-widget,
+.internal-weather-shell--today .editorial-answer-section {
+  margin: 0;
+  padding: clamp(44px, 4.8vw, 68px) 0;
+  overflow: visible;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--today .internal-forecast-widget::before,
+.internal-weather-shell--today .internal-observation-widget::before,
+.internal-weather-shell--today .internal-practical-widget::before {
+  display: none;
+}
+
+.internal-weather-shell--today .internal-forecast-widget {
+  padding-top: clamp(38px, 4vw, 56px);
+}
+
+.internal-weather-shell--today .today-resources__heading,
+.internal-weather-shell--today .today-atmosphere__heading {
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.internal-weather-shell--today .today-resources__signals {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--today .today-resources__signals article {
+  min-height: 0;
+  padding: 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .today-resources__signals article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .today-resources__signals article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--today .today-resources__signals article.is-best,
+.internal-weather-shell--today .today-resources__signals article.is-attention {
+  background: transparent;
+}
+
+.internal-weather-shell--today .today-resources__periods {
+  gap: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--today .today-resources__periods article {
+  padding: 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .today-resources__periods article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .today-resources__periods article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--today .today-resources__periods article.status-stable,
+.internal-weather-shell--today .today-resources__periods article.status-attention,
+.internal-weather-shell--today .today-resources__periods article.status-high,
+.internal-weather-shell--today .today-resources__periods article.is-best {
+  border-color: rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--today .today-resources__periods dl {
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 7%);
+  border-bottom: 1px solid rgb(7 30 47 / 7%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .today-resources__links a {
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .internal-observation-widget .home-observation-story__intro,
+.internal-weather-shell--today .internal-observation-widget .home-observation-story__reading {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .today-atmosphere__signals {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--today .today-atmosphere__signals article,
+.internal-weather-shell--today .today-atmosphere__signals article.is-attention,
+.internal-weather-shell--today .today-atmosphere__signals article.is-high,
+.internal-weather-shell--today .today-atmosphere__signals article.is-low,
+.internal-weather-shell--today .today-atmosphere__signals article.is-unknown {
+  min-height: 0;
+  padding: 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .today-atmosphere__signals article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .today-atmosphere__signals article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--today .today-atmosphere__clouds {
+  padding: 20px 0 0;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .internal-practical-widget {
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(36px, 6vw, 84px);
+}
+
+.internal-weather-shell--today .internal-practical-widget__cards {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 8%);
+  border-bottom: 1px solid rgb(7 30 47 / 8%);
+}
+
+.internal-weather-shell--today .internal-practical-widget__cards article,
+.internal-weather-shell--today .internal-practical-widget__cards article.is-caution {
+  padding: 18px 22px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--today .internal-practical-widget__cards article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .internal-practical-widget__cards article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--today .internal-practical-widget__cards article::before {
+  display: none;
+}
+
+.internal-weather-shell--today .internal-next-step {
+  min-height: 0;
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  color: #173847;
+}
+
+.internal-weather-shell--today .internal-next-step small {
+  color: #718792;
+}
+
+.internal-weather-shell--today .internal-next-step:hover {
+  background: transparent;
+  color: #087f91;
+}
+
+.internal-weather-shell--today .editorial-answer-section {
+  border-bottom: 0;
+}
+
+@media (max-width: 1180px) {
+  .internal-weather-shell--today .internal-page-chapters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(3) {
+    border-right: 0;
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(4),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(5),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(6) {
+    border-top: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(4) strong,
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(6) strong {
+    text-align: center;
+  }
+}
+
+@media (max-width: 980px) {
+  .internal-weather-shell--today .today-resources__signals,
+  .internal-weather-shell--today .today-resources__periods,
+  .internal-weather-shell--today .today-atmosphere__signals,
+  .internal-weather-shell--today .internal-practical-widget {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--today .today-resources__signals article,
+  .internal-weather-shell--today .today-resources__periods article,
+  .internal-weather-shell--today .today-atmosphere__signals article,
+  .internal-weather-shell--today .internal-practical-widget__cards article,
+  .internal-weather-shell--today .internal-practical-widget__cards article.is-caution {
+    padding: 16px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--today .today-resources__signals article:last-child,
+  .internal-weather-shell--today .today-resources__periods article:last-child,
+  .internal-weather-shell--today .today-atmosphere__signals article:last-child,
+  .internal-weather-shell--today .internal-practical-widget__cards article:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .internal-weather-shell--today .internal-weather-main {
+    padding-top: 10px;
+  }
+
+  .internal-weather-shell--today .internal-page-chapters {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a,
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(2),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(-n + 2),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(3),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(4),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(5),
+  .internal-weather-shell--today .internal-page-chapters a:nth-child(6) {
+    min-width: max-content;
+    flex: 0 0 auto;
+    padding: 12px 14px;
+    border-top: 0;
+    border-right: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a:first-child {
+    padding-left: 0;
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a:last-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .internal-weather-shell--today .internal-page-chapters a strong,
+  .internal-weather-shell--today .internal-page-chapters a:first-child strong,
+  .internal-weather-shell--today .internal-page-chapters a:last-child strong {
+    text-align: left;
+  }
+
+  .internal-weather-shell--today .internal-forecast-widget,
+  .internal-weather-shell--today .today-resources,
+  .internal-weather-shell--today .internal-observation-widget,
+  .internal-weather-shell--today .today-atmosphere,
+  .internal-weather-shell--today .internal-practical-widget,
+  .internal-weather-shell--today .editorial-answer-section {
+    padding-block: 36px;
+  }
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--today .internal-page-chapters,
+  .internal-weather-shell--today .internal-forecast-widget,
+  .internal-weather-shell--today .today-resources,
+  .internal-weather-shell--today .internal-observation-widget,
+  .internal-weather-shell--today .today-atmosphere,
+  .internal-weather-shell--today .internal-practical-widget,
+  .internal-weather-shell--today .editorial-answer-section {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
