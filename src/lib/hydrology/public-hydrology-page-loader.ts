@@ -1,3 +1,5 @@
+import { getAnaRhnRegionalInventory } from "./ana-rhn-regional.functions";
+import type { AnaRhnRegionalInventoryData } from "./ana-rhn-regional.server";
 import { getDefesaCivilHydroData } from "./defesa-civil-rs.functions";
 import type { DefesaCivilHydroData } from "./defesa-civil-rs.server";
 import { getGuaibaObservation } from "./guaiba.functions";
@@ -157,6 +159,22 @@ export function createUnavailableDefesaCivilHydroData(): DefesaCivilHydroData {
   };
 }
 
+export function createUnavailableAnaRhnRegionalInventoryData(): AnaRhnRegionalInventoryData {
+  return {
+    status: "unavailable",
+    stations: [],
+    searchRadiusKm: 180,
+    source: {
+      name: "ANA / SNIRH / Rede Hidrometeorológica Nacional",
+      url: "https://www.snirh.gov.br/hidroweb/",
+      layerUrl:
+        "https://portal1.snirh.gov.br/server/rest/services/Estações_Hidrometeorológicas_SNIRH/FeatureServer/0",
+      fetchedAt: new Date().toISOString(),
+    },
+    error: "O inventário regional ANA/RHN não respondeu nesta atualização.",
+  };
+}
+
 export async function loadGuaibaPageData() {
   return {
     guaiba: await settlePageDependency(
@@ -179,18 +197,29 @@ export async function loadLaranjalHydrologyPageData() {
 }
 
 export async function loadHydrologyOverviewPageData() {
-  const [weatherResult, levelResult, guaibaResult, lagoonResult, saceResult, defesaCivilResult] =
-    await Promise.allSettled([
-      settlePageDependency(() => getWeatherIntelligence(), createUnavailableWeatherIntelligence),
-      settlePageDependency(() => getLaranjalLevelData(), createUnavailableLaranjalLevelData),
-      settlePageDependency(() => getGuaibaObservation(), createUnavailableGuaibaObservationData),
-      settlePageDependency(
-        () => getLagoonMonitoringNetwork(),
-        createUnavailableLagoonMonitoringNetworkData,
-      ),
-      settlePageDependency(() => getSaceGuaibaData(), createUnavailableSaceGuaibaData),
-      settlePageDependency(() => getDefesaCivilHydroData(), createUnavailableDefesaCivilHydroData),
-    ]);
+  const [
+    weatherResult,
+    levelResult,
+    guaibaResult,
+    lagoonResult,
+    saceResult,
+    defesaCivilResult,
+    anaRhnRegionalResult,
+  ] = await Promise.allSettled([
+    settlePageDependency(() => getWeatherIntelligence(), createUnavailableWeatherIntelligence),
+    settlePageDependency(() => getLaranjalLevelData(), createUnavailableLaranjalLevelData),
+    settlePageDependency(() => getGuaibaObservation(), createUnavailableGuaibaObservationData),
+    settlePageDependency(
+      () => getLagoonMonitoringNetwork(),
+      createUnavailableLagoonMonitoringNetworkData,
+    ),
+    settlePageDependency(() => getSaceGuaibaData(), createUnavailableSaceGuaibaData),
+    settlePageDependency(() => getDefesaCivilHydroData(), createUnavailableDefesaCivilHydroData),
+    settlePageDependency(
+      () => getAnaRhnRegionalInventory(),
+      createUnavailableAnaRhnRegionalInventoryData,
+    ),
+  ]);
 
   return {
     weather: settledValueOrFallback(weatherResult, createUnavailableWeatherIntelligence),
@@ -199,5 +228,9 @@ export async function loadHydrologyOverviewPageData() {
     lagoon: settledValueOrFallback(lagoonResult, createUnavailableLagoonMonitoringNetworkData),
     sace: settledValueOrFallback(saceResult, createUnavailableSaceGuaibaData),
     defesaCivil: settledValueOrFallback(defesaCivilResult, createUnavailableDefesaCivilHydroData),
+    anaRhnRegional: settledValueOrFallback(
+      anaRhnRegionalResult,
+      createUnavailableAnaRhnRegionalInventoryData,
+    ),
   };
 }
