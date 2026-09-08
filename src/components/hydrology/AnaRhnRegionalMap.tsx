@@ -35,6 +35,15 @@ function collection(stations: AnaRhnRegionalStation[]) {
   };
 }
 
+function boundsForStations(stations: AnaRhnRegionalStation[]): [[number, number], [number, number]] {
+  const longitudes = stations.map((station) => station.longitude).concat(PELOTAS[0]);
+  const latitudes = stations.map((station) => station.latitude).concat(PELOTAS[1]);
+  return [
+    [Math.min(...longitudes), Math.min(...latitudes)],
+    [Math.max(...longitudes), Math.max(...latitudes)],
+  ];
+}
+
 const pelotasCollection = {
   type: "FeatureCollection" as const,
   features: [
@@ -53,6 +62,7 @@ export function AnaRhnRegionalMap({ stations }: { stations: AnaRhnRegionalStatio
   const [failed, setFailed] = useState(false);
   const stationCollection = useMemo(() => collection(stations), [stations]);
   const initialCollectionRef = useRef(stationCollection);
+  const initialBoundsRef = useRef(boundsForStations(stations));
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -63,17 +73,10 @@ export function AnaRhnRegionalMap({ stations }: { stations: AnaRhnRegionalStatio
       .then((maplibregl) => {
         if (cancelled || !containerRef.current) return;
 
-        const longitudes = stations.map((station) => station.longitude).concat(PELOTAS[0]);
-        const latitudes = stations.map((station) => station.latitude).concat(PELOTAS[1]);
-        const bounds: [[number, number], [number, number]] = [
-          [Math.min(...longitudes), Math.min(...latitudes)],
-          [Math.max(...longitudes), Math.max(...latitudes)],
-        ];
-
         const map = new maplibregl.Map({
           container: containerRef.current,
           style: MAP_STYLE,
-          bounds,
+          bounds: initialBoundsRef.current,
           fitBoundsOptions: { padding: 48, maxZoom: 9.2 },
           minZoom: 5,
           maxZoom: 14,
@@ -182,7 +185,7 @@ export function AnaRhnRegionalMap({ stations }: { stations: AnaRhnRegionalStatio
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [stations]);
+  }, []);
 
   useEffect(() => {
     if (!loaded || !mapRef.current) return;
@@ -191,15 +194,11 @@ export function AnaRhnRegionalMap({ stations }: { stations: AnaRhnRegionalStatio
       source?.setData(stationCollection);
 
       if (stations.length > 0) {
-        const longitudes = stations.map((station) => station.longitude).concat(PELOTAS[0]);
-        const latitudes = stations.map((station) => station.latitude).concat(PELOTAS[1]);
-        mapRef.current.fitBounds(
-          [
-            [Math.min(...longitudes), Math.min(...latitudes)],
-            [Math.max(...longitudes), Math.max(...latitudes)],
-          ],
-          { padding: 48, maxZoom: 9.2, duration: 450 },
-        );
+        mapRef.current.fitBounds(boundsForStations(stations), {
+          padding: 48,
+          maxZoom: 9.2,
+          duration: 450,
+        });
       }
     } catch (error) {
       console.warn("Mapa regional ANA/RHN isolado após falha de atualização:", error);
