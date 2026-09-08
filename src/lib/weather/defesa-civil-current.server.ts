@@ -8,6 +8,14 @@ import type { CurrentWeatherObservation } from "./current-observation.types";
 const CURRENT_MAX_AGE_MINUTES = 30;
 const SOURCE_NAME = "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico" as const;
 
+/**
+ * Estações da rede estadual confirmadas no inventário operacional como pertencentes a Pelotas.
+ * O "Agora" não pode cair silenciosamente para Capão do Leão ou outra cidade apenas porque a
+ * estação é recente: observação local e previsão regional são contratos diferentes.
+ */
+export const PELOTAS_CURRENT_STATION_CODES = ["DCRS-00039", "DCRS-00062"] as const;
+const PELOTAS_CURRENT_STATION_CODE_SET = new Set<string>(PELOTAS_CURRENT_STATION_CODES);
+
 function compassDirection(degrees: number | null) {
   if (degrees === null || !Number.isFinite(degrees)) return null;
   const normalized = ((degrees % 360) + 360) % 360;
@@ -17,6 +25,7 @@ function compassDirection(degrees: number | null) {
 
 function hasCurrentMeteorology(station: DefesaCivilHydroStation) {
   return (
+    PELOTAS_CURRENT_STATION_CODE_SET.has(station.code) &&
     station.freshness === "recent" &&
     station.ageMinutes !== null &&
     station.ageMinutes <= CURRENT_MAX_AGE_MINUTES &&
@@ -29,10 +38,12 @@ export function selectDefesaCivilCurrentStation(stations: DefesaCivilHydroStatio
   return [...stations]
     .filter(hasCurrentMeteorology)
     .sort((left, right) => {
+      const age =
+        (left.ageMinutes ?? Number.POSITIVE_INFINITY) -
+        (right.ageMinutes ?? Number.POSITIVE_INFINITY);
+      if (age !== 0) return age;
       const distance = left.distanceFromPelotasKm - right.distanceFromPelotasKm;
       if (distance !== 0) return distance;
-      const age = (left.ageMinutes ?? Number.POSITIVE_INFINITY) - (right.ageMinutes ?? Number.POSITIVE_INFINITY);
-      if (age !== 0) return age;
       return left.code.localeCompare(right.code);
     })[0] ?? null;
 }
@@ -45,7 +56,7 @@ function unavailableObservation(
     status: "unavailable",
     station: {
       code: null,
-      name: "Estação meteorológica recente não disponível",
+      name: "Estação meteorológica recente de Pelotas não disponível",
       basin: null,
       region: null,
       latitude: null,
@@ -85,7 +96,7 @@ export async function fetchDefesaCivilCurrentObservation(): Promise<CurrentWeath
       network.source,
       network.status === "unavailable"
         ? network.error ?? "A Rede de Monitoramento Hidrometeorológico da Defesa Civil RS está indisponível."
-        : "Nenhuma estação meteorológica recente da rede estadual forneceu temperatura utilizável no recorte de Pelotas.",
+        : "Nenhuma das estações meteorológicas confirmadas em Pelotas forneceu temperatura com até 30 minutos de idade nesta consulta.",
     );
   }
 
