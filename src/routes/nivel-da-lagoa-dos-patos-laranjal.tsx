@@ -168,7 +168,7 @@ function NivelLagoaPage() {
       <HydrologyEditorialHero level={level} variant="detail" />
       <LaranjalLevelPage weather={data.weather} level={level} />
       <AnaRhnLaranjalStationProfile data={data.anaRhnProfile} />
-      <LaranjalMonitoringHistory />
+      <LaranjalMonitoringHistory anaRhnProfile={data.anaRhnProfile} />
       <LaranjalEmbedGuide />
       <EditorialContentSection id="como-interpretar-nivel-laranjal" content={LARANJAL_PAGE_CONTENT} />
     </div>
