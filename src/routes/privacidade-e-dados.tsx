@@ -98,7 +98,7 @@ function PrivacyDataPage() {
               <Link to="/conta" search={{ erro: undefined, next: "/conta" }}>
                 Abrir minha conta
               </Link>
-              <Link to="/metodologia">Consultar metodologia e fontes</Link>
+              <Link to="/status-dos-dados">Consultar dados e fontes</Link>
             </div>
           </section>
         </div>
