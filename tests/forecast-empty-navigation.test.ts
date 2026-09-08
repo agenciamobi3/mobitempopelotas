@@ -29,24 +29,27 @@ const homeForecast = readFileSync(
 const homeTrend = readFileSync("src/production/components/home-forecast-trend.tsx", "utf8");
 const homeHero = readFileSync("src/production/components/weather-hero.tsx", "utf8");
 
-test("today hero does not link to hourly anchors when hourly forecast is absent", () => {
-  assert.match(todayHero, /const hasHourlyForecast = weather\.hourly\.length > 0/);
-  assert.match(todayHero, /hasHourlyForecast \? \(/);
-  assert.match(todayHero, /href=\{primaryHref\}/);
-  assert.match(todayHero, /href="\/previsao-7-dias-pelotas"/);
-  assert.match(todayHero, /Ver avisos oficiais/);
+test("today hero uses next-hour forecast only when a current observation is unavailable", () => {
+  assert.match(todayHero, /const hasObservedCurrent = current\.available && current\.source\.kind === "observation"/);
+  assert.match(todayHero, /const hasForecast = nextHour !== null/);
+  assert.match(todayHero, /hasObservedCurrent \? current\.temperature : \(nextHour\?\.temperature \?\? null\)/);
+  assert.match(todayHero, /A medição local está indisponível nesta atualização/);
+  assert.match(todayHero, /Previsão da próxima hora/);
+  assert.match(todayHero, /não substitui uma observação atual/);
+  assert.doesNotMatch(todayHero, /href="#previsao-hoje"/);
 });
 
-test("today hero never marks unavailable current data as observed", () => {
-  assert.match(todayHero, /const isObserved = current\.available && \(currentIsObserved \?\? true\)/);
+test("today hero never marks forecast fallback as observed", () => {
+  assert.match(todayHero, /data-current-kind=\{hasObservedCurrent \? "observation" : hasForecast \? "forecast" : "unavailable"\}/);
+  assert.match(todayHero, /current\.source\.kind === "observation"/);
   assert.match(todayHero, /Dados meteorológicos em atualização/);
+  assert.doesNotMatch(todayHero, /currentIsObserved/);
 });
 
-test("zero gusts use explicit no-gust wording on today", () => {
+test("zero gusts use explicit no-gust wording on today forecast fallback", () => {
   assert.match(todayHero, /function formatGust/);
   assert.match(todayHero, /if \(value <= 0\) return "Sem rajadas"/);
   assert.match(todayHero, /formatGust\(nextHour\.windGust\)/);
-  assert.match(todayHero, /formatGust\(today\.windGust\)/);
 });
 
 test("tomorrow hero falls back to real routes when tomorrow is unavailable", () => {
