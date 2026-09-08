@@ -1,188 +1,380 @@
-/* Chuva em Pelotas — retail hero variation with a cool monitoring accent. */
+/* Hero editorial compacto de chuva e precipitação. */
+.internal-weather-shell--rain .internal-weather-hero-frame {
+  width: 100%;
+  margin-top: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
 .rain-retail-hero {
-  padding: clamp(1.7rem, 3vw, 2.8rem) 0;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+}
+
+.rain-retail-hero::before {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  z-index: 0;
+  width: 100vw;
+  transform: translateX(-50%);
   background:
-    radial-gradient(circle at 7% 8%, rgb(24 189 205 / 20%), transparent 25rem),
-    radial-gradient(circle at 96% 6%, rgb(94 44 237 / 14%), transparent 29rem),
-    radial-gradient(circle at 72% 100%, rgb(22 143 163 / 9%), transparent 30rem),
-    linear-gradient(135deg, #eefafb 0%, #ffffff 48%, #f4f3ff 100%);
+    radial-gradient(circle at 11% 32%, rgb(24 189 205 / 11%), transparent 31%),
+    radial-gradient(circle at 88% 20%, rgb(94 44 237 / 6%), transparent 30%),
+    linear-gradient(105deg, #effafa 0%, #f8fbfb 48%, #f9f9ff 78%, #f4f5fb 100%);
+  box-shadow: inset 0 -1px 0 rgb(7 30 47 / 8%);
+  content: "";
+  pointer-events: none;
 }
 
-.rain-retail-hero__inner {
-  grid-template-columns: minmax(0, 0.92fr) minmax(500px, 1.08fr);
-  gap: clamp(1.8rem, 3.2vw, 3.3rem);
+.internal-weather-shell--rain .rain-retail-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(
+    var(--tp-home-container-max, 1440px),
+    calc(100% - var(--tp-home-container-gutter, 48px))
+  );
+  grid-template-columns: minmax(0, 0.9fr) minmax(500px, 0.82fr);
+  gap: clamp(44px, 5vw, 78px);
+  align-items: center;
+  margin-inline: auto;
+  padding: clamp(50px, 5vw, 72px) 0 clamp(44px, 4.5vw, 64px);
+  box-sizing: border-box;
 }
 
-.rain-retail-hero .today-retail-hero__eyebrow {
-  color: #087f91;
+.rain-retail-hero__copy {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  align-content: center;
 }
 
-.rain-retail-hero .today-retail-hero__eyebrow i {
-  background: linear-gradient(135deg, #18bdcd, #5e2ced);
-  box-shadow: 0 0 0 0.28rem rgb(24 189 205 / 12%);
+.rain-retail-hero__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  color: #16758a;
+  font-size: 0.68rem;
+  font-weight: 820;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.rain-retail-hero__eyebrow svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.7;
 }
 
 .rain-retail-hero__copy h1 {
-  max-width: 10.8ch;
-  font-size: clamp(2.85rem, 4.7vw, 4.75rem);
-  font-weight: 720;
-  line-height: 0.94;
-  letter-spacing: -0.065em;
+  max-width: 12ch;
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(2.8rem, 4.3vw, 4.35rem);
+  font-weight: 730;
+  letter-spacing: -0.06em;
+  line-height: 0.97;
   text-wrap: balance;
 }
 
-.rain-retail-hero__copy h1 span {
-  color: #168fa3;
-}
-
 .rain-retail-hero__copy > p {
-  max-width: 40rem;
-  color: #496471;
-  font-size: clamp(0.92rem, 1.05vw, 1.04rem);
+  max-width: 45rem;
+  margin: 0;
+  color: #4c6672;
+  font-size: clamp(0.94rem, 1vw, 1.04rem);
   line-height: 1.62;
   text-wrap: pretty;
 }
 
-.rain-retail-hero .today-retail-hero__badges > span,
-.rain-retail-hero .today-retail-hero__badges > a {
-  min-height: 2.1rem;
+.rain-retail-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.rain-retail-hero__meta > span,
+.rain-retail-hero__meta > a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 56%);
+  color: #4f6772;
   font-size: 0.64rem;
+  font-weight: 760;
+  line-height: 1.3;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
 }
 
-.rain-retail-hero .today-retail-hero__primary {
-  background: linear-gradient(135deg, #168fa3 0%, #5e2ced 100%);
-  box-shadow: 0 12px 26px rgb(22 143 163 / 20%);
+.rain-retail-hero__meta svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.7;
 }
 
-.rain-retail-hero__showcase {
-  gap: 0.8rem;
+.rain-retail-hero__meta .is-alert {
+  border-color: rgb(196 64 55 / 20%);
+  background: rgb(255 248 247 / 70%);
+  color: #a63d34;
 }
 
-.rain-retail-hero__current {
-  min-height: 21.5rem;
-  border-radius: 1.2rem;
-  background: linear-gradient(145deg, #07384a 0%, #075f6a 46%, #351d78 100%);
-  box-shadow: 0 16px 34px rgb(7 95 106 / 16%);
+.rain-retail-hero__meta a:hover,
+.rain-retail-hero__meta a:focus-visible {
+  border-color: rgb(94 44 237 / 28%);
+  color: #5e2ced;
 }
 
-.rain-retail-hero__current .today-retail-hero__current-photo {
-  background:
-    linear-gradient(180deg, rgb(6 26 44 / 10%), rgb(6 24 42 / 56%)),
-    linear-gradient(145deg, rgb(28 92 132 / 25%), rgb(72 34 200 / 34%)),
-    var(--today-retail-hero-photo) var(--today-retail-hero-position, center) / cover no-repeat;
+.rain-retail-hero__meta a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
-.rain-retail-hero__current .today-retail-hero__weather-icon,
-.rain-retail-hero__current .today-retail-hero__weather-icon svg,
-.rain-retail-hero__current .today-retail-hero__current-metrics svg {
-  color: #76f3eb;
+.rain-retail-hero__summary {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  align-content: center;
 }
 
-.rain-retail-hero__current-main > div:last-child > strong {
-  font-size: clamp(3.8rem, 6vw, 5.8rem);
+.rain-retail-hero__condition {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
 }
 
-.rain-retail-hero__current-main > div:last-child > small {
-  display: block;
-  margin-top: 0.28rem;
-  color: rgb(255 255 255 / 66%);
-  font-size: clamp(0.74rem, 0.7rem + 0.08vw, 0.82rem);
+.rain-retail-hero__weather-icon {
+  display: inline-flex;
+  width: 58px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(22 117 138 / 15%);
+  border-radius: 15px;
+  background: rgb(255 255 255 / 56%);
+  color: #16758a;
+  backdrop-filter: blur(5px);
 }
 
-.rain-retail-hero__tiles {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.rain-retail-hero__weather-icon svg {
+  width: 31px;
+  height: 31px;
+  color: currentColor;
 }
 
-.rain-retail-hero__tiles article {
-  min-height: 6.2rem;
-  padding: 0.82rem;
-  border-color: rgb(7 30 47 / 8%);
+.rain-retail-hero__condition > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.rain-retail-hero__condition small,
+.rain-retail-hero__condition span,
+.rain-retail-hero__facts small,
+.rain-retail-hero__fact-label {
+  color: #667d87;
+}
+
+.rain-retail-hero__condition small {
+  font-size: 0.6rem;
+  font-weight: 810;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.rain-retail-hero__condition strong {
+  color: #173847;
+  font-size: clamp(2.15rem, 3.2vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 0.95;
+}
+
+.rain-retail-hero__condition span {
+  overflow-wrap: anywhere;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.rain-retail-hero__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.rain-retail-hero__facts article {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  gap: 6px;
+  align-content: start;
+  padding: 15px 16px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
 }
 
-.rain-retail-hero__tiles article.is-volume {
-  border-color: rgb(24 189 205 / 14%);
-  background: #f1fbfc;
+.rain-retail-hero__facts article:first-child {
+  padding-left: 0;
 }
 
-.rain-retail-hero__tiles article.is-wind {
-  border-color: rgb(231 11 133 / 11%);
-  background: #fff4f9;
+.rain-retail-hero__facts article:last-child {
+  padding-right: 0;
+  border-right: 0;
 }
 
-.rain-retail-hero__tiles article > strong {
-  font-size: clamp(0.95rem, 1.2vw, 1.22rem);
+.rain-retail-hero__fact-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.58rem;
+  font-weight: 820;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.rain-retail-hero.today-retail-hero--attention .today-retail-hero__primary,
-.rain-retail-hero.today-retail-hero--warning .today-retail-hero__primary {
-  background: linear-gradient(135deg, #ef5b4d, #cf342c);
-  box-shadow: 0 12px 26px rgb(207 52 44 / 20%);
+.rain-retail-hero__fact-label svg {
+  width: 14px;
+  height: 14px;
+  color: #16758a;
+  stroke-width: 1.65;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .rain-retail-hero .today-retail-hero__primary:hover {
-    box-shadow: 0 15px 30px rgb(22 143 163 / 26%);
+.rain-retail-hero__facts article:nth-child(2) .rain-retail-hero__fact-label svg {
+  color: #5e2ced;
+}
+
+.rain-retail-hero__facts article:nth-child(3) .rain-retail-hero__fact-label svg {
+  color: #356f9e;
+}
+
+.rain-retail-hero__facts strong {
+  overflow-wrap: anywhere;
+  color: #173847;
+  font-size: clamp(1.12rem, 1.7vw, 1.5rem);
+  font-weight: 820;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.rain-retail-hero__facts small {
+  font-size: 0.65rem;
+  line-height: 1.42;
+}
+
+.rain-retail-hero--attention::before {
+  background:
+    radial-gradient(circle at 11% 32%, rgb(24 189 205 / 12%), transparent 31%),
+    radial-gradient(circle at 88% 20%, rgb(242 112 53 / 7%), transparent 30%),
+    linear-gradient(105deg, #effafa 0%, #f9fbfa 48%, #fbfaf6 78%, #f8f5f1 100%);
+}
+
+.rain-retail-hero--warning::before {
+  background:
+    radial-gradient(circle at 11% 32%, rgb(24 189 205 / 11%), transparent 31%),
+    radial-gradient(circle at 88% 20%, rgb(222 49 70 / 8%), transparent 30%),
+    linear-gradient(105deg, #f0fafa 0%, #fafafa 48%, #fff8f7 78%, #faf4f4 100%);
+}
+
+@media (max-width: 1240px) {
+  .internal-weather-shell--rain .rain-retail-hero__inner {
+    width: min(
+      calc(100% - var(--tp-home-container-compact-gutter, 32px)),
+      var(--tp-home-container-compact-max, 1180px)
+    );
   }
 }
 
-@media (max-width: 1160px) {
-  .rain-retail-hero__inner {
-    grid-template-columns: minmax(0, 0.84fr) minmax(460px, 1.16fr);
-    gap: 1.7rem;
-  }
-}
-
-@media (max-width: 920px) {
-  .rain-retail-hero__inner {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .rain-retail-hero__current {
-    min-height: 20rem;
-  }
-}
-
-@media (max-width: 700px) {
-  .rain-retail-hero {
-    padding: 1.2rem 0;
-    background:
-      radial-gradient(circle at 0 0, rgb(24 189 205 / 18%), transparent 18rem),
-      radial-gradient(circle at 100% 8%, rgb(94 44 237 / 12%), transparent 20rem),
-      linear-gradient(150deg, #effafb, #fff 58%, #f5f4ff);
+@media (max-width: 1100px) {
+  .internal-weather-shell--rain .rain-retail-hero__inner {
+    grid-template-columns: 1fr;
+    gap: 34px;
   }
 
   .rain-retail-hero__copy h1 {
-    max-width: 11ch;
-    font-size: clamp(2.35rem, 11.6vw, 3.45rem);
-    line-height: 0.97;
+    max-width: 14ch;
   }
 
-  .rain-retail-hero__current {
-    min-height: 0;
-    padding: 1rem;
-    border-radius: 1rem;
-    box-shadow: 0 12px 26px rgb(7 95 106 / 13%);
-  }
-
-  .rain-retail-hero__current-main > div:last-child > strong {
-    font-size: clamp(3.4rem, 16vw, 4.8rem);
+  .rain-retail-hero__summary {
+    max-width: 760px;
   }
 }
 
-@media (max-width: 520px) {
-  .rain-retail-hero__tiles {
-    grid-template-columns: minmax(0, 1fr);
+@media (max-width: 720px) {
+  .internal-weather-shell--rain .rain-retail-hero__inner {
+    width: calc(100% - var(--tp-home-container-mobile-gutter, 20px));
+    gap: 28px;
+    padding: 44px 0 42px;
+  }
+
+  .rain-retail-hero__copy {
+    gap: 16px;
+  }
+
+  .rain-retail-hero__copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.35rem, 11.5vw, 3.55rem);
+    line-height: 0.98;
+  }
+
+  .rain-retail-hero__meta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rain-retail-hero__meta > span,
+  .rain-retail-hero__meta > a {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .rain-retail-hero__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .rain-retail-hero__facts article,
+  .rain-retail-hero__facts article:first-child,
+  .rain-retail-hero__facts article:last-child {
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .rain-retail-hero__facts article:last-child {
+    border-bottom: 0;
   }
 }
 
 @media (forced-colors: active) {
-  .rain-retail-hero,
-  .rain-retail-hero__tiles article {
+  .rain-retail-hero::before,
+  .rain-retail-hero--attention::before,
+  .rain-retail-hero--warning::before {
     background: Canvas;
   }
 
-  .rain-retail-hero__current .today-retail-hero__current-photo {
-    display: none;
+  .rain-retail-hero__meta > span,
+  .rain-retail-hero__meta > a,
+  .rain-retail-hero__weather-icon,
+  .rain-retail-hero__facts {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
   }
 }
