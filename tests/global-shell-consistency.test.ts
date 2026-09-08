@@ -18,10 +18,6 @@ const globalFooter = readFileSync(
   new URL("../src/components/layout/Footer.tsx", import.meta.url),
   "utf8",
 );
-const publicSources = readFileSync(
-  new URL("../src/lib/public-source-links.ts", import.meta.url),
-  "utf8",
-);
 
 test("telas standalone reutilizam o mesmo header e rodapé globais", () => {
   assert.match(headerWrapper, /<Header advisoryLevel=/);
@@ -60,8 +56,7 @@ test("navegação institucional existe em definições canônicas do shell", () 
   }
 
   assert.doesNotMatch(globalFooter, /FOOTER_SOURCE_GROUPS|FooterSourceMap|REDEMET\/DECEA|MKS \/ Qualle Control/);
-  assert.match(publicSources, /Defesa Civil RS — Rede Hidrometeorológica/);
-  assert.doesNotMatch(publicSources, /Embrapa Clima Temperado/);
+  assert.doesNotMatch(globalFooter, /Open-Meteo|MET Norway|TideSat Global|LabHidroSens/);
 });
 
 test("rodapé público não mantém uma implementação alternativa oculta", () => {
