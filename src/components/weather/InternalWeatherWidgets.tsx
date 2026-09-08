@@ -165,9 +165,8 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
       <div className="home-observation-story__intro">
         <span className="eyebrow">Condição atual</span>
         <h2 id="internal-observation-title">Temperatura e condições agora em Pelotas</h2>
-        <p>Cada valor mostra de onde veio e quando foi atualizado.</p>
-        <Link to="/metodologia">
-          Ver rede observacional e metodologia <span aria-hidden="true">→</span>
+        <Link to="/status-dos-dados">
+          Dados e fontes <span aria-hidden="true">→</span>
         </Link>
       </div>
 
