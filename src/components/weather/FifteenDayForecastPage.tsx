@@ -51,31 +51,17 @@ function hasPositiveGust(day: DailyForecast) {
   return (day.windGust ?? 0) > 0;
 }
 
-function dayTone(day: DailyForecast) {
-  if ((day.rainChance ?? 0) >= 70 || day.precipitationMm >= 15 || (day.windGust ?? 0) >= 60) {
-    return "high";
-  }
-  if ((day.rainChance ?? 0) >= 35 || day.precipitationMm >= 4 || (day.windGust ?? 0) >= 35) {
-    return "attention";
-  }
-  return "stable";
-}
-
-function dayBadge(day: DailyForecast, index: number) {
+function dayBadge(index: number) {
   if (index === 0) return "Hoje";
   if (index === 1) return "Amanhã";
-  const tone = dayTone(day);
-  if (tone === "high") return "Mais chuva/vento";
-  if (tone === "attention") return "Acompanhar";
   return null;
 }
 
 function DayCard({ day, index }: { day: DailyForecast; index: number }) {
-  const tone = dayTone(day);
-  const badge = dayBadge(day, index);
+  const badge = dayBadge(index);
 
   return (
-    <article className={`fifteen-day__day tone-${tone}${index === 0 ? " is-today" : ""}`}>
+    <article className={`fifteen-day__day${index === 0 ? " is-today" : ""}`}>
       <header>
         <div>
           <strong>{day.weekday}</strong>
