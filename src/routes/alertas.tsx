@@ -92,9 +92,9 @@ const ALERTS_PAGE_CONTENT = {
       description: "Em episódios de chuva persistente ou enchente, acompanhe níveis e leituras regionais sem converter um alerta meteorológico em diagnóstico hidrológico automático.",
     },
     {
-      label: "Metodologia do Tempo Pelotas",
-      href: "/metodologia" as const,
-      description: "Entenda como as fontes oficiais são consultadas e quais são seus limites.",
+      label: "Dados e fontes do Tempo Pelotas",
+      href: "/status-dos-dados" as const,
+      description: "Veja a origem dos dados, o estado atual das fontes e quando foram verificadas.",
     },
   ],
 };
