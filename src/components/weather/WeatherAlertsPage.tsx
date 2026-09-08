@@ -40,6 +40,12 @@ const severityPriority: Record<InmetAlert["severity"], number> = {
   unknown: 0,
 };
 
+const relevancePriority: Record<InmetAlert["relevance"], number> = {
+  pelotas: 2,
+  regional: 1,
+  state: 0,
+};
+
 function formatDateTime(value: string | null) {
   if (!value) return "Horário não informado";
   const date = new Date(value);
@@ -65,15 +71,20 @@ function alertEpoch(alert: InmetAlert) {
 
 function prioritizeAlerts(alerts: InmetAlert[]) {
   return [...alerts].sort((left, right) => {
+    const relevanceDifference = relevancePriority[right.relevance] - relevancePriority[left.relevance];
+    if (relevanceDifference !== 0) return relevanceDifference;
+
     const severityDifference = severityPriority[right.severity] - severityPriority[left.severity];
     if (severityDifference !== 0) return severityDifference;
 
-    const relevanceDifference =
-      Number(right.relevance === "pelotas") - Number(left.relevance === "pelotas");
-    if (relevanceDifference !== 0) return relevanceDifference;
-
     return alertEpoch(left) - alertEpoch(right);
   });
+}
+
+function scopeLabel(alert: InmetAlert) {
+  if (alert.relevance === "pelotas") return "Inclui Pelotas";
+  if (alert.relevance === "regional") return "Abrangência regional";
+  return "Abrangência estadual";
 }
 
 function alertAreaLabel(alert: InmetAlert) {
@@ -83,6 +94,14 @@ function alertAreaLabel(alert: InmetAlert) {
 
   if (visible.length === 0) return null;
   return remaining > 0 ? `${visible.join(", ")} e mais ${remaining}` : visible.join(", ");
+}
+
+function alertCoverageName(alert: InmetAlert) {
+  if (alert.municipalities.length > 0) return alert.municipalities.join(", ");
+  if (alert.areas.length > 0) return alert.areas.join(" · ");
+  if (alert.relevance === "pelotas") return "Pelotas, RS";
+  if (alert.relevance === "regional") return "Região Sul do Rio Grande do Sul";
+  return "Rio Grande do Sul";
 }
 
 function alertSchema(alert: InmetAlert) {
@@ -96,18 +115,22 @@ function alertSchema(alert: InmetAlert) {
     category: "https://www.wikidata.org/wiki/Q207548",
     spatialCoverage: {
       "@type": "Place",
-      name: alert.municipalities.length > 0 ? alert.municipalities.join(", ") : "Pelotas, RS",
+      name: alertCoverageName(alert),
     },
-    announcementLocation: {
-      "@type": "CivicStructure",
-      name: "Município de Pelotas",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Pelotas",
-        addressRegion: "RS",
-        addressCountry: "BR",
-      },
-    },
+    ...(alert.relevance === "pelotas"
+      ? {
+          announcementLocation: {
+            "@type": "CivicStructure",
+            name: "Município de Pelotas",
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: "Pelotas",
+              addressRegion: "RS",
+              addressCountry: "BR",
+            },
+          },
+        }
+      : {}),
     url: alert.officialUrl,
   };
 }
@@ -181,7 +204,7 @@ function AlertsHero({
           <a href={target}>
             {targetLabel} <ArrowRight aria-hidden="true" />
           </a>
-          <a href="#como-interpretar-alertas">Entenda os níveis de alerta</a>
+          <a href="#guia-pratico-alertas">Como ler cor e abrangência</a>
         </div>
       </div>
 
@@ -208,7 +231,7 @@ function AlertsHero({
               </div>
               <div>
                 <dt>Abrangência</dt>
-                <dd>{featured.relevance === "pelotas" ? "Inclui Pelotas" : "Regional ou estadual"}</dd>
+                <dd>{scopeLabel(featured)}</dd>
               </div>
             </dl>
             <a
@@ -282,6 +305,10 @@ function FeaturedAlert({ alert, sourceAvailable }: { alert: InmetAlert; sourceAv
 
         <dl className="alerts-featured-period">
           <div>
+            <dt>Publicado</dt>
+            <dd>{formatDateTime(alert.sentAt)}</dd>
+          </div>
+          <div>
             <dt>Começa</dt>
             <dd>{formatDateTime(alert.startsAt)}</dd>
           </div>
@@ -291,7 +318,7 @@ function FeaturedAlert({ alert, sourceAvailable }: { alert: InmetAlert; sourceAv
           </div>
           <div>
             <dt>Abrangência</dt>
-            <dd>{alert.relevance === "pelotas" ? "Inclui Pelotas" : "Regional ou estadual"}</dd>
+            <dd>{scopeLabel(alert)}</dd>
           </div>
         </dl>
 
@@ -311,8 +338,8 @@ function FeaturedAlert({ alert, sourceAvailable }: { alert: InmetAlert; sourceAv
           >
             Abrir aviso oficial <ArrowUpRight aria-hidden="true" />
           </a>
-          <a href="#como-interpretar-alertas">
-            Entenda os níveis de alerta <ArrowRight aria-hidden="true" />
+          <a href="#abrangencia-oficial-alertas">
+            Ver abrangência detalhada <ArrowRight aria-hidden="true" />
           </a>
         </div>
       </div>
@@ -336,7 +363,7 @@ function AlertCard({ alert }: { alert: InmetAlert }) {
         <div className="alerts-card-meta">
           <span>{alert.period === "active" ? "Em vigor" : "Programado"}</span>
           <span>{severityLabels[alert.severity]}</span>
-          <span>{alert.relevance === "pelotas" ? "Inclui Pelotas" : "Área regional ou estadual"}</span>
+          <span>{scopeLabel(alert)}</span>
         </div>
         <h3>{alertTitle}</h3>
         <p>{alert.description || "O INMET não forneceu uma descrição detalhada para este aviso."}</p>
