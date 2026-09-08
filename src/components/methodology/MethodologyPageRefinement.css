@@ -102,47 +102,6 @@
   line-height: 1.45;
 }
 
-.methodology-chapter-nav {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  overflow: hidden;
-  border: 1px solid rgb(8 35 50 / 9%);
-  border-radius: 1.35rem;
-  background: #fff;
-  box-shadow: 0 0.9rem 2.5rem rgb(8 35 50 / 5%);
-}
-
-.methodology-chapter-nav a {
-  display: flex;
-  min-height: 4.4rem;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 1rem;
-  border-right: 1px solid rgb(8 35 50 / 7%);
-  color: #284757;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-decoration: none;
-  transition: background-color 160ms ease, color 160ms ease;
-}
-
-.methodology-chapter-nav a:last-child {
-  border-right: 0;
-}
-
-.methodology-chapter-nav a span {
-  color: #0b8997;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-}
-
-.methodology-chapter-nav a:hover,
-.methodology-chapter-nav a:focus-visible {
-  background: #eff9fa;
-  color: #082332;
-  outline: none;
-}
-
 .methodology-section,
 .methodology-warning {
   scroll-margin-top: 9rem;
@@ -341,18 +300,6 @@
   .methodology-source-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .methodology-chapter-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .methodology-chapter-nav a:nth-child(3) {
-    border-right: 0;
-  }
-
-  .methodology-chapter-nav a:nth-child(n + 4) {
-    border-top: 1px solid rgb(8 35 50 / 7%);
-  }
 }
 
 @media (max-width: 900px) {
@@ -371,22 +318,6 @@
 }
 
 @media (max-width: 680px) {
-  .methodology-chapter-nav {
-    grid-template-columns: 1fr;
-  }
-
-  .methodology-chapter-nav a,
-  .methodology-chapter-nav a:nth-child(3),
-  .methodology-chapter-nav a:nth-child(n + 4) {
-    min-height: 3.6rem;
-    border-top: 1px solid rgb(8 35 50 / 7%);
-    border-right: 0;
-  }
-
-  .methodology-chapter-nav a:first-child {
-    border-top: 0;
-  }
-
   .methodology-source-group-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -428,10 +359,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .methodology-chapter-nav a {
-    transition: none;
-  }
-
   .methodology-sources-section,
   .methodology-pipeline,
   #regras-integridade,
