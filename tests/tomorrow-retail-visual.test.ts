@@ -12,10 +12,6 @@ const editorialRefinement = readFileSync(
   "utf8",
 );
 const shellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
-const photoMap = readFileSync(
-  "src/components/weather/today-retail-hero-backgrounds.ts",
-  "utf8",
-);
 
 test("tomorrow route uses the shared shell with a dedicated editorial hero", () => {
   assert.match(route, /InternalWeatherPageShell/);
@@ -42,7 +38,7 @@ test("tomorrow hero uses a clean search-oriented headline and three essential fa
   assert.match(hero, /tomorrow-retail-hero__summary/);
   assert.match(hero, /tomorrow-retail-hero__facts/);
   assert.match(hero, /<h1/);
-  assert.doesNotMatch(hero, /getRetailWeatherPhoto/);
+  assert.doesNotMatch(hero, /getRetailWeatherPhoto|today-retail-hero-backgrounds/);
   assert.doesNotMatch(hero, /today-retail-hero__current-photo/);
   assert.doesNotMatch(hero, /today-retail-hero__photo-credit/);
   assert.doesNotMatch(hero, /today-retail-hero__tiles/);
@@ -55,15 +51,6 @@ test("tomorrow hero formats the calendar badge from the ISO identity", () => {
   assert.match(hero, /day\.dateIso/);
   assert.match(hero, /new Date\(`\$\{day\.dateIso\}T12:00:00-03:00`\)/);
   assert.doesNotMatch(hero, /day\.date\.slice\(0, 10\)/);
-});
-
-test("retail photography remains available to the pages that still use it", () => {
-  assert.match(photoMap, /getRetailWeatherPhoto/);
-  assert.match(photoMap, /getTodayRetailHeroPhoto = getRetailWeatherPhoto/);
-  assert.match(photoMap, /Amanhecer_na_Praia_do_Laranjal/);
-  assert.match(photoMap, /Sunset_over_Calm_Lake/);
-  assert.match(photoMap, /Heavy_Rain/);
-  assert.doesNotMatch(hero, /today-retail-hero-backgrounds/);
 });
 
 test("tomorrow content uses direct language without generic section tags", () => {
