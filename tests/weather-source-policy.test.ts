@@ -6,8 +6,8 @@ import {
   WEATHER_SOURCE_REQUEST_TIMEOUT_MS,
 } from "../src/lib/weather/source-policy.ts";
 
-test("o orquestrador respeita o tempo interno de cada fonte oficial", () => {
-  for (const source of ["embrapa", "inmet", "cppmet"] as const) {
+test("o orquestrador respeita o timeout interno das fontes oficiais ativas", () => {
+  for (const source of ["inmet", "cppmet"] as const) {
     assert.ok(
       OFFICIAL_SOURCE_DEADLINE_MS[source] > WEATHER_SOURCE_REQUEST_TIMEOUT_MS[source],
       `${source} não pode ser interrompida antes do próprio timeout`,
@@ -15,6 +15,7 @@ test("o orquestrador respeita o tempo interno de cada fonte oficial", () => {
   }
 });
 
-test("a Embrapa suporta a latência observada do Current_Monitor", () => {
-  assert.ok(WEATHER_SOURCE_REQUEST_TIMEOUT_MS.embrapa >= 12_000);
+test("fontes aposentadas não permanecem na política de request", () => {
+  assert.equal("embrapa" in WEATHER_SOURCE_REQUEST_TIMEOUT_MS, false);
+  assert.equal("embrapa" in OFFICIAL_SOURCE_DEADLINE_MS, false);
 });
