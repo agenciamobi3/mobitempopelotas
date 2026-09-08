@@ -160,19 +160,20 @@ function DataStatusPage() {
       <main className="data-status-page" id="conteudo-principal" tabIndex={-1}>
         <header className="data-status-hero">
           <div>
+            <span className="data-status-eyebrow">Transparência dos dados</span>
             <h1>Dados e fontes do Tempo Pelotas</h1>
             <p>
-              Veja o que cada fonte fornece ao portal, se ela está respondendo agora e quando foi
-              verificada pela última vez.
+              Consulte de onde vêm as informações do portal, o que cada fonte fornece e qual foi a
+              condição encontrada na verificação mais recente.
             </p>
           </div>
 
           <aside className={`data-status-overview is-${data.overall}`} aria-label="Estado geral dos dados">
             <span aria-hidden="true" />
             <div>
-              <small>Verificação atual</small>
+              <small>Verificação geral</small>
               <strong>{overallLabel}</strong>
-              <p>{formatCheckedAt(data.checkedAt)}</p>
+              <p>Atualizada em {formatCheckedAt(data.checkedAt)}</p>
             </div>
           </aside>
         </header>
@@ -191,28 +192,39 @@ function DataStatusPage() {
             const categoryServices = data.services.filter((service) => service.category === category);
             return (
               <section className="data-status-group" key={category} aria-labelledby={headingId}>
-                <header><h2 id={headingId}>{category}</h2><strong>{categoryServices.length} fontes</strong></header>
+                <header>
+                  <h2 id={headingId}>{category}</h2>
+                  <strong>{categoryServices.length} fontes</strong>
+                </header>
+
                 <div className="data-status-services">
                   {categoryServices.map((service) => {
                     const usage = SOURCE_USAGE[service.id] ?? service.name;
                     const showDetail = service.state !== "operational" || OPERATIONAL_DETAILS.has(service.id);
                     return (
                       <article className={`data-status-service is-${service.state}`} key={service.id}>
-                        <div className="data-status-service__heading">
-                          <span className="data-status-service__dot" aria-hidden="true" />
-                          <div><p>{service.provider}</p><h3>{service.name}</h3></div>
-                          <strong>{labelForState(service.state)}</strong>
+                        <div className="data-status-service__identity">
+                          <p>{service.provider}</p>
+                          <h3>{service.name}</h3>
                         </div>
-                        <p className="data-status-service__usage">{usage}</p>
-                        {showDetail ? <p className="data-status-service__detail">{service.detail}</p> : null}
-                        {service.dataCondition ? (
-                          <p className="data-status-service__detail">
-                            <strong>Condição do dado:</strong> {service.dataCondition}
-                          </p>
-                        ) : null}
-                        <footer>
+
+                        <div className="data-status-service__content">
+                          <p className="data-status-service__usage">{usage}</p>
+                          {showDetail ? <p className="data-status-service__detail">{service.detail}</p> : null}
+                          {service.dataCondition ? (
+                            <div className="data-status-service__condition">
+                              <strong>Condição do dado:</strong>
+                              <p>{service.dataCondition}</p>
+                            </div>
+                          ) : null}
+                        </div>
+
+                        <footer className="data-status-service__meta">
+                          <strong className="data-status-service__state">{labelForState(service.state)}</strong>
                           <span>Verificado em {formatCheckedAt(service.checkedAt)}</span>
-                          {service.sourceUrl ? <a href={service.sourceUrl} target="_blank" rel="noopener noreferrer">Abrir fonte</a> : null}
+                          {service.sourceUrl ? (
+                            <a href={service.sourceUrl} target="_blank" rel="noopener noreferrer">Abrir fonte</a>
+                          ) : null}
                         </footer>
                       </article>
                     );
@@ -222,17 +234,6 @@ function DataStatusPage() {
             );
           })}
         </div>
-
-        <section className="data-status-explainer" aria-labelledby="data-status-explainer-title">
-          <div><h2 id="data-status-explainer-title">Critérios de publicação</h2></div>
-          <div>
-            <p><strong>Agora:</strong> usa somente medição recente de estações elegíveis da Defesa Civil RS em Pelotas. Se nenhuma leitura estiver recente, a condição atual fica indisponível.</p>
-            <p><strong>Previsão:</strong> Open-Meteo fornece a série horária e diária. MET Norway é contingência. Valores previstos nunca são apresentados como medição.</p>
-            <p><strong>Previsão oficial e alertas:</strong> vêm do INMET. O Tempo Pelotas não cria alertas, níveis de risco ou áreas atingidas.</p>
-            <p><strong>Radar e satélite:</strong> mostram os quadros recebidos das fontes identificadas, mantendo o horário disponível da coleta.</p>
-            <p><strong>Hidrologia:</strong> cada nível pertence à estação e à referência informada pela fonte. Cotas de referências diferentes não são convertidas ou comparadas como equivalentes.</p>
-          </div>
-        </section>
 
         <section className="data-status-history" aria-labelledby="data-status-history-title">
           <header className="data-status-history__header">
@@ -292,6 +293,20 @@ function DataStatusPage() {
               ) : null}
             </>
           ) : <div className="data-status-history-empty"><strong>Histórico indisponível.</strong><p>{data.history.error ?? "Ainda não há verificações persistidas para exibir."}</p></div>}
+        </section>
+
+        <section className="data-status-explainer" aria-labelledby="data-status-explainer-title">
+          <div>
+            <span className="data-status-eyebrow">Como interpretar</span>
+            <h2 id="data-status-explainer-title">Critérios de publicação</h2>
+          </div>
+          <div>
+            <p><strong>Agora:</strong> usa somente medição recente de estações elegíveis da Defesa Civil RS em Pelotas. Se nenhuma leitura estiver recente, a condição atual fica indisponível.</p>
+            <p><strong>Previsão:</strong> Open-Meteo fornece a série horária e diária. MET Norway é contingência. Valores previstos nunca são apresentados como medição.</p>
+            <p><strong>Previsão oficial e alertas:</strong> vêm do INMET. O Tempo Pelotas não cria alertas, níveis de risco ou áreas atingidas.</p>
+            <p><strong>Radar e satélite:</strong> mostram os quadros recebidos das fontes identificadas, mantendo o horário disponível da coleta.</p>
+            <p><strong>Hidrologia:</strong> cada nível pertence à estação e à referência informada pela fonte. Cotas de referências diferentes não são convertidas ou comparadas como equivalentes.</p>
+          </div>
         </section>
       </main>
 
