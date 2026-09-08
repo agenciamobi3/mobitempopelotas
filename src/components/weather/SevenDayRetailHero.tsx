@@ -1,24 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowRight,
   CalendarRange,
   CloudRain,
-  Gauge,
   ShieldAlert,
   Thermometer,
   Wind,
-  type LucideIcon,
 } from "lucide-react";
-import type { CSSProperties } from "react";
 
 import { WeatherIcon } from "@/production/components/weather-icon";
 import { weatherConditionLabels } from "@/production/lib/hero-weather-presentation";
 import type { DailyForecast, WeatherData, WeatherIconName } from "@/production/lib/weather-data";
 import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
-import { getRetailWeatherPhoto } from "./today-retail-hero-backgrounds";
-import "./TodayRetailHero.css";
-import "./TodayRetailHeroPhoto.css";
 import "./SevenDayRetailHero.css";
 
 type SevenDayRetailHeroProps = {
@@ -27,104 +20,47 @@ type SevenDayRetailHeroProps = {
   officialAlertCount?: number;
 };
 
-type RetailMetric = {
-  label: string;
-  value: string;
-  detail: string;
-  icon: LucideIcon;
-};
-
-function formatValue(value: number | null | undefined, suffix = "") {
-  return value === null || value === undefined ? "—" : `${value}${suffix}`;
-}
-
 function alertLabel(count: number) {
   if (count === 1) return "1 aviso oficial para Pelotas";
   return `${count} avisos oficiais para Pelotas`;
 }
 
-function getRainScore(day: DailyForecast) {
+function rainScore(day: DailyForecast) {
   return (day.rainChance ?? 0) + day.precipitation * 4;
 }
 
-function getRiskScore(day: DailyForecast) {
-  return getRainScore(day) + (day.windGust ?? 0) * 0.7;
+function riskScore(day: DailyForecast) {
+  return rainScore(day) + (day.windGust ?? 0) * 0.7;
 }
 
-function choosePhotoIcon(days: DailyForecast[]): WeatherIconName {
+function chooseWeekIcon(days: DailyForecast[]): WeatherIconName {
   if (days.length === 0) return "cloud";
 
-  const highestRisk = days.reduce((current, day) =>
-    getRiskScore(day) > getRiskScore(current) ? day : current,
+  const highlighted = days.reduce((current, day) =>
+    riskScore(day) > riskScore(current) ? day : current,
   );
 
-  if ((highestRisk.rainChance ?? 0) >= 50 || highestRisk.precipitation >= 5) {
-    return highestRisk.icon === "storm" ? "storm" : "rain";
+  if ((highlighted.rainChance ?? 0) >= 50 || highlighted.precipitation >= 5) {
+    return highlighted.icon === "storm" ? "storm" : "rain";
   }
 
   return days[0]?.icon ?? "cloud";
 }
 
-function buildMetrics(days: DailyForecast[]): RetailMetric[] {
-  if (days.length === 0) {
-    return [
-      { label: "Menor mínima", value: "—", detail: "em atualização", icon: Thermometer },
-      { label: "Maior chance de chuva", value: "—", detail: "em atualização", icon: CloudRain },
-      { label: "Rajada mais forte", value: "—", detail: "em atualização", icon: Wind },
-    ];
-  }
+function strongestGust(days: DailyForecast[]) {
+  const available = days.filter((day) => day.windGust !== null);
+  if (!available.length) return null;
+  return available.reduce((current, day) =>
+    (day.windGust ?? -1) > (current.windGust ?? -1) ? day : current,
+  );
+}
 
-  const minimum = Math.min(...days.map((day) => day.min));
-  const rainChanceDays = days.filter((day) => day.rainChance !== null);
-  const rainiest = rainChanceDays.length
-    ? rainChanceDays.reduce((current, day) =>
-        (day.rainChance ?? -1) > (current.rainChance ?? -1) ? day : current,
-      )
-    : null;
-  const gustDays = days.filter((day) => day.windGust !== null);
-  const windiest = gustDays.length
-    ? gustDays.reduce((current, day) =>
-        (day.windGust ?? -1) > (current.windGust ?? -1) ? day : current,
-      )
-    : null;
-  const highestRainChance = rainiest?.rainChance ?? null;
-  const strongestGust = windiest?.windGust ?? null;
-
-  return [
-    {
-      label: "Menor mínima",
-      value: `${minimum}°`,
-      detail: days.find((day) => day.min === minimum)?.weekday ?? "na semana",
-      icon: Thermometer,
-    },
-    {
-      label: "Maior chance de chuva",
-      value: formatValue(highestRainChance, "%"),
-      detail:
-        highestRainChance === null
-          ? "chance não informada"
-          : highestRainChance === 0
-            ? "sem destaque de chuva"
-            : rainiest?.weekday ?? "na semana",
-      icon: CloudRain,
-    },
-    {
-      label: "Rajada mais forte",
-      value:
-        strongestGust === null
-          ? "—"
-          : strongestGust > 0
-            ? `${strongestGust} km/h`
-            : "Sem rajadas",
-      detail:
-        strongestGust === null
-          ? "não informadas"
-          : strongestGust > 0
-            ? windiest?.weekday ?? "na semana"
-            : "nos próximos dias",
-      icon: Wind,
-    },
-  ];
+function highestRainChance(days: DailyForecast[]) {
+  const available = days.filter((day) => day.rainChance !== null);
+  if (!available.length) return null;
+  return available.reduce((current, day) =>
+    (day.rainChance ?? -1) > (current.rainChance ?? -1) ? day : current,
+  );
 }
 
 export function SevenDayRetailHero({
@@ -135,56 +71,42 @@ export function SevenDayRetailHero({
   const days = weather.daily.slice(0, 7);
   const hasDailyForecast = days.length > 0;
   const hasAlert = officialAlertCount > 0;
-  const minimum = days.length ? Math.min(...days.map((day) => day.min)) : null;
-  const maximum = days.length ? Math.max(...days.map((day) => day.max)) : null;
-  const warmest = days.length
-    ? days.reduce((current, day) => (day.max > current.max ? day : current))
-    : null;
-  const coldest = days.length
-    ? days.reduce((current, day) => (day.min < current.min ? day : current))
-    : null;
-  const highestVolumeDay = days.length
-    ? days.reduce((current, day) =>
-        day.precipitation > current.precipitation ? day : current,
-      )
-    : null;
-  const hasPositiveRainVolume = (highestVolumeDay?.precipitation ?? 0) > 0;
+  const minimum = hasDailyForecast ? Math.min(...days.map((day) => day.min)) : null;
+  const maximum = hasDailyForecast ? Math.max(...days.map((day) => day.max)) : null;
+  const rainiest = highestRainChance(days);
+  const windiest = strongestGust(days);
   const rainyDays = days.filter(
     (day) => (day.rainChance ?? 0) >= 30 || day.precipitation >= 1,
   ).length;
-  const iconName = choosePhotoIcon(days);
+  const iconName = chooseWeekIcon(days);
   const condition = hasDailyForecast
     ? weatherConditionLabels[iconName]
     : "Previsão semanal em atualização";
-  const metrics = buildMetrics(days);
-  const photo = getRetailWeatherPhoto(iconName, advisoryLevel);
-  const photoStyle = {
-    "--today-retail-hero-photo": `url("${photo.src}")`,
-    "--today-retail-hero-position": photo.position,
-  } as CSSProperties;
+  const sourceName = weather.source.forecastName ?? weather.source.name;
 
   return (
     <section
-      className={`today-retail-hero seven-day-retail-hero today-retail-hero--${advisoryLevel}`}
+      className={`seven-day-retail-hero seven-day-retail-hero--${advisoryLevel}`}
       aria-labelledby="seven-day-retail-hero-title"
       data-official-alerts={hasAlert ? "true" : "false"}
-      data-weather-photo={iconName}
     >
-      <div className="today-retail-hero__inner seven-day-retail-hero__inner">
-        <div className="today-retail-hero__copy seven-day-retail-hero__copy">
-          <h1 id="seven-day-retail-hero-title">
-            Previsão de <span>7 dias</span> para Pelotas
-          </h1>
+      <div className="seven-day-retail-hero__inner">
+        <div className="seven-day-retail-hero__copy">
+          <span className="seven-day-retail-hero__eyebrow">
+            <CalendarRange aria-hidden="true" /> Previsão de 7 dias · Pelotas
+          </span>
+
+          <h1 id="seven-day-retail-hero-title">Previsão de 7 dias para Pelotas</h1>
 
           <p>
             {hasDailyForecast
-              ? `Temperaturas entre ${minimum}° e ${maximum}°. Veja chuva e rajadas dia a dia.`
-              : "A previsão de 7 dias está em atualização."}
+              ? `Temperaturas entre ${minimum}° e ${maximum}°. Compare chuva, vento e a tendência de cada dia da semana.`
+              : "A previsão dos próximos 7 dias está em atualização."}
           </p>
 
-          <div className="today-retail-hero__badges" aria-label="Situação da previsão semanal">
+          <div className="seven-day-retail-hero__meta" aria-label="Situação da previsão semanal">
             <span>
-              <CalendarRange aria-hidden="true" /> {days.length || 0} dias disponíveis
+              <CalendarRange aria-hidden="true" /> {days.length} {days.length === 1 ? "dia disponível" : "dias disponíveis"}
             </span>
             {hasAlert ? (
               <Link className="is-alert" to="/alertas">
@@ -194,153 +116,61 @@ export function SevenDayRetailHero({
               <span className="is-stable">Sem aviso oficial para Pelotas</span>
             )}
           </div>
-
-          <div className="today-retail-hero__actions">
-            {hasDailyForecast ? (
-              <>
-                <a className="today-retail-hero__primary" href="#semana-dia-a-dia">
-                  Ver dia a dia <ArrowRight aria-hidden="true" />
-                </a>
-                <a className="today-retail-hero__secondary" href="#riscos-da-semana">
-                  Ver chuva e rajadas
-                </a>
-              </>
-            ) : (
-              <>
-                <Link className="today-retail-hero__primary" to="/tempo-hoje-pelotas">
-                  Ver tempo de hoje <ArrowRight aria-hidden="true" />
-                </Link>
-                <Link className="today-retail-hero__secondary" to="/chuva-em-pelotas">
-                  Ver chuva em Pelotas
-                </Link>
-              </>
-            )}
-          </div>
         </div>
 
-        <div className="today-retail-hero__showcase seven-day-retail-hero__showcase">
-          <article
-            className="today-retail-hero__current seven-day-retail-hero__current"
-            style={photoStyle}
-            aria-label="Previsão para os próximos sete dias em Pelotas"
-          >
-            <div
-              className="today-retail-hero__current-photo"
-              role="img"
-              aria-label={
-                hasDailyForecast
-                  ? photo.alt
-                  : "Imagem ilustrativa da previsão meteorológica de Pelotas"
-              }
-            />
-
-            <div className="today-retail-hero__current-content">
-              <header>
-                <div>
-                  <span>Pelotas, RS</span>
-                  <small>Temperatura, chuva e vento</small>
-                </div>
-                <b>
-                  <i aria-hidden="true" /> 7 dias
-                </b>
-              </header>
-
-              <div className="today-retail-hero__current-main">
-                <div className="today-retail-hero__weather-icon">
-                  <WeatherIcon
-                    name={iconName}
-                    title={
-                      hasDailyForecast
-                        ? `Condição de maior destaque da semana: ${condition}`
-                        : condition
-                    }
-                  />
-                </div>
-                <div>
-                  <strong>
-                    {minimum === null || maximum === null ? "—" : `${minimum}°–${maximum}°`}
-                  </strong>
-                  <span>Temperaturas na semana</span>
-                  <small>
-                    {!hasDailyForecast
-                      ? "Dados da semana em atualização"
-                      : rainyDays === 0
-                        ? "Sem dia com chuva relevante nesta atualização"
-                        : `${rainyDays} ${rainyDays === 1 ? "dia" : "dias"} com chance ou volume de chuva`}
-                  </small>
-                </div>
-              </div>
-
-              <div className="today-retail-hero__current-metrics">
-                {metrics.map((metric) => {
-                  const Icon = metric.icon;
-                  return (
-                    <div key={metric.label}>
-                      <Icon aria-hidden="true" />
-                      <span>
-                        <small>{metric.label}</small>
-                        <strong>{metric.value}</strong>
-                        <em>{metric.detail}</em>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <a
-                className="today-retail-hero__photo-credit"
-                href={photo.sourceHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Foto: {photo.credit}
-              </a>
+        <div className="seven-day-retail-hero__summary">
+          <div className="seven-day-retail-hero__condition">
+            <span className="seven-day-retail-hero__weather-icon">
+              <WeatherIcon name={iconName} title={condition} />
+            </span>
+            <div>
+              <small>Tendência da semana</small>
+              <strong>{condition}</strong>
+              <span>Fonte principal: {sourceName}</span>
             </div>
-          </article>
+          </div>
 
-          <div className="today-retail-hero__tiles seven-day-retail-hero__tiles" aria-label="Destaques da semana">
-            <article className="is-maximum">
-              <span>
-                <Thermometer aria-hidden="true" /> Maior máxima
+          <div className="seven-day-retail-hero__facts" aria-label="Destaques dos próximos sete dias">
+            <article>
+              <span className="seven-day-retail-hero__fact-label">
+                <Thermometer aria-hidden="true" /> Temperaturas
               </span>
-              <strong>{warmest ? `${warmest.max}°` : "—"}</strong>
-              <small>{warmest?.weekday ?? "Em atualização"}</small>
+              <strong>{minimum === null || maximum === null ? "—" : `${minimum}° a ${maximum}°`}</strong>
+              <small>Faixa prevista nos próximos dias</small>
             </article>
 
-            <article className="is-rain">
-              <span>
-                <CloudRain aria-hidden="true" /> Maior volume de chuva
+            <article>
+              <span className="seven-day-retail-hero__fact-label">
+                <CloudRain aria-hidden="true" /> Chuva
               </span>
-              <strong>
-                {!highestVolumeDay
-                  ? "—"
-                  : hasPositiveRainVolume
-                    ? `${highestVolumeDay.precipitation} mm`
-                    : "Sem volume previsto"}
-              </strong>
+              <strong>{rainiest?.rainChance === null || !rainiest ? "—" : `${rainiest.rainChance}%`}</strong>
               <small>
-                {!highestVolumeDay
-                  ? "Em atualização"
-                  : hasPositiveRainVolume
-                    ? highestVolumeDay.weekday
-                    : "nos próximos 7 dias"}
+                {!rainiest
+                  ? "Chance não informada"
+                  : rainyDays === 0
+                    ? "Sem destaque de chuva"
+                    : `${rainiest.weekday} · ${rainiest.precipitation} mm`}
               </small>
             </article>
 
-            <article className="is-cold">
-              <span>
-                <Thermometer aria-hidden="true" /> Menor mínima
+            <article>
+              <span className="seven-day-retail-hero__fact-label">
+                <Wind aria-hidden="true" /> Rajadas
               </span>
-              <strong>{coldest ? `${coldest.min}°` : "—"}</strong>
-              <small>{coldest?.weekday ?? "Em atualização"}</small>
-            </article>
-
-            <article className="is-source">
-              <span>
-                <Gauge aria-hidden="true" /> Fonte da previsão
-              </span>
-              <strong>{weather.source.forecastName ?? weather.source.name}</strong>
-              <small>Fonte principal</small>
+              <strong>
+                {!windiest
+                  ? "—"
+                  : (windiest.windGust ?? 0) > 0
+                    ? `${windiest.windGust} km/h`
+                    : "Sem rajadas"}
+              </strong>
+              <small>
+                {!windiest
+                  ? "Não informadas"
+                  : (windiest.windGust ?? 0) > 0
+                    ? windiest.weekday
+                    : "Nos próximos dias"}
+              </small>
             </article>
           </div>
         </div>
