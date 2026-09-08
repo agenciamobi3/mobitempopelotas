@@ -5,6 +5,7 @@ export type TimedObservation = {
   time: string | null;
 };
 
+/** @deprecated Mantido temporariamente apenas para módulos históricos da antiga integração. */
 export type EmbrapaObservation = {
   status: OfficialSourceStatus;
   current: {
@@ -160,11 +161,10 @@ export type CppmetForecast = {
 };
 
 export type OfficialWeatherSources = {
-  embrapa: EmbrapaObservation;
   inmet: InmetAlerts;
   inmetForecast: InmetForecast;
   inmetStation: InmetStationReference;
   cppmet: CppmetForecast;
   fetchedAt: string;
-  degradedSources: Array<"embrapa" | "inmet" | "inmet-forecast" | "inmet-station" | "cppmet">;
+  degradedSources: Array<"inmet" | "inmet-forecast" | "inmet-station" | "cppmet">;
 };
