@@ -16,15 +16,14 @@ Data status: https://tempopelotas.com.br/status-dos-dados
 - https://tempopelotas.com.br/tempo-laranjal-pelotas — previsão por coordenadas para a orla do Laranjal; estimativa de modelo, não medição de estação.
 - https://tempopelotas.com.br/previsao-7-dias-pelotas — comparação da próxima semana.
 - https://tempopelotas.com.br/previsao-15-dias-pelotas — tendência estendida; maior incerteza nos dias distantes.
-- https://tempopelotas.com.br/chuva-em-pelotas — chuva observada e chuva prevista apresentadas separadamente.
+- https://tempopelotas.com.br/chuva-em-pelotas — chuva observada em janelas móveis e chuva prevista apresentadas separadamente.
 - https://tempopelotas.com.br/vento-em-pelotas — vento, direção e rajadas observadas e previstas.
 - https://tempopelotas.com.br/radar-e-satelite-pelotas — imagens meteorológicas com horário da fonte.
 - https://tempopelotas.com.br/alertas — avisos oficiais do INMET.
 
 ## Observation and source pages
 
-- https://tempopelotas.com.br/estacao-embrapa-pelotas — medições locais da Estação Embrapa, horário da observação, histórico recente e saúde dos dados; é uma página de observação, não a fonte da previsão futura.
-- https://tempopelotas.com.br/metodologia — como o portal separa medição, previsão, alerta, resumo e contingência.
+- https://tempopelotas.com.br/metodologia — descreve a Rede de Monitoramento Hidrometeorológico da Defesa Civil RS como fonte observacional do Agora e explica como o portal separa medição, previsão, alerta, resumo e contingência.
 - https://tempopelotas.com.br/status-dos-dados — disponibilidade e estado operacional das integrações.
 
 ## Hydrology
@@ -41,13 +40,15 @@ Data status: https://tempopelotas.com.br/status-dos-dados
 
 Main public sources used by the portal include:
 
+- Defesa Civil RS — Rede de Monitoramento Hidrometeorológico: https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa
 - Open-Meteo: https://open-meteo.com/
-- Embrapa Clima Temperado: https://agromet.cpact.embrapa.br/online/Current_Monitor.htm
 - INMET: https://portal.inmet.gov.br/
 - INMET alerts: https://avisos.inmet.gov.br/
 - CPPMet / UFPel: https://wp.ufpel.edu.br/cppmet/
 
-Always prefer the source label and timestamp shown on the requested page. Source availability can degrade independently.
+For the Agora, the portal selects a recent meteorological station from the state monitoring network, prioritizing the closest usable station to Pelotas. If no recent station is usable, current conditions remain unavailable instead of being filled with a forecast model.
+
+Always prefer the source label, station and timestamp shown on the requested page. Source availability can degrade independently.
 
 ## Interpretation rules
 
@@ -55,12 +56,13 @@ Always prefer the source label and timestamp shown on the requested page. Source
 - Forecast is not an official alert.
 - An unavailable value is not zero and is not evidence of normal conditions.
 - A stale measurement must not be described as current.
+- Rain accumulations from the state network are rolling windows such as 1 h, 6 h and 24 h; 24 h must not be described as a calendar-day total.
 - Rain already measured must not be automatically added to future forecast volume when their time windows may overlap.
+- Sustained wind must not be substituted for a missing gust measurement.
 - Water-level gauges with different vertical references must not be directly converted or compared without compatible metadata.
 - Radar and satellite images are the most recent frames returned by their sources; they are not necessarily real-time images.
 - Historical flood marks must not be transferred to a different gauge or vertical reference.
 - The Laranjal weather page uses a forecast grid near the orla; the Laranjal water-level page uses a separate hydrological measurement and the two must not be conflated.
-- The Embrapa station page represents local observations and recent observation history; future hourly and daily forecasts come from separately identified forecast models.
 
 ## Citation guidance
 
