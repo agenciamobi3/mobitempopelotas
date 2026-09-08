@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { TodayForecastPageV5 } from "@/components/weather/TodayForecastPageV5";
+import "@/components/weather/TodayForecastEditorialRefinement.css";
 import { TodayRetailHero } from "@/components/weather/TodayRetailHero";
 import { TODAY_EDITORIAL_CONTENT } from "@/lib/editorial-content";
 import { createPageHead } from "@/lib/page-meta";
@@ -31,7 +32,7 @@ const TODAY_PAGE_CONTENT = {
     {
       question: "A temperatura mostrada agora foi medida?",
       answer:
-        "Quando há uma leitura local recente, sim. A página identifica a estação e o horário. Quando a medição está indisponível, a estimativa para agora aparece identificada separadamente.",
+        "Quando há uma leitura local recente, sim. A página identifica a fonte e o horário. Quando a medição está indisponível, a previsão da próxima hora continua identificada separadamente e não substitui uma observação atual.",
     },
     {
       question: "O que significa ponto de orvalho?",
@@ -113,7 +114,7 @@ export const Route = createFileRoute("/tempo-hoje-pelotas")({
           "Previsão de 15 dias em Pelotas",
           "Melhores horários para atividades ao ar livre em Pelotas",
           "Janelas de chuva e vento nas próximas horas",
-          "Medição meteorológica da Embrapa em Pelotas",
+          "Medição meteorológica da Defesa Civil RS em Pelotas",
           "Alertas meteorológicos do INMET em Pelotas",
         ],
       }),
