@@ -42,6 +42,17 @@ function displayNumber(value: number | null, suffix: string) {
   return value === null ? "—" : `${value}${suffix}`;
 }
 
+function formatObservationTime(value: string | null) {
+  if (!value) return "horário não informado";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Sao_Paulo",
+  }).format(date);
+}
+
 function resolveHeroLevel(weather: WeatherIntelligenceData["weather"]): HeroLevel {
   const activeAlerts = weather.alerts.filter((alert) => alert.period === "active");
   if (
@@ -119,13 +130,16 @@ function statusLabel(level: HeroLevel, activeAlertCount: number) {
 export function WeatherEditorialHero({ data }: { data: WeatherIntelligenceData }) {
   const weather = data.weather;
   const current = weather.current;
+  const observation = weather.observation;
   const today = weather.daily[0];
   const cppmetToday = weather.officialForecast[0];
   const level = resolveHeroLevel(weather);
   const title = resolveHeroTitle(data, level);
   const activeAlertCount = weather.alerts.filter((alert) => alert.period === "active").length;
   const description = cppmetToday?.summary || data.brief.summary;
-  const currentSource = "Embrapa Clima Temperado";
+  const stationLabel = observation.station.code
+    ? `${observation.station.name} · ${observation.station.code}`
+    : observation.station.name;
 
   return (
     <section
@@ -196,7 +210,9 @@ export function WeatherEditorialHero({ data }: { data: WeatherIntelligenceData }
         <aside
           className={`weather-editorial-now${current ? "" : " is-unavailable"}`}
           aria-label={
-            current ? "Medição atual da Embrapa em Pelotas" : "Medição atual indisponível"
+            current
+              ? "Medição atual da Rede de Monitoramento Hidrometeorológico da Defesa Civil RS"
+              : "Medição atual da rede estadual indisponível"
           }
         >
           <div className="weather-editorial-now-heading">
@@ -204,8 +220,8 @@ export function WeatherEditorialHero({ data }: { data: WeatherIntelligenceData }
               <strong>Pelotas, RS</strong>
               <small>
                 {current?.observedAt
-                  ? `Leitura das ${current.observedAt} · ${currentSource}`
-                  : `Medição recente indisponível · ${currentSource}`}
+                  ? `Leitura das ${formatObservationTime(current.observedAt)} · ${stationLabel}`
+                  : `Medição recente indisponível · Defesa Civil RS`}
               </small>
             </div>
             <span className="weather-editorial-live">
@@ -248,14 +264,18 @@ export function WeatherEditorialHero({ data }: { data: WeatherIntelligenceData }
                   label="Pressão"
                   value={displayNumber(current.pressure, " hPa")}
                 />
-                <HeroMetric icon={Wind} label="Direção" value={current.windDirection ?? "—"} />
+                <HeroMetric
+                  icon={Wind}
+                  label="Rajada medida"
+                  value={displayNumber(current.windGust, " km/h")}
+                />
               </div>
             </>
           ) : (
             <div className="weather-editorial-forecast-only">
               <Gauge aria-hidden="true" size={54} strokeWidth={1.55} />
               <strong>Medição atual indisponível</strong>
-              <span>A previsão permanece disponível abaixo, separada da observação local.</span>
+              <span>A previsão permanece disponível abaixo, separada da observação estadual.</span>
             </div>
           )}
 
