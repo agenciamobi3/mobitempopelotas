@@ -420,14 +420,6 @@ export function MethodologyPage(props: MethodologyPageProps) {
         </aside>
       </header>
 
-      <nav className="methodology-chapter-nav" aria-label="Navegação desta página">
-        <a href="#fontes-ativas"><span>01</span> Fontes disponíveis</a>
-        <a href="#fluxo-dados"><span>02</span> Caminho dos dados</a>
-        <a href="#regras-integridade"><span>03</span> Verificações</a>
-        <a href="#tipos-informacao"><span>04</span> Como interpretar</a>
-        <a href="#limites-uso"><span>05</span> Limites de uso</a>
-      </nav>
-
       <section
         className="methodology-section methodology-sources-section"
         id="fontes-ativas"
@@ -522,7 +514,7 @@ export function MethodologyPage(props: MethodologyPageProps) {
             <span>04</span>
             <Sparkles aria-hidden="true" />
             <h3>Exibição</h3>
-            <p>O resumo organiza as informações sem alterar os números recebidos das fontes.</p>
+            <p>O resumo organiza as informações para leitura sem alterar os números recebidos das fontes.</p>
           </li>
         </ol>
       </section>
