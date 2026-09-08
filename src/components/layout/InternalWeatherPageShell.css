@@ -46,10 +46,9 @@
   box-shadow: none;
 }
 
-/* Heroes retail compartilham o mesmo eixo do masthead e das seções abaixo.
- * Amanhã, 7 dias e 15 dias possuem rails editoriais próprios em seus CSS dedicados
- * para evitar que a regra genérica force o conteúdo para 100% da largura do frame. */
-.internal-weather-shell--today .today-retail-hero__inner,
+/* Heroes editoriais de Hoje, Amanhã, 7 dias e 15 dias possuem rails próprios
+ * em seus CSS dedicados. A regra genérica permanece apenas nas superfícies que
+ * ainda usam o layout retail compartilhado. */
 .internal-weather-shell--rain .rain-retail-hero__inner {
   width: 100%;
   max-width: none;
