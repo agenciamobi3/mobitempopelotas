@@ -21,11 +21,11 @@ Para `87955001`:
 - parâmetro: `Nivel`;
 - unidade: `cm`;
 - timezone operacional usado pelo adapter: `America/Sao_Paulo`;
-- cadastro recente como identidade telemétrica;
+- cadastro como identidade telemétrica com início em **08/06/2026** no inventário consolidado;
 - leitura pública existe no endpoint de readiness;
 - nenhuma medição ANA é persistida ou publicada pelo Tempo Pelotas.
 
-Isso é suficiente para readiness e cross-check técnico. Não é suficiente para declarar a referência vertical da leitura.
+Isso é suficiente para readiness, ficha cadastral, cronologia e cross-check técnico. Não é suficiente para declarar a referência vertical da leitura.
 
 ## Evidência dos HARs ANA/SNIRH
 
@@ -80,9 +80,13 @@ O Tempo Pelotas não trata CRS cartográfico como datum da régua.
 
 ## Inventário cadastral não fecha o gate
 
-A ficha pública de inventário da `87955001` pode trazer campos cadastrais como localização, responsável, operadora, instrumentos e `Altitude` quando disponível.
+A ficha pública de inventário da `87955001` traz a identidade telemétrica atual do Laranjal e pode trazer campos cadastrais como localização, responsável, operadora, instrumentos e `Altitude` quando disponível.
 
-`Altitude` do inventário não é aceita automaticamente como altitude do zero da régua.
+No contrato consolidado da estação, `EstacaoTelemetrica=Sim` e `EstacaoTelemetricaInicio=08/06/2026`. Esse marco liga diretamente o **código 87955001** à identidade telemétrica atual da ANA/SNIRH.
+
+Ele não liga automaticamente essa identidade ao sensor anunciado pela Prefeitura em 27/06/2025. A notícia municipal não publica código ANA, número de série, ficha de instalação, RN ou memória de nivelamento.
+
+`Altitude` do inventário também não é aceita automaticamente como altitude do zero da régua.
 
 Na evidência já consolidada para `87955001`, a referência vertical específica permanece não confirmada. A ausência de `EscalaNivel` ou de um campo público de RN impede inferir equivalência com outra régua.
 
@@ -101,16 +105,20 @@ A proximidade física, o mesmo nome `LARANJAL` ou valores numericamente próximo
 
 ## Evidência adicional da cronologia do Trapiche
 
-A pesquisa pública e acadêmica acrescentou três marcos reais ao contexto do ponto de monitoramento:
+A pesquisa pública, acadêmica e cadastral acrescentou quatro marcos reais ao contexto do ponto de monitoramento:
 
 1. **09/05/2024** — trabalho técnico da UFPel/HidroSens registra medidor ultrassônico instalado no Trapiche da Praia do Laranjal durante a enchente, com transmissão LoRaWAN e comparação com régua local; o maior valor registrado no período foi 2,79 m segundo essa régua;
 2. **27/06/2025** — a Prefeitura de Pelotas informou que Defesa Civil e Engenharia Hídrica/UFPel instalavam um sensor de nível da ANA próximo ao Trapiche para ampliar o monitoramento e a integração regional;
-3. **16/08/2026** — o monitoramento de Pelotas passou a compor a rede CIEX/FURG, com o HidroSens informando envio dos dados ao campus Anglo da UFPel e posterior disponibilização para ANA e CIEX.
+3. **08/06/2026** — o inventário público ANA/SNIRH registra a identidade `LARANJAL 87955001` como telemétrica, sob responsabilidade/operação da UFPel;
+4. **16/08/2026** — o monitoramento de Pelotas passou a compor a rede CIEX/FURG, com o HidroSens informando envio dos dados ao campus Anglo da UFPel e posterior disponibilização para ANA e CIEX.
 
-Esses marcos comprovam a evolução do monitoramento local. Eles **não comprovam**:
+Essa sequência estreita bastante a história do ponto. Ela é compatível com uma evolução institucional do mesmo ecossistema de monitoramento, mas **não comprova identidade de hardware** entre o sensor anunciado em 2025 e a estação cadastrada em 2026.
+
+Nas superfícies públicas pesquisadas em 08/09/2026 não foi localizado documento que faça essa ligação explicitamente por código `87955001`, número de série, ficha de instalação ou memória de nivelamento.
+
+Os marcos também não comprovam:
 
 - que o medidor HidroSens de 2024 e o sensor ANA anunciado em 2025 sejam o mesmo hardware;
-- que o equipamento anunciado em 2025 corresponda documentalmente ao código `87955001`;
 - que qualquer um desses equipamentos compartilhe zero, RN ou datum com a histórica `87955000`;
 - que a referência vertical CIEX/FURG possa ser transferida para o adapter ANA ou para o LabHidroSens.
 
@@ -154,7 +162,7 @@ A medição ANA só pode ser reavaliada se surgir documentação específica da 
 - documento oficial ANA/UFPel que declare explicitamente a referência vertical da telemetria;
 - documento técnico que estabeleça, se for o caso, continuidade vertical entre `87955000` e `87955001`.
 
-Uma leitura numérica, coordenada geográfica, `Altitude` cadastral isolada, WGS 84 do mapa ou status de qualidade do dado não atendem esse gate.
+Uma leitura numérica, coordenada geográfica, `Altitude` cadastral isolada, WGS 84 do mapa, data de início da telemetria ou status de qualidade do dado não atendem esse gate.
 
 ## Decisão de produto continua separada
 
@@ -174,7 +182,7 @@ Prioridade:
 1. recuperar a ficha de estação/ficha de campo específica da `87955001`;
 2. procurar documentos de nivelamento/RNs associados ao ponto Laranjal;
 3. verificar se existe documento da UFPel ou ANA sobre instalação e referência do sensor telemétrico cadastrado em 2026;
-4. buscar documento que ligue, se de fato houver continuidade, o sensor anunciado em 2025 ao código `87955001`;
+4. localizar, se existir, o documento de transferência/cadastro que relacione o sensor anunciado em 2025 ao código `87955001`;
 5. manter o gate fechado enquanto essa evidência não existir.
 
 Nenhum secret, cookie, ViewState, URL autenticada ou conteúdo sensível dos HARs deve ser versionado durante essa investigação.
