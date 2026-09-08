@@ -150,7 +150,6 @@ function PeriodMetrics({
 
 export function InmetOfficialForecastPanel({
   periods,
-  station,
   forecastWindSpeedKmh = null,
 }: {
   periods: InmetForecastPeriod[];
@@ -166,10 +165,7 @@ export function InmetOfficialForecastPanel({
       <header className="tp-home-inmet__header">
         <div className="tp-home-inmet__heading">
           <h2 id="inmet-official-title">Previsão oficial do INMET</h2>
-          <p>
-            Previsão municipal oficial para Pelotas, organizada por períodos e apresentada
-            separadamente das medições observadas e dos modelos horários.
-          </p>
+          <p>Previsão municipal oficial para Pelotas.</p>
         </div>
       </header>
 
@@ -229,30 +225,11 @@ export function InmetOfficialForecastPanel({
       ) : (
         <div className="tp-home-inmet__unavailable">
           <strong>Previsão oficial temporariamente indisponível</strong>
-          <span>
-            A previsão horária do portal continua operando de forma independente enquanto uma nova
-            consulta ao INMET é realizada.
-          </span>
         </div>
       )}
 
       <footer className="tp-home-inmet__footer">
-        <div>
-          <strong>Como interpretar esta seção</strong>
-          <span>
-            O INMET fornece a previsão municipal oficial. A condição atual exibida no portal continua
-            vinculada à medição observada da Embrapa Clima Temperado.
-          </span>
-        </div>
-        <div>
-          <span>Fonte: Instituto Nacional de Meteorologia — INMET</span>
-          {station ? (
-            <span>
-              Estação oficial de referência: {station.name}
-              {station.code ? ` (${station.code})` : ""}.
-            </span>
-          ) : null}
-        </div>
+        <span>Fonte: Instituto Nacional de Meteorologia — INMET</span>
       </footer>
     </section>
   );
