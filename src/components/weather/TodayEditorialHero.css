@@ -1,0 +1,413 @@
+/*
+ * Hero editorial de /tempo-hoje-pelotas.
+ * Prefixado pela rota para coexistir com a base retail ainda usada por Chuva e Vento.
+ */
+.internal-weather-shell--today .internal-weather-hero-frame {
+  width: 100%;
+  margin-top: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--today .today-retail-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--today .today-retail-hero::before {
+  position: absolute;
+  inset: 0 auto 0 50%;
+  z-index: 0;
+  width: 100vw;
+  height: auto;
+  transform: translateX(-50%);
+  border: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(circle at 11% 34%, rgb(24 189 205 / 9%), transparent 31%),
+    radial-gradient(circle at 88% 22%, rgb(94 44 237 / 7%), transparent 30%),
+    linear-gradient(105deg, #f3fbfb 0%, #f9fbfb 48%, #faf9ff 78%, #f5f2ff 100%);
+  box-shadow: inset 0 -1px 0 rgb(7 30 47 / 8%);
+  content: "";
+  pointer-events: none;
+}
+
+.internal-weather-shell--today .today-retail-hero::after {
+  display: none;
+}
+
+.internal-weather-shell--today .today-retail-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(
+    var(--tp-home-container-max, 1440px),
+    calc(100% - var(--tp-home-container-gutter, 48px))
+  );
+  grid-template-columns: minmax(0, 0.9fr) minmax(500px, 0.82fr);
+  gap: clamp(44px, 5vw, 78px);
+  align-items: center;
+  margin-inline: auto;
+  padding: clamp(50px, 5vw, 72px) 0 clamp(44px, 4.5vw, 64px);
+  box-sizing: border-box;
+}
+
+.internal-weather-shell--today .today-retail-hero__copy {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  align-content: center;
+  justify-items: stretch;
+}
+
+.internal-weather-shell--today .today-retail-hero__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0;
+  color: #237286;
+  font-size: 0.68rem;
+  font-weight: 820;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.internal-weather-shell--today .today-retail-hero__copy h1 {
+  max-width: 11ch;
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(2.85rem, 4.4vw, 4.45rem);
+  font-weight: 730;
+  letter-spacing: -0.06em;
+  line-height: 0.97;
+  text-wrap: balance;
+}
+
+.internal-weather-shell--today .today-retail-hero__copy > p {
+  max-width: 45rem;
+  margin: 0;
+  color: #4c6672;
+  font-size: clamp(0.94rem, 1vw, 1.04rem);
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.internal-weather-shell--today .today-retail-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.internal-weather-shell--today .today-retail-hero__meta > span,
+.internal-weather-shell--today .today-retail-hero__meta > a {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 54%);
+  color: #4f6772;
+  font-size: 0.64rem;
+  font-weight: 760;
+  line-height: 1.3;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
+}
+
+.internal-weather-shell--today .today-retail-hero__meta svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.7;
+}
+
+.internal-weather-shell--today .today-retail-hero__meta .is-stable {
+  color: #347167;
+}
+
+.internal-weather-shell--today .today-retail-hero__meta .is-alert {
+  border-color: rgb(196 64 55 / 20%);
+  background: rgb(255 248 247 / 68%);
+  color: #a63d34;
+}
+
+.internal-weather-shell--today .today-retail-hero__meta a:hover,
+.internal-weather-shell--today .today-retail-hero__meta a:focus-visible {
+  border-color: rgb(94 44 237 / 28%);
+  color: #5e2ced;
+}
+
+.internal-weather-shell--today .today-retail-hero__meta a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.internal-weather-shell--today .today-retail-hero__summary {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  align-content: center;
+}
+
+.internal-weather-shell--today .today-retail-hero__condition {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.internal-weather-shell--today .today-retail-hero__weather-icon {
+  display: inline-flex;
+  width: 58px;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(35 114 134 / 14%);
+  border-radius: 15px;
+  background: rgb(255 255 255 / 54%);
+  box-shadow: none;
+  color: #237286;
+  backdrop-filter: blur(5px);
+}
+
+.internal-weather-shell--today .today-retail-hero__weather-icon svg {
+  width: 31px;
+  height: 31px;
+  color: currentColor;
+}
+
+.internal-weather-shell--today .today-retail-hero__condition > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.internal-weather-shell--today .today-retail-hero__condition small,
+.internal-weather-shell--today .today-retail-hero__condition em,
+.internal-weather-shell--today .today-retail-hero__facts small,
+.internal-weather-shell--today .today-retail-hero__fact-label {
+  color: #667d87;
+}
+
+.internal-weather-shell--today .today-retail-hero__condition small {
+  font-size: 0.6rem;
+  font-weight: 810;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.internal-weather-shell--today .today-retail-hero__temperature-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.internal-weather-shell--today .today-retail-hero__temperature-line strong {
+  color: #173847;
+  font-size: clamp(2.15rem, 3.2vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.065em;
+  line-height: 0.95;
+}
+
+.internal-weather-shell--today .today-retail-hero__temperature-line span {
+  color: #173847;
+  font-size: clamp(1rem, 1.5vw, 1.3rem);
+  font-weight: 730;
+  line-height: 1.2;
+}
+
+.internal-weather-shell--today .today-retail-hero__condition em {
+  overflow-wrap: anywhere;
+  font-size: 0.62rem;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.internal-weather-shell--today .today-retail-hero__facts article {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  gap: 6px;
+  align-content: start;
+  padding: 15px 16px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--today .today-retail-hero__fact-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.58rem;
+  font-weight: 820;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.internal-weather-shell--today .today-retail-hero__fact-label svg {
+  width: 14px;
+  height: 14px;
+  color: #237286;
+  stroke-width: 1.65;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts article:nth-child(2) .today-retail-hero__fact-label svg {
+  color: #5e2ced;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts article:nth-child(3) .today-retail-hero__fact-label svg {
+  color: #df5f30;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts strong {
+  overflow-wrap: anywhere;
+  color: #173847;
+  font-size: clamp(1.12rem, 1.7vw, 1.5rem);
+  font-weight: 820;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.internal-weather-shell--today .today-retail-hero__facts small {
+  font-size: 0.65rem;
+  line-height: 1.42;
+}
+
+.internal-weather-shell--today .today-retail-hero--attention::before {
+  background:
+    radial-gradient(circle at 11% 34%, rgb(242 112 53 / 9%), transparent 31%),
+    radial-gradient(circle at 88% 22%, rgb(94 44 237 / 7%), transparent 30%),
+    linear-gradient(105deg, #fbf8f4 0%, #f9fbfa 48%, #faf8ff 78%, #f7f3fb 100%);
+}
+
+.internal-weather-shell--today .today-retail-hero--warning::before {
+  background:
+    radial-gradient(circle at 11% 34%, rgb(222 49 70 / 9%), transparent 31%),
+    radial-gradient(circle at 88% 22%, rgb(94 44 237 / 7%), transparent 30%),
+    linear-gradient(105deg, #fff7f6 0%, #fafafa 48%, #faf8ff 78%, #f7f3fb 100%);
+}
+
+@media (max-width: 1240px) {
+  .internal-weather-shell--today .today-retail-hero__inner {
+    width: min(
+      calc(100% - var(--tp-home-container-compact-gutter, 32px)),
+      var(--tp-home-container-compact-max, 1180px)
+    );
+  }
+}
+
+@media (max-width: 1100px) {
+  .internal-weather-shell--today .today-retail-hero__inner {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__copy h1 {
+    max-width: 14ch;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__summary {
+    max-width: 760px;
+  }
+}
+
+@media (max-width: 720px) {
+  .internal-weather-shell--today .today-retail-hero {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__inner {
+    width: calc(100% - var(--tp-home-container-mobile-gutter, 20px));
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 44px 0 42px;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__copy {
+    gap: 16px;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.35rem, 11.5vw, 3.55rem);
+    line-height: 0.98;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__meta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__meta > span,
+  .internal-weather-shell--today .today-retail-hero__meta > a {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__facts article,
+  .internal-weather-shell--today .today-retail-hero__facts article:first-child,
+  .internal-weather-shell--today .today-retail-hero__facts article:last-child {
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .internal-weather-shell--today .today-retail-hero__facts article:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--today .today-retail-hero::before,
+  .internal-weather-shell--today .today-retail-hero--attention::before,
+  .internal-weather-shell--today .today-retail-hero--warning::before {
+    background: Canvas;
+  }
+
+  .internal-weather-shell--today .today-retail-hero__meta > span,
+  .internal-weather-shell--today .today-retail-hero__meta > a,
+  .internal-weather-shell--today .today-retail-hero__weather-icon,
+  .internal-weather-shell--today .today-retail-hero__facts {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
