@@ -7,6 +7,7 @@
 }
 
 .alerts-risk-guide,
+.alerts-forecast-context,
 .alerts-civil-defense {
   width: 100%;
   padding: clamp(34px, 4.2vw, 56px) 0;
@@ -171,6 +172,80 @@
   color: #a36b00;
 }
 
+.alerts-forecast-context__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.alerts-forecast-context__metrics article {
+  display: grid;
+  min-width: 0;
+  gap: 0.35rem;
+  padding: 20px 22px 22px 0;
+  background: transparent;
+}
+
+.alerts-forecast-context__metrics article + article {
+  padding-left: 22px;
+  border-left: 1px solid rgb(7 30 47 / 10%);
+}
+
+.alerts-forecast-context__metrics svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-bottom: 0.2rem;
+  color: #087f91;
+}
+
+.alerts-forecast-context__metrics span,
+.alerts-forecast-context__metrics small {
+  color: #657984;
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.alerts-forecast-context__metrics span {
+  font-weight: 760;
+}
+
+.alerts-forecast-context__metrics strong {
+  color: #071e2f;
+  font-size: clamp(1.35rem, 2.3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.alerts-forecast-context__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 18px;
+}
+
+.alerts-forecast-context__links a {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0 0.75rem;
+  border: 1px solid rgb(7 30 47 / 14%);
+  border-radius: 8px;
+  color: #173849;
+  background: #fff;
+  font-size: 0.7rem;
+  font-weight: 780;
+  text-decoration: none;
+}
+
+.alerts-forecast-context__links svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
 .alerts-civil-defense__channels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -321,6 +396,7 @@
 
 @media (max-width: 720px) {
   .alerts-risk-guide,
+  .alerts-forecast-context,
   .alerts-civil-defense {
     padding: 30px 0;
   }
@@ -330,7 +406,8 @@
   }
 
   .alerts-scope-summary,
-  .alerts-severity-guide {
+  .alerts-severity-guide,
+  .alerts-forecast-context__metrics {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -350,6 +427,25 @@
     border-top-width: 4px;
   }
 
+  .alerts-forecast-context__metrics article,
+  .alerts-forecast-context__metrics article + article {
+    padding: 16px 0;
+    border-left: 0;
+    border-top: 1px solid rgb(7 30 47 / 10%);
+  }
+
+  .alerts-forecast-context__metrics article:first-child {
+    border-top: 0;
+  }
+
+  .alerts-forecast-context__links {
+    display: grid;
+  }
+
+  .alerts-forecast-context__links a {
+    justify-content: space-between;
+  }
+
   .alerts-civil-defense__channels article {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -363,6 +459,8 @@
 
 @media (forced-colors: active) {
   .alerts-severity-guide article,
+  .alerts-forecast-context__metrics article,
+  .alerts-forecast-context__links a,
   .alerts-civil-defense__channels article,
   .alerts-civil-defense__icon,
   .alerts-civil-defense__channels article > a,
