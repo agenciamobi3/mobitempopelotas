@@ -16,6 +16,7 @@ export type CurrentWeatherObservation = {
     temperature: number | null;
     feelsLike: number | null;
     humidity: number | null;
+    dewPoint: number | null;
     pressure: number | null;
     windSpeed: number | null;
     windGust: number | null;
