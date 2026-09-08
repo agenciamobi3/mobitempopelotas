@@ -3,7 +3,7 @@ import { fetchDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.serve
 import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
-import { getEmbrapaHealthSnapshotServer } from "@/lib/weather/embrapa-health.server";
+import { selectDefesaCivilCurrentStation } from "@/lib/weather/defesa-civil-current.server";
 import { fetchOfficialWeatherSources } from "@/lib/weather/official-sources.server";
 import { fetchPelotasWeather } from "@/lib/weather/weather-baseline.server";
 
@@ -44,22 +44,6 @@ function stateFromDefesaCivil(
 ): ServiceState {
   if (status === "unavailable" || status === "disabled") return "offline";
   if (status === "partial") return "partial";
-  return "operational";
-}
-
-function stateFromEmbrapaHealth(
-  health: Awaited<ReturnType<typeof getEmbrapaHealthSnapshotServer>>,
-): ServiceState {
-  if (!health.collector.enabled || health.level === "unavailable" || health.data.status === "unavailable") {
-    return "offline";
-  }
-  if (
-    health.level === "degraded" ||
-    health.level === "critical" ||
-    health.data.status === "partial"
-  ) {
-    return "partial";
-  }
   return "operational";
 }
 
@@ -127,7 +111,6 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     baselineResult,
     openMeteoContingencyResult,
     officialResult,
-    embrapaHealthResult,
     laranjalResult,
     guaibaResult,
     lagoonResult,
@@ -137,7 +120,6 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     fetchPelotasWeather(),
     getOpenMeteoContingencyStatus(new Date(checkedAt)),
     fetchOfficialWeatherSources(),
-    getEmbrapaHealthSnapshotServer(),
     getLaranjalLevelData(),
     getGuaibaObservation(),
     getLagoonMonitoringNetwork(),
@@ -225,41 +207,6 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
         "weather-met-norway",
         "Previsão numérica complementar",
         "MET Norway",
-        "offline",
-        checkedAt,
-      ),
-    );
-  }
-
-  if (embrapaHealthResult.status === "fulfilled") {
-    const health = embrapaHealthResult.value;
-    const state = stateFromEmbrapaHealth(health);
-    const checked = latestCheckedAt(
-      [health.data.fetchedAt, health.collector.lastSuccessAt, health.collector.lastAttemptAt, health.generatedAt],
-      checkedAt,
-    );
-    const detail =
-      state === "operational"
-        ? "O centralizador da Embrapa possui leitura recente e coleta saudável."
-        : state === "partial"
-          ? `O centralizador possui dados, mas a saúde da coleta está ${health.level}.`
-          : "O centralizador da Embrapa não possui leitura operacional utilizável nesta verificação.";
-    services.push(
-      weatherService(
-        "weather-embrapa",
-        "Observação meteorológica local",
-        "Embrapa Clima Temperado",
-        state,
-        checked,
-        detail,
-      ),
-    );
-  } else {
-    services.push(
-      weatherService(
-        "weather-embrapa",
-        "Observação meteorológica local",
-        "Embrapa Clima Temperado",
         "offline",
         checkedAt,
       ),
@@ -402,35 +349,43 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
 
   if (defesaCivilResult.status === "fulfilled") {
     const data = defesaCivilResult.value;
-    const state = stateFromDefesaCivil(data.status);
+    const currentStation = selectDefesaCivilCurrentStation(data.stations);
+    const networkState = stateFromDefesaCivil(data.status);
+    const state: ServiceState =
+      networkState === "operational" && !currentStation ? "partial" : networkState;
     const detail =
-      data.status === "live"
-        ? `${data.regionalStationCount} estações no recorte regional; ${data.recentStationCount} com leitura recente. Inventário: ${data.inventory.HYDROLOGY} hidrológicas, ${data.inventory.METEOROLOGY} meteorológicas e ${data.inventory.BOTH} mistas.`
-        : data.status === "disabled"
-          ? "Integração desabilitada explicitamente pelo kill switch operacional do Tempo Pelotas."
-          : data.error || detailForState(state);
+      data.status === "live" && currentStation
+        ? `Fonte do Agora: ${currentStation.name} (${currentStation.code}), a ${Math.round(currentStation.distanceFromPelotasKm)} km de Pelotas. A rede possui ${data.regionalStationCount} estações no recorte regional e ${data.recentStationCount} leituras recentes.`
+        : data.status === "live"
+          ? "A rede estadual respondeu, mas nenhuma estação meteorológica recente e utilizável está disponível para compor o Agora de Pelotas."
+          : data.status === "disabled"
+            ? "Integração desabilitada explicitamente pelo kill switch operacional do Tempo Pelotas."
+            : data.error || detailForState(state);
 
-    services.push({
-      id: "defesa-civil-rs-hydromet",
-      name: "Rede de Monitoramento Hidrometeorológico",
-      provider: "Defesa Civil RS / Casa Militar",
-      category: "Hidrologia",
-      state,
-      detail,
-      checkedAt: data.source.fetchedAt || checkedAt,
-      sourceUrl: data.source.mapUrl,
-    });
+    services.push(
+      weatherService(
+        "defesa-civil-rs-hydromet",
+        "Observação atual e rede hidrometeorológica",
+        "Defesa Civil RS / Casa Militar",
+        state,
+        currentStation?.observedAt ?? data.source.fetchedAt ?? checkedAt,
+        detail,
+      ),
+    );
+    const service = services.at(-1);
+    if (service) service.sourceUrl = data.source.mapUrl;
   } else {
-    services.push({
-      id: "defesa-civil-rs-hydromet",
-      name: "Rede de Monitoramento Hidrometeorológico",
-      provider: "Defesa Civil RS / Casa Militar",
-      category: "Hidrologia",
-      state: "offline",
-      detail: detailForState("offline"),
-      checkedAt,
-      sourceUrl: "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa",
-    });
+    services.push(
+      weatherService(
+        "defesa-civil-rs-hydromet",
+        "Observação atual e rede hidrometeorológica",
+        "Defesa Civil RS / Casa Militar",
+        "offline",
+        checkedAt,
+      ),
+    );
+    const service = services.at(-1);
+    if (service) service.sourceUrl = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
   }
 
   if (anaRhnResult.status === "fulfilled") {
