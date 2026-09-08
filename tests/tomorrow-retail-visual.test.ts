@@ -13,7 +13,7 @@ const photoMap = readFileSync(
   "utf8",
 );
 
-test("tomorrow route uses the shared shell with a dedicated retail hero", () => {
+test("tomorrow route uses the shared shell with a dedicated editorial hero", () => {
   assert.match(route, /InternalWeatherPageShell/);
   assert.match(route, /TomorrowRetailHero/);
   assert.match(route, /TomorrowForecastPageV3/);
@@ -25,24 +25,24 @@ test("tomorrow route uses the shared shell with a dedicated retail hero", () => 
   assert.doesNotMatch(route, /EditorialContentSection|como-interpretar-amanha/);
 });
 
-test("tomorrow hero uses a useful search-oriented headline and concise metrics", () => {
+test("tomorrow hero uses a clean search-oriented headline and three essential facts", () => {
   assert.match(hero, /weather\.daily\[1\]/);
-  assert.match(hero, /weather\.daily\[0\]/);
-  assert.match(hero, /getRetailWeatherPhoto/);
   assert.match(hero, /Tempo amanhã em Pelotas/);
-  assert.match(hero, /temperatura, chuva e vento/);
-  assert.match(hero, /label: "Mínima"/);
-  assert.match(hero, /Chance de chuva/);
-  assert.match(hero, /label: "Rajadas"/);
-  assert.match(hero, /Volume de chuva/);
-  assert.match(hero, /Fonte da previsão/);
-  assert.match(hero, /Ver detalhes de amanhã/);
+  assert.match(hero, /Condição prevista/);
+  assert.match(hero, /Temperatura/);
+  assert.match(hero, /Chuva/);
+  assert.match(hero, /Rajadas/);
+  assert.match(hero, /Fonte principal:/);
   assert.match(hero, /Sem aviso oficial para Pelotas/);
-  assert.match(hero, /today-retail-hero__current-photo/);
-  assert.match(hero, /today-retail-hero__photo-credit/);
+  assert.match(hero, /tomorrow-retail-hero__summary/);
+  assert.match(hero, /tomorrow-retail-hero__facts/);
   assert.match(hero, /<h1/);
+  assert.doesNotMatch(hero, /getRetailWeatherPhoto/);
+  assert.doesNotMatch(hero, /today-retail-hero__current-photo/);
+  assert.doesNotMatch(hero, /today-retail-hero__photo-credit/);
+  assert.doesNotMatch(hero, /today-retail-hero__tiles/);
+  assert.doesNotMatch(hero, /Ver detalhes de amanhã/);
   assert.doesNotMatch(hero, /organizado para você planejar|o que pode mudar sua rotina/);
-  assert.doesNotMatch(hero, /fontes meteorológicas do portal/);
   assert.doesNotMatch(hero, /weather\.current\.temperature/);
 });
 
@@ -52,12 +52,13 @@ test("tomorrow hero formats the calendar badge from the ISO identity", () => {
   assert.doesNotMatch(hero, /day\.date\.slice\(0, 10\)/);
 });
 
-test("retail photography is shared without breaking the today export", () => {
+test("retail photography remains available to the pages that still use it", () => {
   assert.match(photoMap, /getRetailWeatherPhoto/);
   assert.match(photoMap, /getTodayRetailHeroPhoto = getRetailWeatherPhoto/);
   assert.match(photoMap, /Amanhecer_na_Praia_do_Laranjal/);
   assert.match(photoMap, /Sunset_over_Calm_Lake/);
   assert.match(photoMap, /Heavy_Rain/);
+  assert.doesNotMatch(hero, /today-retail-hero-backgrounds/);
 });
 
 test("tomorrow content uses direct language without generic section tags", () => {
@@ -142,13 +143,18 @@ test("tomorrow sections use the current Home rail", () => {
   );
 });
 
-test("tomorrow visual system remains responsive and accessible", () => {
-  assert.match(heroStyles, /warmer planning accent/);
-  assert.match(heroStyles, /today-retail-hero--attention/);
-  assert.match(heroStyles, /today-retail-hero--warning/);
-  assert.match(heroStyles, /@media \(max-width: 920px\)/);
-  assert.match(heroStyles, /@media \(max-width: 700px\)/);
+test("tomorrow visual system follows the clean historical hero language", () => {
+  assert.match(heroStyles, /Hero editorial limpo/);
+  assert.match(heroStyles, /\.tomorrow-retail-hero::before[\s\S]*radial-gradient[\s\S]*linear-gradient/);
+  assert.match(heroStyles, /grid-template-columns:\s*minmax\(0, 1\.08fr\) minmax\(360px, 0\.72fr\)/);
+  assert.match(heroStyles, /\.tomorrow-retail-hero__facts article[\s\S]*background:\s*rgb\(255 255 255 \/ 64%\)/);
+  assert.match(heroStyles, /\.tomorrow-retail-hero--attention::before/);
+  assert.match(heroStyles, /\.tomorrow-retail-hero--warning::before/);
+  assert.match(heroStyles, /@media \(max-width: 980px\)/);
+  assert.match(heroStyles, /@media \(max-width: 720px\)/);
   assert.match(heroStyles, /@media \(forced-colors: active\)/);
+  assert.doesNotMatch(heroStyles, /today-retail-hero__current-photo/);
+  assert.doesNotMatch(heroStyles, /tomorrow-retail-hero__tiles/);
   assert.match(pageStyles, /content-visibility:\s*auto/);
   assert.match(pageStyles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(pageStyles, /@media \(max-width: 1120px\)/);
