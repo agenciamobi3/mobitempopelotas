@@ -1,13 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Compass, Gauge, ShieldAlert, TrendingUp, Wind } from "lucide-react";
-import type { CSSProperties } from "react";
+import {
+  CalendarRange,
+  Compass,
+  Gauge,
+  ShieldAlert,
+  TrendingUp,
+  Wind,
+} from "lucide-react";
 
 import type { WeatherData } from "@/production/lib/weather-data";
 import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
-import { getRetailWeatherPhoto } from "./today-retail-hero-backgrounds";
-import "./TodayRetailHero.css";
-import "./TodayRetailHeroPhoto.css";
 import "./WindRetailHero.css";
 
 function formatSpeed(value: number | null | undefined) {
@@ -19,6 +22,10 @@ function formatGust(value: number | null | undefined) {
   if (value === null || value === undefined) return "—";
   if (value <= 0) return "Sem rajadas";
   return `${Math.round(value)} km/h`;
+}
+
+function alertLabel(count: number) {
+  return count === 1 ? "1 aviso oficial" : `${count} avisos oficiais`;
 }
 
 export function WindRetailHero({
@@ -33,13 +40,19 @@ export function WindRetailHero({
   const hours = weather.hourly.slice(0, 24);
   const days = weather.daily.slice(0, 7);
   const current = weather.current;
+  const hasCurrentObservation =
+    current.available &&
+    current.source.kind === "observation" &&
+    current.windSpeed !== null;
+  const nextHour = hours[0] ?? null;
   const positiveGustHours = hours.filter((hour) => (hour.windGust ?? 0) > 0);
   const peak = positiveGustHours.reduce<(typeof hours)[number] | null>(
     (selected, hour) =>
       !selected || (hour.windGust ?? -1) > (selected.windGust ?? -1) ? hour : selected,
     null,
   );
-  const maximumGust = peak?.windGust ?? (hours.some((hour) => hour.windGust !== null) ? 0 : null);
+  const hasGustForecast = hours.some((hour) => hour.windGust !== null);
+  const maximumGust = peak?.windGust ?? (hasGustForecast ? 0 : null);
   const averageSpeed = hours.length
     ? hours.reduce((total, hour) => total + hour.windSpeed, 0) / hours.length
     : null;
@@ -47,84 +60,101 @@ export function WindRetailHero({
     .map((day) => day.windGust)
     .filter((value): value is number => value !== null && value > 0);
   const weeklyMaximum = weeklyGusts.length ? Math.max(...weeklyGusts) : null;
-  const photoIcon = weather.hourly[0]?.icon ?? weather.daily[0]?.icon ?? "cloud";
-  const photo = getRetailWeatherPhoto(photoIcon, advisoryLevel);
-  const photoStyle = {
-    "--today-retail-hero-photo": `url("${photo.src}")`,
-    "--today-retail-hero-position": photo.position,
-  } as CSSProperties;
+  const hasAlert = officialAlertCount > 0;
 
-  const description = current?.windSpeed !== null && current?.windSpeed !== undefined
-    ? `Agora, ${formatSpeed(current.windSpeed)}${current.windDirection ? ` de ${current.windDirection}` : ""}. ${maximumGust === null ? "Rajadas ainda não informadas." : maximumGust > 0 ? `Rajadas de até ${formatGust(maximumGust)} nas próximas 24 horas.` : "Sem rajadas positivas previstas nas próximas 24 horas."}`
-    : maximumGust !== null
-      ? `Rajadas ${maximumGust > 0 ? `de até ${formatGust(maximumGust)}` : "sem valor positivo"} nas próximas 24 horas. O vento atual está em atualização.`
+  const description = hasCurrentObservation
+    ? `Vento medido agora em ${formatSpeed(current.windSpeed)}${current.windDirection ? ` de ${current.windDirection}` : ""}. ${maximumGust === null ? "As rajadas previstas ainda não foram informadas." : maximumGust > 0 ? `A previsão indica rajadas de até ${formatGust(maximumGust)} nas próximas 24 horas.` : "A previsão não indica rajadas positivas nas próximas 24 horas."}`
+    : nextHour
+      ? `A medição atual do vento está indisponível. A previsão da próxima hora indica ${formatSpeed(nextHour.windSpeed)}${maximumGust === null ? "." : maximumGust > 0 ? `, com rajadas de até ${formatGust(maximumGust)} nas próximas 24 horas.` : ", sem rajadas positivas previstas nas próximas 24 horas."}`
       : "Os dados de vento estão em atualização.";
+
+  const primaryLabel = hasCurrentObservation
+    ? "Vento medido agora"
+    : nextHour
+      ? "Previsão da próxima hora"
+      : "Vento em atualização";
+  const primaryValue = hasCurrentObservation
+    ? formatSpeed(current.windSpeed)
+    : nextHour
+      ? formatSpeed(nextHour.windSpeed)
+      : "—";
+  const primaryDetail = hasCurrentObservation
+    ? `${current.windDirection ? `Direção ${current.windDirection}` : "Direção não informada"} · ${current.source.name}`
+    : nextHour
+      ? `${nextHour.time}${nextHour.windGust === null ? " · rajada não informada" : ` · ${formatGust(nextHour.windGust)}`}`
+      : "Fonte em atualização";
 
   return (
     <section
-      className={`today-retail-hero wind-retail-hero today-retail-hero--${advisoryLevel}`}
+      className={`wind-retail-hero wind-retail-hero--${advisoryLevel}`}
       aria-labelledby="wind-retail-hero-title"
+      data-official-alerts={hasAlert ? "true" : "false"}
     >
-      <div className="today-retail-hero__inner wind-retail-hero__inner">
-        <div className="today-retail-hero__copy wind-retail-hero__copy">
-          <h1 id="wind-retail-hero-title">Vento em Pelotas hoje: <span>direção e rajadas.</span></h1>
+      <div className="wind-retail-hero__inner">
+        <div className="wind-retail-hero__copy">
+          <span className="wind-retail-hero__eyebrow">
+            <Wind aria-hidden="true" /> Vento e rajadas · Pelotas
+          </span>
+
+          <h1 id="wind-retail-hero-title">Vento em Pelotas hoje</h1>
           <p>{description}</p>
 
-          {officialAlertCount > 0 ? (
-            <div className="today-retail-hero__badges" aria-label="Avisos oficiais">
+          <div className="wind-retail-hero__meta" aria-label="Disponibilidade dos dados de vento">
+            <span>
+              <CalendarRange aria-hidden="true" /> {hours.length} horas · {days.length} dias
+            </span>
+            {hasAlert ? (
               <Link className="is-alert" to="/alertas">
-                <ShieldAlert aria-hidden="true" /> {officialAlertCount === 1 ? "1 aviso oficial" : `${officialAlertCount} avisos oficiais`}
+                <ShieldAlert aria-hidden="true" /> {alertLabel(officialAlertCount)}
               </Link>
-            </div>
-          ) : null}
-
-          <div className="today-retail-hero__actions">
-            {hours.length ? (
-              <a className="today-retail-hero__primary" href="#vento-por-hora">
-                Ver próximas 24 horas <ArrowRight aria-hidden="true" />
-              </a>
-            ) : (
-              <Link className="today-retail-hero__primary" to="/previsao-7-dias-pelotas">
-                Ver 7 dias <ArrowRight aria-hidden="true" />
-              </Link>
-            )}
-            <a className="today-retail-hero__secondary" href="#direcao-do-vento-por-hora">Ver direção</a>
+            ) : null}
           </div>
         </div>
 
-        <div className="today-retail-hero__showcase wind-retail-hero__showcase">
-          <article className="today-retail-hero__current wind-retail-hero__current" style={photoStyle}>
-            <div className="today-retail-hero__current-photo" role="img" aria-label={photo.alt} />
-            <div className="today-retail-hero__current-content">
-              <header>
-                <div><span>Pelotas, RS</span><small>Vento</small></div>
-                <b><i aria-hidden="true" /> Hoje</b>
-              </header>
-
-              <div className="today-retail-hero__current-main">
-                <div className="today-retail-hero__weather-icon"><Wind aria-hidden="true" /></div>
-                <div>
-                  <strong>{formatSpeed(current?.windSpeed)}</strong>
-                  <span>{current?.windDirection ? `Vento de ${current.windDirection}` : "Direção não informada"}</span>
-                  <small>{peak ? `Maior rajada por volta de ${peak.time}` : "Rajada sem horário de destaque"}</small>
-                </div>
-              </div>
-
-              <div className="today-retail-hero__current-metrics">
-                <div><TrendingUp aria-hidden="true" /><span><small>Maior rajada 24 h</small><strong>{formatGust(maximumGust)}</strong></span></div>
-                <div><Gauge aria-hidden="true" /><span><small>Média 24 h</small><strong>{averageSpeed === null ? "—" : formatSpeed(averageSpeed)}</strong></span></div>
-                <div><Compass aria-hidden="true" /><span><small>Direção agora</small><strong>{current?.windDirection ?? "—"}</strong></span></div>
-              </div>
-
-              <a className="today-retail-hero__photo-credit" href={photo.sourceHref} target="_blank" rel="noreferrer">Foto: {photo.credit}</a>
+        <div className="wind-retail-hero__summary">
+          <div className="wind-retail-hero__condition">
+            <span className="wind-retail-hero__weather-icon">
+              <Wind aria-hidden="true" />
+            </span>
+            <div>
+              <small>{primaryLabel}</small>
+              <strong>{primaryValue}</strong>
+              <span>{primaryDetail}</span>
             </div>
-          </article>
+          </div>
 
-          <div className="today-retail-hero__tiles wind-retail-hero__tiles" aria-label="Destaques do vento">
-            <article className="is-gust"><span><TrendingUp aria-hidden="true" /> Maior rajada</span><strong>{formatGust(maximumGust)}</strong><small>{peak?.time ?? "Sem horário"}</small></article>
-            <article className="is-direction"><span><Compass aria-hidden="true" /> Direção agora</span><strong>{current?.windDirection ?? "—"}</strong></article>
-            <article className="is-average"><span><Gauge aria-hidden="true" /> Média 24 h</span><strong>{averageSpeed === null ? "—" : formatSpeed(averageSpeed)}</strong></article>
-            <article className="is-week"><span><Wind aria-hidden="true" /> Maior rajada em 7 dias</span><strong>{formatGust(weeklyMaximum)}</strong></article>
+          <div className="wind-retail-hero__facts" aria-label="Resumo do vento em Pelotas">
+            <article>
+              <span className="wind-retail-hero__fact-label">
+                <TrendingUp aria-hidden="true" /> Maior rajada 24 h
+              </span>
+              <strong>{formatGust(maximumGust)}</strong>
+              <small>
+                {maximumGust === null
+                  ? "Rajadas não informadas"
+                  : maximumGust <= 0
+                    ? "Sem rajada positiva prevista"
+                    : peak
+                      ? `Por volta de ${peak.time}`
+                      : "Horário em atualização"}
+              </small>
+            </article>
+
+            <article>
+              <span className="wind-retail-hero__fact-label">
+                <Gauge aria-hidden="true" /> Média prevista 24 h
+              </span>
+              <strong>{averageSpeed === null ? "—" : formatSpeed(averageSpeed)}</strong>
+              <small>Média das velocidades horárias disponíveis</small>
+            </article>
+
+            <article>
+              <span className="wind-retail-hero__fact-label">
+                <Compass aria-hidden="true" /> Maior rajada em 7 dias
+              </span>
+              <strong>{formatGust(weeklyMaximum)}</strong>
+              <small>{days.length ? "Previsão diária" : "Previsão em atualização"}</small>
+            </article>
           </div>
         </div>
       </div>
