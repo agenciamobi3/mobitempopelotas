@@ -2,8 +2,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import { PUBLIC_DATA_SOURCE_LINKS } from "../src/lib/public-source-links.ts";
-
 const footer = readFileSync("src/components/layout/Footer.tsx", "utf8");
 const wrapper = readFileSync("src/production/components/site-footer.tsx", "utf8");
 const styles = readFileSync("src/production/components/site-footer-home.css", "utf8");
@@ -18,7 +16,7 @@ const footerRoutes = [
   "/chuva-em-pelotas",
   "/vento-em-pelotas",
   "/radar-e-satelite-pelotas",
-  "/estacao-embrapa-pelotas",
+  "/status-dos-dados",
   "/cameras-ao-vivo-pelotas",
   "/mapa-de-geadas-rio-grande-do-sul",
   "/alertas",
@@ -48,6 +46,7 @@ test("public footer condenses the main editorial discovery into four groups", ()
   }
 
   assert.match(footer, /label: "História das enchentes"/);
+  assert.doesNotMatch(footer, /\/estacao-embrapa-pelotas|\/metodologia/);
 });
 
 test("footer exposes only the approved dedicated Defesa Civil hydrology intents", () => {
@@ -56,53 +55,17 @@ test("footer exposes only the approved dedicated Defesa Civil hydrology intents"
   assert.doesNotMatch(footer, /nivel-do-rio-turucu|nivel-do-rio-cristal|nivel-do-rio-bage|nivel-do-rio-arroio-grande/);
 });
 
-test("footer provenance has one HTTPS link and accessible label for every declared provider", () => {
-  const providers = Object.values(PUBLIC_DATA_SOURCE_LINKS);
-  assert.ok(providers.length >= 17, "inventário deve preservar todos os fornecedores declarados");
-
-  for (const source of providers) {
-    const url = new URL(source.url);
-    assert.equal(url.protocol, "https:", `${source.label} deve usar HTTPS`);
-    assert.ok(source.label.trim().length > 1, "fonte deve ter texto âncora legível");
-    assert.match(source.ariaLabel, /nova aba$/i, `${source.label} deve informar nova aba no aria-label`);
-  }
-
-  assert.match(footer, /FOOTER_SOURCE_GROUPS\.map/);
-  assert.match(footer, /href=\{source\.url\}/);
-  assert.match(footer, /aria-label=\{source\.ariaLabel\}/);
-  assert.match(footer, /target="_blank"/);
-  assert.match(footer, /rel="noopener noreferrer"/);
-  assert.doesNotMatch(footer, /nofollow|sponsored/);
+test("footer centralizes source details instead of repeating the provider inventory", () => {
+  assert.match(footer, /label: "Dados e fontes"/);
+  assert.match(footer, /Origem, uso e status de cada fonte/);
+  assert.match(footer, /to="\/status-dos-dados"/);
+  assert.doesNotMatch(footer, /FOOTER_SOURCE_GROUPS|FooterSourceMap|Fontes e proveniência/);
+  assert.doesNotMatch(footer, /REDEMET\/DECEA|Open-Meteo|MET Norway|MKS \/ Qualle Control|TideSat Global/);
 });
 
-test("footer provenance reflects the active weather, monitoring and water source families", () => {
-  for (const source of [
-    "Embrapa Clima Temperado",
-    "INMET",
-    "CPPMet/UFPel",
-    "Open-Meteo",
-    "MET Norway",
-    "REDEMET/DECEA",
-    "SIMAGRO RS",
-    "Defesa Civil RS",
-    "Casa Militar RS",
-    "MKS / Qualle Control",
-    "LabHidroSens/UFPel",
-    "MetSul",
-    "TideSat Global",
-    "Nível Guaíba",
-    "Rede Lagoa dos Patos",
-    "FURG",
-    "Portos RS",
-  ]) {
-    assert.ok(
-      Object.values(PUBLIC_DATA_SOURCE_LINKS).some((provider) => provider.label === source),
-      `inventário deve identificar ${source}`,
-    );
-  }
-
-  assert.match(footer, /Fontes e proveniência/);
+test("footer keeps the safety note without publishing implementation detail", () => {
   assert.match(footer, /Em situações de risco, siga os comunicados da Defesa Civil, do INMET/);
+  assert.doesNotMatch(footer, /last-good|probe|fallback|kill switch|readiness|cross-check/i);
 });
 
 test("footer has one canonical implementation shared by every public page", () => {
@@ -117,13 +80,11 @@ test("footer uses a four-column desktop directory and responsive two/one-column 
   assert.match(styles, /\.tp-home-footer-groups \{[\s\S]*grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 1100px\)[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 720px\)[\s\S]*\.tp-home-footer-groups,[\s\S]*grid-template-columns: 1fr/);
-  assert.match(styles, /\.tp-home-footer-source-map \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
 
-test("footer source links remain legible, keyboard visible and accessibility-friendly", () => {
-  assert.match(styles, /\.tp-home-footer-source-map a \{[\s\S]*text-decoration: underline/);
-  assert.match(styles, /\.tp-home-footer-source-map a:focus-visible/);
+test("footer remains keyboard and accessibility friendly", () => {
+  assert.match(styles, /:focus-visible/);
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(styles, /@media \(forced-colors: active\)[\s\S]*\.tp-home-footer-source-map a/);
+  assert.match(styles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(styles, /!important/);
 });
