@@ -55,13 +55,11 @@ const routes = [
     name: "meteograma",
     path: "/meteograma-pelotas",
     marker: ".internal-weather-shell--meteogram",
-    hiddenSelectors: [".internal-page-chapters"],
   },
   {
     name: "historico-climatico",
     path: "/historico-climatico-pelotas",
     marker: ".internal-weather-shell--history",
-    hiddenSelectors: [".history-chapters"],
   },
   {
     name: "enchente-2024",
@@ -128,7 +126,6 @@ const routes = [
     path: "/metodologia",
     marker: ".methodology-data-shell",
     neutralSelectors: [".methodology-hero"],
-    hiddenSelectors: [".methodology-chapter-nav"],
   },
   {
     name: "quem-somos",
@@ -162,7 +159,7 @@ function markdownReport(results) {
 
   for (const result of results) {
     lines.push(
-      `| ${result.route} | ${result.viewport} | ${result.audit.httpStatus} | ${result.audit.hasRouteMarker ? "sim" : "não"} | ${result.audit.h1Count} | ${result.audit.horizontalOverflow}px | ${result.audit.mainContained ? "sim" : "não"} | ${result.audit.neutralViolations.length === 0 ? "ok" : result.audit.neutralViolations.length} | ${result.audit.visibleLegacySelectors.length === 0 ? "oculta/ausente" : result.audit.visibleLegacySelectors.length} | ${result.failures.length === 0 ? "aprovado" : "falhou"} |`,
+      `| ${result.route} | ${result.viewport} | ${result.audit.httpStatus} | ${result.audit.hasRouteMarker ? "sim" : "não"} | ${result.audit.h1Count} | ${result.audit.horizontalOverflow}px | ${result.audit.mainContained ? "sim" : "não"} | ${result.audit.neutralViolations.length === 0 ? "ok" : result.audit.neutralViolations.length} | ${result.audit.visibleLegacySelectors.length === 0 ? "ausente" : result.audit.visibleLegacySelectors.length} | ${result.failures.length === 0 ? "aprovado" : "falhou"} |`,
     );
   }
 
