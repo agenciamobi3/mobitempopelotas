@@ -46,7 +46,7 @@ Main public sources used by the portal include:
 - INMET alerts: https://avisos.inmet.gov.br/
 - CPPMet / UFPel: https://wp.ufpel.edu.br/cppmet/
 
-For the Agora, the portal selects a recent meteorological station from the state monitoring network, prioritizing the closest usable station to Pelotas. If no recent station is usable, current conditions remain unavailable instead of being filled with a forecast model.
+For the Agora in Pelotas, the portal accepts only meteorological stations from the state network that are explicitly confirmed as Pelotas stations and whose observation is no more than 30 minutes old. A fresh station from another municipality is not used as a silent replacement. If no confirmed Pelotas station is usable, current conditions remain unavailable instead of being filled with a forecast model.
 
 Always prefer the source label, station and timestamp shown on the requested page. Source availability can degrade independently.
 
