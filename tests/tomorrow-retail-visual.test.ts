@@ -119,6 +119,25 @@ test("tomorrow overview repeats facts as a flat reading strip instead of cards",
   );
 });
 
+test("tomorrow first fold keeps the official alert on the same compact rail", () => {
+  assert.match(
+    editorialRefinement,
+    /\.internal-weather-shell--tomorrow \.internal-weather-main \{[\s\S]*padding-top:\s*clamp\(12px, 1\.5vw, 18px\)/,
+  );
+  assert.match(
+    editorialRefinement,
+    /\.internal-weather-main > \.tp-home-alert[\s\S]*--tp-home-container-max, 1440px[\s\S]*--tp-home-container-gutter, 48px[\s\S]*margin:\s*0 auto[\s\S]*padding:\s*14px 0 15px/,
+  );
+  assert.match(
+    editorialRefinement,
+    /@media \(max-width: 1240px\)[\s\S]*\.internal-weather-main > \.tp-home-alert[\s\S]*--tp-home-container-compact-max, 1180px/,
+  );
+  assert.match(
+    editorialRefinement,
+    /@media \(max-width: 760px\)[\s\S]*\.internal-weather-main > \.tp-home-alert[\s\S]*--tp-home-container-mobile-gutter, 20px/,
+  );
+});
+
 test("tomorrow zero states do not invent gusts or erase positive rain volume", () => {
   assert.match(page, /function gustPhrase/);
   assert.match(page, /if \(value <= 0\) return "sem rajadas previstas"/);
@@ -168,22 +187,31 @@ test("tomorrow sections use the current Home rail", () => {
     shellStyles,
     /\.internal-weather-shell--tomorrow \.tomorrow-retail-hero__inner[\s\S]*width:\s*100%[\s\S]*max-width:\s*none/,
   );
-  assert.match(shellStyles, /padding-right:\s*var\(--internal-weather-section-padding\)/);
-  assert.match(shellStyles, /padding-left:\s*var\(--internal-weather-section-padding\)/);
+  assert.match(
+    heroStyles,
+    /\.internal-weather-shell--tomorrow \.tomorrow-retail-hero__inner[\s\S]*--tp-home-container-max, 1440px[\s\S]*--tp-home-container-gutter, 48px[\s\S]*margin-inline:\s*auto/,
+  );
   assert.match(
     shellStyles,
     /\.internal-weather-main > \*,[\s\S]*--tp-home-container-max, 1440px/,
   );
 });
 
-test("tomorrow visual system follows the clean historical hero language", () => {
-  assert.match(heroStyles, /Hero editorial limpo/);
+test("tomorrow visual system follows the compact historical hero language", () => {
+  assert.match(heroStyles, /Hero editorial compacto/);
   assert.match(heroStyles, /\.tomorrow-retail-hero::before[\s\S]*radial-gradient[\s\S]*linear-gradient/);
-  assert.match(heroStyles, /grid-template-columns:\s*minmax\(0, 1\.08fr\) minmax\(360px, 0\.72fr\)/);
-  assert.match(heroStyles, /\.tomorrow-retail-hero__facts article[\s\S]*background:\s*rgb\(255 255 255 \/ 64%\)/);
+  assert.match(heroStyles, /grid-template-columns:\s*minmax\(0, 0\.92fr\) minmax\(460px, 0\.78fr\)/);
+  assert.match(
+    heroStyles,
+    /\.tomorrow-retail-hero__facts \{[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)[\s\S]*border-top:[\s\S]*border-bottom:/,
+  );
+  assert.match(
+    heroStyles,
+    /\.tomorrow-retail-hero__facts article \{[\s\S]*border-radius:\s*0[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/,
+  );
   assert.match(heroStyles, /\.tomorrow-retail-hero--attention::before/);
   assert.match(heroStyles, /\.tomorrow-retail-hero--warning::before/);
-  assert.match(heroStyles, /@media \(max-width: 980px\)/);
+  assert.match(heroStyles, /@media \(max-width: 1100px\)/);
   assert.match(heroStyles, /@media \(max-width: 720px\)/);
   assert.match(heroStyles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(heroStyles, /today-retail-hero__current-photo/);
