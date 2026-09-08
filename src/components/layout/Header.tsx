@@ -22,7 +22,6 @@ const megaMenus = [
     id: "monitoring",
     label: "Monitoramento",
     activePaths: [
-      "/estacao-embrapa-pelotas",
       "/clima-em-pelotas",
       "/historico-climatico-pelotas",
       "/cameras-ao-vivo-pelotas",
@@ -43,7 +42,7 @@ const megaMenus = [
         links: [
           { label: "Radar e satélite", to: "/radar-e-satelite-pelotas", description: "Veja áreas de chuva, imagens de satélite e trovoadas na região." },
           { label: "Mapa de geadas", to: "/mapa-de-geadas-rio-grande-do-sul", description: "Consulte registros de geada nas estações do INMET no Rio Grande do Sul." },
-          { label: "Estação Embrapa", to: "/estacao-embrapa-pelotas", description: "Veja temperatura, umidade, vento e chuva medidos em Pelotas." },
+          { label: "Rede Defesa Civil RS", to: "/situacao-hidrologica-pelotas", description: "Consulte estações meteorológicas e hidrológicas da rede estadual usadas no monitoramento local e regional." },
           { label: "Câmeras ao vivo", to: "/cameras-ao-vivo-pelotas", description: "Veja imagens locais e saiba se a transmissão está ao vivo ou gravada." },
         ],
       },
