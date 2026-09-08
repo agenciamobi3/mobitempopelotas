@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { OfficialDataAccessNotice } from "@/components/content/OfficialDataAccessNotice";
 import { LaranjalEmbedGuide } from "@/components/embed/LaranjalEmbedGuide";
+import { AnaRhnLaranjalStationProfile } from "@/components/hydrology/AnaRhnLaranjalStationProfile";
 import { HydrologyEditorialHero } from "@/components/hydrology/HydrologyEditorialHero";
 import "@/components/hydrology/HydrologyEditorialRefinements.css";
 import "@/components/hydrology/HydrologyEditorialRoute.css";
@@ -31,8 +32,6 @@ const LARANJAL_PAGE_CONTENT = {
     "A rede CIEX/FURG publica seus valores em centímetros e informa que as medidas são reduzidas ao referencial vertical brasileiro, o Marégrafo de Imbituba/SC. O portal converte apenas a unidade de centímetros para metros para apresentação.",
     "A série CIEX/FURG não é convertida para a referência própria da Estação Laranjal e não é fundida com a série do LabHidroSens.",
     "Se as duas fontes atuais falharem, o portal pode manter a última medição válida arquivada da própria Estação Laranjal, com horário e estado de atualização explícitos.",
-    "O Tempo Pelotas possui acesso autorizado à plataforma integrada da ANA para incorporar, de forma gradual, informações da Rede Hidrometeorológica Nacional ao acompanhamento regional.",
-    "Dados da ANA/RHN só devem ser apresentados como leitura de uma estação depois de validar sua unidade, referência, horário e estado de atualização; valores de referências diferentes não são convertidos automaticamente para o Laranjal.",
     "Uma mudança curta pode resultar de vento, oscilação local ou ruído. A sequência de medições da mesma fonte é mais útil do que um único ponto.",
     "O nível do Guaíba ajuda a compor o contexto regional, mas não deve ser subtraído nem comparado diretamente com a leitura local de Pelotas.",
     "As marcas históricas de 1941 e 2024 pertencem aos referenciais documentados em cada evento e não são convertidas em cota da Estação Laranjal ou da rede CIEX/FURG.",
@@ -55,9 +54,9 @@ const LARANJAL_PAGE_CONTENT = {
         "O LabHidroSens/UFPel permanece como fonte principal enquanto entrega uma leitura atualizada. Quando essa leitura fica atrasada ou indisponível, a rede CIEX/FURG pode assumir temporariamente como leitura local de Pelotas. Essa troca é mostrada na interface e nunca mistura as séries.",
     },
     {
-      question: "A medição exibida no Laranjal já vem da ANA/RHN?",
+      question: "A medição exibida no Laranjal vem da estação ANA 87955001?",
       answer:
-        "Não necessariamente. A página identifica a fonte usada em cada atualização. O acesso à plataforma integrada da ANA/RHN está autorizado e a integração está em implantação, mas uma estação só entra como fonte pública depois de validarmos unidade, referência, horário e disponibilidade.",
+        "A fonte usada na medição fica identificada no topo. A estação 87955001 aparece nesta página como cadastro da Rede Hidrometeorológica Nacional, mas sua medição não entra no número principal enquanto a referência vertical não estiver confirmada.",
     },
     {
       question: "O que representa o número exibido para o Laranjal?",
@@ -139,6 +138,7 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
           "Nível da Lagoa dos Patos hoje",
           "Nível da Lagoa dos Patos em Pelotas",
           "Estação Laranjal",
+          "Estação ANA 87955001",
           "Praia do Laranjal",
           "LabHidroSens / UFPel",
           "CIEX/FURG",
@@ -167,6 +167,7 @@ function NivelLagoaPage() {
     <div className="hydrology-editorial-route">
       <HydrologyEditorialHero level={level} variant="detail" />
       <LaranjalLevelPage weather={data.weather} level={level} />
+      <AnaRhnLaranjalStationProfile data={data.anaRhnProfile} />
       <OfficialDataAccessNotice scope="hydrology" />
       <LaranjalEmbedGuide />
       <EditorialContentSection id="como-interpretar-nivel-laranjal" content={LARANJAL_PAGE_CONTENT} />
