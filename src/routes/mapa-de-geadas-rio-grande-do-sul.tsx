@@ -78,12 +78,7 @@ const FROST_PAGE_CONTENT = {
       description: "Entenda o frio, as estações do ano e a diferença entre tempo recente e climatologia.",
     },
     {
-      label: "Estação Embrapa",
-      href: "/estacao-embrapa-pelotas" as const,
-      description: "Veja medições locais e os extremos registrados em Pelotas.",
-    },
-    {
-      label: "Como os dados funcionam",
+      label: "Dados e fontes",
       href: "/status-dos-dados" as const,
       description: "Confira a origem, a atualização e os limites das fontes meteorológicas.",
     },
