@@ -34,6 +34,7 @@ Regras permanentes:
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
 | Embrapa | Integração operacional aposentada em 08/09; histórico já armazenado é preservado, mas scheduler, configuração e automações específicas foram desligados/removidos |
 | Previsão | Open-Meteo principal; MET Norway contingência quando aplicável |
+| Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã, contexto INMET/UFPel, FAQ e recuperação shell-first |
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
 | Radar / satélite / STSC | Página dedicada usa coletas reais e horário da própria fonte, com recuperação pós-hidratação quando o SSR não conclui a composição no budget |
 | Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; referências verticais não são fundidas |
@@ -45,7 +46,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade do commit `90eb02f` concluiu `failure` com `steps: null` |
+| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade do commit `74d3abb` concluiu `failure` com `steps: null` |
 
 ## 3. Stack e budgets públicos
 
@@ -347,13 +348,14 @@ A consolidação de 08/09 atualizou contratos para:
 - header canônico `HomeEditorialHeader` sem implementação paralela;
 - footer compartilhado sem inventário repetido de fornecedores;
 - retirada de links públicos para a antiga Estação Embrapa;
-- proteção contra shell duplicado em rotas autocontidas.
+- proteção contra shell duplicado em rotas autocontidas;
+- `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles, corpo aberto e índice de capítulos visualmente reduzido, preservando dados, fontes, SEO e estados indisponíveis.
 
 O smoke visual interno não trata mais redirects aposentados como páginas que deveriam possuir H1, shell e namespace visual próprios.
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34196743651`, ligada ao commit `90eb02fdde7ab587609bf6c59a596be3e06698b8`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
+A infraestrutura do runner continua sendo uma limitação externa. Na run `34253683259`, ligada ao commit `74d3abb3825d8f9a2b9da9e179c045b1eadfb08a`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
 
 Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
 
@@ -380,7 +382,8 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 8. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
 9. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
 10. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
-11. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+11. Validar visualmente `/tempo-amanha-pelotas` em desktop e mobile no domínio canônico após a propagação do novo bundle, sem tratar preview isolado como prova de produção.
+12. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
@@ -401,6 +404,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/INMET_GMAIL_PUSH.md` — integração Gmail/INMET;
 - `docs/MOBI_TICKET_CORE_INTEGRATION_2026-08-29.md` — consumidor MOBI Ticket;
 - `docs/SEO_REFINEMENT_ENRICHMENT_2026-08-27.md` — SEO;
+- `docs/TOMORROW_PAGE_VISUAL_REFRESH_2026-09-08.md` — contrato visual editorial da página de amanhã;
 - `docs/PRODUCTION_CUTOVER.md` — runbook de produção.
 
 ## 16. Regra de manutenção
