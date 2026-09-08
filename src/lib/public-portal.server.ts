@@ -112,7 +112,7 @@ export async function fetchPublicPortalSnapshot() {
       monitoring_network: absoluteUrl("/situacao-hidrologica-pelotas"),
       hydrology: absoluteUrl("/situacao-hidrologica-pelotas"),
       laranjal_level: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
-      methodology: absoluteUrl("/metodologia"),
+      data_sources: absoluteUrl("/status-dos-dados"),
       feed: absoluteUrl("/feed"),
       public_data: absoluteUrl("/pelotas.json"),
     },
@@ -198,12 +198,11 @@ export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
         tags: ["hidrologia", "Lagoa dos Patos", "Laranjal", "Pelotas"],
       },
       {
-        id: absoluteUrl("/metodologia"),
-        url: absoluteUrl("/metodologia"),
-        title: "Metodologia e fontes do Tempo Pelotas",
-        content_text:
-          "Consulte as fontes, regras de validação, contingências, limitações e critérios de confiança utilizados pelo portal.",
-        tags: ["metodologia", "dados abertos", "fontes", "transparência"],
+        id: absoluteUrl("/status-dos-dados"),
+        url: absoluteUrl("/status-dos-dados"),
+        title: "Dados e fontes do Tempo Pelotas",
+        content_text: "Origem, uso e estado atual das fontes publicadas pelo portal.",
+        tags: ["dados", "fontes", "status", "Tempo Pelotas"],
       },
     ],
   };
