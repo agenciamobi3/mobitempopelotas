@@ -12,8 +12,8 @@ const cleanHero = readFileSync(
   "src/components/layout/InternalWeatherCleanHero.css",
   "utf8",
 );
-const todayHeroRefinement = readFileSync(
-  "src/components/weather/TodayRetailHeroRefinement.css",
+const todayHeroCss = readFileSync(
+  "src/components/weather/TodayEditorialHero.css",
   "utf8",
 );
 const tomorrowHeroCss = readFileSync(
@@ -30,6 +30,14 @@ const sevenDayHeroCss = readFileSync(
 );
 const sevenDayHero = readFileSync(
   "src/components/weather/SevenDayRetailHero.tsx",
+  "utf8",
+);
+const fifteenDayHeroCss = readFileSync(
+  "src/components/weather/FifteenDayForecastHero.css",
+  "utf8",
+);
+const fifteenDayHero = readFileSync(
+  "src/components/weather/FifteenDayForecastHero.tsx",
   "utf8",
 );
 
@@ -71,35 +79,41 @@ test("precedence barrier no longer hides legacy chapter navigation", () => {
   assert.doesNotMatch(barrier, /internal-page-chapters|camera-v2-chapters|climate-chapters|hydrology-v2-chapters|frost-v2-chapters|embrapa-v2-chapters|history-chapters|methodology-chapter-nav/);
 });
 
-test("rain, wind and 15-day reuse the retail DOM but keep the clean hero", () => {
-  for (const namespace of [
-    "internal-weather-shell--rain",
-    "internal-weather-shell--wind",
-    "internal-weather-shell--fifteen-day",
-  ]) {
+test("rain and wind keep the shared clean hero while 15-day owns its hero", () => {
+  for (const namespace of ["internal-weather-shell--rain", "internal-weather-shell--wind"]) {
     assert.match(cleanHero, new RegExp(`\\.${namespace}`));
     assert.match(barrier, new RegExp(`\\.${namespace}`));
   }
 
+  assert.doesNotMatch(cleanHero, /internal-weather-shell--fifteen-day/);
   assert.match(
     cleanHero,
     /\.today-retail-hero[\s\S]*?background:\s*#f5f8f8 !important[\s\S]*?background-image:\s*none !important/,
   );
-  assert.match(
-    barrier,
-    /:is\(\.today-retail-hero, \.rain-retail-hero\)[\s\S]*?border-radius:\s*0 !important[\s\S]*?background-image:\s*none !important/,
-  );
+
+  const retailBarrierStart = barrier.indexOf("Chuva e Vento ainda reutilizam o DOM retail legado");
+  const retailBarrierEnd = barrier.indexOf("/* Clima e situação das águas", retailBarrierStart);
+  assert.ok(retailBarrierStart >= 0);
+  assert.ok(retailBarrierEnd > retailBarrierStart);
+  const retailBarrier = barrier.slice(retailBarrierStart, retailBarrierEnd);
+  assert.match(retailBarrier, /internal-weather-shell--rain/);
+  assert.match(retailBarrier, /internal-weather-shell--wind/);
+  assert.doesNotMatch(retailBarrier, /internal-weather-shell--fifteen-day/);
+
+  assert.match(fifteenDayHeroCss, /Hero editorial compacto da previsão estendida/);
+  assert.match(fifteenDayHeroCss, /\.internal-weather-shell--fifteen-day \.fifteen-day-retail-hero__inner/);
+  assert.match(fifteenDayHero, /fifteen-day-retail-hero__summary/);
+  assert.doesNotMatch(fifteenDayHero, /today-retail-hero|getRetailWeatherPhoto/);
 });
 
-test("Today hero remains a deliberate retail chromatic surface", () => {
+test("Today hero uses its dedicated editorial surface", () => {
   assert.match(
-    todayHeroRefinement,
-    /\.internal-weather-shell--today \.today-retail-hero[\s\S]*?radial-gradient[\s\S]*?linear-gradient/,
+    todayHeroCss,
+    /\.internal-weather-shell--today \.today-retail-hero::before[\s\S]*?radial-gradient[\s\S]*?linear-gradient/,
   );
-  assert.match(todayHeroRefinement, /\.today-retail-hero__current[\s\S]*?min-height:\s*21rem/);
-  assert.match(todayHeroRefinement, /\.today-retail-hero__tiles article\.is-rain/);
-  assert.match(todayHeroRefinement, /\.today-retail-hero__tiles article\.is-wind/);
-  assert.match(todayHeroRefinement, /\.today-retail-hero__tiles article\.is-sun/);
+  assert.match(todayHeroCss, /\.internal-weather-shell--today \.today-retail-hero__facts article/);
+  assert.match(todayHeroCss, /--tp-home-container-max, 1440px/);
+  assert.doesNotMatch(cleanHero, /internal-weather-shell--today/);
 });
 
 test("Tomorrow hero uses the clean historical editorial language", () => {
@@ -112,12 +126,13 @@ test("Tomorrow hero uses the clean historical editorial language", () => {
   assert.doesNotMatch(tomorrowHero, /getRetailWeatherPhoto/);
 });
 
-test("7-day hero keeps concise weekly retail hierarchy", () => {
-  assert.match(sevenDayHero, /Previsão de <span>7 dias<\/span> para Pelotas/);
-  assert.match(sevenDayHero, /className="is-maximum"/);
-  assert.match(sevenDayHero, /className="is-cold"/);
-  assert.match(sevenDayHeroCss, /\.seven-day-retail-hero[\s\S]*?radial-gradient[\s\S]*?linear-gradient/);
-  assert.match(sevenDayHeroCss, /\.seven-day-retail-hero__tiles article\.is-source/);
+test("7-day hero keeps the concise weekly editorial hierarchy", () => {
+  assert.match(sevenDayHero, /Previsão de 7 dias para Pelotas/);
+  assert.match(sevenDayHero, /seven-day-retail-hero__summary/);
+  assert.match(sevenDayHero, /seven-day-retail-hero__facts/);
+  assert.match(sevenDayHeroCss, /\.seven-day-retail-hero::before[\s\S]*?radial-gradient[\s\S]*?linear-gradient/);
+  assert.match(sevenDayHeroCss, /\.seven-day-retail-hero__facts article/);
+  assert.doesNotMatch(sevenDayHero, /getRetailWeatherPhoto|today-retail-hero/);
 });
 
 test("climate and hydrology custom heroes use the open split surface", () => {
