@@ -3,7 +3,7 @@
   min-height: 360px;
   overflow: hidden;
   border: 1px solid rgb(7 30 47 / 10%);
-  border-radius: 24px;
+  border-radius: 18px;
   background: #dfeae6;
 }
 
@@ -22,9 +22,7 @@
   justify-items: center;
   gap: 9px;
   padding: 28px;
-  background:
-    radial-gradient(circle at 70% 20%, rgb(24 189 205 / 20%), transparent 18rem),
-    #e7f0ed;
+  background: #e7f0ed;
   text-align: center;
 }
 
@@ -69,10 +67,9 @@
   gap: 3px;
   padding: 13px 15px;
   border: 1px solid rgb(255 255 255 / 82%);
-  border-radius: 16px;
-  background: rgb(255 255 255 / 90%);
-  box-shadow: 0 14px 32px rgb(7 30 47 / 15%);
-  backdrop-filter: blur(14px);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: none;
 }
 
 .caption strong {
@@ -88,14 +85,91 @@
   white-space: nowrap;
 }
 
+.caption small {
+  margin-top: 2px;
+  color: #6f828b;
+  font-size: 0.58rem;
+  line-height: 1.4;
+}
+
+.broader {
+  display: grid;
+  min-height: 300px;
+  place-items: center;
+  padding: clamp(28px, 4vw, 48px);
+  background: #f5f8f8;
+}
+
+.broaderContent {
+  display: grid;
+  width: min(100%, 620px);
+  gap: 0.65rem;
+  text-align: left;
+}
+
+.broaderContent > span {
+  color: #087f91;
+  font-size: 0.68rem;
+  font-weight: 840;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.broaderContent > strong {
+  color: #071e2f;
+  font-size: clamp(1.35rem, 2.5vw, 2.2rem);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.broaderContent > p {
+  margin: 0;
+  color: #425f6c;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.broaderContent > small {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  color: #657984;
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
 @keyframes alert-map-spin {
   to { transform: rotate(360deg); }
 }
 
 @media (max-width: 700px) {
-  .shell { min-height: 300px; border-radius: 18px; }
+  .shell {
+    min-height: 300px;
+    border-radius: 12px;
+  }
+
+  .broader {
+    min-height: 260px;
+    padding: 24px 18px;
+  }
+
+  .caption span {
+    white-space: normal;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .loading > span { animation: none; }
+}
+
+@media (forced-colors: active) {
+  .shell,
+  .loading,
+  .fallback,
+  .caption,
+  .broader {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
 }
