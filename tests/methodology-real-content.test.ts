@@ -71,44 +71,47 @@ test("o inventário apresenta cinco integrações meteorológicas e três hidrol
   assert.match(component, /lagoon\.total/);
 });
 
-test("a nota exibida é identificada como qualidade meteorológica e a síntese mostra sua origem real", () => {
-  assert.match(component, />Qualidade meteorológica</);
+test("a nota exibida é identificada como qualidade dos dados e a síntese mostra sua origem real", () => {
+  assert.match(component, />Qualidade dos dados do tempo</);
   assert.match(component, /weather\.weather\.quality\.score/);
   assert.match(component, /weather\.intelligence\.origin === "gemini"/);
-  assert.match(component, /Síntese assistida por Gemini/);
-  assert.match(component, /Regras determinísticas/);
+  assert.match(component, /Resumo com apoio do Gemini/);
+  assert.match(component, /Resumo montado pelo portal/);
   assert.doesNotMatch(component, />Estado atual<\/span>/);
 });
 
 test("o conteúdo explica corretamente os limites das réguas e das previsões", () => {
-  assert.match(component, /Cada régua possui referência vertical e cota próprias/);
+  assert.match(component, /Cada estação usa uma referência própria/);
   assert.match(component, /não devem ser comparados diretamente/);
-  assert.match(component, /não prevê\s+o nível do Laranjal apenas a partir do Guaíba/);
-  assert.match(component, /Modelo global principal/);
-  assert.match(component, /Modelo global de contingência/);
+  assert.match(component, /não calcula o\s+nível futuro do Laranjal apenas pelo Guaíba/);
+  assert.match(component, /Previsão detalhada principal/);
+  assert.match(component, /Previsão usada quando a principal falha/);
 });
 
-test("links externos e âncoras dos capítulos permanecem estruturados", () => {
-  assert.match(component, /className="methodology-chapter-nav"/);
-  assert.match(component, /href="#fontes-ativas"/);
-  assert.match(component, /href="#fluxo-dados"/);
-  assert.match(component, /href="#regras-integridade"/);
-  assert.match(component, /href="#tipos-informacao"/);
-  assert.match(component, /href="#limites-uso"/);
+test("seções continuam endereçáveis sem renderizar o índice numerado antigo", () => {
+  for (const id of [
+    "fontes-ativas",
+    "fluxo-dados",
+    "regras-integridade",
+    "tipos-informacao",
+    "limites-uso",
+  ]) {
+    assert.match(component, new RegExp(`id="${id}"`));
+  }
+  assert.doesNotMatch(component, /methodology-chapter-nav/);
   assert.match(component, /rel="noopener noreferrer"/);
   assert.match(component, /aria-label=\{`Abrir página de \$\{source\.organization\} em nova aba`\}/);
 });
 
-test("a camada visual mantém responsividade e o contrato final oculta o índice legado", () => {
+test("a camada visual permanece responsiva sem depender de CSS de navegação removida", () => {
   assert.match(component, /MethodologyPageRefinement\.css/);
   assert.match(refinement, /backdrop-filter:\s*none/);
-  assert.match(refinement, /\.methodology-chapter-nav/);
-  assert.match(refinement, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(refinement, /\.methodology-chapter-nav/);
   assert.match(refinement, /data-category="hydrology"/);
   assert.match(refinement, /content-visibility:\s*auto/);
   assert.match(refinement, /@media \(max-width: 680px\)/);
   assert.match(refinement, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.match(homeContract, /\.methodology-chapter-nav\s*\{[\s\S]*display:\s*none/);
+  assert.doesNotMatch(homeContract, /\.methodology-chapter-nav/);
 });
 
 test("metodologia usa composição técnica aberta sem decoração de dashboard", () => {
