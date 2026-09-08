@@ -18,6 +18,10 @@ const globalFooter = readFileSync(
   new URL("../src/components/layout/Footer.tsx", import.meta.url),
   "utf8",
 );
+const publicSources = readFileSync(
+  new URL("../src/lib/public-source-links.ts", import.meta.url),
+  "utf8",
+);
 
 test("telas standalone reutilizam o mesmo header e rodapé globais", () => {
   assert.match(headerWrapper, /<Header advisoryLevel=/);
@@ -28,10 +32,10 @@ test("telas standalone reutilizam o mesmo header e rodapé globais", () => {
 
 test("navegação institucional existe em definições canônicas do shell", () => {
   for (const label of [
-    "Previsão de hoje",
-    "Tempo amanhã",
-    "Próximos 7 dias",
-    "Estação Embrapa",
+    "Hoje",
+    "Amanhã",
+    "7 dias",
+    "Rede Defesa Civil RS",
     "Radar e satélite",
     "Câmeras ao vivo",
     "Situação das águas",
@@ -39,6 +43,7 @@ test("navegação institucional existe em definições canônicas do shell", () 
   ]) {
     assert.match(globalHeader, new RegExp(label));
   }
+  assert.doesNotMatch(globalHeader, /Estação Embrapa|\/estacao-embrapa-pelotas/);
 
   for (const label of [
     "Chuva em Pelotas",
@@ -47,13 +52,14 @@ test("navegação institucional existe em definições canônicas do shell", () 
     "Enchente de 2024",
     "Tempo na Zona Sul",
     "Clima de Pelotas",
-    "Embrapa Clima Temperado",
     "REDEMET/DECEA",
-    "Defesa Civil RS / Casa Militar / MKS",
     "Ecossistema MOBI",
   ]) {
     assert.match(globalFooter, new RegExp(label));
   }
+
+  assert.match(publicSources, /Defesa Civil RS — Rede Hidrometeorológica/);
+  assert.doesNotMatch(publicSources, /Embrapa Clima Temperado/);
 });
 
 test("rodapé público não mantém uma implementação alternativa oculta", () => {
