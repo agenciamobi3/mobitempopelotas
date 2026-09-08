@@ -44,6 +44,10 @@ function placeCount(alert: InmetAlert) {
 function sortedAlerts(alerts: InmetAlert[]) {
   return [...alerts].sort((left, right) => {
     if (left.period !== right.period) return left.period === "active" ? -1 : 1;
+    if (left.relevance !== right.relevance) {
+      const relevance = { pelotas: 2, regional: 1, state: 0 } as const;
+      return relevance[right.relevance] - relevance[left.relevance];
+    }
     const severity = priority[right.severity] - priority[left.severity];
     if (severity) return severity;
     const leftTime = Date.parse(left.startsAt ?? left.sentAt ?? "") || Number.POSITIVE_INFINITY;
@@ -82,7 +86,9 @@ export function InmetAlertCoverageDetails({ data }: { data: WeatherIntelligenceD
             <summary>
               <span>{alert.period === "active" ? "Em vigor" : "Programado"}</span>
               <strong>{alert.headline || alert.event}</strong>
-              <small>{placeCount(alert)}</small>
+              <small>
+                {scopeLabel(alert)} · {placeCount(alert)}
+              </small>
             </summary>
 
             <div className="inmet-alert-coverage-details__body">
