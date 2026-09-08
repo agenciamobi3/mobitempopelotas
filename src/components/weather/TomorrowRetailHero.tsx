@@ -1,37 +1,23 @@
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowRight,
   CalendarDays,
   CloudRain,
-  Gauge,
   ShieldAlert,
   Thermometer,
   Wind,
-  type LucideIcon,
 } from "lucide-react";
-import type { CSSProperties } from "react";
 
 import { WeatherIcon } from "@/production/components/weather-icon";
 import { weatherConditionLabels } from "@/production/lib/hero-weather-presentation";
 import type { DailyForecast, WeatherData, WeatherIconName } from "@/production/lib/weather-data";
 import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
-import { getRetailWeatherPhoto } from "./today-retail-hero-backgrounds";
-import "./TodayRetailHero.css";
-import "./TodayRetailHeroPhoto.css";
 import "./TomorrowRetailHero.css";
 
 type TomorrowRetailHeroProps = {
   weather: WeatherData;
   advisoryLevel: AdvisoryLevel;
   officialAlertCount?: number;
-};
-
-type RetailMetric = {
-  label: string;
-  value: string;
-  detail?: string;
-  icon: LucideIcon;
 };
 
 function formatValue(value: number | null | undefined, suffix = "") {
@@ -66,29 +52,10 @@ function alertLabel(count: number) {
   return `${count} avisos oficiais para Pelotas`;
 }
 
-function differenceLabel(value: number | null) {
-  if (value === null || value === 0) return value === 0 ? "Sem mudança" : "Sem comparação";
-  return value > 0 ? `+${value}° vs. hoje` : `${value}° vs. hoje`;
-}
-
-function buildMetrics(tomorrow: DailyForecast | null): RetailMetric[] {
-  return [
-    {
-      label: "Mínima",
-      value: formatValue(tomorrow?.min, "°"),
-      icon: Thermometer,
-    },
-    {
-      label: "Chance de chuva",
-      value: formatValue(tomorrow?.rainChance, "%"),
-      icon: CloudRain,
-    },
-    {
-      label: "Rajadas",
-      value: formatGust(tomorrow?.windGust),
-      icon: Wind,
-    },
-  ];
+function rainDetail(day: DailyForecast | null) {
+  if (!day) return "Previsão em atualização";
+  const chance = day.rainChance === null ? "Chance não informada" : `${day.rainChance}% de chance`;
+  return `${chance} · ${formatValue(day.precipitation, " mm")}`;
 }
 
 export function TomorrowRetailHero({
@@ -96,45 +63,34 @@ export function TomorrowRetailHero({
   advisoryLevel,
   officialAlertCount = 0,
 }: TomorrowRetailHeroProps) {
-  const today = weather.daily[0] ?? null;
   const tomorrow = weather.daily[1] ?? null;
-  const hasTomorrow = tomorrow !== null;
   const iconName: WeatherIconName = tomorrow?.icon ?? "cloud";
   const condition = tomorrow ? weatherConditionLabels[iconName] : "Previsão em atualização";
-  const metrics = buildMetrics(tomorrow);
   const hasAlert = officialAlertCount > 0;
   const amplitude = tomorrow ? Math.max(0, tomorrow.max - tomorrow.min) : null;
-  const maximumDifference = tomorrow && today ? tomorrow.max - today.max : null;
-  const photo = getRetailWeatherPhoto(iconName, advisoryLevel);
-  const photoStyle = {
-    "--today-retail-hero-photo": `url("${photo.src}")`,
-    "--today-retail-hero-position": photo.position,
-  } as CSSProperties;
+  const sourceName = weather.source.forecastName ?? weather.source.name;
 
   return (
     <section
-      className={`today-retail-hero tomorrow-retail-hero today-retail-hero--${advisoryLevel}`}
+      className={`tomorrow-retail-hero tomorrow-retail-hero--${advisoryLevel}`}
       aria-labelledby="tomorrow-retail-hero-title"
       data-official-alerts={hasAlert ? "true" : "false"}
-      data-weather-photo={iconName}
     >
-      <div className="today-retail-hero__inner tomorrow-retail-hero__inner">
-        <div className="today-retail-hero__copy tomorrow-retail-hero__copy">
-          <span className="today-retail-hero__eyebrow">
-            <i aria-hidden="true" /> Tempo amanhã · Pelotas
+      <div className="tomorrow-retail-hero__inner">
+        <div className="tomorrow-retail-hero__copy">
+          <span className="tomorrow-retail-hero__eyebrow">
+            <CalendarDays aria-hidden="true" /> Tempo amanhã · Pelotas
           </span>
 
-          <h1 id="tomorrow-retail-hero-title">
-            Tempo amanhã em Pelotas: <span>temperatura, chuva e vento.</span>
-          </h1>
+          <h1 id="tomorrow-retail-hero-title">Tempo amanhã em Pelotas</h1>
 
           <p>
             {tomorrow
-              ? `${condition}. Mínima de ${tomorrow.min}° e máxima de ${tomorrow.max}°. Veja abaixo a chuva e as rajadas previstas.`
-              : "A previsão de amanhã ainda não está disponível."}
+              ? `${condition}. Mínima de ${tomorrow.min}° e máxima de ${tomorrow.max}°. Confira chuva, vento e os detalhes previstos para o próximo dia.`
+              : "A previsão detalhada de amanhã ainda está sendo atualizada."}
           </p>
 
-          <div className="today-retail-hero__badges" aria-label="Previsão de amanhã">
+          <div className="tomorrow-retail-hero__meta" aria-label="Informações da previsão de amanhã">
             <span>
               <CalendarDays aria-hidden="true" /> {formatTomorrowDate(tomorrow)}
             </span>
@@ -146,125 +102,50 @@ export function TomorrowRetailHero({
               <span className="is-stable">Sem aviso oficial para Pelotas</span>
             )}
           </div>
-
-          <div className="today-retail-hero__actions">
-            {hasTomorrow ? (
-              <a className="today-retail-hero__primary" href="#resumo-amanha">
-                Ver detalhes de amanhã <ArrowRight aria-hidden="true" />
-              </a>
-            ) : (
-              <Link className="today-retail-hero__primary" to="/previsao-7-dias-pelotas">
-                Ver próximos 7 dias <ArrowRight aria-hidden="true" />
-              </Link>
-            )}
-            <Link
-              className="today-retail-hero__secondary"
-              to={hasTomorrow ? "/previsao-7-dias-pelotas" : "/tempo-hoje-pelotas"}
-            >
-              {hasTomorrow ? "Ver próximos 7 dias" : "Ver tempo de hoje"}
-            </Link>
-          </div>
         </div>
 
-        <div className="today-retail-hero__showcase tomorrow-retail-hero__showcase">
-          <article
-            className="today-retail-hero__current tomorrow-retail-hero__current"
-            style={photoStyle}
-            aria-label={
-              hasTomorrow
-                ? "Previsão do tempo para amanhã em Pelotas"
-                : "Previsão de amanhã em atualização em Pelotas"
-            }
-          >
-            <div
-              className="today-retail-hero__current-photo"
-              role="img"
-              aria-label={
-                hasTomorrow
-                  ? photo.alt
-                  : "Imagem ilustrativa da previsão meteorológica de Pelotas"
-              }
-            />
-
-            <div className="today-retail-hero__current-content">
-              <header>
-                <div>
-                  <span>Pelotas, RS</span>
-                  <small>Previsão para amanhã</small>
-                </div>
-                <b>
-                  <i aria-hidden="true" /> Amanhã
-                </b>
-              </header>
-
-              <div className="today-retail-hero__current-main">
-                <div className="today-retail-hero__weather-icon">
-                  <WeatherIcon name={iconName} title={`Condição prevista para amanhã: ${condition}`} />
-                </div>
-                <div>
-                  <strong>{formatValue(tomorrow?.max, "°")}</strong>
-                  <span>{condition}</span>
-                </div>
-              </div>
-
-              <div className="today-retail-hero__current-metrics">
-                {metrics.map((metric) => {
-                  const Icon = metric.icon;
-                  return (
-                    <div key={metric.label}>
-                      <Icon aria-hidden="true" />
-                      <span>
-                        <small>{metric.label}</small>
-                        <strong>{metric.value}</strong>
-                        {metric.detail ? <em>{metric.detail}</em> : null}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <a
-                className="today-retail-hero__photo-credit"
-                href={photo.sourceHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Foto: {photo.credit}
-              </a>
+        <div className="tomorrow-retail-hero__summary" aria-label="Resumo da previsão para amanhã">
+          <div className="tomorrow-retail-hero__condition">
+            <span className="tomorrow-retail-hero__weather-icon" aria-hidden="true">
+              <WeatherIcon name={iconName} title={`Condição prevista para amanhã: ${condition}`} />
+            </span>
+            <div>
+              <small>Condição prevista</small>
+              <strong>{condition}</strong>
+              <span>Fonte principal: {sourceName}</span>
             </div>
-          </article>
+          </div>
 
-          <div className="today-retail-hero__tiles tomorrow-retail-hero__tiles" aria-label="Dados para amanhã">
+          <div className="tomorrow-retail-hero__facts">
             <article>
-              <span>
-                <Gauge aria-hidden="true" /> Variação no dia
-              </span>
-              <strong>{formatValue(amplitude, "°")}</strong>
-              <small>Da mínima à máxima</small>
+              <div className="tomorrow-retail-hero__fact-label">
+                <Thermometer aria-hidden="true" />
+                <span>Temperatura</span>
+              </div>
+              <strong>
+                {formatValue(tomorrow?.min, "°")} a {formatValue(tomorrow?.max, "°")}
+              </strong>
+              <small>
+                {amplitude === null ? "Variação em atualização" : `Variação de ${amplitude}° no dia`}
+              </small>
             </article>
 
-            <article className="is-rain">
-              <span>
-                <CloudRain aria-hidden="true" /> Volume de chuva
-              </span>
-              <strong>{formatValue(tomorrow?.precipitation, " mm")}</strong>
-              <small>Total previsto</small>
+            <article>
+              <div className="tomorrow-retail-hero__fact-label">
+                <CloudRain aria-hidden="true" />
+                <span>Chuva</span>
+              </div>
+              <strong>{formatValue(tomorrow?.rainChance, "%")}</strong>
+              <small>{rainDetail(tomorrow)}</small>
             </article>
 
-            <article className="is-wind">
-              <span>
-                <Thermometer aria-hidden="true" /> Máxima versus hoje
-              </span>
-              <strong>{differenceLabel(maximumDifference)}</strong>
-              <small>Diferença para hoje</small>
-            </article>
-
-            <article className="is-sun">
-              <span>
-                <CalendarDays aria-hidden="true" /> Fonte da previsão
-              </span>
-              <strong>{weather.source.forecastName ?? weather.source.name}</strong>
-              <small>Previsão principal</small>
+            <article>
+              <div className="tomorrow-retail-hero__fact-label">
+                <Wind aria-hidden="true" />
+                <span>Rajadas</span>
+              </div>
+              <strong>{formatGust(tomorrow?.windGust)}</strong>
+              <small>Maior rajada prevista para o dia</small>
             </article>
           </div>
         </div>
