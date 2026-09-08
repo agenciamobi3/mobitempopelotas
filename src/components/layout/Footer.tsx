@@ -1,7 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 
-import { FOOTER_SOURCE_GROUPS } from "@/lib/public-source-links";
 import type { WeatherData } from "@/production/lib/weather-data";
 
 import "./FooterStatusLink.css";
@@ -25,7 +24,7 @@ const footerGroups = [
     title: "Monitoramento",
     links: [
       { label: "Radar e satélite", ariaLabel: "Acompanhar radar e satélite meteorológico para Pelotas e região", to: "/radar-e-satelite-pelotas" },
-      { label: "Rede Defesa Civil RS", ariaLabel: "Consultar a rede observacional usada pelo Tempo Pelotas e sua metodologia", to: "/metodologia" },
+      { label: "Dados e fontes", ariaLabel: "Consultar a origem e o status dos dados do Tempo Pelotas", to: "/status-dos-dados" },
       { label: "Câmeras ao vivo", ariaLabel: "Ver câmeras ao vivo de Pelotas e região", to: "/cameras-ao-vivo-pelotas" },
       { label: "Mapa de geadas", ariaLabel: "Consultar ocorrências de geada registradas pelo INMET no Rio Grande do Sul", to: "/mapa-de-geadas-rio-grande-do-sul" },
       { label: "Avisos oficiais", ariaLabel: "Consultar avisos meteorológicos oficiais para Pelotas", to: "/alertas" },
@@ -67,10 +66,6 @@ function isActivePath(pathname: string, to: string) {
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
-function FooterSourceMap() {
-  return <div className="tp-home-footer-source-map">{FOOTER_SOURCE_GROUPS.map((group) => <div key={group.title}><strong>{group.title}</strong><p>{group.sources.map((source, index) => <span className="tp-home-footer-source-entry" key={source.url}>{index > 0 ? <span className="tp-home-footer-source-separator" aria-hidden="true">·</span> : null}<a href={source.url} target="_blank" rel="noopener noreferrer" aria-label={source.ariaLabel}>{source.label}</a></span>)}</p></div>)}</div>;
-}
-
 export function Footer({ source }: FooterProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const sourceStatus = source?.isFallback ? "Algumas informações estão com atualização parcial" : "Dados e fontes monitorados";
@@ -82,22 +77,24 @@ export function Footer({ source }: FooterProps) {
         <section className="tp-home-footer-top" aria-labelledby="tp-home-footer-title">
           <div className="tp-home-footer-identity">
             <Link className="tp-home-footer-brand" to="/" aria-label="Tempo Pelotas — página inicial"><img className="tp-home-footer-brand-logo" src="/brand/tempo-pelotas-purple.svg" alt="" width={344} height={50} loading="lazy" decoding="async" draggable={false} /></Link>
-            <h2 id="tp-home-footer-title">Tempo, água e dados de Pelotas, com fonte visível.</h2>
-            <p>Previsão, observação, radar, alertas e hidrologia com origem, horário e contexto para leitura rápida e aprofundamento quando necessário.</p>
+            <h2 id="tp-home-footer-title">Tempo, água e dados de Pelotas.</h2>
+            <p>Previsão, observação, radar, alertas e hidrologia para Pelotas e região.</p>
           </div>
           <div className={`tp-home-footer-status${source?.isFallback ? " is-fallback" : ""}`} aria-label="Estado das fontes do portal">
             <span aria-hidden="true" />
-            <div><small>Saúde das fontes</small><strong>{sourceStatus}</strong><Link className="tp-home-footer-status__link" to="/status-dos-dados" aria-label="Consultar o status das fontes e integrações do Tempo Pelotas">Confira o status dos dados<ArrowRight aria-hidden="true" /></Link></div>
+            <div><small>Saúde das fontes</small><strong>{sourceStatus}</strong><Link className="tp-home-footer-status__link" to="/status-dos-dados" aria-label="Consultar os dados e as fontes do Tempo Pelotas">Ver dados e fontes<ArrowRight aria-hidden="true" /></Link></div>
           </div>
         </section>
         <section className="tp-home-footer-directory" aria-label="Navegação principal do portal"><div className="tp-home-footer-groups">{footerGroups.map((group) => <nav className="tp-home-footer-group" aria-label={group.title} key={group.title}><strong>{group.title}</strong><ul>{group.links.map((link) => <li key={link.to}><Link to={link.to} aria-label={link.ariaLabel} aria-current={isActivePath(pathname, link.to) ? "page" : undefined}><span>{link.label}</span><ArrowRight aria-hidden="true" /></Link></li>)}</ul></nav>)}</div></section>
-        <section className="tp-home-footer-transparency" aria-label="Fontes, orientação de segurança e transparência">
-          <div className="tp-home-footer-sources"><span>Fontes e proveniência</span><FooterSourceMap /></div>
+        <section className="tp-home-footer-transparency" aria-label="Orientação de segurança e dados">
+          <div className="tp-home-footer-sources">
+            <span>Dados e fontes</span>
+            <p><Link to="/status-dos-dados">Origem, uso e status de cada fonte</Link></p>
+          </div>
           <div className="tp-home-footer-service">
             <div className="tp-home-footer-guidance"><span aria-hidden="true">i</span><p>Em situações de risco, siga os comunicados da Defesa Civil, do INMET e das autoridades locais.</p></div>
             <nav className="tp-home-footer-legal" aria-label="Transparência e dados">
-              <Link to="/metodologia" aria-label="Conhecer a metodologia e as fontes do Tempo Pelotas" aria-current={isActivePath(pathname, "/metodologia") ? "page" : undefined}>Metodologia</Link>
-              <Link to="/status-dos-dados" aria-label="Consultar o status das fontes e integrações do Tempo Pelotas" aria-current={isActivePath(pathname, "/status-dos-dados") ? "page" : undefined}>Status dos dados</Link>
+              <Link to="/status-dos-dados" aria-label="Consultar a origem e o status das fontes do Tempo Pelotas" aria-current={isActivePath(pathname, "/status-dos-dados") ? "page" : undefined}>Dados e fontes</Link>
               <Link to="/privacidade-e-dados" aria-label="Consultar a política de privacidade e dados do Tempo Pelotas" aria-current={isActivePath(pathname, "/privacidade-e-dados") ? "page" : undefined}>Privacidade e dados</Link>
               <a href="/feed" type="application/feed+json" aria-label="Abrir o feed JSON de dados do Tempo Pelotas">Feed de dados</a>
             </nav>
