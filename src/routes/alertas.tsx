@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { AlertsOperationalGuide } from "@/components/weather/AlertsOperationalGuide";
+import { CivilDefenseOfficialSources } from "@/components/weather/CivilDefenseOfficialSources";
 import { InmetAlertCoverageDetails } from "@/components/weather/InmetAlertCoverageDetails";
 import { WeatherAlertsPage } from "@/components/weather/WeatherAlertsPage";
 import "@/components/weather/WeatherAlertsRefinements.css";
@@ -125,6 +126,8 @@ export const Route = createFileRoute("/alertas")({
           "Alertas da Defesa Civil RS",
           "Cadastro de alertas por SMS 40199",
           "Cell Broadcast de emergência",
+          "Prepara RS",
+          "Boletins hidrometeorológicos da Defesa Civil RS",
         ],
       }),
       createFaqPageJsonLd(PAGE_PATH, ALERTS_PAGE_CONTENT.faqs),
@@ -148,6 +151,7 @@ function AlertasPage() {
           <WeatherAlertsPage data={recoveredWeather} />
           <InmetAlertCoverageDetails data={recoveredWeather} />
           <AlertsOperationalGuide data={recoveredWeather} />
+          <CivilDefenseOfficialSources />
           <EditorialContentSection id="como-interpretar-alertas" content={ALERTS_PAGE_CONTENT} />
         </>
       )}
