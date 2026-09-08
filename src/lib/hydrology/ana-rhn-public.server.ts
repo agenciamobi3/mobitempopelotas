@@ -45,7 +45,20 @@ const queryResponseSchema = z
   })
   .passthrough();
 
-export type AnaRhnBlockingReason = "vertical-reference-unconfirmed";
+export type AnaRhnBlockingReason =
+  | "vertical-reference-unconfirmed"
+  | "station-specific-leveling-not-recovered"
+  | "historical-current-vertical-continuity-unproven";
+
+export type AnaRhnVerticalReferenceEvidence = {
+  status: "unconfirmed";
+  stationSpecificGaugeZeroDocumented: false;
+  stationSpecificRnDocumented: false;
+  stationSpecificLevelingRecovered: false;
+  historical87955000ContinuityDocumented: false;
+  inventoryAltitudeAcceptedAsGaugeZero: false;
+  cotaLayerProvidesVerticalReference: false;
+};
 
 export type AnaRhnPublicStationSnapshot = {
   status: "source-live" | "unavailable";
@@ -65,6 +78,7 @@ export type AnaRhnPublicStationSnapshot = {
   unit: typeof ANA_RHN_LEVEL_UNIT;
   timeZone: typeof ANA_RHN_STATION_TIMEZONE;
   verticalReference: null;
+  verticalReferenceEvidence: AnaRhnVerticalReferenceEvidence;
   publishableMeasurement: false;
   blockingReasons: AnaRhnBlockingReason[];
   fetchedAt: string;
@@ -76,7 +90,21 @@ export type AnaRhnPublicStationSnapshot = {
   error: string | null;
 };
 
-const BLOCKING_REASONS: AnaRhnBlockingReason[] = ["vertical-reference-unconfirmed"];
+const BLOCKING_REASONS: AnaRhnBlockingReason[] = [
+  "vertical-reference-unconfirmed",
+  "station-specific-leveling-not-recovered",
+  "historical-current-vertical-continuity-unproven",
+];
+
+const VERTICAL_REFERENCE_EVIDENCE: AnaRhnVerticalReferenceEvidence = {
+  status: "unconfirmed",
+  stationSpecificGaugeZeroDocumented: false,
+  stationSpecificRnDocumented: false,
+  stationSpecificLevelingRecovered: false,
+  historical87955000ContinuityDocumented: false,
+  inventoryAltitudeAcceptedAsGaugeZero: false,
+  cotaLayerProvidesVerticalReference: false,
+};
 
 function asTrimmedText(value: string | null | undefined) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -107,6 +135,10 @@ function sourceMetadata() {
   };
 }
 
+function verticalReferenceEvidence(): AnaRhnVerticalReferenceEvidence {
+  return { ...VERTICAL_REFERENCE_EVIDENCE };
+}
+
 function unavailableSnapshot(stationCode: string, error: string): AnaRhnPublicStationSnapshot {
   return {
     status: "unavailable",
@@ -126,6 +158,7 @@ function unavailableSnapshot(stationCode: string, error: string): AnaRhnPublicSt
     unit: ANA_RHN_LEVEL_UNIT,
     timeZone: ANA_RHN_STATION_TIMEZONE,
     verticalReference: null,
+    verticalReferenceEvidence: verticalReferenceEvidence(),
     publishableMeasurement: false,
     blockingReasons: [...BLOCKING_REASONS],
     fetchedAt: new Date().toISOString(),
@@ -218,6 +251,7 @@ export function parseAnaRhnPublicPayload(
     unit: ANA_RHN_LEVEL_UNIT,
     timeZone: ANA_RHN_STATION_TIMEZONE,
     verticalReference: null,
+    verticalReferenceEvidence: verticalReferenceEvidence(),
     publishableMeasurement: false,
     blockingReasons: [...BLOCKING_REASONS],
     fetchedAt,
