@@ -10,7 +10,8 @@ export type ObsWeatherStatusData = {
   condition: string;
   icon: WeatherIconName;
   updatedAt: string;
-  observationSource: "Embrapa Clima Temperado";
+  observationSource: string;
+  observationStation: string | null;
   conditionSource: string | null;
 };
 
@@ -38,6 +39,10 @@ export const getObsWeatherStatus = createServerFn({ method: "GET" }).handler(
     const observation = weather.current;
     const conditionHour = weather.hourly[0] ?? null;
     const icon: WeatherIconName = conditionHour?.icon ?? "cloud";
+    const sourceName = weather.observation.source.name;
+    const stationName = weather.observation.station.code
+      ? `${weather.observation.station.name} · ${weather.observation.station.code}`
+      : weather.observation.station.name;
 
     if (!observation || observation.temperature === null) {
       return {
@@ -46,7 +51,8 @@ export const getObsWeatherStatus = createServerFn({ method: "GET" }).handler(
         condition: "Indisponível",
         icon: "cloud",
         updatedAt: weather.observation.source.fetchedAt,
-        observationSource: "Embrapa Clima Temperado",
+        observationSource: sourceName,
+        observationStation: null,
         conditionSource: null,
       };
     }
@@ -57,7 +63,8 @@ export const getObsWeatherStatus = createServerFn({ method: "GET" }).handler(
       condition: conditionHour ? CONDITION_LABELS[icon] : "Condição indisponível",
       icon,
       updatedAt: observation.observedAt ?? weather.observation.source.fetchedAt,
-      observationSource: "Embrapa Clima Temperado",
+      observationSource: sourceName,
+      observationStation: stationName,
       conditionSource: weather.quality.forecastProvider,
     };
   },
