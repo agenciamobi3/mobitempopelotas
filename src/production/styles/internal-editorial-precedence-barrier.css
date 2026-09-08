@@ -127,14 +127,12 @@
 }
 
 /*
- * Heroes retail principais Hoje, Amanhã e 7 dias permanecem deliberadamente
- * fora desta neutralização cromática. Chuva, vento e 15 dias já usam o hero
- * editorial limpo, mesmo quando reaproveitam a estrutura do TodayRetailHero.
+ * Chuva e Vento ainda reutilizam o DOM retail legado e recebem neutralização
+ * cromática aqui. Hoje, Amanhã, 7 dias e 15 dias possuem heroes próprios.
  */
 .internal-weather-shell:is(
     .internal-weather-shell--rain,
-    .internal-weather-shell--wind,
-    .internal-weather-shell--fifteen-day
+    .internal-weather-shell--wind
   )
   :is(.today-retail-hero, .rain-retail-hero) {
   border: 0 !important;
@@ -146,14 +144,12 @@
 
 .internal-weather-shell:is(
     .internal-weather-shell--rain,
-    .internal-weather-shell--wind,
-    .internal-weather-shell--fifteen-day
+    .internal-weather-shell--wind
   )
   :is(.today-retail-hero, .rain-retail-hero)::before,
 .internal-weather-shell:is(
     .internal-weather-shell--rain,
-    .internal-weather-shell--wind,
-    .internal-weather-shell--fifteen-day
+    .internal-weather-shell--wind
   )
   :is(.today-retail-hero, .rain-retail-hero)::after {
   display: none !important;
