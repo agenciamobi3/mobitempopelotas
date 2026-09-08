@@ -11,7 +11,7 @@ const footerWrapper = readFileSync(
   "utf8",
 );
 const globalHeader = readFileSync(
-  new URL("../src/components/layout/Header.tsx", import.meta.url),
+  new URL("../src/production/components/home-editorial-header.tsx", import.meta.url),
   "utf8",
 );
 const globalFooter = readFileSync(
@@ -19,28 +19,28 @@ const globalFooter = readFileSync(
   "utf8",
 );
 
-test("telas standalone reutilizam o mesmo header e rodapé globais", () => {
-  assert.match(headerWrapper, /<Header advisoryLevel=/);
-  assert.doesNotMatch(headerWrapper, /megaMenus|mobileNavItems|footerGroups/);
+test("telas públicas reutilizam o header editorial e o rodapé globais", () => {
+  assert.match(headerWrapper, /HomeEditorialHeader/);
+  assert.match(headerWrapper, /<HomeEditorialHeader/);
+  assert.doesNotMatch(headerWrapper, /components\/layout\/Header/);
   assert.match(footerWrapper, /<Footer source=\{source\} \/>/);
   assert.doesNotMatch(footerWrapper, /footerGroups|Fontes e proveniência|variant=/);
 });
 
-test("navegação institucional existe em definições canônicas do shell", () => {
+test("navegação institucional existe nas definições canônicas do shell", () => {
   for (const label of [
-    "Hoje",
-    "Amanhã",
-    "7 dias",
-    "Rede Defesa Civil RS",
-    "Radar e satélite",
-    "Câmeras ao vivo",
-    "Situação das águas",
-    "Avisos oficiais",
+    "Previsão",
+    "Águas",
+    "Região",
+    "Explorar",
+    "Satélites e Radares",
     "Dados e fontes",
+    "Nível do Canal São Gonçalo",
+    "Nível do Rio Jaguarão",
   ]) {
     assert.match(globalHeader, new RegExp(label));
   }
-  assert.doesNotMatch(globalHeader, /Estação Embrapa|\/estacao-embrapa-pelotas|to="\/metodologia"/);
+  assert.doesNotMatch(globalHeader, /Estação Embrapa|\/estacao-embrapa-pelotas|\/metodologia/);
 
   for (const label of [
     "Chuva em Pelotas",
@@ -57,6 +57,7 @@ test("navegação institucional existe em definições canônicas do shell", () 
 
   assert.doesNotMatch(globalFooter, /FOOTER_SOURCE_GROUPS|FooterSourceMap|REDEMET\/DECEA|MKS \/ Qualle Control/);
   assert.doesNotMatch(globalFooter, /Open-Meteo|MET Norway|TideSat Global|LabHidroSens/);
+  assert.doesNotMatch(globalFooter, /\/metodologia|\/estacao-embrapa-pelotas/);
 });
 
 test("rodapé público não mantém uma implementação alternativa oculta", () => {
