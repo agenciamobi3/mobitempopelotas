@@ -33,13 +33,23 @@ test("Laranjal page absorbs the real search language without changing its canoni
 test("situation page answers enchente hoje as a question, never as an inferred diagnosis", () => {
   assert.match(situationRoute, /Enchente em Pelotas hoje\? Situação das águas e níveis/);
   assert.match(situationRoute, /Há enchente em Pelotas hoje\?/);
-  assert.match(situationRoute, /Existe risco de enchente em Pelotas\?/);
   assert.match(situationRoute, /HydrologyCurrentSituationAnswer/);
   assert.match(currentAnswer, /O Tempo Pelotas não confirma enchente ou risco para a cidade a partir de uma única régua/);
   assert.match(currentAnswer, /Para decisões de segurança, consulte os\s+comunicados da Defesa Civil e das autoridades locais/);
   assert.match(currentAnswer, /isso não é convertido em risco automático para Pelotas/);
   assert.doesNotMatch(currentAnswer, /Pelotas (?:está|estaria) (?:em )?enchente/i);
   assert.doesNotMatch(currentAnswer, /sem risco|risco zero|situação segura/i);
+});
+
+test("situation page concentrates interpretation in a short educational closing", () => {
+  assert.match(situationRoute, /Antes de comparar os níveis/);
+  assert.match(situationRoute, /Quatro cuidados para interpretar as medições/);
+  assert.match(situationRoute, /Números de réguas diferentes não devem ser subtraídos/);
+  assert.match(situationRoute, /um valor atrasado é a última informação conhecida, não o nível atual/);
+  assert.match(situationRoute, /estações da ANA\/SNIRH no mapa mostram a rede oficial da região/);
+  assert.match(situationRoute, /prevalecem os avisos e as orientações da Defesa Civil/);
+  assert.doesNotMatch(situationRoute, /OfficialDataAccessNotice/);
+  assert.doesNotMatch(situationRoute, /HYDROLOGY_EDITORIAL_CONTENT/);
 });
 
 test("current hydrology answer preserves stale and unavailable semantics", () => {
