@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
-import type { EmbrapaObservation } from "@/lib/weather/official-sources.types";
+import type { CurrentWeatherObservation } from "@/lib/weather/current-observation.types";
 
 import "./HomeLocalMonitoring.css";
 
@@ -40,15 +40,10 @@ function formatDateTime(value: string | null) {
   }).format(date);
 }
 
-function observationStatus(observation: EmbrapaObservation) {
+function observationStatus(observation: CurrentWeatherObservation) {
   if (observation.status === "unavailable") {
     return { label: "Temporariamente indisponível", className: "is-unavailable" };
   }
-
-  if (observation.status === "partial") {
-    return { label: "Atualização parcial", className: "is-partial" };
-  }
-
   return { label: "Dados atualizados", className: "is-live" };
 }
 
@@ -66,21 +61,11 @@ function waterStatus(laranjal: LaranjalLevelData) {
 
 function trendReading(value: number | null) {
   if (value === null) {
-    return {
-      label: "Sem tendência calculada",
-      className: "is-unknown",
-      icon: Minus,
-    };
+    return { label: "Sem tendência calculada", className: "is-unknown", icon: Minus };
   }
-
   if (Math.abs(value) < 0.1) {
-    return {
-      label: "Nível praticamente estável",
-      className: "is-stable",
-      icon: Minus,
-    };
+    return { label: "Nível praticamente estável", className: "is-stable", icon: Minus };
   }
-
   if (value > 0) {
     return {
       label: `Subindo ${formatNumber(value)} cm por hora`,
@@ -88,7 +73,6 @@ function trendReading(value: number | null) {
       icon: ArrowUp,
     };
   }
-
   return {
     label: `Baixando ${formatNumber(Math.abs(value))} cm por hora`,
     className: "is-falling",
@@ -100,15 +84,16 @@ export function HomeLocalMonitoring({
   observation,
   laranjal,
 }: {
-  observation: EmbrapaObservation;
+  observation: CurrentWeatherObservation;
   laranjal: LaranjalLevelData;
 }) {
   const observationState = observationStatus(observation);
   const waterState = waterStatus(laranjal);
   const trend = trendReading(laranjal.trendCmPerHour);
   const TrendIcon = trend.icon;
-  const observationAvailable = observation.status !== "unavailable";
+  const observationAvailable = observation.status === "live";
   const waterAvailable = laranjal.status !== "unavailable" && laranjal.currentLevel !== null;
+  const distance = observation.station.distanceFromPelotasKm;
 
   return (
     <section className="home-local-monitoring" aria-labelledby="home-local-monitoring-title">
@@ -118,17 +103,17 @@ export function HomeLocalMonitoring({
           <h2 id="home-local-monitoring-title">O que está sendo medido em Pelotas agora</h2>
         </div>
         <p>
-          Compare a previsão com a estação meteorológica da Embrapa e acompanhe a leitura pública do
-          nível da Lagoa dos Patos no Laranjal.
+          O “Agora” meteorológico vem da estação recente mais próxima da Rede de Monitoramento
+          Hidrometeorológico da Defesa Civil RS. A previsão permanece em uma série separada.
         </p>
       </header>
 
       <div className="home-local-monitoring-grid">
-        <article className="home-observation-panel" id="observacao-embrapa">
+        <article className="home-observation-panel" id="observacao-rede-rs">
           <div className="home-monitoring-panel-topline">
             <div>
               <ThermometerSun aria-hidden="true" />
-              <span>Embrapa Clima Temperado</span>
+              <span>Defesa Civil RS</span>
             </div>
             <small className={observationState.className}>
               <i aria-hidden="true" />
@@ -137,11 +122,11 @@ export function HomeLocalMonitoring({
           </div>
 
           <div className="home-monitoring-panel-copy">
-            <span>Medições da estação em Pelotas</span>
+            <span>Rede de Monitoramento Hidrometeorológico</span>
             <h3>Condições registradas agora</h3>
             <p>
-              A previsão indica o que pode acontecer. A estação mostra as condições observadas no
-              ponto de medição.
+              Cada valor pertence ao ponto de medição indicado. O portal seleciona uma estação
+              meteorológica recente e próxima de Pelotas, sem transformar previsão em observação.
             </p>
           </div>
 
@@ -150,12 +135,16 @@ export function HomeLocalMonitoring({
               <div className="home-observation-reading">
                 <div>
                   <small>
-                    {observation.source.observationTime
-                      ? `Leitura informada às ${observation.source.observationTime}`
-                      : `Consulta em ${formatDateTime(observation.source.fetchedAt)}`}
+                    {observation.station.name}
+                    {observation.station.code ? ` · ${observation.station.code}` : ""}
+                    {distance === null ? "" : ` · ${Math.round(distance)} km de Pelotas`}
                   </small>
                   <strong>{formatNumber(observation.current.temperature)}°</strong>
-                  <span>Sensação de {formatNumber(observation.current.feelsLike)} °C</span>
+                  <span>
+                    {observation.current.feelsLike === null
+                      ? "Sensação não informada"
+                      : `Sensação de ${formatNumber(observation.current.feelsLike)} °C`}
+                  </span>
                 </div>
                 <Gauge aria-hidden="true" />
               </div>
@@ -166,33 +155,38 @@ export function HomeLocalMonitoring({
                   <dd>{formatNumber(observation.current.humidity, 0)}%</dd>
                 </div>
                 <div>
-                  <dt>Vento agora</dt>
+                  <dt>Vento médio</dt>
                   <dd>{formatNumber(observation.current.windSpeed)} km/h</dd>
                 </div>
                 <div>
-                  <dt>Chuva hoje</dt>
-                  <dd>{formatNumber(observation.accumulated.rainDaily)} mm</dd>
+                  <dt>Chuva em 24 h</dt>
+                  <dd>{formatNumber(observation.rain.h24Mm)} mm</dd>
                 </div>
                 <div>
-                  <dt>Vento máximo</dt>
-                  <dd>{formatNumber(observation.extremes.windSpeedMax.value)} km/h</dd>
+                  <dt>Rajada medida</dt>
+                  <dd>{formatNumber(observation.current.windGust)} km/h</dd>
                 </div>
               </dl>
+
+              <p className="home-monitoring-observation-time">
+                Leitura de {formatDateTime(observation.source.observedAt)}. O acumulado de 24 h é uma
+                janela móvel e não representa necessariamente a chuva desde 0h.
+              </p>
             </>
           ) : (
             <div className="home-monitoring-unavailable">
-              <strong>As medições da Embrapa não responderam nesta consulta.</strong>
-              <p>O restante da previsão continua disponível e uma nova tentativa será feita.</p>
+              <strong>A rede estadual não entregou uma estação meteorológica recente nesta consulta.</strong>
+              <p>A previsão continua disponível, mas nenhum valor de modelo é exibido como “Agora”.</p>
             </div>
           )}
 
           <footer className="home-monitoring-panel-footer">
-            <Link to="/estacao-embrapa-pelotas">
-              Ver dados completos da estação
+            <Link to="/situacao-hidrologica-pelotas">
+              Ver rede de monitoramento
               <ArrowRight aria-hidden="true" />
             </Link>
             <a href={observation.source.url} target="_blank" rel="noreferrer">
-              Fonte oficial
+              Mapa oficial da rede
               <ExternalLink aria-hidden="true" />
             </a>
           </footer>
