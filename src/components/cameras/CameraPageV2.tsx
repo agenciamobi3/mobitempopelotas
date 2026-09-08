@@ -459,10 +459,10 @@ export function CameraPageV2({ cameraData, weather }: CameraPageProps) {
       </section>
 
       <section className="camera-v2-actions" aria-label="Outras páginas relacionadas às câmeras">
-        <div><span className="camera-v2-eyebrow">Veja junto com outras informações</span><h2>Compare a imagem com radar, medições e alertas</h2></div>
+        <div><span className="camera-v2-eyebrow">Veja junto com outras informações</span><h2>Compare a imagem com radar, dados e alertas</h2></div>
         <div>
           <Link to="/radar-e-satelite-pelotas">Radar e satélite <ArrowRight aria-hidden="true" /></Link>
-          <Link to="/estacao-embrapa-pelotas">Estação Embrapa</Link>
+          <Link to="/status-dos-dados">Dados e fontes</Link>
           <Link to="/chuva-em-pelotas">Chuva em Pelotas</Link>
           <Link to="/alertas">Alertas oficiais</Link>
         </div>
