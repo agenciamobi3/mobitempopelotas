@@ -84,11 +84,12 @@ test("history table remains an accessible daily reference", () => {
   assert.match(page, /Como os dados funcionam/);
 });
 
-test("history refinement follows the clean internal editorial layout", () => {
+test("history refinement follows the clean internal editorial layout without hidden chapter markup", () => {
   assert.match(styles, /internal-weather-shell--history \.history-hero/);
   assert.match(styles, /max-width: var\(--internal-weather-frame-max/);
   assert.match(styles, /background:\s*var\(--history-soft\)/);
-  assert.match(styles, /\.history-chapters \{\s*display:\s*none/);
+  assert.doesNotMatch(page, /history-chapters/);
+  assert.doesNotMatch(styles, /\.history-chapters/);
   assert.match(styles, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(styles, /scroll-margin-top:\s*8rem/);
   assert.match(styles, /@media \(max-width: 1080px\)/);
