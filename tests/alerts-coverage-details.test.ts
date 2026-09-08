@@ -40,5 +40,7 @@ test("coverage presentation is an open editorial list rather than nested cards",
   assert.match(styles, /details\.is-great-danger/);
   assert.match(styles, /@media \(max-width: 560px\)/);
   assert.doesNotMatch(styles, /radial-gradient|linear-gradient/);
-  assert.doesNotMatch(styles, /box-shadow:\s*(?!none)/);
+
+  const shadowDeclarations = styles.match(/box-shadow:\s*[^;]+;/g) ?? [];
+  assert.deepEqual([...new Set(shadowDeclarations)], ["box-shadow: none;"]);
 });
