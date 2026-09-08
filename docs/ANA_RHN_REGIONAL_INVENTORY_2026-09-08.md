@@ -118,6 +118,8 @@ Ela não muda a política ANA/RHN já vigente:
 - nenhum valor é convertido entre réguas;
 - a cartografia não produz alerta, diagnóstico de inundação ou área atingida.
 
+A estação `87955001` também possui uma ficha cadastral própria em `/nivel-da-lagoa-dos-patos-laranjal`. Essa ficha consulta a estação por código exato, usa somente metadados do inventário e não solicita valor de nível. Contrato detalhado em `docs/ANA_RHN_LARANJAL_87955001_PROFILE_2026-09-08.md`.
+
 ## Segurança e resiliência
 
 - somente HTTPS;
@@ -140,15 +142,16 @@ Ela não muda a política ANA/RHN já vigente:
 - `tests/ana-rhn-regional-inventory.test.ts`
 - `tests/ana-rhn-hydrography.test.ts`
 
-## Etapa histórica relacionada concluída
+## Etapas relacionadas concluídas
 
 A consulta à camada `NotasConsistencia` para a estação histórica `87955000` foi implementada separadamente em `/enchente-2001-pelotas`. O contrato e os limites dessa integração estão documentados em `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md`.
 
-Essa consulta não altera inventário, cartografia regional ou medição atual do Laranjal.
+A ficha cadastral exata da `87955001` também foi implementada em `/nivel-da-lagoa-dos-patos-laranjal`, sem acrescentar a medição ANA ao seletor de nível atual.
 
 ## Próximas etapas relacionadas
 
 1. validar visualmente as estações e a hidrografia retornadas no domínio/preview;
 2. confirmar quais pontos mais relevantes merecem prioridade editorial na listagem;
 3. confirmar no runtime, quando houver executor disponível, se `87955000` retorna registro real em `NotasConsistencia` e quais valores exatos de `Indice` e `Notas` são publicados;
-4. criar a ficha cadastral resumida da `87955001` em `/nivel-da-lagoa-dos-patos-laranjal`.
+4. validar visualmente a ficha cadastral `87955001` no Laranjal;
+5. investigar documentação de zero/RN/referência vertical da `87955001` antes de qualquer proposta de publicar sua medição.
