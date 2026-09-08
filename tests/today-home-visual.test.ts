@@ -13,10 +13,6 @@ const todayEditorialStyles = readFileSync(
   "utf8",
 );
 const todayRetailHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "utf8");
-const sharedRetailHeroStyles = readFileSync(
-  "src/components/weather/TodayRetailHero.css",
-  "utf8",
-);
 const todayHeroStyles = readFileSync("src/components/weather/TodayEditorialHero.css", "utf8");
 const internalShell = readFileSync("src/components/layout/InternalWeatherPageShell.tsx", "utf8");
 const internalShellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
@@ -75,11 +71,9 @@ test("today hero owns the Home rail without the generic shell override", () => {
   assert.match(todayHeroStyles, /var\(--tp-home-container-mobile-gutter, 20px\)/);
 });
 
-test("today editorial CSS is route-scoped while rain and wind keep the shared retail base", () => {
-  assert.match(todayRetailHero, /import "\.\/TodayRetailHero\.css"/);
+test("today hero depends only on its route-scoped editorial stylesheet", () => {
   assert.match(todayRetailHero, /import "\.\/TodayEditorialHero\.css"/);
-  assert.match(sharedRetailHeroStyles, /retail-style hero/);
-  assert.match(sharedRetailHeroStyles, /today-retail-hero__tiles/);
+  assert.doesNotMatch(todayRetailHero, /TodayRetailHero\.css|TodayRetailHeroPhoto\.css|TodayRetailHeroRefinement\.css/);
   assert.match(todayHeroStyles, /Prefixado pela rota/);
   assert.match(todayHeroStyles, /\.internal-weather-shell--today \.today-retail-hero/);
   assert.doesNotMatch(todayHeroStyles, /^\.today-retail-hero \{/m);
@@ -108,8 +102,6 @@ test("today hero is editorial and no longer uses photography, tiles or hero CTAs
   assert.match(todayRetailHero, /Sem aviso oficial listado para Pelotas/);
   assert.doesNotMatch(todayRetailHero, /getTodayRetailHeroPhoto/);
   assert.doesNotMatch(todayRetailHero, /today-retail-hero-backgrounds/);
-  assert.doesNotMatch(todayRetailHero, /TodayRetailHeroPhoto\.css/);
-  assert.doesNotMatch(todayRetailHero, /TodayRetailHeroRefinement\.css/);
   assert.doesNotMatch(todayRetailHero, /today-retail-hero__current-photo/);
   assert.doesNotMatch(todayRetailHero, /today-retail-hero__photo-credit/);
   assert.doesNotMatch(todayRetailHero, /today-retail-hero__tiles/);
