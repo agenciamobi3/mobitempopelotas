@@ -24,7 +24,7 @@ const performanceStyles = readFileSync("src/components/regional/RegionalCityPerf
 const sharedHero = readFileSync("src/components/weather/WeatherSplitHero.tsx", "utf8");
 const sharedHeroStyles = readFileSync("src/components/weather/WeatherSplitHero.css", "utf8");
 const sharedForecast = readFileSync("src/components/weather/HomeForecastStory.tsx", "utf8");
-const header = readFileSync("src/components/layout/Header.tsx", "utf8");
+const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 
 test("regional registry has unique slugs, IBGE codes and valid coordinates", () => {
   assert.ok(REGIONAL_CITIES.length >= 20);
@@ -152,11 +152,12 @@ test("regional pages defer lower sections and keep anchors aligned", () => {
   assert.match(identityStyles, /#cidades-proximas/);
 });
 
-test("regional navigation points Pelotas directly to the homepage", () => {
+test("regional navigation keeps Pelotas on Home and exposes typed nearby-city links", () => {
   assert.match(header, /id: "region"/);
-  assert.match(header, /Tempo por cidade na Zona Sul/);
-  assert.match(header, /\{ label: "Pelotas", to: "\//);
+  assert.match(header, /Previsão regional e cidades da Zona Sul do Rio Grande do Sul/);
+  assert.match(header, /to="\/"/);
   assert.doesNotMatch(header, /tempo-em\/pelotas-rs/);
-  assert.match(header, /\/tempo-em\/rio-grande-rs/);
+  assert.match(header, /label: "Rio Grande"/);
+  assert.match(header, /params: \{ citySlug: "rio-grande-rs" \}/);
   assert.match(header, /label: "Região"/);
 });
