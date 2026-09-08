@@ -8,9 +8,9 @@ const laranjal = readFileSync("src/lib/hydrology/laranjal-level.functions.ts", "
 const guaiba = readFileSync("src/lib/hydrology/guaiba.functions.ts", "utf8");
 const lagoon = readFileSync("src/lib/hydrology/lagoon-network.functions.ts", "utf8");
 const status = readFileSync("src/lib/status/data-status.functions.ts", "utf8");
-const embrapaApi = readFileSync("src/routes/api/weather/embrapa.ts", "utf8");
+const retiredObservationApi = readFileSync("src/routes/api/weather/embrapa.ts", "utf8");
 
-const currentSurfaces = [weather, laranjal, guaiba, lagoon, status, embrapaApi];
+const currentSurfaces = [weather, laranjal, guaiba, lagoon, status];
 
 test("política de dados correntes proíbe cache stale de resposta", () => {
   assert.match(policy, /"Cache-Control": "no-store, no-cache, must-revalidate"/);
@@ -25,10 +25,13 @@ test("política de dados correntes proíbe cache stale de resposta", () => {
   }
 });
 
-test("API da Embrapa usa snapshot fresco e recusa publicar observação velha como agora", () => {
-  assert.match(embrapaApi, /getFreshEmbrapaObservation/);
-  assert.match(embrapaApi, /isPublishableEmbrapaObservation/);
-  assert.match(embrapaApi, /JSON\.stringify\(observation\)/);
-  assert.match(embrapaApi, /status: publishable \? 200 : 503/);
-  assert.doesNotMatch(embrapaApi, /fetchEmbrapaObservation/);
+test("endpoint aposentado não pode ser cacheado nem voltar a servir observação", () => {
+  assert.match(retiredObservationApi, /"Cache-Control": "no-store, max-age=0"/);
+  assert.match(retiredObservationApi, /status: 410/);
+  assert.match(retiredObservationApi, /status: "retired"/);
+  assert.match(retiredObservationApi, /Defesa Civil RS/);
+  assert.doesNotMatch(
+    retiredObservationApi,
+    /getFreshEmbrapaObservation|fetchEmbrapaObservation|isPublishableEmbrapaObservation/,
+  );
 });
