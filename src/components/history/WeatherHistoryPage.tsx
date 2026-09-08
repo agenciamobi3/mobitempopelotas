@@ -191,14 +191,6 @@ export function WeatherHistoryPage({ history }: WeatherHistoryPageProps) {
         />
       ) : null}
 
-      <nav className="history-chapters" aria-label="Seções do histórico de 30 dias">
-        <a href="#resumo-do-periodo"><span>01</span><strong>Resumo</strong><small>Médias e chuva acumulada</small></a>
-        <a href="#comparacao-diaria"><span>02</span><strong>Gráfico</strong><small>7, 14 ou 30 dias</small></a>
-        <a href="#perfil-do-periodo"><span>03</span><strong>Dias com dados</strong><small>Chuva, rajadas e temperaturas</small></a>
-        <a href="#destaques-do-periodo"><span>04</span><strong>Destaques</strong><small>Somente deste período</small></a>
-        <a href="#valores-diarios"><span>05</span><strong>Valores diários</strong><small>Dados usados nos cálculos</small></a>
-      </nav>
-
       {history.status === "partial" ? (
         <div className="history-status history-status-partial" role="status">
           <Info aria-hidden="true" />
