@@ -12,10 +12,13 @@ const standardOpenMeteo = readFileSync("src/lib/weather/open-meteo.server.ts", "
 const route = readFileSync("src/routes/previsao-15-dias-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/weather/FifteenDayForecastPage.tsx", "utf8");
 const pageStyles = readFileSync("src/components/weather/FifteenDayForecastPage.css", "utf8");
+const refinementStyles = readFileSync(
+  "src/components/weather/FifteenDayForecastEditorialRefinement.css",
+  "utf8",
+);
 const hero = readFileSync("src/components/weather/FifteenDayForecastHero.tsx", "utf8");
 const heroStyles = readFileSync("src/components/weather/FifteenDayForecastHero.css", "utf8");
 const shellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
-const cleanHeroStyles = readFileSync("src/components/layout/InternalWeatherCleanHero.css", "utf8");
 const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "utf8");
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 
@@ -72,7 +75,7 @@ test("loader público de 15 dias degrada as duas consultas de forma independente
   assert.doesNotMatch(extendedPageLoader, /Promise\.all\(/);
 });
 
-test("rota de 15 dias usa shell retail sem camada editorial duplicada", () => {
+test("rota de 15 dias usa shell próprio sem camada editorial duplicada", () => {
   assert.match(route, /createFileRoute\("\/previsao-15-dias-pelotas"\)/);
   assert.match(route, /Previsão do tempo em Pelotas: 10 e 15 dias/);
   assert.match(route, /loadPublicExtendedForecastPage\(\)/);
@@ -80,35 +83,42 @@ test("rota de 15 dias usa shell retail sem camada editorial duplicada", () => {
   assert.match(route, /pageClassName="internal-weather-shell--fifteen-day"/);
   assert.match(route, /<FifteenDayForecastHero/);
   assert.match(route, /<FifteenDayForecastPage/);
+  assert.match(route, /FifteenDayForecastEditorialRefinement\.css/);
   assert.match(route, /createEditorialPageJsonLd/);
   assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|FIFTEEN_DAY_PAGE_CONTENT/);
 });
 
-test("hero de 15 dias reutiliza a estrutura retail sob a superfície editorial limpa", () => {
-  assert.match(hero, /today-retail-hero fifteen-day-retail-hero/);
-  assert.match(hero, /today-retail-hero__inner fifteen-day-retail-hero__inner/);
-  assert.match(hero, /Previsão de <span>15 dias<\/span> para Pelotas/);
+test("hero de 15 dias possui superfície editorial própria sem foto, tiles ou CTAs retail", () => {
+  assert.match(hero, /className={`fifteen-day-retail-hero fifteen-day-retail-hero--\$\{advisoryLevel\}`}/);
+  assert.match(hero, /className="fifteen-day-retail-hero__inner"/);
+  assert.match(hero, /Previsão estendida · Pelotas/);
+  assert.match(hero, /Previsão de 15 dias para Pelotas/);
   assert.match(hero, /Temperaturas entre \$\{minimum\}° e \$\{maximum\}°/);
-  assert.match(hero, /getRetailWeatherPhoto/);
-  assert.match(hero, /today-retail-hero__current-photo/);
-  assert.match(hero, /Faixa de temperatura/);
-  assert.match(hero, /Maior volume de chuva/);
-  assert.match(hero, /Fonte/);
-  assert.doesNotMatch(hero, /WeatherSplitHero|weather-split-hero/);
-  assert.doesNotMatch(hero, /Previsão estendida · Pelotas/);
-  assert.doesNotMatch(hero, /A incerteza aumenta com o horizonte/);
+  assert.match(hero, /Janela disponível/);
+  assert.match(hero, /fifteen-day-retail-hero__facts/);
+  assert.match(hero, /Maior volume/);
+  assert.match(hero, /Rajadas/);
+  assert.doesNotMatch(hero, /today-retail-hero/);
+  assert.doesNotMatch(hero, /getRetailWeatherPhoto|today-retail-hero-backgrounds/);
+  assert.doesNotMatch(hero, /current-photo|photo-credit/);
+  assert.doesNotMatch(hero, /ArrowRight|today-retail-hero__actions/);
 
-  assert.match(heroStyles, /InternalWeatherCleanHero/);
-  assert.match(heroStyles, /box-shadow:\s*none/);
-  assert.match(heroStyles, /@media \(forced-colors: active\)/);
-  assert.doesNotMatch(heroStyles, /radial-gradient|linear-gradient|background-image/);
   assert.match(
-    cleanHeroStyles,
-    /internal-weather-shell--fifteen-day[\s\S]*today-retail-hero__current-photo[\s\S]*display:\s*none\s*!important/,
+    heroStyles,
+    /\.internal-weather-shell--fifteen-day \.internal-weather-hero-frame[\s\S]*width:\s*100%[\s\S]*border:\s*0/,
   );
+  assert.match(
+    heroStyles,
+    /\.internal-weather-shell--fifteen-day \.fifteen-day-retail-hero__inner[\s\S]*var\(--tp-home-container-max, 1440px\)[\s\S]*margin-inline:\s*auto/,
+  );
+  assert.match(
+    heroStyles,
+    /\.fifteen-day-retail-hero__facts[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)[\s\S]*border-top:[\s\S]*border-bottom:/,
+  );
+  assert.match(heroStyles, /@media \(forced-colors: active\)/);
 });
 
-test("página de 15 dias apresenta as duas semanas em uma única superfície", () => {
+test("página de 15 dias apresenta as duas semanas em uma única narrativa", () => {
   assert.match(page, /days\.slice\(0, 7\)/);
   assert.match(page, /days\.slice\(7, 15\)/);
   assert.match(page, /className="fifteen-day-page"/);
@@ -130,37 +140,39 @@ test("página de 15 dias apresenta as duas semanas em uma única superfície", (
   assert.doesNotMatch(page, /Dia \$\{index \+ 1\}/);
 });
 
-test("cards de 15 dias preservam ausência e evitam rótulos genéricos", () => {
+test("dias preservam ausência e não inventam rótulos de risco", () => {
   assert.match(page, /if \(value === null\) return "Não informada"/);
   assert.match(page, /if \(value <= 0\) return "Sem rajadas"/);
-  assert.match(page, /if \(tone === "high"\) return "Mais chuva\/vento"/);
-  assert.match(page, /if \(tone === "attention"\) return "Acompanhar"/);
+  assert.match(page, /if \(index === 0\) return "Hoje"/);
+  assert.match(page, /if \(index === 1\) return "Amanhã"/);
   assert.match(page, /return null/);
   assert.match(page, /Sem chuva prevista nos valores atuais/);
   assert.match(page, /As rajadas ainda não foram informadas/);
-  assert.doesNotMatch(page, /Maior valor previsto para o dia/);
-  assert.doesNotMatch(page, /Previsão estendida<\/span>/);
+  assert.doesNotMatch(page, /Mais chuva\/vento|Acompanhar/);
+  assert.doesNotMatch(page, /tone-high|tone-attention|dayTone/);
 });
 
-test("estrutura visual de 15 dias reduz módulos e mantém hierarquia meteorológica", () => {
-  assert.match(
+test("estrutura visual de 15 dias mantém cards só onde a comparação pede e abre os capítulos", () => {
+  assert.doesNotMatch(
     shellStyles,
     /\.internal-weather-shell--fifteen-day \.fifteen-day-retail-hero__inner/,
   );
   assert.match(shellStyles, /\.internal-weather-main > \.fifteen-day-page/);
-  assert.match(pageStyles, /\.internal-weather-shell--fifteen-day \.internal-page-chapters[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(pageStyles, /\.fifteen-day__grid\.is-near[\s\S]*repeat\(7, minmax\(0, 1fr\)\)/);
   assert.match(pageStyles, /\.fifteen-day__grid\.is-extended[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(pageStyles, /\.fifteen-day__trend-list/);
   assert.match(pageStyles, /\.fifteen-day__trend-summary/);
-  assert.match(pageStyles, /\.fifteen-day__risks-grid > article \+ article[\s\S]*border-left/);
-  assert.match(pageStyles, /\.fifteen-day__footer/);
+  assert.match(refinementStyles, /\.internal-weather-shell--fifteen-day \.fifteen-day__forecast/);
+  assert.match(refinementStyles, /border:\s*0/);
+  assert.match(refinementStyles, /background:\s*transparent/);
+  assert.match(
+    refinementStyles,
+    /\.internal-weather-shell--fifteen-day \.fifteen-day__risks-grid > article \+ article[\s\S]*border-left/,
+  );
+  assert.match(refinementStyles, /@media \(max-width: 980px\)/);
+  assert.match(refinementStyles, /@media \(max-width: 720px\)/);
+  assert.match(refinementStyles, /@media \(forced-colors: active\)/);
   assert.match(pageStyles, /content-visibility:\s*auto/);
-  assert.match(pageStyles, /@media \(max-width: 980px\)/);
-  assert.match(pageStyles, /@media \(max-width: 560px\)/);
-  assert.match(pageStyles, /@media \(forced-colors: active\)/);
-  assert.doesNotMatch(pageStyles, /radial-gradient/);
-  assert.doesNotMatch(pageStyles, /fifteen-day__source|fifteen-day__related/);
 });
 
 test("rodapé de 15 dias concentra fonte e navegação sem novos cards", () => {
