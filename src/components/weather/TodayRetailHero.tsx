@@ -17,6 +17,7 @@ import type { WeatherData } from "@/production/lib/weather-data";
 import type { AdvisoryLevel } from "@/production/lib/weather-insights";
 
 import "./TodayRetailHero.css";
+import "./TodayEditorialHero.css";
 
 type TodayRetailHeroProps = {
   weather: WeatherData;
