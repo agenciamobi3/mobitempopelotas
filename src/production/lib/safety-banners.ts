@@ -14,7 +14,7 @@ export type SafetyBanner = {
 export const DEFESA_CIVIL_GUIDANCE_SOURCE = {
   name: "Governo do Rio Grande do Sul · Defesa Civil",
   url: "https://www.estado.rs.gov.br/como-se-cadastrar-para-receber-avisos-e-alertas-da-defesa-civil-no-celular",
-  reviewedAt: "2026-07-21",
+  reviewedAt: "2026-09-07",
 };
 
 export const SAFETY_BANNERS: SafetyBanner[] = [
