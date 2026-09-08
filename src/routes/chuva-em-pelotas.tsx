@@ -10,16 +10,15 @@ import { createEditorialPageJsonLd } from "@/lib/structured-data";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import { loadPublicWeatherPage } from "@/lib/weather/public-weather-page-loader";
 
-const PAGE_TITLE = "Chuva em Pelotas hoje: acumulado, chance e previsão";
+const PAGE_TITLE = "Chuva em Pelotas hoje: medição, chance e previsão";
 const PAGE_DESCRIPTION =
-  "Chuva em Pelotas hoje: acumulado observado, chance e volume previsto por horário, próximos dias e avisos do INMET.";
+  "Chuva em Pelotas: acumulado medido nas últimas 24 horas pela rede da Defesa Civil RS, chance e volume previsto por horário, próximos dias e avisos do INMET.";
 const PAGE_PATH = "/chuva-em-pelotas";
 
-function getObservedRainDaily(data: WeatherIntelligenceData) {
-  const embrapaStatus = data.weather.sources.embrapa.status;
-  return data.weather.observation.status !== "unavailable" &&
-    (embrapaStatus === "live" || embrapaStatus === "partial")
-    ? data.weather.observation.accumulated.rainDaily
+function getObservedRain24h(data: WeatherIntelligenceData) {
+  const source = data.weather.sources["defesa-civil-rs"];
+  return data.weather.observation.status === "live" && source.usable
+    ? data.weather.observation.rain.h24Mm
     : null;
 }
 
@@ -37,8 +36,8 @@ export const Route = createFileRoute("/chuva-em-pelotas")({
         ],
         about: [
           "Chuva acumulada em Pelotas",
-          "Quanto choveu hoje em Pelotas",
-          "Chuva observada pela Embrapa em Pelotas",
+          "Chuva medida em 24 horas em Pelotas",
+          "Rede de Monitoramento Hidrometeorológico da Defesa Civil RS",
           "Acumulado de chuva em 24 horas",
           "Previsão de chuva em Pelotas",
           "Probabilidade de chuva em Pelotas",
@@ -72,7 +71,7 @@ function ChuvaPage() {
           weather={productionWeather}
           advisoryLevel={advisoryLevel}
           officialAlertCount={officialAlertCount}
-          observedRainDaily={getObservedRainDaily(recoveredWeather)}
+          observedRain24h={getObservedRain24h(recoveredWeather)}
         />
       )}
     >
