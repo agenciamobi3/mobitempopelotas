@@ -1,9 +1,21 @@
 import { ArrowUpRight } from "lucide-react";
 
+import type { AnaRhnLaranjalStationProfile } from "@/lib/hydrology/ana-rhn-laranjal-profile.server";
+
 import styles from "./LaranjalMonitoringHistory.module.css";
 
-const MILESTONES = [
+type TimelineMilestone = {
+  dateIso: string;
+  date: string;
+  title: string;
+  body: string;
+  sourceLabel: string;
+  sourceUrl: string;
+};
+
+const BASE_MILESTONES: TimelineMilestone[] = [
   {
+    dateIso: "2024-05-09",
     date: "9 de maio de 2024",
     title: "HidroSens instala medidor no Trapiche durante a enchente",
     body:
@@ -12,6 +24,7 @@ const MILESTONES = [
     sourceUrl: "https://static.even3.com/anais/937195.pdf?v=638936884795718411",
   },
   {
+    dateIso: "2025-06-27",
     date: "27 de junho de 2025",
     title: "Pelotas e UFPel anunciam a instalação de um sensor da ANA",
     body:
@@ -20,6 +33,7 @@ const MILESTONES = [
     sourceUrl: "https://www.pelotas.rs.gov.br/noticia/prefeitura-realiza-acoes-preventivas-no-laranjal",
   },
   {
+    dateIso: "2026-08-16",
     date: "16 de agosto de 2026",
     title: "A leitura de Pelotas passa a compor o monitoramento do CIEX/FURG",
     body:
@@ -28,9 +42,55 @@ const MILESTONES = [
     sourceUrl:
       "https://ahoradosul.com.br/conteudos/2026/08/16/nivel-da-lagoa-no-laranjal-passa-a-integrar-monitoramento-do-ciex-furg/",
   },
-] as const;
+];
 
-export function LaranjalMonitoringHistory() {
+function formatDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Sao_Paulo",
+  }).format(date);
+}
+
+function anaRegistryMilestone(
+  profile: AnaRhnLaranjalStationProfile,
+): TimelineMilestone | null {
+  if (profile.status !== "live") return null;
+
+  const telemetric = profile.instruments.find((instrument) => instrument.label === "Telemetria");
+  if (!telemetric?.startedAt) return null;
+
+  const date = formatDate(telemetric.startedAt);
+  if (!date) return null;
+
+  return {
+    dateIso: telemetric.startedAt,
+    date,
+    title: "ANA registra a identidade telemétrica 87955001 no Laranjal",
+    body:
+      "O inventário público da Rede Hidrometeorológica Nacional registra a estação LARANJAL 87955001 como telemétrica, sob responsabilidade e operação da UFPel. Esse cadastro confirma a identidade atual usada pelo Tempo Pelotas para consulta documental, mas não demonstra que ela seja o mesmo equipamento anunciado pela Prefeitura em 2025.",
+    sourceLabel: "Cadastro público ANA/SNIRH da estação 87955001",
+    sourceUrl: profile.source.url,
+  };
+}
+
+function buildMilestones(profile: AnaRhnLaranjalStationProfile) {
+  const anaMilestone = anaRegistryMilestone(profile);
+  return [...BASE_MILESTONES, ...(anaMilestone ? [anaMilestone] : [])].sort(
+    (left, right) => new Date(left.dateIso).getTime() - new Date(right.dateIso).getTime(),
+  );
+}
+
+export function LaranjalMonitoringHistory({
+  anaRhnProfile,
+}: {
+  anaRhnProfile: AnaRhnLaranjalStationProfile;
+}) {
+  const milestones = buildMilestones(anaRhnProfile);
+
   return (
     <section className={styles.section} aria-labelledby="laranjal-monitoring-history-title">
       <header className={styles.header}>
@@ -44,9 +104,9 @@ export function LaranjalMonitoringHistory() {
       </header>
 
       <ol className={styles.timeline}>
-        {MILESTONES.map((milestone) => (
-          <li key={milestone.date}>
-            <time>{milestone.date}</time>
+        {milestones.map((milestone) => (
+          <li key={`${milestone.dateIso}-${milestone.title}`}>
+            <time dateTime={milestone.dateIso}>{milestone.date}</time>
             <div>
               <h3>{milestone.title}</h3>
               <p>{milestone.body}</p>
@@ -63,8 +123,9 @@ export function LaranjalMonitoringHistory() {
           Essa sequência documenta a evolução do monitoramento no Trapiche, mas não comprova que o
           medidor HidroSens de 2024, o sensor anunciado como equipamento da ANA em 2025 e a estação
           telemétrica 87955001 compartilhem o mesmo hardware, zero de régua, RN ou datum vertical.
-          Por isso, o Tempo Pelotas mantém as identidades e referências separadas até existir
-          documentação técnica suficiente.
+          O cadastro da 87955001 é posterior ao anúncio municipal de 2025 e, sozinho, também não
+          estabelece essa identidade. Por isso, o Tempo Pelotas mantém as referências separadas até
+          existir documentação técnica suficiente.
         </p>
       </footer>
     </section>
