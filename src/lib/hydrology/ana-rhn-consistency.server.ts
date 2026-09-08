@@ -118,8 +118,18 @@ export function createMissingAnaRhnHistoricalConsistency(
   fetchedAt = new Date().toISOString(),
 ): AnaRhnHistoricalConsistencyData {
   return {
-    ...createUnavailableAnaRhnHistoricalConsistency(null as never),
     status: "not-found",
+    stationCode: HISTORICAL_STATION_CODE,
+    stationName: null,
+    municipality: null,
+    state: null,
+    river: null,
+    basin: null,
+    subBasin: null,
+    operating: null,
+    drainageAreaKm2: null,
+    score: null,
+    classification: null,
     source: sourceMetadata(fetchedAt),
     error: null,
   };
