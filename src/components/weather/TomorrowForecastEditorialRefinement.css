@@ -1,4 +1,4 @@
-/* Refinamento final da página de amanhã: navegação leve, sem aparência de dashboard. */
+/* Refinamento final da página de amanhã: navegação e resumo sem aparência de dashboard. */
 .internal-weather-shell--tomorrow .internal-page-chapters {
   display: flex;
   width: 100%;
@@ -63,6 +63,35 @@
   padding-top: clamp(54px, 6vw, 82px);
 }
 
+/* O resumo já repete dados presentes no hero: vira faixa de leitura, não mais dois cards. */
+.internal-weather-shell--tomorrow .tomorrow-v3-overview__cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article,
+.internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article.is-caution {
+  min-height: 0;
+  padding: 18px 20px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article:last-child {
+  border-right: 0;
+}
+
+.internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article > svg {
+  width: 17px;
+  height: 17px;
+}
+
 /* Evita que blocos informativos recuperem sombras ou gradientes de outros bundles. */
 .internal-weather-shell--tomorrow :is(
   .tomorrow-v3-overview__cards article,
@@ -92,14 +121,38 @@
     padding-bottom: 13px;
     margin-right: 18px;
   }
+
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article,
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article.is-caution {
+    padding-right: 0;
+    padding-left: 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article:last-child {
+    border-bottom: 0;
+  }
 }
 
 @media (forced-colors: active) {
-  .internal-weather-shell--tomorrow .internal-page-chapters {
+  .internal-weather-shell--tomorrow .internal-page-chapters,
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards {
     border-color: CanvasText;
   }
 
   .internal-weather-shell--tomorrow .internal-page-chapters a {
     color: LinkText;
+  }
+
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article,
+  .internal-weather-shell--tomorrow .tomorrow-v3-overview__cards article.is-caution {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
   }
 }
