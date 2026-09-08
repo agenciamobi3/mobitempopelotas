@@ -1,0 +1,384 @@
+/* Refinamento editorial da previsão de 7 dias: mesmo rail, menos caixas e leitura contínua. */
+.internal-weather-shell--seven-day .internal-weather-main {
+  padding-top: clamp(12px, 1.5vw, 18px);
+}
+
+.internal-weather-shell--seven-day .internal-weather-main > .tp-home-alert {
+  width: min(
+    var(--tp-home-container-max, 1440px),
+    calc(100% - var(--tp-home-container-gutter, 48px))
+  );
+  margin: 0 auto;
+  padding: 14px 0 15px;
+  gap: clamp(24px, 3vw, 42px);
+}
+
+.internal-weather-shell--seven-day .internal-page-chapters {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  overflow: visible;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--seven-day .internal-page-chapters a,
+.internal-weather-shell--seven-day .internal-page-chapters a:nth-child(2),
+.internal-weather-shell--seven-day .internal-page-chapters a:nth-child(-n + 2) {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0;
+  padding: 14px 20px 14px 0;
+  margin-right: 20px;
+  border: 0;
+  background: transparent;
+  color: #536d78;
+  text-decoration: none;
+}
+
+.internal-weather-shell--seven-day .internal-page-chapters a:last-child {
+  margin-right: 0;
+}
+
+.internal-weather-shell--seven-day .internal-page-chapters a > span,
+.internal-weather-shell--seven-day .internal-page-chapters a > small {
+  display: none;
+}
+
+.internal-weather-shell--seven-day .internal-page-chapters strong {
+  overflow: visible;
+  color: inherit;
+  font-size: 0.68rem;
+  font-weight: 780;
+  line-height: 1.35;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.internal-weather-shell--seven-day .internal-page-chapters a:hover,
+.internal-weather-shell--seven-day .internal-page-chapters a:focus-visible {
+  background: transparent;
+  color: #5e2ced;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-page {
+  gap: 0;
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-days,
+  .seven-day-v2-trend,
+  .seven-day-v2-risks,
+  .seven-day-v2-official
+) {
+  overflow: visible;
+  gap: clamp(22px, 3vw, 34px);
+  padding: clamp(52px, 5.6vw, 78px) 0;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-days,
+  .seven-day-v2-trend,
+  .seven-day-v2-risks,
+  .seven-day-v2-official
+)::before {
+  display: none;
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-days,
+  .seven-day-v2-trend,
+  .seven-day-v2-risks,
+  .seven-day-v2-official
+) > header {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-days,
+  .seven-day-v2-trend,
+  .seven-day-v2-risks,
+  .seven-day-v2-official
+) h2 {
+  color: #071e2f;
+  font-size: clamp(1.9rem, 3vw, 3rem);
+  font-weight: 710;
+  letter-spacing: -0.055em;
+  line-height: 0.99;
+}
+
+/* Os sete dias continuam como unidades comparáveis, mas com geometria mais sóbria. */
+.internal-weather-shell--seven-day .seven-day-v2-days__grid {
+  gap: 8px;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-days__grid > article,
+.internal-weather-shell--seven-day .seven-day-v2-days__grid > article.tone-attention,
+.internal-weather-shell--seven-day .seven-day-v2-days__grid > article.tone-high {
+  min-height: 17.5rem;
+  padding: 16px;
+  border-color: rgb(7 30 47 / 9%);
+  border-radius: 12px;
+  background: #fbfdfd;
+  box-shadow: none;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-days__grid > article.tone-attention {
+  border-color: rgb(94 44 237 / 16%);
+  background: #fbf9ff;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-days__grid > article.tone-high {
+  border-color: rgb(231 11 133 / 16%);
+  background: #fff9fc;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-days__grid > article.is-today {
+  box-shadow: inset 0 2px 0 #18bdcd;
+}
+
+/* Temperaturas viram uma tabela gráfica aberta, sem uma pilha de mini-cards. */
+.internal-weather-shell--seven-day .seven-day-v2-trend__list {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-trend__list article {
+  min-height: 64px;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-trend__facts {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-trend__facts article {
+  min-height: 0;
+  padding: 16px 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-trend__facts article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-trend__facts article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+/* Chuva, vento e contexto oficial usam colunas editoriais com divisória central. */
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-risks__grid,
+  .seven-day-v2-official__grid
+) {
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-risks__grid > article,
+  .seven-day-v2-risks__grid > article.is-rain,
+  .seven-day-v2-risks__grid > article.is-wind,
+  .seven-day-v2-official__grid > article,
+  .seven-day-v2-official__grid > article.is-regional
+) {
+  padding: 20px 24px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-risks__grid > article,
+  .seven-day-v2-official__grid > article
+):first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--seven-day :is(
+  .seven-day-v2-risks__grid > article,
+  .seven-day-v2-official__grid > article
+):last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-official__unavailable {
+  min-height: 96px;
+  padding: 18px 0;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-related {
+  gap: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-related a {
+  min-height: 80px;
+  padding: 16px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-related a:last-child {
+  border-right: 0;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-related a:hover,
+.internal-weather-shell--seven-day .seven-day-v2-related a:focus-visible {
+  background: #fbf9ff;
+  color: #5e2ced;
+}
+
+.internal-weather-shell--seven-day .seven-day-v2-source-note {
+  padding-top: 16px;
+}
+
+@media (max-width: 1240px) {
+  .internal-weather-shell--seven-day .internal-weather-main > .tp-home-alert {
+    width: min(
+      calc(100% - var(--tp-home-container-compact-gutter, 32px)),
+      var(--tp-home-container-compact-max, 1180px)
+    );
+  }
+}
+
+@media (max-width: 900px) {
+  .internal-weather-shell--seven-day .internal-page-chapters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .internal-weather-shell--seven-day .internal-page-chapters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .internal-weather-shell--seven-day .seven-day-v2-trend__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--seven-day .seven-day-v2-trend__facts article,
+  .internal-weather-shell--seven-day .seven-day-v2-trend__facts article:first-child,
+  .internal-weather-shell--seven-day .seven-day-v2-trend__facts article:last-child {
+    padding: 14px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .internal-weather-shell--seven-day .seven-day-v2-trend__facts article:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .internal-weather-shell--seven-day .internal-weather-main {
+    padding-top: 10px;
+  }
+
+  .internal-weather-shell--seven-day .internal-weather-main > .tp-home-alert {
+    width: calc(100% - var(--tp-home-container-mobile-gutter, 20px));
+    padding: 13px 0 14px;
+  }
+
+  .internal-weather-shell--seven-day :is(
+    .seven-day-v2-days,
+    .seven-day-v2-trend,
+    .seven-day-v2-risks,
+    .seven-day-v2-official
+  ) {
+    padding: 42px 0;
+  }
+
+  .internal-weather-shell--seven-day :is(
+    .seven-day-v2-risks__grid,
+    .seven-day-v2-official__grid
+  ) {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--seven-day :is(
+    .seven-day-v2-risks__grid > article,
+    .seven-day-v2-risks__grid > article.is-rain,
+    .seven-day-v2-risks__grid > article.is-wind,
+    .seven-day-v2-official__grid > article,
+    .seven-day-v2-official__grid > article.is-regional
+  ) {
+    padding: 18px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .internal-weather-shell--seven-day :is(
+    .seven-day-v2-risks__grid > article,
+    .seven-day-v2-official__grid > article
+  ):last-child {
+    border-bottom: 0;
+  }
+
+  .internal-weather-shell--seven-day .seven-day-v2-related {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--seven-day .seven-day-v2-related a {
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .internal-weather-shell--seven-day .seven-day-v2-related a:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .internal-weather-shell--seven-day :is(
+    .internal-page-chapters,
+    .seven-day-v2-days__grid > article,
+    .seven-day-v2-trend__list,
+    .seven-day-v2-trend__facts,
+    .seven-day-v2-risks__grid,
+    .seven-day-v2-official__grid,
+    .seven-day-v2-related
+  ) {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
