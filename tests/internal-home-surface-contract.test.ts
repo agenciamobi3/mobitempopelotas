@@ -70,13 +70,13 @@ test("internal weather shell uses the same 1440px rail and soft surfaces as the 
   assert.doesNotMatch(internalShellCss, /radial-gradient/);
 });
 
-test("topic pages use the same responsive rail contract as the Home", () => {
+test("topic pages use the same responsive rail contract as the Home without dead methodology selectors", () => {
   assert.match(surfaceCss, /--tp-home-container-max, 1440px/);
   assert.match(surfaceCss, /--tp-home-container-gutter, 48px/);
   assert.match(surfaceCss, /--tp-home-container-compact-max, 1180px/);
   assert.match(surfaceCss, /--tp-home-container-compact-gutter, 32px/);
   assert.match(surfaceCss, /--tp-home-container-mobile-gutter, 20px/);
-  assert.match(surfaceCss, /\.methodology-chapter-nav/);
+  assert.doesNotMatch(surfaceCss, /\.methodology-chapter-nav/);
 });
 
 test("final internal surface contract neutralizes old full-bleed topic styling", () => {
