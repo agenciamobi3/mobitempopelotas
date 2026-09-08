@@ -174,18 +174,14 @@ test("tomorrow content remains comparative and source-aware", () => {
   assert.doesNotMatch(page, /daily-condition-card/);
 });
 
-test("tomorrow sections use the current Home rail", () => {
+test("tomorrow hero owns its container rail without a generic shell override", () => {
   assert.match(
     shellStyles,
     /--internal-weather-frame-max:\s*var\(--tp-home-container-max, 1440px\)/,
   );
-  assert.match(
+  assert.doesNotMatch(
     shellStyles,
-    /--internal-weather-section-padding:\s*clamp\(24px, 3vw, 34px\)/,
-  );
-  assert.match(
-    shellStyles,
-    /\.internal-weather-shell--tomorrow \.tomorrow-retail-hero__inner[\s\S]*width:\s*100%[\s\S]*max-width:\s*none/,
+    /\.internal-weather-shell--tomorrow \.tomorrow-retail-hero__inner/,
   );
   assert.match(
     heroStyles,
