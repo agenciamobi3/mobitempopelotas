@@ -301,14 +301,12 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
     label: "Explorar",
     summary: "Observação, clima, histórico, conteúdo editorial e transparência dos dados.",
     activePaths: [
-      "/estacao-embrapa-pelotas",
       "/cameras-ao-vivo-pelotas",
       "/mapa-de-geadas-rio-grande-do-sul",
       "/clima-em-pelotas",
       "/historico-climatico-pelotas",
       "/blog",
       "/status-dos-dados",
-      "/metodologia",
     ],
     featured: {
       eyebrow: "Entenda Pelotas",
@@ -320,11 +318,6 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       {
         title: "Observação e contexto",
         links: [
-          {
-            label: "Estação Embrapa",
-            to: "/estacao-embrapa-pelotas",
-            description: "Leituras observadas e extremos recentes da estação local.",
-          },
           {
             label: "Câmeras ao vivo",
             to: "/cameras-ao-vivo-pelotas",
@@ -351,14 +344,9 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             description: "Conteúdo meteorológico e explicações do portal.",
           },
           {
-            label: "Status dos dados",
+            label: "Dados e fontes",
             to: "/status-dos-dados",
-            description: "Saúde operacional das fontes e leituras do portal.",
-          },
-          {
-            label: "Metodologia",
-            to: "/metodologia",
-            description: "Fontes, limites, atualização e critérios editoriais.",
+            description: "Origem, atualização e limites das informações do portal.",
           },
         ],
       },
