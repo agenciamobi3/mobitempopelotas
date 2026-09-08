@@ -37,7 +37,7 @@ Regras permanentes:
 | Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã, contexto INMET/UFPel, FAQ e recuperação shell-first |
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
 | Radar / satélite / STSC | Página dedicada usa coletas reais e horário da própria fonte, com recuperação pós-hidratação quando o SSR não conclui a composição no budget |
-| Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` usa inventário/cartografia ANA/SNIRH e `/nivel-da-lagoa-dos-patos-laranjal` pode mostrar a ficha cadastral oficial `87955001`, sem promover esses recursos a medição do Laranjal |
+| Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` usa inventário/cartografia ANA/SNIRH e `/nivel-da-lagoa-dos-patos-laranjal` mostra ficha cadastral `87955001` e cronologia documentada do monitoramento no Trapiche, sem promover esses recursos a medição ANA |
 | ANA 87955001 | Readiness/cross-check somente; `publishableMeasurement=false`; gate vertical exige referência confirmada, nivelamento/RN específico recuperado e continuidade vertical com `87955000` comprovada antes de qualquer reconsideração técnica |
 | Enchente de 2001 | `/enchente-2001-pelotas` preserva 290 cm bruto e 190 cm consistido/estimado e pode exibir `Indice`/`Notas` da camada ANA `NotasConsistencia` somente quando houver registro real para `87955000`; isso não é nota do evento nem explicação da revisão |
 | Defesa Civil dedicada | `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo` são as duas intenções hidrológicas regionais promovidas para URL própria |
@@ -48,7 +48,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34268597429` concluiu `failure` com `steps: null` |
+| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34276755773` concluiu `failure` com `steps: null` |
 
 ## 3. Stack e budgets públicos
 
@@ -197,6 +197,14 @@ LabHidroSens e CIEX/FURG não são recalibrados um pelo outro e seus valores abs
 
 `/nivel-da-lagoa-dos-patos-laranjal` também consulta o cadastro oficial ANA/SNIRH da estação `87955001` por `CodigoAdicional` exato. Essa ficha usa somente metadados cadastrais como nome, município, rio/bacia, responsável, operadora, situação, equipamentos e datas publicadas. Ela não solicita valor atual, horário do último dado ou status da medição e não participa do seletor LabHidroSens → CIEX/FURG.
 
+A mesma página agora traz uma cronologia editorial do monitoramento no Trapiche com três marcos documentados:
+
+- **09/05/2024** — trabalho técnico da UFPel/HidroSens registra medidor ultrassônico instalado no Trapiche durante a enchente, transmissão LoRaWAN e leitura máxima de 2,79 m segundo a régua local;
+- **27/06/2025** — Prefeitura de Pelotas informa instalação, por Defesa Civil e Engenharia Hídrica/UFPel, de sensor de nível da ANA próximo ao Trapiche;
+- **16/08/2026** — monitoramento de Pelotas passa a integrar a rede CIEX/FURG, com dados enviados ao campus Anglo da UFPel e posteriormente disponibilizados para ANA e CIEX conforme relato do HidroSens.
+
+A cronologia é contexto, não junção de séries. O trabalho de 2024 afirma que os medidores foram comparados com réguas linimétricas locais e explicita referência a Imbituba para a régua do **Canal São Gonçalo**, mas não declara a mesma referência para a régua do Trapiche no trecho recuperado. Também não existe prova documental de que o sensor anunciado em 2025 seja o mesmo hardware cadastrado posteriormente como `87955001`.
+
 A remoção do código ThingsBoard só deve ocorrer após confirmação externa de encerramento definitivo do LabHidroSens. Se isso ocorrer, a limpeza deve ser completa, sem manter código-fantasma.
 
 ### 7.2 Rede Defesa Civil RS
@@ -248,7 +256,7 @@ A ANA/RHN tem quatro papéis distintos no produto:
 
 A ficha `87955001` é cadastral e fail-closed. Campos ausentes não viram conteúdo de preenchimento e a seção some se a estação não aparecer ou o contrato da fonte não puder ser validado. O antigo aviso genérico de “integração em implantação” foi removido da página do Laranjal em favor dessa informação concreta.
 
-O gate de medição da `87955001` foi endurecido após nova auditoria dos HARs e das camadas públicas. O adapter mantém três bloqueios independentes:
+O gate de medição da `87955001` foi endurecido após auditoria dos HARs, das camadas públicas e da cronologia documental do Trapiche. O adapter mantém três bloqueios independentes:
 
 - `vertical-reference-unconfirmed`;
 - `station-specific-leveling-not-recovered`;
@@ -259,6 +267,8 @@ O tráfego do Hidro-Telemetria confirma que existe uma superfície de ficha de e
 Referências `WGS_1984`/`D_WGS_1984` observadas em requests cartográficos pertencem ao sistema espacial do mapa e não são aceitas como datum vertical da régua. Da mesma forma, `Altitude` cadastral isolada do inventário não é tratada como altitude do zero da régua.
 
 A pista de `-0,02 m` registrada em 2017 para a identidade histórica `87955000` não é transferida para `87955001` sem documento que comprove RN, zero físico e continuidade de nivelamento. Um status de dado `Normal`, `Aprovado` ou equivalente também não remove o gate vertical.
+
+A cronologia 2024–2026 comprova evolução do monitoramento físico no Trapiche e aproxima os contextos HidroSens, ANA e CIEX/FURG, mas não comprova identidade de hardware nem continuidade vertical entre eles. O sensor ANA anunciado pela Prefeitura em 2025 só pode ser ligado ao código `87955001` quando existir documento explícito que faça essa associação.
 
 O inventário regional publica somente metadados concretos devolvidos pela rede, como nome, município, rio/bacia, responsável, operadora, situação cadastral e instrumentos. Proximidade não cria associação automática com uma página ou régua.
 
@@ -275,11 +285,11 @@ Essa avaliação pertence à estação/série histórica, não à enchente de 08
 
 A série histórica `87955000` foi recuperada para pesquisa e continua separada da telemetria atual até existir documentação de zero/RN/datum que autorize qualquer junção.
 
-Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md`, `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md`, `docs/ANA_RHN_LARANJAL_87955001_PROFILE_2026-09-08.md`, `docs/ANA_RHN_VERTICAL_REFERENCE_GATE_87955001_2026-09-08.md` e `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
+Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md`, `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md`, `docs/ANA_RHN_LARANJAL_87955001_PROFILE_2026-09-08.md`, `docs/ANA_RHN_VERTICAL_REFERENCE_GATE_87955001_2026-09-08.md`, `docs/LARANJAL_MONITORING_TIMELINE_2024_2026.md` e `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
 
 ## 8. Radar, satélite e alertas
 
-`/radar-e-satelite-pelotas` mantém radar, satélite e STSC como produtos complementares, com horário real da fonte.
+`/radar-e-satelite-pelotas` mantém radar, satélite e STSC como produtos complementares, com horário real da própria fonte.
 
 Contrato:
 
@@ -391,13 +401,14 @@ A consolidação de 08/09 atualizou contratos para:
 - inventário regional ANA/SNIRH em `/situacao-hidrologica-pelotas`, com mapa MapLibre, hidrografia oficial opcional e separação explícita da medição atual do Laranjal;
 - `NotasConsistencia` da histórica `87955000` em `/enchente-2001-pelotas`, fail-closed e sem interpretar `c1` a `c16` ou converter `Notas` em percentual/nota de escala inventada;
 - ficha cadastral exata da `87955001` em `/nivel-da-lagoa-dos-patos-laranjal`, sem solicitar medição ANA e sem participar do seletor de nível atual;
-- gate vertical da `87955001` com três bloqueios independentes e prova negativa explícita contra uso de WGS 84, `Altitude` cadastral isolada ou status de qualidade como referência da régua.
+- gate vertical da `87955001` com três bloqueios independentes e prova negativa explícita contra uso de WGS 84, `Altitude` cadastral isolada ou status de qualidade como referência da régua;
+- cronologia editorial 2024–2026 do monitoramento no Trapiche com datas e fontes nomeadas, sem fabricar continuidade de hardware, zero, RN ou datum entre HidroSens, ANA, CIEX/FURG e os códigos `87955000`/`87955001`.
 
 O smoke visual interno não trata mais redirects aposentados como páginas que deveriam possuir H1, shell e namespace visual próprios.
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34268597429`, ligada ao commit `28d217362eed2500c7db3e54dd34c123be4f26b7`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
+A infraestrutura do runner continua sendo uma limitação externa. Na run `34276755773`, ligada ao commit `7f44f64748b0e8748a124491b109a371d77dcc7d`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
 
 Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
 
@@ -425,8 +436,8 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 9. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
 10. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
 11. Validar visualmente `/tempo-amanha-pelotas` em desktop e mobile no domínio canônico após a propagação do novo bundle, sem tratar preview isolado como prova de produção.
-12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000` e a ficha `87955001` em `/nivel-da-lagoa-dos-patos-laranjal`.
-13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Não investir em novos endpoints de nível enquanto o gate vertical não estiver documentado.
+12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
+13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; não inferir essa identidade pela localização ou sequência temporal.
 14. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
@@ -442,11 +453,12 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md` — contrato da camada de consistência da estação histórica 87955000;
 - `docs/ANA_RHN_LARANJAL_87955001_PROFILE_2026-09-08.md` — ficha cadastral pública da estação 87955001 sem ingestão de medição;
 - `docs/ANA_RHN_VERTICAL_REFERENCE_GATE_87955001_2026-09-08.md` — auditoria do gate de zero/RN/datum da telemetria atual;
+- `docs/LARANJAL_MONITORING_TIMELINE_2024_2026.md` — cronologia documentada do monitoramento no Trapiche, sem equivalência automática entre equipamentos e referências;
 - `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md` — auditoria dos arquivos Hidro;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
 - `docs/HISTORICAL_MODERATION_V1.md` — moderação histórica;
 - `docs/FLOOD_2001_WIND_CONTEXT_2026-09-06.md` — pesquisa da enchente de 2001;
-- `docs/FLOOD_2015_OFFICIAL_BULLETIN_INVENTORY_2026-09-05.md` — inventário de 2015;
+- `docs/FLOOD_2015_OFFICIAL_BULLETIN_INVENTORY_2026-09-05.md` — inventário dos boletins de 2015;
 - `docs/FLOOD_2015_BULLETIN_RECOVERY_ATTEMPT_2026-09-06.md` — recuperação de boletins de 2015;
 - `docs/WIDGET_BUILDER_ARCHITECTURE.md` — widgets, RLS e embeds;
 - `docs/INMET_GMAIL_PUSH.md` — integração Gmail/INMET;
