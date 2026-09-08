@@ -38,6 +38,7 @@ Regras permanentes:
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
 | Radar / satélite / STSC | Página dedicada usa coletas reais e horário da própria fonte, com recuperação pós-hidratação quando o SSR não conclui a composição no budget |
 | Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` também usa inventário regional e cartografia ANA/SNIRH, sem promover essas camadas a medição do Laranjal |
+| Enchente de 2001 | `/enchente-2001-pelotas` preserva 290 cm bruto e 190 cm consistido/estimado e pode exibir `Indice`/`Notas` da camada ANA `NotasConsistencia` somente quando houver registro real para `87955000`; isso não é nota do evento nem explicação da revisão |
 | Defesa Civil dedicada | `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo` são as duas intenções hidrológicas regionais promovidas para URL própria |
 | Lagoa dos Patos | Hub + cinco localidades verificadas: Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão |
 | Arquivo de enchentes | Hub + páginas de 1941, 2001, 2015 e 2024 |
@@ -235,10 +236,11 @@ Cada ponto preserva a própria referência. O portal não publica um “nível �
 
 ### 7.4 ANA / RHN
 
-A ANA/RHN tem dois papéis distintos no produto:
+A ANA/RHN tem três papéis distintos no produto:
 
 1. **leitura atual do Laranjal** — `87955001` permanece readiness/cross-check, sem terceira ingestão pública nesta fase; a referência vertical continua não confirmada e `publishableMeasurement=false` permanece válido;
-2. **contexto regional público** — `/situacao-hidrologica-pelotas` consulta o inventário oficial de estações em até 180 km de Pelotas e pode desenhar rios principais e massas d'água das camadas públicas ANA/SNIRH.
+2. **contexto regional público** — `/situacao-hidrologica-pelotas` consulta o inventário oficial de estações em até 180 km de Pelotas e pode desenhar rios principais e massas d'água das camadas públicas ANA/SNIRH;
+3. **consistência histórica da 87955000** — `/enchente-2001-pelotas` consulta `NotasConsistencia/MapServer/0` exclusivamente para a estação histórica e só apresenta `Indice` e `Notas` quando a fonte devolve registro real aproveitável.
 
 O inventário regional publica somente metadados concretos devolvidos pela rede, como nome, município, rio/bacia, responsável, operadora, situação cadastral e instrumentos. Proximidade não cria associação automática com uma página ou régua.
 
@@ -249,9 +251,13 @@ Cartografia oficial usada no mapa regional:
 
 As geometrias são recortadas e simplificadas somente para desenho no mapa. Não produzem medição, distância hidrológica, área de risco, alerta ou diagnóstico de inundação. Inventário, rios e massas d'água degradam isoladamente.
 
+Para `NotasConsistencia`, o portal preserva a classificação publicada pela própria camada nos estados `OTIMO`, `BOM`, `RAZOAVEL`, `RUIM` e `PESSIMO` e a nota `Notas` sem inventar denominador, percentual ou escala. Os campos `c1` a `c16` não são consultados nem interpretados porque a definição pública da camada não documenta sua semântica individual.
+
+Essa avaliação pertence à estação/série histórica, não à enchente de 08/10/2001. Ela não explica automaticamente a diferença entre 290 cm bruto e 190 cm consistido/estimado, não resolve a referência vertical de 2001 e não autoriza fundir `87955000` com `87955001`. Se a consulta falhar, não houver registro ou não houver classificação/nota útil, a seção pública fica ausente.
+
 A série histórica `87955000` foi recuperada para pesquisa e continua separada da telemetria atual até existir documentação de zero/RN/datum que autorize qualquer junção.
 
-Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md` e `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
+Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md`, `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md` e `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md`.
 
 ## 8. Radar, satélite e alertas
 
@@ -307,7 +313,7 @@ Regras:
 - bruto e consistido permanecem distinguíveis quando ambos existem;
 - cotas de anos/estações diferentes não são comparadas sem referência suficiente.
 
-A pesquisa de 2001 preserva separadamente 290 cm bruto e 190 cm consistido/estimado em 08/10/2001, sem apresentar 2,90 m como única cota definitiva. A relação vertical entre `87955000` e `87955001` continua não comprovada.
+A pesquisa de 2001 preserva separadamente 290 cm bruto e 190 cm consistido/estimado em 08/10/2001, sem apresentar 2,90 m como única cota definitiva. A relação vertical entre `87955000` e `87955001` continua não comprovada. A nova consulta `NotasConsistencia` acrescenta somente metadado oficial de consistência da estação quando disponível; não é usada para escolher silenciosamente uma das duas versões históricas.
 
 Em 2015, quatro corpos de boletins municipais continuam não recuperados; próximos caminhos são acervo institucional, backup do CMS/banco municipal, Defesa Civil, Sanep e hemerotecas.
 
@@ -364,7 +370,8 @@ A consolidação de 08/09 atualizou contratos para:
 - retirada de links públicos para a antiga Estação Embrapa;
 - proteção contra shell duplicado em rotas autocontidas;
 - `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles, corpo aberto e índice de capítulos visualmente reduzido, preservando dados, fontes, SEO e estados indisponíveis;
-- inventário regional ANA/SNIRH em `/situacao-hidrologica-pelotas`, com mapa MapLibre, hidrografia oficial opcional e separação explícita da medição atual do Laranjal.
+- inventário regional ANA/SNIRH em `/situacao-hidrologica-pelotas`, com mapa MapLibre, hidrografia oficial opcional e separação explícita da medição atual do Laranjal;
+- `NotasConsistencia` da histórica `87955000` em `/enchente-2001-pelotas`, fail-closed e sem interpretar `c1` a `c16` ou converter `Notas` em percentual/nota de escala inventada.
 
 O smoke visual interno não trata mais redirects aposentados como páginas que deveriam possuir H1, shell e namespace visual próprios.
 
@@ -398,7 +405,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 9. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
 10. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
 11. Validar visualmente `/tempo-amanha-pelotas` em desktop e mobile no domínio canônico após a propagação do novo bundle, sem tratar preview isolado como prova de produção.
-12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`; depois avançar para `NotasConsistencia` da histórica `87955000` e a ficha cadastral da `87955001`.
+12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas` e confirmar o retorno real de `Indice`/`Notas` para `87955000` quando houver executor disponível; depois avançar para a ficha cadastral da `87955001`.
 13. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
@@ -411,6 +418,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências das fontes;
 - `docs/ANA_RHN_INTEGRATION.md` — política ANA/RHN e separação 87955000/87955001;
 - `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md` — inventário e cartografia regional ANA/SNIRH;
+- `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md` — contrato da camada de consistência da estação histórica 87955000;
 - `docs/LARANJAL_HIDRO_EXPORT_AUDIT_2026-09-06.md` — auditoria dos arquivos Hidro;
 - `docs/HISTORICAL_DATA_INVENTORY.md` — arquivo histórico;
 - `docs/HISTORICAL_MODERATION_V1.md` — moderação histórica;
