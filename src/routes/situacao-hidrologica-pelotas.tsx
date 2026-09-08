@@ -124,7 +124,7 @@ const HYDROLOGY_PAGE_CONTENT = {
     },
     {
       label: "Como os dados funcionam",
-      href: "/metodologia" as const,
+      href: "/status-dos-dados" as const,
       description: "Veja a origem, a atualização e os limites de cada fonte de nível.",
     },
   ],

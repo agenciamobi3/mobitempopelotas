@@ -10,7 +10,7 @@ const shortcuts = [
   { label: "Radar e satélite", description: "Região", to: "/cameras-ao-vivo-pelotas" },
   { label: "Medições locais", description: "Embrapa", to: "/estacao-embrapa-pelotas" },
   { label: "Situação das águas", description: "Laranjal", to: "/situacao-hidrologica-pelotas" },
-  { label: "Metodologia", description: "Fontes", to: "/metodologia" },
+  { label: "Dados e fontes", description: "Fontes", to: "/status-dos-dados" },
 ] as const;
 
 export function HomeOperationalNavigation({ data }: { data: WeatherIntelligenceData }) {

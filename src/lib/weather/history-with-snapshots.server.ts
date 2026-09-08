@@ -87,7 +87,7 @@ function storedHistory(
     summary: buildSummary(days),
     source: {
       name: "Arquivo meteorológico próprio do Tempo Pelotas",
-      url: absoluteUrl("/metodologia"),
+      url: absoluteUrl("/status-dos-dados"),
       fetchedAt: new Date().toISOString(),
       periodStart: days[0]?.date ?? null,
       periodEnd: days.at(-1)?.date ?? null,

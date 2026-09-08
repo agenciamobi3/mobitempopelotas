@@ -84,7 +84,7 @@ const FROST_PAGE_CONTENT = {
     },
     {
       label: "Como os dados funcionam",
-      href: "/metodologia" as const,
+      href: "/status-dos-dados" as const,
       description: "Confira a origem, a atualização e os limites das fontes meteorológicas.",
     },
   ],
