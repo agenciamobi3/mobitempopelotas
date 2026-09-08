@@ -57,7 +57,8 @@ test("flood history is standalone and shared chrome cannot be duplicated", () =>
   assert.match(siteLayout, /"\/enchente-2024-pelotas-laranjal"/);
   assert.match(siteLayout, /<SiteHeader advisoryLevel="normal" variant="hero" \/>/);
   assert.match(siteLayout, /<SiteFooter \/>/);
-  assert.match(siteFooter, /variant="home"/);
+  assert.match(siteFooter, /<Footer source=\{source\} \/>/);
+  assert.doesNotMatch(siteFooter, /variant=/);
   assert.match(siteFooter, /site-footer-home\.css/);
 });
 
@@ -97,7 +98,7 @@ test("regional directory and CPPMet content do not create nested main landmarks"
   assert.match(cppmetNewsPage, /<div className="cppmet-blog">/);
 });
 
-test("dedicated regional, blog and methodology support surfaces follow the Home visual language", () => {
+test("dedicated regional, blog and support surfaces follow the Home visual language", () => {
   for (const css of [regionalDirectoryCss, cppmetNewsCss, officialDataCss, forecastAccuracyCss]) {
     assert.doesNotMatch(css, /radial-gradient|linear-gradient/);
     assert.match(css, /box-shadow:\s*none/);
@@ -138,7 +139,7 @@ test("new surface contracts are loaded after the Home shell in both production e
   }
 });
 
-test("visual parity workflow captures critical internal routes on desktop and narrow mobile", () => {
+test("visual parity workflow captures active internal routes on desktop and narrow mobile", () => {
   for (const route of [
     "/tempo-hoje-pelotas",
     "/tempo-amanha-pelotas",
@@ -150,12 +151,15 @@ test("visual parity workflow captures critical internal routes on desktop and na
     "/meteograma-pelotas",
     "/historico-climatico-pelotas",
     "/enchente-2024-pelotas-laranjal",
-    "/estacao-embrapa-pelotas",
     "/situacao-hidrologica-pelotas",
+    "/nivel-do-canal-sao-goncalo",
+    "/status-dos-dados",
   ]) {
     assert.ok(internalVisualSmoke.includes(route));
   }
 
+  assert.ok(!internalVisualSmoke.includes('path: "/estacao-embrapa-pelotas"'));
+  assert.ok(!internalVisualSmoke.includes('path: "/metodologia"'));
   assert.match(internalVisualSmoke, /desktop-1280/);
   assert.match(internalVisualSmoke, /mobile-320/);
   assert.match(internalVisualSmoke, /horizontalOverflow/);
