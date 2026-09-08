@@ -407,7 +407,7 @@ export function FrostMapPageV2({ initialData }: FrostMapPageProps) {
 
       <section className="frost-v2-actions" aria-label="Outras páginas relacionadas ao mapa de geadas">
         <div><span className="frost-v2-eyebrow">Veja junto com previsão e clima</span><h2>Compare os registros passados com a previsão dos próximos dias</h2></div>
-        <div><a href={data.source.portalUrl} target="_blank" rel="noopener noreferrer">Portal do INMET <ExternalLink aria-hidden="true" /></a><Link to="/tempo-amanha-pelotas">Previsão de amanhã <ArrowRight aria-hidden="true" /></Link><Link to="/clima-em-pelotas">Clima de Pelotas</Link><Link to="/metodologia">Como os dados funcionam</Link></div>
+        <div><a href={data.source.portalUrl} target="_blank" rel="noopener noreferrer">Portal do INMET <ExternalLink aria-hidden="true" /></a><Link to="/tempo-amanha-pelotas">Previsão de amanhã <ArrowRight aria-hidden="true" /></Link><Link to="/clima-em-pelotas">Clima de Pelotas</Link><Link to="/status-dos-dados">Dados e fontes</Link></div>
       </section>
     </div>
   );

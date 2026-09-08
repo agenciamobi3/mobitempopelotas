@@ -168,7 +168,7 @@ export function ClimatePelotasPage({ history }: { history: WeatherHistoryData })
           <a href="https://portal.inmet.gov.br/normais" target="_blank" rel="noopener noreferrer"><CalendarRange aria-hidden="true" /><span><strong>Normais Climatológicas do INMET</strong><small>Referências oficiais calculadas com muitos anos.</small></span><ExternalLink aria-hidden="true" /></a>
           <Link to="/historico-climatico-pelotas"><Database aria-hidden="true" /><span><strong>Histórico de 30 dias</strong><small>Máximas, mínimas, chuva e rajadas dos últimos dias.</small></span><ArrowRight aria-hidden="true" /></Link>
           <Link to="/previsao-7-dias-pelotas"><CloudRain aria-hidden="true" /><span><strong>Previsão para 7 dias</strong><small>Tendência para os próximos dias.</small></span><ArrowRight aria-hidden="true" /></Link>
-          <Link to="/metodologia"><MapPinned aria-hidden="true" /><span><strong>Como os dados funcionam</strong><small>Origem, atualização e limites das informações.</small></span><ArrowRight aria-hidden="true" /></Link>
+          <Link to="/status-dos-dados"><MapPinned aria-hidden="true" /><span><strong>Dados e fontes</strong><small>Origem, atualização e limites das informações.</small></span><ArrowRight aria-hidden="true" /></Link>
         </div>
       </section>
 

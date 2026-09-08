@@ -393,7 +393,7 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
           <div>
             <h2 id="tomorrow-v3-official-title">INMET e UFPel para amanhã</h2>
           </div>
-          <Link to="/metodologia">Metodologia</Link>
+          <Link to="/status-dos-dados">Dados e fontes</Link>
         </header>
 
         {hasOfficialContext ? (

@@ -530,8 +530,8 @@ export function WeatherAlertsPage({ data }: { data: WeatherIntelligenceData }) {
             facilitar a consulta. Em situações de risco, as orientações do INMET, da Defesa Civil e das
             autoridades locais têm prioridade.
           </p>
-          <Link to="/metodologia">
-            Ver como os dados são consultados <ArrowRight aria-hidden="true" />
+          <Link to="/status-dos-dados">
+            Ver dados e fontes <ArrowRight aria-hidden="true" />
           </Link>
         </div>
       </section>

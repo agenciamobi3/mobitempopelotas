@@ -440,7 +440,7 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
           <a href={level.source.url} target="_blank" rel="noopener noreferrer">Estação Laranjal <ExternalLink aria-hidden="true" /></a>
           <Link to="/nivel-da-lagoa-dos-patos-laranjal">Detalhes do Laranjal <ArrowRight aria-hidden="true" /></Link>
           <Link to="/tempo-hoje-pelotas">Tempo em Pelotas</Link>
-          <Link to="/metodologia">Como os dados funcionam</Link>
+          <Link to="/status-dos-dados">Dados e fontes</Link>
         </div>
       </section>
     </div>
