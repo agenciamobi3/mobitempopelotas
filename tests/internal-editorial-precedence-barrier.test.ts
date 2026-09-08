@@ -40,6 +40,22 @@ const fifteenDayHero = readFileSync(
   "src/components/weather/FifteenDayForecastHero.tsx",
   "utf8",
 );
+const rainHeroCss = readFileSync(
+  "src/components/weather/RainRetailHero.css",
+  "utf8",
+);
+const rainHero = readFileSync(
+  "src/components/weather/RainRetailHero.tsx",
+  "utf8",
+);
+const windHeroCss = readFileSync(
+  "src/components/weather/WindRetailHero.css",
+  "utf8",
+);
+const windHero = readFileSync(
+  "src/components/weather/WindRetailHero.tsx",
+  "utf8",
+);
 
 test("precedence barrier stays after stabilization and before usability polish", () => {
   for (const entry of [productionCss, productionManifest]) {
@@ -53,7 +69,7 @@ test("precedence barrier stays after stabilization and before usability polish",
   }
 });
 
-test("converted internal weather pages cannot be recarded by lazy CSS", () => {
+test("converted internal weather bodies cannot be recarded by lazy CSS", () => {
   for (const namespace of [
     "internal-weather-shell--rain",
     "internal-weather-shell--wind",
@@ -79,31 +95,34 @@ test("precedence barrier no longer hides legacy chapter navigation", () => {
   assert.doesNotMatch(barrier, /internal-page-chapters|camera-v2-chapters|climate-chapters|hydrology-v2-chapters|frost-v2-chapters|embrapa-v2-chapters|history-chapters|methodology-chapter-nav/);
 });
 
-test("rain and wind keep the shared clean hero while 15-day owns its hero", () => {
-  for (const namespace of ["internal-weather-shell--rain", "internal-weather-shell--wind"]) {
-    assert.match(cleanHero, new RegExp(`\\.${namespace}`));
-    assert.match(barrier, new RegExp(`\\.${namespace}`));
+test("meteorological main heroes are owned by their route stylesheets", () => {
+  assert.match(barrier, /Heroes meteorológicos principais agora possuem contratos próprios por rota/);
+  assert.doesNotMatch(barrier, /today-retail-hero|rain-retail-hero|wind-retail-hero/);
+
+  assert.match(cleanHero, /internal-weather-shell--meteogram/);
+  for (const namespace of ["today", "tomorrow", "seven-day", "fifteen-day", "rain", "wind"]) {
+    assert.doesNotMatch(cleanHero, new RegExp(`internal-weather-shell--${namespace}`));
   }
 
-  assert.doesNotMatch(cleanHero, /internal-weather-shell--fifteen-day/);
-  assert.match(
-    cleanHero,
-    /\.today-retail-hero[\s\S]*?background:\s*#f5f8f8 !important[\s\S]*?background-image:\s*none !important/,
-  );
-
-  const retailBarrierStart = barrier.indexOf("Chuva e Vento ainda reutilizam o DOM retail legado");
-  const retailBarrierEnd = barrier.indexOf("/* Clima e situação das águas", retailBarrierStart);
-  assert.ok(retailBarrierStart >= 0);
-  assert.ok(retailBarrierEnd > retailBarrierStart);
-  const retailBarrier = barrier.slice(retailBarrierStart, retailBarrierEnd);
-  assert.match(retailBarrier, /internal-weather-shell--rain/);
-  assert.match(retailBarrier, /internal-weather-shell--wind/);
-  assert.doesNotMatch(retailBarrier, /internal-weather-shell--fifteen-day/);
-
-  assert.match(fifteenDayHeroCss, /Hero editorial compacto da previsão estendida/);
+  assert.match(todayHeroCss, /\.internal-weather-shell--today \.today-retail-hero__inner/);
+  assert.match(tomorrowHeroCss, /\.internal-weather-shell--tomorrow \.tomorrow-retail-hero__inner/);
+  assert.match(sevenDayHeroCss, /\.internal-weather-shell--seven-day \.seven-day-retail-hero__inner/);
   assert.match(fifteenDayHeroCss, /\.internal-weather-shell--fifteen-day \.fifteen-day-retail-hero__inner/);
-  assert.match(fifteenDayHero, /fifteen-day-retail-hero__summary/);
-  assert.doesNotMatch(fifteenDayHero, /today-retail-hero|getRetailWeatherPhoto/);
+  assert.match(rainHeroCss, /\.internal-weather-shell--rain \.rain-retail-hero__inner/);
+  assert.match(windHeroCss, /\.internal-weather-shell--wind \.wind-retail-hero__inner/);
+});
+
+test("dedicated forecast heroes no longer depend on shared photographic retail DOM", () => {
+  for (const hero of [tomorrowHero, sevenDayHero, fifteenDayHero, rainHero, windHero]) {
+    assert.doesNotMatch(hero, /getRetailWeatherPhoto|today-retail-hero-backgrounds|TodayRetailHeroPhoto\.css/);
+  }
+
+  assert.doesNotMatch(rainHero, /today-retail-hero/);
+  assert.doesNotMatch(windHero, /today-retail-hero/);
+  assert.match(rainHero, /rain-retail-hero__summary/);
+  assert.match(rainHero, /rain-retail-hero__facts/);
+  assert.match(windHero, /wind-retail-hero__summary/);
+  assert.match(windHero, /wind-retail-hero__facts/);
 });
 
 test("Today hero uses its dedicated editorial surface", () => {
@@ -113,7 +132,6 @@ test("Today hero uses its dedicated editorial surface", () => {
   );
   assert.match(todayHeroCss, /\.internal-weather-shell--today \.today-retail-hero__facts article/);
   assert.match(todayHeroCss, /--tp-home-container-max, 1440px/);
-  assert.doesNotMatch(cleanHero, /internal-weather-shell--today/);
 });
 
 test("Tomorrow hero uses the clean historical editorial language", () => {
@@ -123,7 +141,6 @@ test("Tomorrow hero uses the clean historical editorial language", () => {
   assert.match(tomorrowHero, /tomorrow-retail-hero__summary/);
   assert.match(tomorrowHero, /Condição prevista/);
   assert.doesNotMatch(tomorrowHeroCss, /tomorrow-retail-hero__tiles/);
-  assert.doesNotMatch(tomorrowHero, /getRetailWeatherPhoto/);
 });
 
 test("7-day hero keeps the concise weekly editorial hierarchy", () => {
@@ -132,7 +149,20 @@ test("7-day hero keeps the concise weekly editorial hierarchy", () => {
   assert.match(sevenDayHero, /seven-day-retail-hero__facts/);
   assert.match(sevenDayHeroCss, /\.seven-day-retail-hero::before[\s\S]*?radial-gradient[\s\S]*?linear-gradient/);
   assert.match(sevenDayHeroCss, /\.seven-day-retail-hero__facts article/);
-  assert.doesNotMatch(sevenDayHero, /getRetailWeatherPhoto|today-retail-hero/);
+});
+
+test("15-day hero remains independent from the retired retail precedence", () => {
+  assert.match(fifteenDayHeroCss, /Hero editorial compacto da previsão estendida/);
+  assert.match(fifteenDayHero, /fifteen-day-retail-hero__summary/);
+  assert.doesNotMatch(fifteenDayHero, /today-retail-hero|getRetailWeatherPhoto/);
+  assert.match(barrier, /internal-weather-shell--fifteen-day/);
+});
+
+test("rain and wind heroes keep their own editorial rails", () => {
+  assert.match(rainHeroCss, /--tp-home-container-max, 1440px/);
+  assert.match(windHeroCss, /--tp-home-container-max, 1440px/);
+  assert.match(rainHeroCss, /\.rain-retail-hero__facts article[\s\S]*box-shadow:\s*none/);
+  assert.match(windHeroCss, /\.wind-retail-hero__facts article[\s\S]*box-shadow:\s*none/);
 });
 
 test("climate and hydrology custom heroes use the open split surface", () => {
