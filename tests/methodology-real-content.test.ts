@@ -43,11 +43,13 @@ test("critérios públicos são factuais e separam observação, previsão, aler
   assert.match(statusRoute, /Cotas de referências diferentes não são convertidas/);
 });
 
-test("status público evita jargão interno quando uma fonte falha", () => {
+test("status público usa mensagens compreensíveis para falha e disponibilidade parcial", () => {
   assert.doesNotMatch(statusServer, /last-good|probe meteorológico|kill switch|readiness|cross-check/i);
-  assert.doesNotMatch(redemetStatus, /Probe independente|upstream|server-side/i);
   assert.match(statusServer, /A fonte não entregou dados utilizáveis na última verificação/);
+  assert.match(statusServer, /A fonte respondeu, mas parte das informações está atrasada ou indisponível/);
   assert.match(redemetStatus, /A fonte não entregou dados utilizáveis nesta verificação/);
+  assert.match(redemetStatus, /A fonte respondeu, mas não entregou uma imagem utilizável nesta verificação/);
+  assert.match(redemetStatus, /O produto público existe, mas a consulta automática do Tempo Pelotas não está disponível nesta integração/);
 });
 
 test("detalhes técnicos não voltam ao hero nem ao rodapé do status", () => {
