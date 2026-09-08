@@ -8,13 +8,16 @@ const sevenDayRoute = readFileSync("src/routes/previsao-7-dias-pelotas.tsx", "ut
 const rainRoute = readFileSync("src/routes/chuva-em-pelotas.tsx", "utf8");
 const windRoute = readFileSync("src/routes/vento-em-pelotas.tsx", "utf8");
 const todayComponent = readFileSync("src/components/weather/TodayForecastPageV5.tsx", "utf8");
-const todayStyles = readFileSync("src/components/weather/TodayForecastPageV5.css", "utf8");
 const todayEditorialStyles = readFileSync(
   "src/components/weather/TodayForecastEditorialRefinement.css",
   "utf8",
 );
 const todayRetailHero = readFileSync("src/components/weather/TodayRetailHero.tsx", "utf8");
-const todayRetailHeroStyles = readFileSync("src/components/weather/TodayRetailHero.css", "utf8");
+const sharedRetailHeroStyles = readFileSync(
+  "src/components/weather/TodayRetailHero.css",
+  "utf8",
+);
+const todayHeroStyles = readFileSync("src/components/weather/TodayEditorialHero.css", "utf8");
 const internalShell = readFileSync("src/components/layout/InternalWeatherPageShell.tsx", "utf8");
 const internalShellStyles = readFileSync("src/components/layout/InternalWeatherPageShell.css", "utf8");
 const homeForecastStory = readFileSync("src/components/weather/HomeForecastStory.tsx", "utf8");
@@ -61,15 +64,25 @@ test("today hero owns the Home rail without the generic shell override", () => {
     /\.internal-weather-shell--today \.today-retail-hero__inner/,
   );
   assert.match(
-    todayRetailHeroStyles,
+    todayHeroStyles,
     /\.internal-weather-shell--today \.today-retail-hero__inner[\s\S]*var\(--tp-home-container-max, 1440px\)[\s\S]*margin-inline:\s*auto/,
   );
   assert.match(
-    todayRetailHeroStyles,
+    todayHeroStyles,
     /\.internal-weather-shell--today \.internal-weather-hero-frame[\s\S]*width:\s*100%[\s\S]*border:\s*0/,
   );
-  assert.match(todayRetailHeroStyles, /var\(--tp-home-container-compact-max, 1180px\)/);
-  assert.match(todayRetailHeroStyles, /var\(--tp-home-container-mobile-gutter, 20px\)/);
+  assert.match(todayHeroStyles, /var\(--tp-home-container-compact-max, 1180px\)/);
+  assert.match(todayHeroStyles, /var\(--tp-home-container-mobile-gutter, 20px\)/);
+});
+
+test("today editorial CSS is route-scoped while rain and wind keep the shared retail base", () => {
+  assert.match(todayRetailHero, /import "\.\/TodayRetailHero\.css"/);
+  assert.match(todayRetailHero, /import "\.\/TodayEditorialHero\.css"/);
+  assert.match(sharedRetailHeroStyles, /retail-style hero/);
+  assert.match(sharedRetailHeroStyles, /today-retail-hero__tiles/);
+  assert.match(todayHeroStyles, /Prefixado pela rota/);
+  assert.match(todayHeroStyles, /\.internal-weather-shell--today \.today-retail-hero/);
+  assert.doesNotMatch(todayHeroStyles, /^\.today-retail-hero \{/m);
 });
 
 test("today hero separates current observation from the next-hour forecast", () => {
@@ -106,14 +119,14 @@ test("today hero is editorial and no longer uses photography, tiles or hero CTAs
 
 test("today hero uses a compact flat fact strip and accessible breakpoints", () => {
   assert.match(
-    todayRetailHeroStyles,
-    /\.today-retail-hero__facts[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)[\s\S]*border-top:[\s\S]*border-bottom:/,
+    todayHeroStyles,
+    /\.internal-weather-shell--today \.today-retail-hero__facts[\s\S]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)[\s\S]*border-top:[\s\S]*border-bottom:/,
   );
-  assert.match(todayRetailHeroStyles, /@media \(max-width: 1240px\)/);
-  assert.match(todayRetailHeroStyles, /@media \(max-width: 1100px\)/);
-  assert.match(todayRetailHeroStyles, /@media \(max-width: 720px\)/);
-  assert.match(todayRetailHeroStyles, /@media \(forced-colors: active\)/);
-  assert.match(todayRetailHeroStyles, /:focus-visible/);
+  assert.match(todayHeroStyles, /@media \(max-width: 1240px\)/);
+  assert.match(todayHeroStyles, /@media \(max-width: 1100px\)/);
+  assert.match(todayHeroStyles, /@media \(max-width: 720px\)/);
+  assert.match(todayHeroStyles, /@media \(forced-colors: active\)/);
+  assert.match(todayHeroStyles, /:focus-visible/);
 });
 
 test("internal today page keeps one h1 and reuses the current forecast widgets", () => {
