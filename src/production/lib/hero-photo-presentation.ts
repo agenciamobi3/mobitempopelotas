@@ -74,6 +74,12 @@ const partlyCloudyDayAlternate = {
   credit: "Acervo Tempo Pelotas · Pelotas · dia",
 } as const;
 
+const partlyCloudyLaranjalDayAlternate = {
+  src: "/weather/hero/pelotas-laranjal-parcialmente-nublado-sol-entre-nuvens.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Praia do Laranjal · sol entre nuvens",
+} as const;
+
 const partlyCloudyFimDeTardeAlternate = {
   src: "/weather/hero/pelotas-fim-de-tarde-poucas-nuvens.png",
   position: "center 50%",
@@ -169,6 +175,11 @@ function usesAlternateRotationSlot(weather: WeatherData) {
   return hour !== null && hour % 2 === 0;
 }
 
+function partlyCloudyDayRotationSlot(weather: WeatherData) {
+  const hour = currentPelotasHour(weather);
+  return hour === null ? null : hour % 3;
+}
+
 function partlyCloudyDayPhoto(
   weather: WeatherData,
   legacy: HeroPhotoPresentation,
@@ -199,11 +210,20 @@ function partlyCloudyDayPhoto(
     return legacy;
   }
 
-  if (!usesAlternateRotationSlot(weather)) return legacy;
-  return {
-    kind: legacy.kind,
-    ...partlyCloudyDayAlternate,
-  } satisfies HeroPhotoPresentation;
+  const rotationSlot = partlyCloudyDayRotationSlot(weather);
+  if (rotationSlot === 1) {
+    return {
+      kind: legacy.kind,
+      ...partlyCloudyDayAlternate,
+    } satisfies HeroPhotoPresentation;
+  }
+  if (rotationSlot === 2) {
+    return {
+      kind: legacy.kind,
+      ...partlyCloudyLaranjalDayAlternate,
+    } satisfies HeroPhotoPresentation;
+  }
+  return legacy;
 }
 
 function partlyCloudyNightPhoto(weather: WeatherData) {
