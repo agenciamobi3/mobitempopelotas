@@ -124,7 +124,8 @@ test("regional ANA inventory never becomes a measurement source for Laranjal", (
 test("hydrology overview loads and renders ANA inventory only when useful", () => {
   assert.match(loader, /getAnaRhnRegionalInventory/);
   assert.match(loader, /anaRhnRegional:/);
-  assert.match(route, /AnaRhnRegionalStations data=\{data\.anaRhnRegional\}/);
+  assert.match(route, /data=\{data\.anaRhnRegional\}/);
+  assert.match(route, /hydrography=\{data\.anaRhnHydrography\}/);
   assert.match(component, /if \(data\.status !== "live" \|\| data\.stations\.length === 0\) return null/);
   assert.match(component, /Estações oficiais na região de Pelotas/);
   assert.match(component, /Instrumentos cadastrados:/);
@@ -132,7 +133,7 @@ test("hydrology overview loads and renders ANA inventory only when useful", () =
 });
 
 test("regional ANA stations use the existing MapLibre stack and keep list fallback", () => {
-  assert.match(component, /AnaRhnRegionalMap stations=\{data\.stations\}/);
+  assert.match(component, /AnaRhnRegionalMap stations=\{data\.stations\} hydrography=\{hydrography\}/);
   assert.match(map, /import\("maplibre-gl"\)/);
   assert.match(map, /tiles\.openfreemap\.org\/styles\/liberty/);
   assert.match(map, /ANA \/ SNIRH \/ Rede Hidrometeorológica Nacional/);
