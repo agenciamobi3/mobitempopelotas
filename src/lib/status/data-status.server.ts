@@ -18,13 +18,13 @@ import type {
 export function detailForState(state: ServiceState) {
   if (state === "operational") return "A fonte respondeu normalmente na última verificação.";
   if (state === "partial") {
-    return "A fonte respondeu, mas há atraso ou parte das informações não está atualizada.";
+    return "A fonte respondeu, mas parte das informações está atrasada ou indisponível.";
   }
   if (state === "maintenance") return "Serviço em manutenção programada pelo Tempo Pelotas.";
   if (state === "implementation") {
-    return "Acesso concedido; integração pública ainda em implantação e validação.";
+    return "Fonte disponível para integração, mas ainda não usada na publicação.";
   }
-  return "Não foi possível obter dados desta fonte na última verificação.";
+  return "A fonte não entregou dados utilizáveis na última verificação.";
 }
 
 function stateFromHydrology(status: "live" | "stale" | "unavailable"): ServiceState {
@@ -156,15 +156,13 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     const openMeteoDetail =
       openMeteoState === "operational"
         ? detailForState("operational")
-        : openMeteo.status === "live" && openMeteo.source.isFallback
-          ? "A origem direta não respondeu normalmente; a previsão está sendo servida pela contingência Open-Meteo com timestamp preservado."
-          : openMeteoContingency?.available
-            ? `A origem direta falhou nesta verificação, mas existe last-good persistido utilizável${
-                openMeteoContingency.ageMinutes === null
-                  ? ""
-                  : ` com ${openMeteoContingency.ageMinutes} min de idade`
-              }.`
-            : openMeteo.message || detailForState("offline");
+        : openMeteoContingency?.available
+          ? `A consulta atual falhou; a última previsão válida continua disponível${
+              openMeteoContingency.ageMinutes === null
+                ? ""
+                : ` e foi obtida há ${openMeteoContingency.ageMinutes} min`
+            }.`
+          : detailForState("offline");
 
     services.push(
       weatherService(
@@ -181,16 +179,16 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
         "MET Norway",
         metNorway.status === "live" ? "operational" : "offline",
         metNorway.source.fetchedAt || checkedAt,
-        metNorway.message || detailForState(metNorway.status === "live" ? "operational" : "offline"),
+        detailForState(metNorway.status === "live" ? "operational" : "offline"),
       ),
     );
   } else {
     const openMeteoState: ServiceState = openMeteoContingency?.available ? "partial" : "offline";
     const openMeteoDetail = openMeteoContingency?.available
-      ? `O probe meteorológico principal falhou, mas existe last-good Open-Meteo persistido utilizável${
+      ? `A consulta atual falhou; a última previsão válida continua disponível${
           openMeteoContingency.ageMinutes === null
             ? ""
-            : ` com ${openMeteoContingency.ageMinutes} min de idade`
+            : ` e foi obtida há ${openMeteoContingency.ageMinutes} min`
         }.`
       : detailForState("offline");
 
@@ -226,12 +224,12 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     services.push(
       weatherService(
         "weather-inmet",
-        "Avisos meteorológicos oficiais",
+        "Previsão e avisos meteorológicos oficiais",
         "INMET",
         inmetState,
         latestCheckedAt(inmetSources.map((source) => source.source.fetchedAt), checkedAt),
         inmetState === "partial"
-          ? `${inmetLiveCount} de ${inmetSources.length} integrações meteorológicas do INMET responderam nesta verificação.`
+          ? `${inmetLiveCount} de ${inmetSources.length} serviços do INMET responderam nesta verificação.`
           : detailForState(inmetState),
       ),
     );
@@ -249,14 +247,14 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
         "CPPMet / UFPel",
         cppmetState,
         official.cppmet.source.fetchedAt || checkedAt,
-        official.cppmet.error || detailForState(cppmetState),
+        detailForState(cppmetState),
       ),
     );
   } else {
     services.push(
       weatherService(
         "weather-inmet",
-        "Avisos meteorológicos oficiais",
+        "Previsão e avisos meteorológicos oficiais",
         "INMET",
         "offline",
         checkedAt,
@@ -287,7 +285,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     services.push({
       id: "laranjal-level",
       name: "Nível da Lagoa dos Patos no Laranjal",
-      provider: "LabHidroSens / UFPel",
+      provider: "Fonte local do Laranjal",
       category: "Hidrologia",
       state: "offline",
       detail: detailForState("offline"),
@@ -311,7 +309,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     services.push({
       id: "guaiba-level",
       name: "Nível do Guaíba",
-      provider: "MetSul / TideSat Global",
+      provider: "Fonte de nível do Guaíba",
       category: "Hidrologia",
       state: "offline",
       detail: detailForState("offline"),
@@ -330,7 +328,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       detail:
         state === "operational"
           ? `${lagoonResult.value.available} de ${lagoonResult.value.total} estações com leitura disponível.`
-          : lagoonResult.value.error || detailForState(state),
+          : detailForState(state),
       checkedAt: lagoonResult.value.source.fetchedAt || checkedAt,
       sourceUrl: lagoonResult.value.source.url,
     });
@@ -338,7 +336,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     services.push({
       id: "lagoon-regional-network",
       name: "Rede regional da Lagoa dos Patos",
-      provider: "FURG & Portos RS",
+      provider: "Rede de Monitoramento da Lagoa dos Patos",
       category: "Hidrologia",
       state: "offline",
       detail: detailForState("offline"),
@@ -355,12 +353,12 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       networkState === "operational" && !currentStation ? "partial" : networkState;
     const detail =
       data.status === "live" && currentStation
-        ? `Fonte do Agora: ${currentStation.name} (${currentStation.code}), a ${Math.round(currentStation.distanceFromPelotasKm)} km de Pelotas. A rede possui ${data.regionalStationCount} estações no recorte regional e ${data.recentStationCount} leituras recentes.`
+        ? `Estação usada no Agora: ${currentStation.name} (${currentStation.code}). A rede regional tem ${data.regionalStationCount} estações no recorte do portal e ${data.recentStationCount} leituras recentes.`
         : data.status === "live"
-          ? "A rede estadual respondeu, mas nenhuma estação meteorológica recente e utilizável está disponível para compor o Agora de Pelotas."
+          ? "A rede respondeu, mas nenhuma estação elegível de Pelotas tem leitura recente para compor o Agora."
           : data.status === "disabled"
-            ? "Integração desabilitada explicitamente pelo kill switch operacional do Tempo Pelotas."
-            : data.error || detailForState(state);
+            ? "A integração está desativada no Tempo Pelotas."
+            : detailForState(state);
 
     services.push(
       weatherService(
@@ -398,8 +396,8 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       state: "implementation",
       detail:
         snapshot.status === "source-live"
-          ? `Contrato público respondeu para a estação LARANJAL ${snapshot.stationCode}; ANA/RHN permanece somente como readiness/cross-check nesta fase porque o Laranjal já é coberto por duas fontes de coleta do projeto. Unidade (cm) e timezone estão confirmados; a referência vertical permanece não confirmada.`
-          : `Readiness ANA/RHN segue preservado sem ingestão nesta fase; o probe público não respondeu de forma utilizável nesta verificação. ${snapshot.error ?? ""}`.trim(),
+          ? `A fonte respondeu para a estação ${snapshot.stationCode}, mas seus dados ainda não são usados nas leituras públicas do Laranjal.`
+          : "A fonte ainda não está sendo usada nas leituras públicas do Laranjal.",
       checkedAt: snapshot.fetchedAt || checkedAt,
       sourceUrl: snapshot.source.url,
     });
@@ -410,7 +408,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
       provider: "ANA / SNIRH / RHN",
       category: "Hidrologia",
       state: "implementation",
-      detail: "Readiness ANA/RHN preservado sem ingestão nesta fase; o probe público falhou antes de produzir um snapshot sanitizado.",
+      detail: "A fonte ainda não está sendo usada nas leituras públicas do Laranjal.",
       checkedAt,
       sourceUrl: "https://www.snirh.gov.br/hidroweb/",
     });
