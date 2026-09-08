@@ -10,7 +10,7 @@ const PAGE_DESCRIPTION =
   "Acompanhe o nível da Lagoa dos Patos hoje em cinco pontos de monitoramento, com leituras locais, tendência, horário e links para Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão.";
 const PAGE_PATH = "/nivel-da-lagoa-dos-patos";
 
-export const Route = createFileRoute("/nivel-da-lagoa-dos-patos/")({
+export const Route = createFileRoute("/nivel-da-lagoa-dos-patos")({
   head: () =>
     createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [
       createEditorialPageJsonLd({
