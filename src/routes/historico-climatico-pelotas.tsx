@@ -39,9 +39,9 @@ const HISTORY_PAGE_CONTENT = {
         "Este histórico compara somente os últimos 30 dias completos disponíveis. A página Clima de Pelotas explica padrões de longo prazo, estações do ano e referências climatológicas. Um período de 30 dias não substitui uma normal climatológica.",
     },
     {
-      question: "Os dados representam medições da Estação Embrapa?",
+      question: "De onde vêm os dados deste histórico?",
       answer:
-        "Não necessariamente. A página identifica a origem dos dados históricos e usa um local de referência para Pelotas. As medições da Estação Embrapa aparecem separadamente na página da estação.",
+        "A origem utilizada na série aparece na própria página. A relação completa das fontes usadas pelo portal fica em Dados e fontes.",
     },
     {
       question: "O dia mais quente é um recorde histórico de Pelotas?",
@@ -71,19 +71,14 @@ const HISTORY_PAGE_CONTENT = {
       description: "Entenda padrões de longo prazo, estações do ano e a diferença entre tempo e clima.",
     },
     {
-      label: "Estação Embrapa",
-      href: "/estacao-embrapa-pelotas" as const,
-      description: "Consulte temperatura, umidade, vento, chuva e o histórico observacional de 24 horas da estação.",
-    },
-    {
       label: "Previsão de 7 dias",
       href: "/previsao-7-dias-pelotas" as const,
       description: "Compare o período recente com a previsão para a próxima semana sem misturar observado e previsto.",
     },
     {
-      label: "Como os dados funcionam",
+      label: "Dados e fontes",
       href: "/status-dos-dados" as const,
-      description: "Veja de onde vêm os dados, quando atualizam e quais são seus limites.",
+      description: "Veja a origem dos dados, o estado atual das fontes e a última verificação.",
     },
   ],
 };
