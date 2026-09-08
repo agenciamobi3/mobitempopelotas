@@ -151,16 +151,6 @@
   scroll-margin-top: 92px;
 }
 
-.site-shell--topic .methodology-chapter-nav {
-  width: 100%;
-  max-width: none;
-  margin: 0 0 clamp(16px, 2vw, 24px);
-  border-color: var(--internal-line);
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: none;
-}
-
 .site-shell--topic .redemet-page {
   display: grid;
   gap: 0;
@@ -304,7 +294,6 @@
   .site-shell--topic .redemet-page > section,
   .site-shell--topic .redemet-page > article,
   .site-shell--topic .redemet-page > nav,
-  .site-shell--topic .methodology-chapter-nav,
   .internal-weather-shell--flood-history .tp-flood-history__index,
   .internal-weather-shell--flood-history .tp-flood-history > section {
     border-radius: var(--internal-radius-mobile);
