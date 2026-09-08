@@ -1,32 +1,16 @@
 /*
- * HERO limpo para páginas meteorológicas internas dedicadas.
+ * HERO editorial compartilhado remanescente.
  *
- * Referência visual: páginas históricas de enchentes. A abertura deve funcionar
- * como cabeçalho editorial, não como vitrine promocional: título e contexto à
- * esquerda, resumo técnico em linhas à direita, sem fotografia, mosaico de
- * cards, gradientes decorativos ou sombras.
- *
- * Hoje, Amanhã, 7 dias e 15 dias possuem heroes próprios fora deste contrato.
- * Esta folha permanece apenas para Chuva, Vento e Meteograma.
+ * Hoje, Amanhã, 7 dias, 15 dias, Chuva e Vento possuem heroes dedicados.
+ * Esta folha existe apenas para o Meteograma, que ainda reutiliza seu painel
+ * técnico atual sob a linguagem editorial aberta das páginas internas.
  */
-
-.internal-weather-shell--rain {
-  --internal-clean-hero-eyebrow: "Pelotas · chuva e precipitação";
-}
-
-.internal-weather-shell--wind {
-  --internal-clean-hero-eyebrow: "Pelotas · vento e rajadas";
-}
 
 .internal-weather-shell--meteogram {
   --internal-clean-hero-eyebrow: "Pelotas · previsão hora a hora";
 }
 
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind,
-    .internal-weather-shell--meteogram
-  ) .internal-weather-hero-frame {
+.internal-weather-shell--meteogram .internal-weather-hero-frame {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
@@ -38,403 +22,6 @@
   box-shadow: none !important;
 }
 
-/* Retail heroes usados pelas páginas internas de chuva e vento. */
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero {
-  min-height: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: #f5f8f8 !important;
-  background-image: none !important;
-  color: #071e2f !important;
-  box-shadow: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero::before,
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero::after {
-  display: none !important;
-  content: none !important;
-  background: none !important;
-  box-shadow: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__inner {
-  display: grid !important;
-  width: min(1440px, calc(100% - 48px)) !important;
-  max-width: 1440px !important;
-  min-height: 0 !important;
-  margin-inline: auto !important;
-  padding: clamp(58px, 7vw, 96px) 0 clamp(48px, 6vw, 76px) !important;
-  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.68fr) !important;
-  gap: clamp(48px, 8vw, 112px) !important;
-  align-items: end !important;
-  box-sizing: border-box;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__copy {
-  display: grid !important;
-  align-content: end !important;
-  gap: 0 !important;
-  min-width: 0 !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__copy::before,
-.internal-weather-shell--meteogram .meteogram-hero__content::before {
-  display: block !important;
-  margin-bottom: 12px !important;
-  color: #087f91 !important;
-  content: var(--internal-clean-hero-eyebrow) !important;
-  font-size: 0.66rem !important;
-  font-weight: 820 !important;
-  letter-spacing: 0.09em !important;
-  text-transform: uppercase !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__copy h1,
-.internal-weather-shell--meteogram .meteogram-hero__content h1 {
-  max-width: 920px !important;
-  margin: 0 !important;
-  color: #071e2f !important;
-  font-size: clamp(3rem, 5.8vw, 6.2rem) !important;
-  font-weight: 760 !important;
-  line-height: 0.94 !important;
-  letter-spacing: -0.065em !important;
-  text-wrap: balance;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__copy h1 span {
-  color: inherit !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__copy > p,
-.internal-weather-shell--meteogram .meteogram-hero__content > p {
-  max-width: 820px !important;
-  margin: 24px 0 0 !important;
-  color: #526b76 !important;
-  font-size: clamp(1rem, 1.35vw, 1.22rem) !important;
-  line-height: 1.72 !important;
-  text-wrap: pretty;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__badges {
-  margin-top: 20px !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__badges > :is(span, a) {
-  min-height: 36px !important;
-  border: 1px solid rgb(7 30 47 / 10%) !important;
-  border-radius: 999px !important;
-  color: #35505d !important;
-  background: rgb(255 255 255 / 72%) !important;
-  box-shadow: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__badges > a.is-alert {
-  border-color: rgb(164 61 42 / 18%) !important;
-  color: #8e3828 !important;
-  background: #fff7f4 !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__actions,
-.internal-weather-shell--meteogram .meteogram-hero__actions {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 10px !important;
-  margin-top: 24px !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__actions :is(a, button),
-.internal-weather-shell--meteogram .meteogram-hero__actions a {
-  min-height: 44px !important;
-  padding: 0.7rem 1rem !important;
-  border: 1px solid rgb(7 30 47 / 12%) !important;
-  border-radius: 10px !important;
-  color: #173847 !important;
-  background: #fff !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__actions :is(a, button):first-child,
-.internal-weather-shell--meteogram .meteogram-hero__actions a:first-child {
-  border-color: #071e2f !important;
-  color: #fff !important;
-  background: #071e2f !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__actions :is(a, button):hover,
-.internal-weather-shell--meteogram .meteogram-hero__actions a:hover {
-  border-color: rgb(24 189 205 / 36%) !important;
-  transform: none !important;
-}
-
-/* Coluna direita: resumo técnico linear, como nas páginas históricas. */
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__showcase {
-  display: block !important;
-  min-width: 0 !important;
-  align-self: end !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current {
-  position: relative !important;
-  display: block !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  background-image: none !important;
-  box-shadow: none !important;
-  isolation: auto !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-photo,
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__photo-credit,
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__tiles {
-  display: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-content {
-  position: static !important;
-  display: grid !important;
-  gap: 0 !important;
-  min-height: 0 !important;
-  padding: 0 !important;
-  color: #071e2f !important;
-  background: transparent !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-content > header {
-  display: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-main {
-  display: grid !important;
-  grid-template-columns: minmax(120px, 0.55fr) auto !important;
-  gap: 4px 18px !important;
-  min-height: 0 !important;
-  padding: 18px 0 !important;
-  border-top: 1px solid rgb(7 30 47 / 12%) !important;
-  border-bottom: 1px solid rgb(7 30 47 / 10%) !important;
-  color: #071e2f !important;
-  background: transparent !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__weather-icon {
-  display: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-main > div:last-child {
-  display: contents !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-main span {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-  align-self: end !important;
-  color: #6e828c !important;
-  font-size: 0.68rem !important;
-  font-weight: 780 !important;
-  letter-spacing: 0.055em !important;
-  text-transform: uppercase !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-main strong {
-  grid-column: 2 !important;
-  grid-row: 1 / span 2 !important;
-  align-self: center !important;
-  color: #071e2f !important;
-  font-size: clamp(1.6rem, 2.4vw, 2.4rem) !important;
-  font-weight: 790 !important;
-  line-height: 1 !important;
-  letter-spacing: -0.04em !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-main small {
-  grid-column: 1 !important;
-  grid-row: 2 !important;
-  margin: 0 !important;
-  color: #667b86 !important;
-  font-size: 0.72rem !important;
-  line-height: 1.45 !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
-  gap: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics > div {
-  display: block !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  padding: 18px 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgb(7 30 47 / 10%) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics > div > svg {
-  display: none !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics > div > span {
-  display: grid !important;
-  grid-template-columns: minmax(120px, 0.55fr) auto !important;
-  gap: 4px 18px !important;
-  align-items: center !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics small {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-  color: #6e828c !important;
-  font-size: 0.68rem !important;
-  font-weight: 780 !important;
-  letter-spacing: 0.055em !important;
-  text-transform: uppercase !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics strong {
-  grid-column: 2 !important;
-  grid-row: 1 / span 2 !important;
-  align-self: center !important;
-  color: #071e2f !important;
-  font-size: clamp(1.15rem, 1.8vw, 1.55rem) !important;
-  font-weight: 790 !important;
-  letter-spacing: -0.035em !important;
-}
-
-.internal-weather-shell:is(
-    .internal-weather-shell--rain,
-    .internal-weather-shell--wind
-  ) .today-retail-hero__current-metrics em {
-  grid-column: 1 !important;
-  grid-row: 2 !important;
-  color: #667b86 !important;
-  font-size: 0.72rem !important;
-  font-style: normal !important;
-  line-height: 1.45 !important;
-}
-
-/* Meteograma: mesma composição editorial, reutilizando o painel técnico atual. */
 .internal-weather-shell--meteogram .meteogram-hero {
   display: grid !important;
   width: min(1440px, calc(100% - 48px)) !important;
@@ -472,6 +59,67 @@
   display: grid !important;
   align-content: end !important;
   gap: 0 !important;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__content::before {
+  display: block !important;
+  margin-bottom: 12px !important;
+  color: #087f91 !important;
+  content: var(--internal-clean-hero-eyebrow) !important;
+  font-size: 0.66rem !important;
+  font-weight: 820 !important;
+  letter-spacing: 0.09em !important;
+  text-transform: uppercase !important;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__content h1 {
+  max-width: 920px !important;
+  margin: 0 !important;
+  color: #071e2f !important;
+  font-size: clamp(3rem, 5.8vw, 6.2rem) !important;
+  font-weight: 760 !important;
+  line-height: 0.94 !important;
+  letter-spacing: -0.065em !important;
+  text-wrap: balance;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__content > p {
+  max-width: 820px !important;
+  margin: 24px 0 0 !important;
+  color: #526b76 !important;
+  font-size: clamp(1rem, 1.35vw, 1.22rem) !important;
+  line-height: 1.72 !important;
+  text-wrap: pretty;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  margin-top: 24px !important;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__actions a {
+  min-height: 44px !important;
+  padding: 0.7rem 1rem !important;
+  border: 1px solid rgb(7 30 47 / 12%) !important;
+  border-radius: 10px !important;
+  color: #173847 !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__actions a:first-child {
+  border-color: #071e2f !important;
+  color: #fff !important;
+  background: #071e2f !important;
+}
+
+.internal-weather-shell--meteogram .meteogram-hero__actions a:hover {
+  border-color: rgb(24 189 205 / 36%) !important;
+  transform: none !important;
 }
 
 .internal-weather-shell--meteogram .meteogram-hero__panel {
@@ -572,60 +220,32 @@
 }
 
 @media (max-width: 1240px) {
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__inner,
   .internal-weather-shell--meteogram .meteogram-hero {
     width: min(calc(100% - 32px), 1180px) !important;
   }
 }
 
 @media (max-width: 980px) {
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__inner,
   .internal-weather-shell--meteogram .meteogram-hero {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 36px !important;
   }
 
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__showcase,
   .internal-weather-shell--meteogram .meteogram-hero__panel {
     max-width: 720px !important;
   }
 }
 
 @media (max-width: 720px) {
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__inner,
   .internal-weather-shell--meteogram .meteogram-hero {
     width: calc(100% - 20px) !important;
     padding-top: 44px !important;
   }
 
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__copy h1,
   .internal-weather-shell--meteogram .meteogram-hero__content h1 {
     font-size: clamp(2.65rem, 13vw, 4.5rem) !important;
   }
 
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__current-main,
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__current-metrics > div > span,
   .internal-weather-shell--meteogram .meteogram-hero__panel > header,
   .internal-weather-shell--meteogram .meteogram-hero__panel article {
     grid-template-columns: minmax(0, 1fr) auto !important;
@@ -633,19 +253,11 @@
 }
 
 @media (max-width: 520px) {
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__actions,
   .internal-weather-shell--meteogram .meteogram-hero__actions {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero__actions :is(a, button),
   .internal-weather-shell--meteogram .meteogram-hero__actions a {
     width: 100% !important;
     justify-content: center !important;
@@ -654,15 +266,7 @@
 }
 
 @media (forced-colors: active) {
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind,
-      .internal-weather-shell--meteogram
-    ) .internal-weather-hero-frame,
-  .internal-weather-shell:is(
-      .internal-weather-shell--rain,
-      .internal-weather-shell--wind
-    ) .today-retail-hero,
+  .internal-weather-shell--meteogram .internal-weather-hero-frame,
   .internal-weather-shell--meteogram .meteogram-hero {
     border-color: CanvasText !important;
     background: Canvas !important;
