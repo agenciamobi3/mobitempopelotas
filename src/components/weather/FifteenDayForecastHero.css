@@ -1,40 +1,354 @@
-/*
- * Previsão de 15 dias reutiliza a estrutura semântica do retail hero, mas a
- * superfície final pertence ao InternalWeatherCleanHero. Este arquivo mantém
- * somente pequenos contratos estruturais e não reintroduz foto, gradiente,
- * megacard ou sombra decorativa.
- */
-
-.fifteen-day-retail-hero,
-.fifteen-day-retail-hero__current,
-.fifteen-day-retail-hero__tiles article {
-  box-shadow: none;
+/* Hero editorial compacto da previsão estendida. */
+.internal-weather-shell--fifteen-day .internal-weather-hero-frame {
+  width: 100%;
+  margin-top: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
-.fifteen-day-retail-hero::before,
-.fifteen-day-retail-hero::after {
-  display: none;
-  content: none;
+.fifteen-day-retail-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  border: 0;
+  background: transparent;
 }
 
-.fifteen-day-retail-hero .today-retail-hero__copy h1 {
+.fifteen-day-retail-hero::before {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  z-index: 0;
+  width: 100vw;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(circle at 12% 32%, rgb(24 189 205 / 8%), transparent 31%),
+    radial-gradient(circle at 88% 22%, rgb(94 44 237 / 7%), transparent 30%),
+    linear-gradient(105deg, #f3fbfb 0%, #f9fbfb 48%, #faf9ff 78%, #f6f3ff 100%);
+  box-shadow: inset 0 -1px 0 rgb(7 30 47 / 8%);
+  content: "";
+  pointer-events: none;
+}
+
+.internal-weather-shell--fifteen-day .fifteen-day-retail-hero__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: min(
+    var(--tp-home-container-max, 1440px),
+    calc(100% - var(--tp-home-container-gutter, 48px))
+  );
+  grid-template-columns: minmax(0, 0.9fr) minmax(500px, 0.82fr);
+  gap: clamp(44px, 5vw, 78px);
+  align-items: center;
+  margin-inline: auto;
+  padding: clamp(50px, 5vw, 72px) 0 clamp(44px, 4.5vw, 64px);
+  box-sizing: border-box;
+}
+
+.fifteen-day-retail-hero__copy {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+}
+
+.fifteen-day-retail-hero__eyebrow {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  color: #237286;
+  font-size: 0.68rem;
+  font-weight: 820;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.fifteen-day-retail-hero__eyebrow svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 1.7;
+}
+
+.fifteen-day-retail-hero__copy h1 {
+  max-width: 12ch;
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(2.8rem, 4.3vw, 4.35rem);
+  font-weight: 730;
+  letter-spacing: -0.06em;
+  line-height: 0.97;
   text-wrap: balance;
 }
 
-.fifteen-day-retail-hero .today-retail-hero__copy > p {
+.fifteen-day-retail-hero__copy > p {
+  max-width: 44rem;
+  margin: 0;
+  color: #4c6672;
+  font-size: clamp(0.94rem, 1vw, 1.04rem);
+  line-height: 1.62;
   text-wrap: pretty;
 }
 
-.fifteen-day-retail-hero .today-retail-hero__current-main strong,
-.fifteen-day-retail-hero .today-retail-hero__current-metrics strong,
-.fifteen-day-retail-hero__tiles article strong {
-  overflow: visible;
-  text-overflow: clip;
-  white-space: normal;
+.fifteen-day-retail-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.fifteen-day-retail-hero__meta > span {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 54%);
+  color: #4f6772;
+  font-size: 0.64rem;
+  font-weight: 760;
+  line-height: 1.3;
+  backdrop-filter: blur(5px);
+}
+
+.fifteen-day-retail-hero__meta svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.7;
+}
+
+.fifteen-day-retail-hero__summary {
+  display: grid;
+  gap: 18px;
+  align-content: center;
+}
+
+.fifteen-day-retail-hero__window {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 13px;
+  align-items: center;
+}
+
+.fifteen-day-retail-hero__window-icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(35 114 134 / 14%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 54%);
+  color: #237286;
+  backdrop-filter: blur(5px);
+}
+
+.fifteen-day-retail-hero__window-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.fifteen-day-retail-hero__window > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.fifteen-day-retail-hero__window small,
+.fifteen-day-retail-hero__window span,
+.fifteen-day-retail-hero__facts small,
+.fifteen-day-retail-hero__fact-label {
+  color: #667d87;
+}
+
+.fifteen-day-retail-hero__window small {
+  font-size: 0.6rem;
+  font-weight: 810;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.fifteen-day-retail-hero__window strong {
+  color: #173847;
+  font-size: clamp(1.28rem, 1.8vw, 1.6rem);
+  font-weight: 790;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
+}
+
+.fifteen-day-retail-hero__window span {
+  overflow-wrap: anywhere;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.fifteen-day-retail-hero__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.fifteen-day-retail-hero__facts article {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 15px 16px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.fifteen-day-retail-hero__facts article:first-child {
+  padding-left: 0;
+}
+
+.fifteen-day-retail-hero__facts article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.fifteen-day-retail-hero__fact-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.58rem;
+  font-weight: 820;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.fifteen-day-retail-hero__fact-label svg {
+  width: 14px;
+  height: 14px;
+  color: #237286;
+  stroke-width: 1.65;
+}
+
+.fifteen-day-retail-hero__facts article:nth-child(2) .fifteen-day-retail-hero__fact-label svg {
+  color: #5e2ced;
+}
+
+.fifteen-day-retail-hero__facts article:nth-child(3) .fifteen-day-retail-hero__fact-label svg {
+  color: #df5f30;
+}
+
+.fifteen-day-retail-hero__facts strong {
+  overflow-wrap: anywhere;
+  color: #173847;
+  font-size: clamp(1.12rem, 1.7vw, 1.5rem);
+  font-weight: 820;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.fifteen-day-retail-hero__facts small {
+  font-size: 0.65rem;
+  line-height: 1.42;
+}
+
+.fifteen-day-retail-hero--attention::before {
+  background:
+    radial-gradient(circle at 12% 32%, rgb(242 112 53 / 8%), transparent 31%),
+    radial-gradient(circle at 88% 22%, rgb(94 44 237 / 7%), transparent 30%),
+    linear-gradient(105deg, #fbf8f4 0%, #f9fbfa 48%, #faf8ff 78%, #f7f3fb 100%);
+}
+
+.fifteen-day-retail-hero--warning::before {
+  background:
+    radial-gradient(circle at 12% 32%, rgb(222 49 70 / 8%), transparent 31%),
+    radial-gradient(circle at 88% 22%, rgb(94 44 237 / 7%), transparent 30%),
+    linear-gradient(105deg, #fff7f6 0%, #fafafa 48%, #faf8ff 78%, #f7f3fb 100%);
+}
+
+@media (max-width: 1240px) {
+  .internal-weather-shell--fifteen-day .fifteen-day-retail-hero__inner {
+    width: min(
+      calc(100% - var(--tp-home-container-compact-gutter, 32px)),
+      var(--tp-home-container-compact-max, 1180px)
+    );
+  }
+}
+
+@media (max-width: 1100px) {
+  .internal-weather-shell--fifteen-day .fifteen-day-retail-hero__inner {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+
+  .fifteen-day-retail-hero__copy h1 {
+    max-width: 15ch;
+  }
+
+  .fifteen-day-retail-hero__summary {
+    max-width: 760px;
+  }
+}
+
+@media (max-width: 720px) {
+  .internal-weather-shell--fifteen-day .fifteen-day-retail-hero__inner {
+    width: calc(100% - var(--tp-home-container-mobile-gutter, 20px));
+    gap: 28px;
+    padding-top: 44px;
+    padding-bottom: 42px;
+  }
+
+  .fifteen-day-retail-hero__copy {
+    gap: 16px;
+  }
+
+  .fifteen-day-retail-hero__copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.35rem, 11.5vw, 3.55rem);
+    line-height: 0.98;
+  }
+
+  .fifteen-day-retail-hero__meta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fifteen-day-retail-hero__meta > span {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .fifteen-day-retail-hero__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .fifteen-day-retail-hero__facts article,
+  .fifteen-day-retail-hero__facts article:first-child,
+  .fifteen-day-retail-hero__facts article:last-child {
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .fifteen-day-retail-hero__facts article:last-child {
+    border-bottom: 0;
+  }
 }
 
 @media (forced-colors: active) {
-  .fifteen-day-retail-hero {
+  .fifteen-day-retail-hero::before,
+  .fifteen-day-retail-hero--attention::before,
+  .fifteen-day-retail-hero--warning::before {
+    background: Canvas;
+  }
+
+  .fifteen-day-retail-hero__meta > span,
+  .fifteen-day-retail-hero__window-icon,
+  .fifteen-day-retail-hero__facts {
+    border-color: CanvasText;
     background: Canvas;
     color: CanvasText;
   }
