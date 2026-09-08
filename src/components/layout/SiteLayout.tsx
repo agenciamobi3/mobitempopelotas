@@ -23,7 +23,6 @@ const internalWeatherStandaloneRoutes = [
   "/clima-em-pelotas",
   "/meteograma-pelotas",
   "/cameras-ao-vivo-pelotas",
-  "/estacao-embrapa-pelotas",
   "/historico-climatico-pelotas",
   "/situacao-hidrologica-pelotas",
   "/mapa-de-geadas-rio-grande-do-sul",
