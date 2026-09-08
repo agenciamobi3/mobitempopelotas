@@ -22,11 +22,10 @@ export function RainWidget({ data }: { data: AggregatedWeatherData }) {
   const router = useRouter();
   const today = data.daily[0] ?? null;
   const hours = data.hourly.slice(0, 6);
-  const embrapaStatus = data.sources.embrapa.status;
+  const observationSource = data.sources["defesa-civil-rs"];
   const observedRain =
-    data.observation.status !== "unavailable" &&
-    (embrapaStatus === "live" || embrapaStatus === "partial")
-      ? data.observation.accumulated.rainDaily
+    data.observation.status === "live" && observationSource.usable
+      ? data.observation.rain.h24Mm
       : null;
 
   useEffect(() => {
@@ -47,9 +46,9 @@ export function RainWidget({ data }: { data: AggregatedWeatherData }) {
 
         <div className={styles.summary}>
           <article>
-            <span>Medido hoje · Embrapa</span>
+            <span>Medido nas últimas 24 h · Defesa Civil RS</span>
             <strong>{observedRain === null ? "—" : `${observedRain} mm`}</strong>
-            <small>Chuva observada na estação; não é somada à previsão.</small>
+            <small>Janela móvel da estação selecionada; não é somada à previsão.</small>
           </article>
           <article>
             <span>Previsão de hoje</span>
