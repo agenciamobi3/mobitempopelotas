@@ -28,6 +28,18 @@ test("the strip publishes emergency phones and the official Civil Defense SMS si
   assert.match(stripSource, /CEP/);
 });
 
+test("the Civil Defense title can use the full identity row without changing the column height contract", () => {
+  assert.match(
+    stripCss,
+    /\.tp-public-service-civil-defense__identity h2\s*\{[\s\S]*?max-width:\s*none/,
+  );
+  assert.match(stripCss, /grid-template-rows:\s*minmax\(96px, auto\) auto/);
+  assert.match(
+    stripCss,
+    /\.tp-public-service-civil-defense__signup\s*\{[\s\S]*?min-height:\s*58px/,
+  );
+});
+
 test("the strip keeps the RS Civil Defense reference palette and responsive two-column layout", () => {
   assert.match(stripCss, /--tp-public-service-blue:\s*#00167b/);
   assert.match(stripCss, /--tp-public-service-orange:\s*#ef6213/);
