@@ -28,7 +28,7 @@ Regras permanentes:
 | Portal público | Produção ativa em `tempopelotas.com.br`; estado do Git, build/sincronização e propagação no domínio são provas separadas |
 | Header público | `SiteHeader` reutiliza `HomeEditorialHeader`; a antiga implementação paralela `src/components/layout/Header.tsx` e seu CSS foram removidos em 08/09 |
 | Footer público | Uma implementação compartilhada em `SiteFooter` → `Footer`; não publica inventário completo de fornecedores em todas as páginas |
-| Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes |
+| Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; o tipo `ServiceStatus` já admite `dataCondition` opcional, mas essa condição ainda não foi ligada ao monitor/interface e não deve ser anunciada como recurso público concluído |
 | Rotas aposentadas | `/metodologia` e `/estacao-embrapa-pelotas` permanecem apenas como redirects 301 para `/status-dos-dados`; não são páginas indexáveis nem destinos de descoberta pública |
 | SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts` |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
@@ -37,7 +37,7 @@ Regras permanentes:
 | Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã, contexto INMET/UFPel, FAQ e recuperação shell-first |
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
 | Radar / satélite / STSC | Página dedicada usa coletas reais e horário da própria fonte, com recuperação pós-hidratação quando o SSR não conclui a composição no budget |
-| Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` usa inventário/cartografia ANA/SNIRH e `/nivel-da-lagoa-dos-patos-laranjal` mostra ficha cadastral `87955001` e cronologia documentada do monitoramento no Trapiche, sem promover esses recursos a medição ANA |
+| Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` usa inventário/cartografia ANA/SNIRH e concentra a explicação metodológica num fechamento curto; `/nivel-da-lagoa-dos-patos-laranjal` mostra ficha cadastral `87955001` e cronologia documentada do monitoramento no Trapiche, sem promover esses recursos a medição ANA |
 | ANA 87955001 | Readiness/cross-check somente; inventário registra telemetria iniciada em 08/06/2026; `publishableMeasurement=false`; gate vertical exige referência confirmada, nivelamento/RN específico recuperado e continuidade vertical com `87955000` comprovada antes de qualquer reconsideração técnica |
 | Enchente de 2001 | `/enchente-2001-pelotas` preserva 290 cm bruto e 190 cm consistido/estimado e pode exibir `Indice`/`Notas` da camada ANA `NotasConsistencia` somente quando houver registro real para `87955000`; isso não é nota do evento nem explicação da revisão |
 | Defesa Civil dedicada | `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo` são as duas intenções hidrológicas regionais promovidas para URL própria |
@@ -48,7 +48,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34280146623` concluiu `failure` com `steps: null` |
+| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34281434788` concluiu `failure` com `steps: null` |
 
 ## 3. Stack e budgets públicos
 
@@ -113,6 +113,8 @@ Documentos históricos sobre o antigo coletor continuam válidos como registro d
 - histórico de disponibilidade e incidentes quando disponível.
 
 A copy pública usa estados compreensíveis. Termos como probe, upstream, readiness, kill switch, last-good e detalhes de arquitetura não devem ser necessários para o visitante entender se um dado está disponível.
+
+A fundação de tipos admite `dataCondition?: string` para separar futuramente “integração respondendo” de “condição do dado/medição”. Enquanto o monitor e a interface não preencherem/renderizarem esse campo, ele permanece apenas como contrato preparatório e não altera a página pública.
 
 ### 5.2 Rotas de compatibilidade
 
@@ -257,6 +259,8 @@ A ANA/RHN tem quatro papéis distintos no produto:
 
 A ficha `87955001` é cadastral e fail-closed. Campos ausentes não viram conteúdo de preenchimento e a seção some se a estação não aparecer ou o contrato da fonte não puder ser validado. O antigo aviso genérico de “integração em implantação” foi removido da página do Laranjal em favor dessa informação concreta.
 
+Em `/situacao-hidrologica-pelotas`, o antigo `OfficialDataAccessNotice` genérico também foi retirado. A explicação fica no fim da página em um fechamento curto, com quatro cuidados: não equiparar réguas sem referência comum, respeitar o horário da leitura, não transformar o inventário ANA em nova medição do Laranjal e seguir autoridades nas decisões de segurança.
+
 O gate de medição da `87955001` foi endurecido após auditoria dos HARs, das camadas públicas e da cronologia documental do Trapiche. O adapter mantém três bloqueios independentes:
 
 - `vertical-reference-unconfirmed`;
@@ -264,6 +268,8 @@ O gate de medição da `87955001` foi endurecido após auditoria dos HARs, das c
 - `historical-current-vertical-continuity-unproven`.
 
 O tráfego do Hidro-Telemetria confirma que existe uma superfície de ficha de estação e identifica a `87955001`, mas a captura disponível não recupera o documento específico de RNs/nivelamento necessário. A camada `CotasReferencia2` fornece nível/status, porém não publica RN, benchmark, altitude do zero da régua, datum vertical ou cadeia de nivelamento.
+
+Uma investigação adicional do HAR recuperou o contrato de navegação da linha `LARANJAL 87955001`: os atalhos da estação usam `setCodEstacao(this,314652131,87955001)` e a ficha aponta para `EstacoesCadastro.aspx`. O valor `314652131` é preservado apenas como **seletor observado na interface**; sua semântica interna não é inferida nem publicada como ID, coordenada, RN ou referência. Os demais HARs fornecidos não contêm esse seletor/código e não recuperaram a ficha específica com nivelamento.
 
 O inventário da RHN registra a identidade `87955001` como telemétrica com início em **08/06/2026**, sob responsabilidade/operação da UFPel. Esse é o primeiro marco documental recuperado que liga diretamente o código à identidade telemétrica atual do Laranjal. Ele não fecha o elo com o sensor ANA anunciado pela Prefeitura em 27/06/2025, porque a notícia não publica código ANA, número de série, ficha de instalação, RN ou memória de nivelamento. Nas superfícies públicas pesquisadas em 08/09/2026, esse documento de ligação não foi localizado.
 
@@ -402,6 +408,7 @@ A consolidação de 08/09 atualizou contratos para:
 - proteção contra shell duplicado em rotas autocontidas;
 - `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles, corpo aberto e índice de capítulos visualmente reduzido, preservando dados, fontes, SEO e estados indisponíveis;
 - inventário regional ANA/SNIRH em `/situacao-hidrologica-pelotas`, com mapa MapLibre, hidrografia oficial opcional e separação explícita da medição atual do Laranjal;
+- fechamento educativo de `/situacao-hidrologica-pelotas` reduzido a regras de interpretação realmente necessárias, sem `OfficialDataAccessNotice` genérico no meio da experiência;
 - `NotasConsistencia` da histórica `87955000` em `/enchente-2001-pelotas`, fail-closed e sem interpretar `c1` a `c16` ou converter `Notas` em percentual/nota de escala inventada;
 - ficha cadastral exata da `87955001` em `/nivel-da-lagoa-dos-patos-laranjal`, sem solicitar medição ANA e sem participar do seletor de nível atual;
 - gate vertical da `87955001` com três bloqueios independentes e prova negativa explícita contra uso de WGS 84, `Altitude` cadastral isolada ou status de qualidade como referência da régua;
@@ -411,7 +418,7 @@ O smoke visual interno não trata mais redirects aposentados como páginas que d
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34280146623`, ligada ao commit `02cb7c59f8fb3083f8c4433e1f4b2608fa7ad707`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
+A infraestrutura do runner continua sendo uma limitação externa. Na run `34281434788`, ligada ao commit `c1cc1702e37781c18c25cefdc50560ad885f44ff`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
 
 Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
 
@@ -440,8 +447,9 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 10. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
 11. Validar visualmente `/tempo-amanha-pelotas` em desktop e mobile no domínio canônico após a propagação do novo bundle, sem tratar preview isolado como prova de produção.
 12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
-13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 estreita a sequência, mas não substitui essa prova.
-14. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
+14. Completar a fundação `dataCondition` de `/status-dos-dados`: preencher somente fontes com condição real verificável e renderizar a informação separadamente do estado técnico da integração, sem fabricar QC para fontes que não o fornecem.
+15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
