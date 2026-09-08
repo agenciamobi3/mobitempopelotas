@@ -3,9 +3,9 @@
  *
  * Esta camada existe porque folhas específicas de rota podem entrar no DOM depois
  * do bundle global. Ela protege somente decisões estruturais já consolidadas:
- * ausência de gradientes/sombras decorativas, heroes editoriais abertos e índices
- * antigos ocultos. A geometria própria de mapas, players, gráficos, alertas,
- * tabelas, formulários e cards comparativos continua pertencendo ao componente.
+ * ausência de gradientes/sombras decorativas e heroes editoriais abertos.
+ * A geometria própria de mapas, players, gráficos, alertas, tabelas, formulários
+ * e cards comparativos continua pertencendo ao componente.
  */
 
 .site-shell--topic,
@@ -124,11 +124,6 @@
   content: none !important;
   background: none !important;
   box-shadow: none !important;
-}
-
-/* O Meteograma é o único convertido que ainda mantém índice legado no markup. */
-.internal-weather-shell--meteogram .internal-page-chapters {
-  display: none !important;
 }
 
 /*
