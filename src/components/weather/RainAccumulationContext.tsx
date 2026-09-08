@@ -199,7 +199,7 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
       <div className="rain-accumulation__rule">
         <strong>Medido e previsto não são somados.</strong>
         <span>Os períodos podem se sobrepor; 24 h e 6 h são janelas móveis da estação.</span>
-        <Link to="/metodologia">Metodologia</Link>
+        <Link to="/status-dos-dados">Dados e fontes</Link>
       </div>
 
       <RegionalRainfallObservations />
