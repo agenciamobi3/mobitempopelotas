@@ -20,6 +20,10 @@ const tomorrowHeroCss = readFileSync(
   "src/components/weather/TomorrowRetailHero.css",
   "utf8",
 );
+const tomorrowHero = readFileSync(
+  "src/components/weather/TomorrowRetailHero.tsx",
+  "utf8",
+);
 const sevenDayHeroCss = readFileSync(
   "src/components/weather/SevenDayRetailHero.css",
   "utf8",
@@ -98,12 +102,14 @@ test("Today hero remains a deliberate retail chromatic surface", () => {
   assert.match(todayHeroRefinement, /\.today-retail-hero__tiles article\.is-sun/);
 });
 
-test("Tomorrow hero keeps its planning accents", () => {
-  assert.match(tomorrowHeroCss, /warmer planning accent/);
-  assert.match(tomorrowHeroCss, /\.tomorrow-retail-hero[\s\S]*?radial-gradient[\s\S]*?linear-gradient/);
-  assert.match(tomorrowHeroCss, /\.tomorrow-retail-hero__tiles article\.is-rain/);
-  assert.match(tomorrowHeroCss, /\.tomorrow-retail-hero__tiles article\.is-wind/);
-  assert.match(tomorrowHeroCss, /\.tomorrow-retail-hero__tiles article\.is-sun/);
+test("Tomorrow hero uses the clean historical editorial language", () => {
+  assert.match(tomorrowHeroCss, /Hero editorial limpo/);
+  assert.match(tomorrowHeroCss, /\.tomorrow-retail-hero::before[\s\S]*?radial-gradient[\s\S]*?linear-gradient/);
+  assert.match(tomorrowHeroCss, /\.tomorrow-retail-hero__facts article/);
+  assert.match(tomorrowHero, /tomorrow-retail-hero__summary/);
+  assert.match(tomorrowHero, /Condição prevista/);
+  assert.doesNotMatch(tomorrowHeroCss, /tomorrow-retail-hero__tiles/);
+  assert.doesNotMatch(tomorrowHero, /getRetailWeatherPhoto/);
 });
 
 test("7-day hero keeps concise weekly retail hierarchy", () => {
