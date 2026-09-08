@@ -99,6 +99,27 @@ Esse registro é uma pista válida para a identidade histórica, mas não pode s
 
 A proximidade física, o mesmo nome `LARANJAL` ou valores numericamente próximos não substituem essa prova.
 
+## Evidência adicional da cronologia do Trapiche
+
+A pesquisa pública e acadêmica acrescentou três marcos reais ao contexto do ponto de monitoramento:
+
+1. **09/05/2024** — trabalho técnico da UFPel/HidroSens registra medidor ultrassônico instalado no Trapiche da Praia do Laranjal durante a enchente, com transmissão LoRaWAN e comparação com régua local; o maior valor registrado no período foi 2,79 m segundo essa régua;
+2. **27/06/2025** — a Prefeitura de Pelotas informou que Defesa Civil e Engenharia Hídrica/UFPel instalavam um sensor de nível da ANA próximo ao Trapiche para ampliar o monitoramento e a integração regional;
+3. **16/08/2026** — o monitoramento de Pelotas passou a compor a rede CIEX/FURG, com o HidroSens informando envio dos dados ao campus Anglo da UFPel e posterior disponibilização para ANA e CIEX.
+
+Esses marcos comprovam a evolução do monitoramento local. Eles **não comprovam**:
+
+- que o medidor HidroSens de 2024 e o sensor ANA anunciado em 2025 sejam o mesmo hardware;
+- que o equipamento anunciado em 2025 corresponda documentalmente ao código `87955001`;
+- que qualquer um desses equipamentos compartilhe zero, RN ou datum com a histórica `87955000`;
+- que a referência vertical CIEX/FURG possa ser transferida para o adapter ANA ou para o LabHidroSens.
+
+A publicação técnica de 2024 afirma que os medidores foram instalados junto a réguas linimétricas usadas como referência de comparação. No mesmo trabalho, a referência explícita ao marco de Imbituba é dada para a régua do **Canal São Gonçalo**; não há declaração equivalente para a régua do Trapiche do Laranjal no trecho recuperado.
+
+Portanto, essa nova evidência melhora a história documental do ponto, mas **não abre o gate vertical**.
+
+Detalhes e fontes: `docs/LARANJAL_MONITORING_TIMELINE_2024_2026.md`.
+
 ## Regra operacional codificada
 
 `src/lib/hydrology/ana-rhn-public.server.ts` mantém:
@@ -153,6 +174,7 @@ Prioridade:
 1. recuperar a ficha de estação/ficha de campo específica da `87955001`;
 2. procurar documentos de nivelamento/RNs associados ao ponto Laranjal;
 3. verificar se existe documento da UFPel ou ANA sobre instalação e referência do sensor telemétrico cadastrado em 2026;
-4. manter o gate fechado enquanto essa evidência não existir.
+4. buscar documento que ligue, se de fato houver continuidade, o sensor anunciado em 2025 ao código `87955001`;
+5. manter o gate fechado enquanto essa evidência não existir.
 
 Nenhum secret, cookie, ViewState, URL autenticada ou conteúdo sensível dos HARs deve ser versionado durante essa investigação.
