@@ -3,56 +3,42 @@ import type {
   WeatherSourceHealth,
   WeatherSourceKey,
 } from "./aggregated-weather.types";
-import type { EmbrapaObservation } from "./official-sources.types";
+import type { CurrentWeatherObservation } from "./current-observation.types";
 import type { WeatherIntelligenceData } from "./weather-intelligence.types";
 
-const EMBRAPA_URL = "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm";
+const DEFESA_CIVIL_MAP_URL = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
+const DEFESA_CIVIL_DOCS_URL = "https://sistemas.defesacivil.rs.gov.br/api-redehidrometeorologica";
 
-function emptyTimedObservation() {
-  return { value: null, time: null };
-}
-
-function unavailableObservation(fetchedAt: string): EmbrapaObservation {
+function unavailableObservation(fetchedAt: string): CurrentWeatherObservation {
   return {
     status: "unavailable",
+    station: {
+      code: null,
+      name: "Estação meteorológica recente não disponível",
+      basin: null,
+      region: null,
+      latitude: null,
+      longitude: null,
+      altitudeM: null,
+      distanceFromPelotasKm: null,
+    },
     current: {
       temperature: null,
-      humidity: null,
       feelsLike: null,
-      dewPoint: null,
+      humidity: null,
       pressure: null,
-      pressureTrend: null,
-      windDirection: null,
       windSpeed: null,
-      sunrise: null,
-      sunset: null,
+      windGust: null,
+      windDirection: null,
+      windDirectionDegrees: null,
     },
-    extremes: {
-      temperatureMin: emptyTimedObservation(),
-      temperatureMax: emptyTimedObservation(),
-      humidityMin: emptyTimedObservation(),
-      humidityMax: emptyTimedObservation(),
-      dewPointMin: emptyTimedObservation(),
-      dewPointMax: emptyTimedObservation(),
-      windSpeedMax: emptyTimedObservation(),
-    },
-    accumulated: {
-      rainDaily: null,
-      rainMonthly: null,
-      rainAnnual: null,
-      evapotranspirationDaily: null,
-      evapotranspirationMonthly: null,
-      evapotranspirationAnnual: null,
-    },
+    rain: { h1Mm: null, h3Mm: null, h6Mm: null, h12Mm: null, h24Mm: null },
     source: {
-      name: "Embrapa Clima Temperado",
-      station: "Posto Meteorológico da Sede",
-      url: EMBRAPA_URL,
-      latitude: -31.7,
-      longitude: -52.4,
-      altitude: 57,
+      name: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
+      url: DEFESA_CIVIL_MAP_URL,
+      documentationUrl: DEFESA_CIVIL_DOCS_URL,
       fetchedAt,
-      observationTime: null,
+      observedAt: null,
     },
     error: "Leitura temporariamente indisponível.",
   };
@@ -78,7 +64,7 @@ export function createUnavailableWeatherIntelligence(): WeatherIntelligenceData 
   const sources: Record<WeatherSourceKey, WeatherSourceHealth> = {
     "open-meteo": unavailableSource("open-meteo", "forecast", fetchedAt),
     "met-norway": unavailableSource("met-norway", "forecast", fetchedAt),
-    embrapa: unavailableSource("embrapa", "observation", fetchedAt),
+    "defesa-civil-rs": unavailableSource("defesa-civil-rs", "observation", fetchedAt),
     inmet: unavailableSource("inmet", "official", fetchedAt),
     cppmet: unavailableSource("cppmet", "forecast-context", fetchedAt),
   };
@@ -100,7 +86,7 @@ export function createUnavailableWeatherIntelligence(): WeatherIntelligenceData 
       currentSource: null,
       forecastSource: null,
       forecastProvider: null,
-      degradedSources: ["embrapa", "inmet", "cppmet", "open-meteo", "met-norway"],
+      degradedSources: ["defesa-civil-rs", "inmet", "cppmet", "open-meteo", "met-norway"],
       observationAgeMinutes: null,
       discrepancies: [],
       notes: [
