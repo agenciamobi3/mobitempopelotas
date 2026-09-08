@@ -6,9 +6,6 @@ import {
   Flood2001HistoricalPage,
 } from "@/components/history/Flood2001HistoricalPage";
 import { ContentPageShell } from "@/components/layout/ContentPageShell";
-import {
-  createUnavailableAnaRhnHistoricalConsistency,
-} from "@/lib/hydrology/ana-rhn-consistency.server";
 import { getAnaRhnHistoricalConsistency } from "@/lib/hydrology/ana-rhn-consistency.functions";
 import { HISTORICAL_COLLABORATION_CONTEXTS } from "@/lib/history/historical-collaboration";
 import { createPageHead } from "@/lib/page-meta";
@@ -44,23 +41,13 @@ export const Route = createFileRoute("/enchente-2001-pelotas")({
         ],
       }),
     ]),
-  loader: async () => {
-    try {
-      return {
-        consistency: await getAnaRhnHistoricalConsistency(),
-      };
-    } catch {
-      return {
-        consistency: createUnavailableAnaRhnHistoricalConsistency(),
-      };
-    }
-  },
+  loader: () => getAnaRhnHistoricalConsistency(),
   staleTime: 6 * 60 * 60 * 1_000,
   component: Enchente2001PelotasPage,
 });
 
 function Enchente2001PelotasPage() {
-  const data = Route.useLoaderData();
+  const consistency = Route.useLoaderData();
 
   return (
     <ContentPageShell
@@ -70,7 +57,7 @@ function Enchente2001PelotasPage() {
     >
       <Flood2001Hero />
       <Flood2001HistoricalPage />
-      <AnaRhnHistoricalConsistency data={data.consistency} />
+      <AnaRhnHistoricalConsistency data={consistency} />
     </ContentPageShell>
   );
 }
