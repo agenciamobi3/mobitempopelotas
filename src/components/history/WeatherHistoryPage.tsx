@@ -429,9 +429,6 @@ export function WeatherHistoryPage({ history }: WeatherHistoryPageProps) {
           <a className="history-primary-action" href={history.source.url} target="_blank" rel="noopener noreferrer">
             Abrir dados originais <ExternalLink aria-hidden="true" />
           </a>
-          <Link className="history-secondary-action" to="/estacao-embrapa-pelotas">
-            Estação Embrapa <ArrowRight aria-hidden="true" />
-          </Link>
           <Link className="history-secondary-action" to="/previsao-7-dias-pelotas">Previsão de 7 dias</Link>
           <Link className="history-secondary-action" to="/status-dos-dados">Dados e fontes</Link>
         </div>
