@@ -65,9 +65,9 @@ const CAMERAS_PAGE_CONTENT = {
       description: "Compare a imagem local com nuvens, chuva e trovoadas observadas na região.",
     },
     {
-      label: "Estação Embrapa",
-      href: "/estacao-embrapa-pelotas" as const,
-      description: "Consulte temperatura, umidade, pressão, vento e chuva medidos localmente.",
+      label: "Dados e fontes",
+      href: "/status-dos-dados" as const,
+      description: "Veja a origem dos dados e o estado atual das fontes do portal.",
     },
     {
       label: "Chuva em Pelotas",
