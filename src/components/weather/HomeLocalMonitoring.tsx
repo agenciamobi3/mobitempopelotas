@@ -103,8 +103,9 @@ export function HomeLocalMonitoring({
           <h2 id="home-local-monitoring-title">O que está sendo medido em Pelotas agora</h2>
         </div>
         <p>
-          O “Agora” meteorológico vem da estação recente mais próxima da Rede de Monitoramento
-          Hidrometeorológico da Defesa Civil RS. A previsão permanece em uma série separada.
+          O “Agora” meteorológico aceita somente estações da Rede de Monitoramento
+          Hidrometeorológico da Defesa Civil RS confirmadas em Pelotas, com leitura de até 30 minutos.
+          A previsão permanece em uma série separada.
         </p>
       </header>
 
@@ -125,8 +126,8 @@ export function HomeLocalMonitoring({
             <span>Rede de Monitoramento Hidrometeorológico</span>
             <h3>Condições registradas agora</h3>
             <p>
-              Cada valor pertence ao ponto de medição indicado. O portal seleciona uma estação
-              meteorológica recente e próxima de Pelotas, sem transformar previsão em observação.
+              Cada valor pertence ao ponto de medição indicado. Entre as estações confirmadas em
+              Pelotas, o portal usa uma leitura recente e nunca transforma previsão em observação.
             </p>
           </div>
 
@@ -175,7 +176,7 @@ export function HomeLocalMonitoring({
             </>
           ) : (
             <div className="home-monitoring-unavailable">
-              <strong>A rede estadual não entregou uma estação meteorológica recente nesta consulta.</strong>
+              <strong>Nenhuma estação meteorológica confirmada em Pelotas entregou leitura recente nesta consulta.</strong>
               <p>A previsão continua disponível, mas nenhum valor de modelo é exibido como “Agora”.</p>
             </div>
           )}
