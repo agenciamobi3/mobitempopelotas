@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const header = readFileSync("src/components/layout/Header.tsx", "utf8");
+const footer = readFileSync("src/components/layout/Footer.tsx", "utf8");
+const statusPage = readFileSync("src/routes/status-dos-dados.tsx", "utf8");
+const methodologyRoute = readFileSync("src/routes/metodologia.tsx", "utf8");
 const widgets = readFileSync("src/components/weather/InternalWeatherWidgets.tsx", "utf8");
 const atmosphere = readFileSync("src/components/weather/TodayAtmosphericSignals.tsx", "utf8");
 const tomorrow = readFileSync("src/components/weather/TomorrowForecastPageV3.tsx", "utf8");
@@ -21,9 +24,8 @@ const history = readFileSync("src/components/history/WeatherHistoryPage.tsx", "u
 const hydrology = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx", "utf8");
 const hydrologyHero = readFileSync("src/components/hydrology/HydrologyEditorialHero.tsx", "utf8");
 const hydrologyPages = readFileSync("src/components/hydrology/HydrologyPages.tsx", "utf8");
-const methodology = readFileSync("src/components/methodology/MethodologyPage.tsx", "utf8");
 
-const primaryVisitorSources = [header, widgets, atmosphere, tomorrow, sevenDay, rain, wind, alerts];
+const primaryVisitorSources = [header, footer, widgets, atmosphere, tomorrow, sevenDay, rain, wind, alerts];
 const auditedVisitorSources = [
   ...primaryVisitorSources,
   meteogram,
@@ -37,22 +39,20 @@ const auditedVisitorSources = [
   hydrology,
   hydrologyHero,
   hydrologyPages,
-  methodology,
 ];
 const visibleCopy = primaryVisitorSources.join("\n");
 const auditedCopy = auditedVisitorSources.join("\n");
 
-test("main menu uses language visitors can understand without portal jargon", () => {
+test("main menu points source explanations to one public page", () => {
   assert.match(header, /Imagens e medições/);
   assert.match(header, /Entenda e compare/);
   assert.match(header, /Previsão hora a hora/);
-  assert.match(header, /Como os dados funcionam/);
+  assert.match(header, /Dados e fontes/);
   assert.match(header, /Níveis e medições/);
-  assert.match(header, /Alertas e explicações/);
-  assert.match(header, />Abrir <i aria-hidden="true">→<\/i><\/b>/);
-  assert.doesNotMatch(header, /Contexto e transparência/);
-  assert.doesNotMatch(header, /Acompanhamento hídrico/);
-  assert.doesNotMatch(header, />Explorar </);
+  assert.match(header, /Alertas e fontes/);
+  assert.match(header, /to="\/status-dos-dados"/);
+  assert.doesNotMatch(header, /to="\/metodologia"/);
+  assert.doesNotMatch(header, /Como os dados funcionam/);
 });
 
 test("monitoring menu descriptions match the active monitoring surfaces", () => {
@@ -63,17 +63,41 @@ test("monitoring menu descriptions match the active monitoring surfaces", () => 
   assert.match(header, /Entenda as estações do ano e por que o tempo varia na cidade\./);
   assert.match(header, /Compare temperatura, chuva, nuvens, visibilidade, pressão e vento\./);
   assert.match(header, /Compare máximas, mínimas, chuva e rajadas dos últimos dias\./);
-  assert.match(header, /Veja de onde vêm os dados, quando atualizam e quais são seus limites\./);
+  assert.match(header, /Veja de onde vêm os dados, quais informações cada fonte fornece e seu estado atual\./);
   assert.doesNotMatch(header, /Estação Embrapa/);
 });
 
-test("current condition uses field-level origin and plain labels", () => {
+test("methodology legacy route permanently redirects to the unified source page", () => {
+  assert.match(methodologyRoute, /createFileRoute\("\/metodologia"\)/);
+  assert.match(methodologyRoute, /to: "\/status-dos-dados"/);
+  assert.match(methodologyRoute, /statusCode: 301/);
+});
+
+test("status page contains factual source roles and publication rules", () => {
+  assert.match(statusPage, /Dados e fontes do Tempo Pelotas/);
+  assert.match(statusPage, /SOURCE_USAGE/);
+  assert.match(statusPage, /Critérios de publicação/);
+  assert.match(statusPage, /Open-Meteo fornece a série horária e diária/);
+  assert.match(statusPage, /MET Norway é contingência/);
+  assert.match(statusPage, /Previsão oficial e alertas/);
+  assert.match(statusPage, /cada nível pertence à estação e à referência informada pela fonte/);
+  assert.doesNotMatch(statusPage, /Transparência operacional|Como interpretar/);
+});
+
+test("global footer no longer publishes the full source inventory on every page", () => {
+  assert.match(footer, /Origem, uso e status de cada fonte/);
+  assert.match(footer, /to="\/status-dos-dados"/);
+  assert.doesNotMatch(footer, /FOOTER_SOURCE_GROUPS|FooterSourceMap/);
+  assert.doesNotMatch(footer, /to="\/metodologia"/);
+});
+
+test("current condition uses current observation source and plain labels", () => {
   assert.match(widgets, /currentProvenance\.temperature === "defesa-civil-rs"/);
   assert.match(widgets, /Temperatura e condições agora em Pelotas/);
   assert.match(widgets, /Medição da Rede Defesa Civil RS/);
   assert.match(widgets, /Origem observacional não confirmada/);
-  assert.match(widgets, /Vento agora/);
-  assert.match(widgets, /Atualizado em/);
+  assert.match(widgets, /Dados e fontes/);
+  assert.match(widgets, /to="\/status-dos-dados"/);
   assert.doesNotMatch(widgets, /Estação Embrapa|quality\.currentSource === "embrapa"/);
 });
 
@@ -143,9 +167,6 @@ test("monitoring pages use direct labels while retaining necessary explanations"
   assert.match(meteogram, /Possibilidade de tempestade/);
   assert.match(history, /Dias com dados/);
   assert.match(history, /Valores diários/);
-  assert.match(methodology, /Como os dados funcionam/);
-  assert.match(methodology, /Fontes disponíveis/);
-  assert.match(methodology, /Caminho dos dados/);
 });
 
 test("water pages use visitor-facing wording", () => {
