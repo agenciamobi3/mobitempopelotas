@@ -26,6 +26,7 @@ function unavailableObservation(fetchedAt: string): CurrentWeatherObservation {
       temperature: null,
       feelsLike: null,
       humidity: null,
+      dewPoint: null,
       pressure: null,
       windSpeed: null,
       windGust: null,

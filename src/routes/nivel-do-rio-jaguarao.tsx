@@ -90,8 +90,8 @@ const PAGE_CONTENT = {
       description: "Consulte avisos meteorológicos e orientações oficiais vigentes.",
     },
     {
-      label: "Metodologia e fontes",
-      href: "/metodologia" as const,
+      label: "Dados e fontes",
+      href: "/status-dos-dados" as const,
       description: "Entenda como o portal trata horário, unidade, origem e indisponibilidade.",
     },
   ],

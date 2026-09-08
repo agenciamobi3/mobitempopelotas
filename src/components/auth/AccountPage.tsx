@@ -9,12 +9,12 @@ import type { WeatherData } from "@/production/lib/weather-data";
 
 const accountFooterSource = {
   name: "Tempo Pelotas",
-  url: "/metodologia",
+  url: "/status-dos-dados",
   isFallback: false,
   observationName: "Fontes meteorológicas do portal",
-  observationUrl: "/metodologia",
-  forecastName: "Metodologia e transparência",
-  forecastUrl: "/metodologia",
+  observationUrl: "/status-dos-dados",
+  forecastName: "Dados e fontes",
+  forecastUrl: "/status-dos-dados",
 } satisfies WeatherData["source"];
 
 const DELETE_CONFIRMATION = "EXCLUIR MINHA CONTA";

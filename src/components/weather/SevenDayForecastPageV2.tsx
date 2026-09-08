@@ -296,7 +296,7 @@ export function SevenDayForecastPageV2({ data }: { data: WeatherIntelligenceData
           <div>
             <h2 id="seven-day-v2-official-title">INMET e UFPel nos próximos dias</h2>
           </div>
-          <Link to="/metodologia">Sobre as fontes</Link>
+          <Link to="/status-dos-dados">Sobre as fontes</Link>
         </header>
 
         {hasOfficialContext ? (

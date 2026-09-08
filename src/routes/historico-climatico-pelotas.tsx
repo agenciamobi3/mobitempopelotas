@@ -82,7 +82,7 @@ const HISTORY_PAGE_CONTENT = {
     },
     {
       label: "Como os dados funcionam",
-      href: "/metodologia" as const,
+      href: "/status-dos-dados" as const,
       description: "Veja de onde vêm os dados, quando atualizam e quais são seus limites.",
     },
   ],

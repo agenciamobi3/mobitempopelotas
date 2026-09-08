@@ -54,12 +54,12 @@ type IdleWindow = Window & {
 
 const unavailableSource = {
   name: "MOBI Tempo Pelotas",
-  url: "/metodologia",
+  url: "/status-dos-dados",
   isFallback: true,
   observationName: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
   observationUrl: "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa",
   forecastName: "Fontes meteorológicas em atualização",
-  forecastUrl: "/metodologia",
+  forecastUrl: "/status-dos-dados",
 } satisfies WeatherData["source"];
 
 export type HomeHydrologyData = {
@@ -321,7 +321,7 @@ export function ProductionHome({
             )}
             <p>
               Enquanto a previsão não atualiza, use os atalhos abaixo para consultar águas, câmeras,
-              avisos e metodologia.
+              avisos e dados e fontes.
             </p>
           </section>
           <HomeExplorePortal />

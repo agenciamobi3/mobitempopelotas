@@ -51,7 +51,7 @@ const exploreGroups = [
     description: "Veja imagens ao vivo e consulte as fontes usadas pelo portal.",
     links: [
       ["/cameras-ao-vivo-pelotas", "Câmeras ao vivo"],
-      ["/metodologia", "Fontes e metodologia"],
+      ["/status-dos-dados", "Dados e fontes"],
     ],
   },
 ] as const;

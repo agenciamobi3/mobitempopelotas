@@ -13,6 +13,7 @@ type AdditionalEditorialPath =
   | "/enchente-2024-pelotas-laranjal"
   | "/previsao-15-dias-pelotas"
   | "/privacidade-e-dados"
+  | "/estacao-embrapa-pelotas"
   | "/quem-somos"
   | "/status-dos-dados"
   | "/tempo-laranjal-pelotas"

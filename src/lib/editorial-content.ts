@@ -12,7 +12,7 @@ export type EditorialInternalPath =
   | "/historico-climatico-pelotas"
   | "/mapa-de-geadas-rio-grande-do-sul"
   | "/meteograma-pelotas"
-  | "/metodologia"
+  | "/status-dos-dados"
   | "/nivel-da-lagoa-dos-patos-laranjal"
   | "/nivel-do-guaiba"
   | "/previsao-7-dias-pelotas"
@@ -66,8 +66,8 @@ export const HOME_EDITORIAL_CONTENT = {
   ],
   relatedLinks: [
     {
-      label: "Rede de monitoramento e metodologia",
-      href: "/metodologia",
+      label: "Dados e fontes",
+      href: "/status-dos-dados",
       description: "Veja como a Defesa Civil RS, previsão, alertas e demais fontes são usados.",
     },
     {
@@ -306,8 +306,8 @@ export const RADAR_EDITORIAL_CONTENT = {
       description: "Verifique severidade, abrangência e período dos avisos.",
     },
     {
-      label: "Fontes e metodologia",
-      href: "/metodologia",
+      label: "Dados e fontes",
+      href: "/status-dos-dados",
       description: "Entenda origem, atualização e limites de cada produto.",
     },
   ],
@@ -342,8 +342,8 @@ export const HISTORY_EDITORIAL_CONTENT = {
   ],
   relatedLinks: [
     {
-      label: "Rede observacional e metodologia",
-      href: "/metodologia",
+      label: "Dados e fontes",
+      href: "/status-dos-dados",
       description: "Veja como a observação atual da Defesa Civil RS e as séries históricas são tratadas.",
     },
     {
@@ -444,8 +444,8 @@ export const HYDROLOGY_EDITORIAL_CONTENT = {
       description: "Consulte alertas associados a chuva, vento e tempestades.",
     },
     {
-      label: "Fontes e metodologia",
-      href: "/metodologia",
+      label: "Dados e fontes",
+      href: "/status-dos-dados",
       description: "Conheça as redes, referências e limites das integrações.",
     },
   ],

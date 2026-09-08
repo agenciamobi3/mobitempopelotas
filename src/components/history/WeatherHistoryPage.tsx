@@ -433,7 +433,7 @@ export function WeatherHistoryPage({ history }: WeatherHistoryPageProps) {
             Estação Embrapa <ArrowRight aria-hidden="true" />
           </Link>
           <Link className="history-secondary-action" to="/previsao-7-dias-pelotas">Previsão de 7 dias</Link>
-          <Link className="history-secondary-action" to="/metodologia">Como os dados funcionam</Link>
+          <Link className="history-secondary-action" to="/status-dos-dados">Dados e fontes</Link>
         </div>
       </section>
     </div>
