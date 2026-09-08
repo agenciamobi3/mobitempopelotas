@@ -104,6 +104,21 @@ test("tomorrow chapter navigation is visually reduced to an editorial index", ()
   assert.match(editorialRefinement, /@media \(max-width: 760px\)/);
 });
 
+test("tomorrow overview repeats facts as a flat reading strip instead of cards", () => {
+  assert.match(
+    editorialRefinement,
+    /\.internal-weather-shell--tomorrow \.tomorrow-v3-overview__cards[\s\S]*border-top:[\s\S]*border-bottom:/,
+  );
+  assert.match(
+    editorialRefinement,
+    /\.tomorrow-v3-overview__cards article,[\s\S]*\.tomorrow-v3-overview__cards article\.is-caution[\s\S]*border-radius:\s*0[\s\S]*background:\s*transparent[\s\S]*box-shadow:\s*none/,
+  );
+  assert.match(
+    editorialRefinement,
+    /@media \(max-width: 760px\)[\s\S]*\.tomorrow-v3-overview__cards[\s\S]*grid-template-columns:\s*1fr/,
+  );
+});
+
 test("tomorrow zero states do not invent gusts or erase positive rain volume", () => {
   assert.match(page, /function gustPhrase/);
   assert.match(page, /if \(value <= 0\) return "sem rajadas previstas"/);
