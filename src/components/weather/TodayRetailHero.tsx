@@ -53,11 +53,11 @@ function extractClock(value: string | null | undefined) {
   return matches?.[0] ?? null;
 }
 
-function updateLabel(weather: WeatherData) {
+function updateLabel(weather: WeatherData, hasObservedCurrent: boolean) {
+  if (!hasObservedCurrent) return "Medição local indisponível";
   const updateValue = weather.current.source.observedAt ?? weather.current.updatedAt;
   const clock = extractClock(updateValue);
-  if (clock) return `Leitura das ${clock}`;
-  return weather.current.available ? "Leitura recente" : "Medição local indisponível";
+  return clock ? `Leitura das ${clock}` : "Leitura recente";
 }
 
 function alertLabel(count: number) {
@@ -167,7 +167,7 @@ export function TodayRetailHero({
           </p>
 
           <div className="today-retail-hero__meta" aria-label="Situação dos dados de hoje">
-            <span>{updateLabel(weather)}</span>
+            <span>{updateLabel(weather, hasObservedCurrent)}</span>
             {hasAlert ? (
               <a className="is-alert" href="/alertas">
                 <ShieldAlert aria-hidden="true" /> {alertLabel(officialAlertCount)}
