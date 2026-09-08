@@ -134,7 +134,7 @@ test("meteogram page uses direct copy and keeps the useful 24/48-hour controls",
   assert.match(page, /Previsão por hora/);
   assert.match(page, /24 horas/);
   assert.match(page, /48 horas/);
-  assert.match(page, /InternalPageChapters/);
+  assert.doesNotMatch(page, /InternalPageChapters|internal-page-chapters/);
   assert.match(page, /Horário/);
   assert.match(page, /Temperatura, sensação e ponto de orvalho/);
   assert.match(page, /Chance de chuva e umidade/);
@@ -201,7 +201,7 @@ test("meteogram visual refinement removes the old megacard layers without flatte
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.match(styles, /:focus-visible/);
 
-  assert.match(refinement, /\.internal-page-chapters[\s\S]*repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(refinement, /\.internal-page-chapters/);
   assert.match(refinement, /\.meteogram-overview[\s\S]*border:\s*0/);
   assert.match(refinement, /\.meteogram-selected-grid[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(refinement, /\.meteogram-chart-card,[\s\S]*\.meteogram-volume[\s\S]*box-shadow:\s*none/);
