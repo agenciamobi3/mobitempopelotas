@@ -7,10 +7,9 @@ import "./HomeOperationalNavigation.css";
 
 const shortcuts = [
   { label: "Previsão de hoje", description: "Hora a hora", to: "/tempo-hoje-pelotas" },
-  { label: "Radar e satélite", description: "Região", to: "/cameras-ao-vivo-pelotas" },
-  { label: "Medições locais", description: "Embrapa", to: "/estacao-embrapa-pelotas" },
-  { label: "Situação das águas", description: "Laranjal", to: "/situacao-hidrologica-pelotas" },
-  { label: "Dados e fontes", description: "Fontes", to: "/status-dos-dados" },
+  { label: "Radar e satélite", description: "Região", to: "/radar-e-satelite-pelotas" },
+  { label: "Situação das águas", description: "Níveis", to: "/situacao-hidrologica-pelotas" },
+  { label: "Dados e fontes", description: "Origem dos dados", to: "/status-dos-dados" },
 ] as const;
 
 export function HomeOperationalNavigation({ data }: { data: WeatherIntelligenceData }) {
@@ -35,7 +34,7 @@ export function HomeOperationalNavigation({ data }: { data: WeatherIntelligenceD
           <p>
             {hasAlert
               ? "Consulte a área de alertas para verificar vigência, severidade e orientações da fonte oficial."
-              : "O portal reúne avisos do INMET e os canais públicos usados pela Defesa Civil."}
+              : "Consulte os avisos oficiais e as orientações de prevenção disponíveis para a região."}
           </p>
         </div>
         <Link to="/alertas">
