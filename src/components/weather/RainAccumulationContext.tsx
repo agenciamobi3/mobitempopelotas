@@ -130,7 +130,7 @@ function RegionalRainfallObservations() {
       </div>
 
       <p className="rain-accumulation__regional-note">
-        Cada valor pertence à estação indicada, não à cidade inteira.
+        Cada valor pertence à estação indicada, não à cidade inteira. Os acumulados são janelas móveis.
       </p>
     </div>
   );
@@ -139,17 +139,16 @@ function RegionalRainfallObservations() {
 export function RainAccumulationContext({ data }: { data: WeatherIntelligenceData }) {
   const weather = data.weather;
   const observation = weather.observation;
-  const embrapaHealth = weather.sources.embrapa.status;
-  const observationIsCurrent =
-    observation.status !== "unavailable" &&
-    (embrapaHealth === "live" || embrapaHealth === "partial");
-  const observationHasKnownValue = observation.accumulated.rainDaily !== null;
+  const observationHealth = weather.sources["defesa-civil-rs"];
+  const observationIsCurrent = observation.status === "live" && observationHealth.usable;
   const today = weather.daily[0] ?? null;
   const forecastDays = weather.daily.slice(0, 7);
   const forecastSevenDays = forecastDays.length
     ? forecastDays.reduce((total, day) => total + day.precipitationMm, 0)
     : null;
-  const observationTime = observation.source.observationTime ?? observation.source.fetchedAt;
+  const stationLabel = observation.station.code
+    ? `${observation.station.name} · ${observation.station.code}`
+    : observation.station.name;
 
   return (
     <section
@@ -159,7 +158,7 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
     >
       <header className="rain-accumulation__heading">
         <div>
-          <span>Agora e próximos dias</span>
+          <span>Observação e próximos dias</span>
           <h2 id="rain-accumulation-title">Chuva medida e prevista</h2>
         </div>
       </header>
@@ -167,20 +166,20 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
       <div className="rain-accumulation__summary">
         <article className="is-observed">
           <Droplets aria-hidden="true" />
-          <span>{observationIsCurrent ? "Medido hoje" : "Último acumulado diário"}</span>
-          <strong>{formatMillimeters(observation.accumulated.rainDaily)}</strong>
+          <span>Medido nas últimas 24 h</span>
+          <strong>{formatMillimeters(observation.rain.h24Mm)}</strong>
           <small>
-            {observationHasKnownValue
-              ? `${observation.source.station} · ${formatDateTime(observationTime)}`
-              : "Sem acumulado diário disponível."}
+            {observationIsCurrent
+              ? `${stationLabel} · ${formatDateTime(observation.source.observedAt)}`
+              : "Sem estação meteorológica recente da rede estadual."}
           </small>
         </article>
 
         <article className="is-observed">
           <Gauge aria-hidden="true" />
-          <span>Medido no mês</span>
-          <strong>{formatMillimeters(observation.accumulated.rainMonthly)}</strong>
-          <small>Embrapa Clima Temperado</small>
+          <span>Medido nas últimas 6 h</span>
+          <strong>{formatMillimeters(observation.rain.h6Mm)}</strong>
+          <small>Rede de Monitoramento Hidrometeorológico da Defesa Civil RS</small>
         </article>
 
         <article className="is-forecast">
@@ -199,7 +198,7 @@ export function RainAccumulationContext({ data }: { data: WeatherIntelligenceDat
 
       <div className="rain-accumulation__rule">
         <strong>Medido e previsto não são somados.</strong>
-        <span>Os períodos podem se sobrepor.</span>
+        <span>Os períodos podem se sobrepor; 24 h e 6 h são janelas móveis da estação.</span>
         <Link to="/metodologia">Metodologia</Link>
       </div>
 
