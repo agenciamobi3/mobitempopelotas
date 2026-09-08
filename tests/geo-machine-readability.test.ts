@@ -20,14 +20,14 @@ test("json-ld editorial pode declarar proveniência sem alterar conteúdo visív
   assert.match(structuredData, /"@type": "CreativeWork"/);
 });
 
-test("fontes públicas usadas pelo SEO/GEO ficam centralizadas", () => {
+test("fontes públicas usadas pelo SEO/GEO apontam para a página canônica de dados", () => {
   assert.match(sourceCitations, /redehidrometeorologica\.defesacivil\.rs\.gov\.br\/Mapa/);
   assert.match(sourceCitations, /https:\/\/open-meteo\.com\//);
   assert.match(sourceCitations, /https:\/\/portal\.inmet\.gov\.br\//);
   assert.match(sourceCitations, /https:\/\/avisos\.inmet\.gov\.br\//);
   assert.match(sourceCitations, /https:\/\/wp\.ufpel\.edu\.br\/cppmet\//);
-  assert.match(sourceCitations, /absoluteUrl\("\/metodologia"\)/);
-  assert.doesNotMatch(sourceCitations, /agromet\.cpact\.embrapa\.br/);
+  assert.match(sourceCitations, /absoluteUrl\("\/status-dos-dados"\)/);
+  assert.doesNotMatch(sourceCitations, /absoluteUrl\("\/metodologia"\)|agromet\.cpact\.embrapa\.br/);
 });
 
 test("páginas meteorológicas centrais ligam conteúdo às fontes documentadas", () => {
@@ -39,19 +39,19 @@ test("páginas meteorológicas centrais ligam conteúdo às fontes documentadas"
   assert.match(wind, /citations: WIND_CITATIONS/);
 });
 
-test("URL histórica da estação aposentada não publica Dataset observacional novo", () => {
+test("URL histórica da estação aposentada aponta para dados e fontes", () => {
   assert.match(retiredStationRoute, /redirect/);
-  assert.match(retiredStationRoute, /to: "\/metodologia"/);
+  assert.match(retiredStationRoute, /to: "\/status-dos-dados"/);
   assert.doesNotMatch(retiredStationRoute, /createDatasetJsonLd|SEO_SOURCE_URLS\.embrapa/);
 });
 
-test("llms.txt orienta agentes para canônicos, observação local e semântica dos dados", () => {
+test("llms.txt preserva semântica sem duplicar a arquitetura de fontes", () => {
   assert.match(llms, /Canonical: https:\/\/tempopelotas\.com\.br/);
-  assert.match(llms, /Methodology: https:\/\/tempopelotas\.com\.br\/metodologia/);
-  assert.match(llms, /Defesa Civil RS/);
+  assert.match(llms, /Data and source status: https:\/\/tempopelotas\.com\.br\/status-dos-dados/);
   assert.match(llms, /Observation is not forecast\./);
   assert.match(llms, /Forecast is not an official alert\./);
   assert.match(llms, /An unavailable value is not zero/);
   assert.match(llms, /Sustained wind must not be substituted for a missing gust measurement/);
   assert.match(llms, /cite the canonical page used/);
+  assert.doesNotMatch(llms, /Methodology:|\/metodologia/);
 });
