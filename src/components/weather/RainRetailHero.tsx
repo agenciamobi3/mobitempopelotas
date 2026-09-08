@@ -24,7 +24,7 @@ type RainRetailHeroProps = {
   weather: WeatherData;
   advisoryLevel: AdvisoryLevel;
   officialAlertCount?: number;
-  observedRainDaily?: number | null;
+  observedRain24h?: number | null;
 };
 
 type RetailMetric = {
@@ -88,13 +88,13 @@ export function RainRetailHero({
   weather,
   advisoryLevel,
   officialAlertCount = 0,
-  observedRainDaily = null,
+  observedRain24h = null,
 }: RainRetailHeroProps) {
   const hours = weather.hourly.slice(0, 12);
   const days = weather.daily.slice(0, 7);
   const hasHourlyForecast = hours.length > 0;
   const hasDailyForecast = days.length > 0;
-  const hasRainData = hasHourlyForecast || hasDailyForecast || observedRainDaily !== null;
+  const hasRainData = hasHourlyForecast || hasDailyForecast || observedRain24h !== null;
   const today = days[0] ?? null;
   const peakCandidate = hours.reduce<(typeof hours)[number] | null>(
     (selected, hour) =>
@@ -123,9 +123,9 @@ export function RainRetailHero({
   const hasAlert = officialAlertCount > 0;
   const metrics: RetailMetric[] = [
     {
-      label: "Medido",
-      value: observedRainDaily === null ? "Em atualização" : formatMillimeters(observedRainDaily),
-      detail: "Embrapa",
+      label: "Medido em 24 h",
+      value: observedRain24h === null ? "Em atualização" : formatMillimeters(observedRain24h),
+      detail: "Defesa Civil RS · janela móvel",
       icon: Gauge,
     },
     {
@@ -141,13 +141,13 @@ export function RainRetailHero({
   ];
 
   const description = hasHourlyForecast && hasDailyForecast
-    ? `${wetHours} ${wetHours === 1 ? "horário tem" : "horários têm"} 30% ou mais de chance nas próximas 12 horas. Veja o que já choveu e o que ainda está previsto.`
+    ? `${wetHours} ${wetHours === 1 ? "horário tem" : "horários têm"} 30% ou mais de chance nas próximas 12 horas. Compare a chuva medida nas últimas 24 horas com o que ainda está previsto.`
     : hasHourlyForecast
-      ? "A chance por horário está disponível. O volume diário ainda está em atualização."
+      ? "A chance por horário está disponível. O volume diário previsto ainda está em atualização."
       : hasDailyForecast
         ? "A previsão diária está disponível. A chance por horário ainda está em atualização."
-        : observedRainDaily !== null
-          ? "A chuva medida está disponível enquanto a previsão é atualizada."
+        : observedRain24h !== null
+          ? "A chuva medida nas últimas 24 horas está disponível enquanto a previsão é atualizada."
           : "Os dados de chuva estão em atualização.";
 
   const hourlyChanceLabel = highestRainChance === null
