@@ -140,9 +140,15 @@ Ela não muda a política ANA/RHN já vigente:
 - `tests/ana-rhn-regional-inventory.test.ts`
 - `tests/ana-rhn-hydrography.test.ts`
 
+## Etapa histórica relacionada concluída
+
+A consulta à camada `NotasConsistencia` para a estação histórica `87955000` foi implementada separadamente em `/enchente-2001-pelotas`. O contrato e os limites dessa integração estão documentados em `docs/ANA_RHN_CONSISTENCY_87955000_2026-09-08.md`.
+
+Essa consulta não altera inventário, cartografia regional ou medição atual do Laranjal.
+
 ## Próximas etapas relacionadas
 
 1. validar visualmente as estações e a hidrografia retornadas no domínio/preview;
 2. confirmar quais pontos mais relevantes merecem prioridade editorial na listagem;
-3. consultar `NotasConsistencia` para a estação histórica `87955000`;
+3. confirmar no runtime, quando houver executor disponível, se `87955000` retorna registro real em `NotasConsistencia` e quais valores exatos de `Indice` e `Notas` são publicados;
 4. criar a ficha cadastral resumida da `87955001` em `/nivel-da-lagoa-dos-patos-laranjal`.
