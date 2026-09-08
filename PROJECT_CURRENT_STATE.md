@@ -28,7 +28,7 @@ Regras permanentes:
 | Portal público | Produção ativa em `tempopelotas.com.br`; estado do Git, build/sincronização e propagação no domínio são provas separadas |
 | Header público | `SiteHeader` reutiliza `HomeEditorialHeader`; a antiga implementação paralela `src/components/layout/Header.tsx` e seu CSS foram removidos em 08/09 |
 | Footer público | Uma implementação compartilhada em `SiteFooter` → `Footer`; não publica inventário completo de fornecedores em todas as páginas |
-| Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; o tipo `ServiceStatus` já admite `dataCondition` opcional, mas essa condição ainda não foi ligada ao monitor/interface e não deve ser anunciada como recurso público concluído |
+| Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; `ServiceStatus.state` continua descrevendo a integração e `dataCondition` descreve separadamente a condição publicável do dado para Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001` |
 | Rotas aposentadas | `/metodologia` e `/estacao-embrapa-pelotas` permanecem apenas como redirects 301 para `/status-dos-dados`; não são páginas indexáveis nem destinos de descoberta pública |
 | SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts` |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
@@ -48,7 +48,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34281434788` concluiu `failure` com `steps: null` |
+| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34286733182` concluiu `failure` com `steps: null` |
 
 ## 3. Stack e budgets públicos
 
@@ -114,7 +114,7 @@ Documentos históricos sobre o antigo coletor continuam válidos como registro d
 
 A copy pública usa estados compreensíveis. Termos como probe, upstream, readiness, kill switch, last-good e detalhes de arquitetura não devem ser necessários para o visitante entender se um dado está disponível.
 
-A fundação de tipos admite `dataCondition?: string` para separar futuramente “integração respondendo” de “condição do dado/medição”. Enquanto o monitor e a interface não preencherem/renderizarem esse campo, ele permanece apenas como contrato preparatório e não altera a página pública.
+`ServiceStatus` admite `dataCondition?: string` para separar “integração respondendo” de “condição do dado/medição”. O monitor agora preenche e a interface renderiza esse campo somente em cinco serviços com semântica suficiente: nível do Laranjal, nível do Guaíba, rede regional da Lagoa dos Patos, observação atual da Defesa Civil RS e ANA `87955001`. Previsão, INMET, CPPMet, radar e satélite permanecem sem `dataCondition` nesta fase. A ANA pode aparecer como `Em implantação` enquanto a condição do dado informa separadamente que a medição não é publicada por referência vertical específica não confirmada; `sourceDataStatus` não é usado como selo público de qualidade nem abre o gate vertical.
 
 ### 5.2 Rotas de compatibilidade
 
@@ -400,6 +400,7 @@ Contratos versionados cobrem meteorologia, navegação, shells, hidrologia, REDE
 A consolidação de 08/09 atualizou contratos para:
 
 - `/status-dos-dados` como única superfície pública indexável de transparência;
+- `dataCondition` público em `/status-dos-dados` separado de `state`/`detail` e restrito nesta fase a Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; o contrato `tests/data-status-data-condition.test.ts` impede espalhar a semântica para outras fontes sem definição própria;
 - redirects 301 de `/metodologia` e `/estacao-embrapa-pelotas`;
 - ausência dessas rotas na descoberta pública e no smoke visual de páginas reais;
 - header canônico `HomeEditorialHeader` sem implementação paralela;
@@ -418,7 +419,7 @@ O smoke visual interno não trata mais redirects aposentados como páginas que d
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34281434788`, ligada ao commit `c1cc1702e37781c18c25cefdc50560ad885f44ff`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
+A infraestrutura do runner continua sendo uma limitação externa. Na run `34286733182`, ligada ao commit `09698c20839f1937c5d8e2ceab351c58d7118316`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
 
 Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
 
@@ -448,7 +449,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 11. Validar visualmente `/tempo-amanha-pelotas` em desktop e mobile no domínio canônico após a propagação do novo bundle, sem tratar preview isolado como prova de produção.
 12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
 13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
-14. Completar a fundação `dataCondition` de `/status-dos-dados`: preencher somente fontes com condição real verificável e renderizar a informação separadamente do estado técnico da integração, sem fabricar QC para fontes que não o fornecem.
+14. Validar no preview e no domínio canônico a nova linha `Condição do dado` de `/status-dos-dados`, conferindo especialmente estados live/stale/unavailable, a contagem regional da Lagoa, a elegibilidade da Defesa Civil RS e o gate da ANA `87955001` sem tratar preview como prova de produção.
 15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
