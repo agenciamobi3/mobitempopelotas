@@ -4,7 +4,6 @@ import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { AggregatedWeatherData } from "@/lib/weather/aggregated-weather.types";
 import { reconcileDailyTemperatures } from "../../lib/weather/daily-temperature-reconciliation.ts";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
-import type { EmbrapaObservationData } from "@/production/lib/embrapa-observation";
 import type { InmetAlertsData } from "@/production/lib/inmet-alerts";
 import { resolveMoonPhase } from "../lib/astronomy.ts";
 import type { WeatherAiSummaries } from "@/production/lib/weather-ai-summary";
@@ -40,10 +39,8 @@ function resolveAstronomy(data: AggregatedWeatherData): AstronomyData {
   const inmetPeriod =
     data.inmetForecast.find((period) => period.sunrise || period.sunset || period.season) ?? null;
   const date = inmetPeriod?.date ?? localDateKey();
-  const sunrise =
-    inmetPeriod?.sunrise ?? data.current?.sunrise ?? data.observation.current.sunrise ?? null;
-  const sunset = inmetPeriod?.sunset ?? data.current?.sunset ?? data.observation.current.sunset ?? null;
-  const hasInmetSunTimes = Boolean(inmetPeriod?.sunrise || inmetPeriod?.sunset);
+  const sunrise = inmetPeriod?.sunrise ?? null;
+  const sunset = inmetPeriod?.sunset ?? null;
   const lunar = resolveMoonPhase(date);
 
   return {
@@ -52,14 +49,14 @@ function resolveAstronomy(data: AggregatedWeatherData): AstronomyData {
     sunset,
     moonPhase: lunar.name,
     season: inmetPeriod?.season ?? null,
-    solarSource: hasInmetSunTimes
-      ? "INMET"
-      : sunrise || sunset
-        ? "Embrapa Clima Temperado"
-        : null,
+    solarSource: sunrise || sunset ? "INMET" : null,
     seasonSource: inmetPeriod?.season ? "INMET" : null,
     lunarSource: lunar.source,
   };
+}
+
+function observationSourceName(data: AggregatedWeatherData) {
+  return `${data.observation.source.name} · ${data.observation.station.name}`;
 }
 
 function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
@@ -81,7 +78,7 @@ function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
     updatedAt: null,
     icon: null,
     source: {
-      name: "Embrapa Clima Temperado",
+      name: data.observation.source.name,
       url: data.observation.source.url,
       kind: "unavailable",
       observedAt: null,
@@ -91,7 +88,7 @@ function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
 
 function observedCurrent(data: AggregatedWeatherData): CurrentWeather {
   const current = data.current;
-  if (!current || data.quality.currentSource !== "embrapa") return unavailableCurrent(data);
+  if (!current || data.quality.currentSource !== "defesa-civil-rs") return unavailableCurrent(data);
 
   return {
     available: true,
@@ -103,18 +100,18 @@ function observedCurrent(data: AggregatedWeatherData): CurrentWeather {
     humidity: current.humidity,
     pressure: current.pressure,
     windSpeed: current.windSpeed,
-    windGust: null,
+    windGust: current.windGust,
     windDirection: current.windDirection,
     visibility: null,
-    sunrise: current.sunrise,
-    sunset: current.sunset,
+    sunrise: null,
+    sunset: null,
     updatedAt: formatUpdatedAt(current.observedAt),
     icon: null,
     source: {
-      name: "Embrapa Clima Temperado",
+      name: observationSourceName(data),
       url: data.observation.source.url,
       kind: "observation",
-      observedAt: data.observation.source.observationTime,
+      observedAt: data.observation.source.observedAt,
     },
   };
 }
@@ -156,36 +153,16 @@ export function toProductionWeatherData(data: AggregatedWeatherData): WeatherDat
       windGust: day.windGust,
       icon: day.icon,
     })),
-    // O mapa operacional usa REDEMET. Não criamos marcadores de condição atual a partir de modelos.
     regional: [],
     astronomy: resolveAstronomy(data),
     source: {
       name: "MOBI Tempo Pelotas",
       url: "/metodologia",
       isFallback: data.status !== "live",
-      observationName: data.observation.source.name,
+      observationName: observationSourceName(data),
       observationUrl: data.observation.source.url,
       forecastName: data.quality.forecastProvider ?? "Previsão meteorológica indisponível",
       forecastUrl: "/metodologia",
-    },
-  };
-}
-
-export function toProductionObservation(data: AggregatedWeatherData): EmbrapaObservationData {
-  const observation = data.observation;
-  const empty = { value: null, time: null };
-  return {
-    ...observation,
-    extremes: {
-      ...observation.extremes,
-      dewPointMin: observation.extremes.dewPointMin ?? empty,
-      dewPointMax: observation.extremes.dewPointMax ?? empty,
-    },
-    accumulated: {
-      ...observation.accumulated,
-      evapotranspirationDaily: observation.accumulated.evapotranspirationDaily ?? null,
-      evapotranspirationMonthly: observation.accumulated.evapotranspirationMonthly ?? null,
-      evapotranspirationAnnual: observation.accumulated.evapotranspirationAnnual ?? null,
     },
   };
 }
