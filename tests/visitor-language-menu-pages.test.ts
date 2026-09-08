@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const header = readFileSync("src/components/layout/Header.tsx", "utf8");
+const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 const footer = readFileSync("src/components/layout/Footer.tsx", "utf8");
 const statusPage = readFileSync("src/routes/status-dos-dados.tsx", "utf8");
 const methodologyRoute = readFileSync("src/routes/metodologia.tsx", "utf8");
@@ -44,27 +44,22 @@ const visibleCopy = primaryVisitorSources.join("\n");
 const auditedCopy = auditedVisitorSources.join("\n");
 
 test("main menu points source explanations to one public page", () => {
-  assert.match(header, /Imagens e medições/);
-  assert.match(header, /Entenda e compare/);
-  assert.match(header, /Previsão hora a hora/);
-  assert.match(header, /Dados e fontes/);
-  assert.match(header, /Níveis e medições/);
-  assert.match(header, /Alertas e fontes/);
-  assert.match(header, /to="\/status-dos-dados"/);
-  assert.doesNotMatch(header, /to="\/metodologia"/);
-  assert.doesNotMatch(header, /Como os dados funcionam/);
+  for (const label of ["Previsão", "Águas", "Região", "Explorar", "Dados e fontes"]) {
+    assert.match(header, new RegExp(`label: "${label}"`));
+  }
+  assert.match(header, /to="\/radar-e-satelite-pelotas"/);
+  assert.match(header, /Satélites e Radares/);
+  assert.match(header, /to: "\/status-dos-dados"/);
+  assert.doesNotMatch(header, /\/metodologia|\/estacao-embrapa-pelotas|Estação Embrapa/);
 });
 
-test("monitoring menu descriptions match the active monitoring surfaces", () => {
-  assert.match(header, /Veja áreas de chuva, imagens de satélite e trovoadas na região\./);
-  assert.match(header, /Consulte registros de geada nas estações do INMET no Rio Grande do Sul\./);
-  assert.match(header, /Consulte estações meteorológicas e hidrológicas da rede estadual/);
-  assert.match(header, /Veja imagens locais e saiba se a transmissão está ao vivo ou gravada\./);
-  assert.match(header, /Entenda as estações do ano e por que o tempo varia na cidade\./);
-  assert.match(header, /Compare temperatura, chuva, nuvens, visibilidade, pressão e vento\./);
-  assert.match(header, /Compare máximas, mínimas, chuva e rajadas dos últimos dias\./);
-  assert.match(header, /Veja de onde vêm os dados, quais informações cada fonte fornece e seu estado atual\./);
-  assert.doesNotMatch(header, /Estação Embrapa/);
+test("canonical menu descriptions match the active public surfaces", () => {
+  assert.match(header, /Céu, visibilidade e condições locais em vídeo\./);
+  assert.match(header, /Produto oficial do INMET para o Rio Grande do Sul\./);
+  assert.match(header, /Compare temperatura, chuva e vento dos últimos dias\./);
+  assert.match(header, /Estações do ano, Lagoa dos Patos e dinâmica do clima local\./);
+  assert.match(header, /Origem, atualização e limites das informações do portal\./);
+  assert.match(header, /Visão integrada da rede hidrológica regional\./);
 });
 
 test("methodology legacy route permanently redirects to the unified source page", () => {
@@ -88,7 +83,7 @@ test("global footer no longer publishes the full source inventory on every page"
   assert.match(footer, /Origem, uso e status de cada fonte/);
   assert.match(footer, /to="\/status-dos-dados"/);
   assert.doesNotMatch(footer, /FOOTER_SOURCE_GROUPS|FooterSourceMap/);
-  assert.doesNotMatch(footer, /to="\/metodologia"/);
+  assert.doesNotMatch(footer, /\/metodologia|\/estacao-embrapa-pelotas/);
 });
 
 test("current condition uses current observation source and plain labels", () => {
@@ -141,10 +136,10 @@ test("forecast pages avoid internal scoring and source-management language", () 
 
 test("alerts page states availability and counts directly", () => {
   assert.match(alerts, /Dados do INMET/);
-  assert.match(alerts, /Última consulta ao INMET/);
+  assert.match(alerts, /Última consulta/);
   assert.match(alerts, /Indisponível/);
   assert.match(alerts, /Ler alerta prioritário/);
-  assert.match(alerts, /Nenhum alerta oficial listado para Pelotas/);
+  assert.match(alerts, /Nenhum aviso ativo ou programado listado agora/);
   assert.match(alerts, /alertCountLabel/);
   assert.doesNotMatch(alerts, /Fonte<\/span><strong>\{source\.usable \? "Disponível" : "Restrita"\}/);
   assert.doesNotMatch(alerts, /situação prioritária/i);
@@ -165,8 +160,9 @@ test("monitoring pages use direct labels while retaining necessary explanations"
   assert.match(climate, /Últimos 30 dias: dados recentes/);
   assert.match(meteogram, /Previsão hora a hora/);
   assert.match(meteogram, /Possibilidade de tempestade/);
-  assert.match(history, /Dias com dados/);
-  assert.match(history, /Valores diários/);
+  assert.match(history, /Histórico de 30 dias/);
+  assert.match(history, /Valores de cada dia/);
+  assert.doesNotMatch(history, /\/estacao-embrapa-pelotas|Estação Embrapa/);
 });
 
 test("water pages use visitor-facing wording", () => {
