@@ -2,127 +2,56 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const route = readFileSync("src/routes/metodologia.tsx", "utf8");
-const loader = readFileSync("src/lib/methodology/methodology-page-loader.ts", "utf8");
-const hydrologyFallbacks = readFileSync(
-  "src/lib/hydrology/public-hydrology-page-loader.ts",
-  "utf8",
-);
-const redemetFallback = readFileSync("src/lib/redemet/redemet-fallback.ts", "utf8");
-const component = readFileSync("src/components/methodology/MethodologyPage.tsx", "utf8");
-const refinement = readFileSync(
-  "src/components/methodology/MethodologyPageRefinement.css",
-  "utf8",
-);
-const homeContract = readFileSync(
-  "src/components/methodology/MethodologyHomeContract.css",
-  "utf8",
-);
+const methodologyRoute = readFileSync("src/routes/metodologia.tsx", "utf8");
+const statusRoute = readFileSync("src/routes/status-dos-dados.tsx", "utf8");
+const statusServer = readFileSync("src/lib/status/data-status.server.ts", "utf8");
+const redemetStatus = readFileSync("src/lib/status/data-status-redemet-probes.server.ts", "utf8");
+const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 
-test("a rota de metodologia usa um loader único para todas as integrações ativas", () => {
-  assert.match(route, /loadMethodologyPageData/);
-  assert.match(route, /loader: \(\) => loadMethodologyPageData\(\)/);
-  assert.match(loader, /getWeatherIntelligence\(\)/);
-  assert.match(loader, /getLaranjalLevelData\(\)/);
-  assert.match(loader, /getRedemetOverview\(\)/);
-  assert.match(loader, /getGuaibaObservation\(\)/);
-  assert.match(loader, /getLagoonMonitoringNetwork\(\)/);
-  assert.match(loader, /getForecastAccuracySummary\(\)/);
-  assert.match(route, /guaiba=\{data\.guaiba\}/);
-  assert.match(route, /lagoon=\{data\.lagoon\}/);
+test("metodologia antiga é apenas alias permanente para dados e fontes", () => {
+  assert.match(methodologyRoute, /createFileRoute\("\/metodologia"\)/);
+  assert.match(methodologyRoute, /redirect/);
+  assert.match(methodologyRoute, /to: "\/status-dos-dados"/);
+  assert.match(methodologyRoute, /statusCode: 301/);
+  assert.doesNotMatch(methodologyRoute, /loader:|MethodologyPage|loadMethodologyPageData/);
 });
 
-test("falha isolada de fonte não promove a metodologia ao boundary global", () => {
-  assert.match(loader, /Promise\.allSettled/);
-  assert.doesNotMatch(loader, /await Promise\.all\(/);
-  assert.match(loader, /createUnavailableWeatherIntelligence\(\)/);
-  assert.match(loader, /createUnavailableLaranjalLevelData\(\)/);
-  assert.match(loader, /createUnavailableRedemetOverview\(\)/);
-  assert.match(loader, /createUnavailableGuaibaObservationData\(\)/);
-  assert.match(loader, /createUnavailableLagoonMonitoringNetworkData\(\)/);
-  assert.match(loader, /createUnavailableAccuracy\(\)/);
-  assert.match(hydrologyFallbacks, /status: "unavailable"/);
-  assert.match(hydrologyFallbacks, /currentLevel: null/);
-  assert.match(redemetFallback, /available: false/);
-  assert.match(redemetFallback, /frames: \[\]/);
-  assert.match(loader, /providers: \[\]/);
+test("dados e fontes é a única página indexável para origem e estado das integrações", () => {
+  assert.match(publicRoutes, /path: "\/status-dos-dados"/);
+  assert.doesNotMatch(publicRoutes, /path: "\/metodologia"/);
+  assert.match(statusRoute, /Dados e fontes do Tempo Pelotas/);
+  assert.match(statusRoute, /getDataStatusPageData/);
 });
 
-test("o inventário apresenta cinco integrações meteorológicas e três hidrológicas", () => {
-  for (const sourceId of [
-    "embrapa",
-    "inmet",
-    "cppmet",
-    "redemet",
-    "forecast",
-    "laranjal",
-    "guaiba",
-    "lagoon-network",
-  ]) {
-    assert.match(component, new RegExp(`id: "${sourceId}"`));
-  }
-
-  assert.match(component, /meteorologyCards\.length/);
-  assert.match(component, /hydrologyCards\.length/);
-  assert.match(component, /guaiba\.source\.name/);
-  assert.match(component, /guaiba\.station/);
-  assert.match(component, /lagoon\.source\.organizations/);
-  assert.match(component, /lagoon\.available/);
-  assert.match(component, /lagoon\.total/);
+test("página reúne origem, uso, estado e horário de cada fonte", () => {
+  assert.match(statusRoute, /SOURCE_USAGE/);
+  assert.match(statusRoute, /service\.provider/);
+  assert.match(statusRoute, /service\.name/);
+  assert.match(statusRoute, /labelForState\(service\.state\)/);
+  assert.match(statusRoute, /Verificado em \{formatCheckedAt\(service\.checkedAt\)\}/);
+  assert.match(statusRoute, /Abrir fonte/);
 });
 
-test("a nota exibida é identificada como qualidade dos dados e a síntese mostra sua origem real", () => {
-  assert.match(component, />Qualidade dos dados do tempo</);
-  assert.match(component, /weather\.weather\.quality\.score/);
-  assert.match(component, /weather\.intelligence\.origin === "gemini"/);
-  assert.match(component, /Resumo com apoio do Gemini/);
-  assert.match(component, /Resumo montado pelo portal/);
-  assert.doesNotMatch(component, />Estado atual<\/span>/);
+test("critérios públicos são factuais e separam observação, previsão, alertas e hidrologia", () => {
+  assert.match(statusRoute, /Critérios de publicação/);
+  assert.match(statusRoute, /Agora:/);
+  assert.match(statusRoute, /Previsão:/);
+  assert.match(statusRoute, /Previsão oficial e alertas:/);
+  assert.match(statusRoute, /Radar e satélite:/);
+  assert.match(statusRoute, /Hidrologia:/);
+  assert.match(statusRoute, /Valores previstos nunca são apresentados como medição/);
+  assert.match(statusRoute, /Cotas de referências diferentes não são convertidas/);
 });
 
-test("o conteúdo explica corretamente os limites das réguas e das previsões", () => {
-  assert.match(component, /Cada estação usa uma referência própria/);
-  assert.match(component, /não devem ser comparados diretamente/);
-  assert.match(component, /não calcula o\s+nível futuro do Laranjal apenas pelo Guaíba/);
-  assert.match(component, /Previsão detalhada principal/);
-  assert.match(component, /Previsão usada quando a principal falha/);
+test("status público evita jargão interno quando uma fonte falha", () => {
+  assert.doesNotMatch(statusServer, /last-good|probe meteorológico|kill switch|readiness|cross-check/i);
+  assert.doesNotMatch(redemetStatus, /Probe independente|upstream|server-side/i);
+  assert.match(statusServer, /A fonte não entregou dados utilizáveis na última verificação/);
+  assert.match(redemetStatus, /A fonte não entregou dados utilizáveis nesta verificação/);
 });
 
-test("seções continuam endereçáveis sem renderizar o índice numerado antigo", () => {
-  for (const id of [
-    "fontes-ativas",
-    "fluxo-dados",
-    "regras-integridade",
-    "tipos-informacao",
-    "limites-uso",
-  ]) {
-    assert.match(component, new RegExp(`id="${id}"`));
-  }
-  assert.doesNotMatch(component, /methodology-chapter-nav/);
-  assert.match(component, /rel="noopener noreferrer"/);
-  assert.match(component, /aria-label=\{`Abrir página de \$\{source\.organization\} em nova aba`\}/);
-});
-
-test("a camada visual permanece responsiva sem depender de CSS de navegação removida", () => {
-  assert.match(component, /MethodologyPageRefinement\.css/);
-  assert.match(refinement, /backdrop-filter:\s*none/);
-  assert.doesNotMatch(refinement, /\.methodology-chapter-nav/);
-  assert.match(refinement, /data-category="hydrology"/);
-  assert.match(refinement, /content-visibility:\s*auto/);
-  assert.match(refinement, /@media \(max-width: 680px\)/);
-  assert.match(refinement, /@media \(prefers-reduced-motion: reduce\)/);
-  assert.doesNotMatch(homeContract, /\.methodology-chapter-nav/);
-});
-
-test("metodologia usa composição técnica aberta sem decoração de dashboard", () => {
-  assert.match(route, /MethodologyHomeContract\.css/);
-  assert.match(homeContract, /transparência técnica em composição editorial aberta/i);
-  assert.match(homeContract, /\.methodology-hero[\s\S]*background:\s*var\(--methodology-home-soft\)/);
-  assert.match(homeContract, /\.methodology-hero[\s\S]*border-radius:\s*0[\s\S]*box-shadow:\s*none/);
-  assert.match(homeContract, /\.methodology-source-card[\s\S]*border-top:\s*3px solid #18bdcd/);
-  assert.match(homeContract, /data-category="hydrology"[\s\S]*border-top-color:\s*#5e2ced/);
-  assert.match(homeContract, /\.methodology-pipeline[\s\S]*border-radius:\s*0/);
-  assert.match(homeContract, /\.methodology-actions[\s\S]*background:\s*transparent/);
-  assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
-  assert.doesNotMatch(homeContract, /!important/);
+test("detalhes técnicos não voltam ao hero nem ao rodapé do status", () => {
+  assert.doesNotMatch(statusRoute, /Como interpretar esta seção|Transparência operacional/);
+  assert.match(statusRoute, /Incidentes e disponibilidade/);
+  assert.match(statusRoute, /Disponibilidade por fonte/);
 });
