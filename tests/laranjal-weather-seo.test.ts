@@ -18,6 +18,7 @@ const levelRouteSource = readFileSync(
   "src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx",
   "utf8",
 );
+const footerSource = readFileSync("src/components/layout/Footer.tsx", "utf8");
 const llmsSource = readFileSync("public/llms.txt", "utf8");
 
 test("publica uma URL meteorológica própria para o Laranjal", () => {
@@ -63,10 +64,13 @@ test("a página conecta editorialmente o Tempo Pelotas ao Portal Praia do Laranj
   assert.doesNotMatch(clientSource, /nofollow/);
 });
 
-test("a página hidrológica devolve a intenção de previsão para a URL correta", () => {
-  assert.match(levelRouteSource, /label: "Previsão do tempo no Laranjal"/);
-  assert.match(levelRouteSource, /href: "\/tempo-laranjal-pelotas"/);
-  assert.match(levelRouteSource, /sem confundir previsão com nível da Lagoa/);
+test("a previsão do Laranjal continua descoberta sem depender do bloco técnico da página de nível", () => {
+  assert.match(footerSource, /\/tempo-laranjal-pelotas/);
+  assert.match(levelRouteSource, /Nível da Lagoa dos Patos hoje no Laranjal, Pelotas/);
+  assert.doesNotMatch(
+    levelRouteSource,
+    /EditorialContentSection|LARANJAL_PAGE_CONTENT|Como interpretar o nível no Laranjal/,
+  );
 });
 
 test("llms.txt separa previsão do Laranjal de medição hidrológica", () => {
