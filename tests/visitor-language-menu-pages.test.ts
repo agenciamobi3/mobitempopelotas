@@ -148,7 +148,7 @@ test("alerts page states availability and counts directly", () => {
 });
 
 test("monitoring pages use direct labels while retaining necessary explanations", () => {
-  assert.match(radar, /Coletas reais recebidas/);
+  assert.match(radar, /Coletas recebidas/);
   assert.match(radar, /Última coleta recebida/);
   assert.match(frost, /Dados do INMET/);
   assert.match(frost, /Lista de registros/);
