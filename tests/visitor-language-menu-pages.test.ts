@@ -50,7 +50,9 @@ test("main menu points source explanations to one public page", () => {
   assert.match(header, /to="\/radar-e-satelite-pelotas"/);
   assert.match(header, /Satélites e Radares/);
   assert.match(header, /to: "\/status-dos-dados"/);
-  assert.doesNotMatch(header, /\/metodologia|\/estacao-embrapa-pelotas|Estação Embrapa/);
+  assert.match(header, /to: "\/estacao-embrapa-pelotas"/);
+  assert.match(header, /Estação Embrapa/);
+  assert.doesNotMatch(header, /\/metodologia/);
 });
 
 test("canonical menu descriptions match the active public surfaces", () => {
