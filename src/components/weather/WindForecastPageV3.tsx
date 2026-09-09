@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Clock3, Info, Navigation, Waves, Wind } from "lucide-react";
 
-import type { WeatherSourceKey } from "@/lib/weather/aggregated-weather.types";
 import type { HourlyForecast } from "@/lib/weather/types";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
@@ -29,13 +28,12 @@ function gust(value: number | null | undefined) {
   return `${number(value)} km/h`;
 }
 
-function sourceName(source: WeatherSourceKey | null | undefined) {
-  if (source === "defesa-civil-rs") return "Defesa Civil RS";
-  if (source === "open-meteo") return "Open-Meteo";
-  if (source === "met-norway") return "MET Norway";
-  if (source === "inmet") return "INMET";
-  if (source === "cppmet") return "CPPMet/UFPel";
-  return "Fonte não identificada";
+function currentWind(value: number | null | undefined) {
+  return value === null || value === undefined ? "Não informado" : `${number(value)} km/h`;
+}
+
+function currentDirection(value: string | null | undefined) {
+  return value?.trim() ? value : "Não informada";
 }
 
 function spread(hour: HourlyForecast | null) {
@@ -71,9 +69,6 @@ export function WindForecastPageV3({ data }: { data: WeatherIntelligenceData }) 
 
   const hours = weather.hourly.slice(0, 24);
   const days = weather.daily.slice(0, 7);
-  const windSource = weather.currentProvenance.windSpeed ?? null;
-  const directionSource = weather.currentProvenance.windDirection ?? null;
-  const provider = weather.quality.forecastProvider ?? sourceName(weather.quality.forecastSource);
   const topHours = peakHours(hours);
   const maximum = topHours[0]?.windGust ?? null;
   const maximumScale = Math.max(1, ...hours.map((hour) => Math.max(hour.windSpeed, hour.windGust ?? 0)));
@@ -88,13 +83,12 @@ export function WindForecastPageV3({ data }: { data: WeatherIntelligenceData }) 
     <div className="wind-page">
       <section className="wind-page__provenance" id="procedencia" aria-labelledby="wind-page-provenance-title">
         <div>
-          <span>Fontes</span>
+          <span>Dados atuais</span>
           <h2 id="wind-page-provenance-title">Vento atual e previsão</h2>
         </div>
-        <dl>
-          <div><dt>Vento agora</dt><dd>{sourceName(windSource)}</dd></div>
-          <div><dt>Direção agora</dt><dd>{sourceName(directionSource)}</dd></div>
-          <div><dt>Previsão</dt><dd>{provider}</dd></div>
+        <dl style={{ gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+          <div><dt>Vento agora</dt><dd>{currentWind(current?.windSpeed)}</dd></div>
+          <div><dt>Direção agora</dt><dd>{currentDirection(current?.windDirection)}</dd></div>
           <div><dt>Horário do vento atual</dt><dd>{formatDateTime(current?.observedAt)}</dd></div>
         </dl>
       </section>
@@ -214,7 +208,7 @@ export function WindForecastPageV3({ data }: { data: WeatherIntelligenceData }) 
 
       <footer className="wind-page__footer">
         <Info aria-hidden="true" />
-        <p>Última atualização: {formatDateTime(weather.source.fetchedAt)} · Vento atual: {sourceName(windSource)} · Direção atual: {sourceName(directionSource)} · Previsão: {provider}.</p>
+        <p>Última atualização: {formatDateTime(weather.source.fetchedAt)}.</p>
         <Link to="/status-dos-dados">Dados e fontes</Link>
       </footer>
     </div>
