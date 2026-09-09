@@ -1,12 +1,9 @@
-import { Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
-  ArrowLeft,
   ArrowRight,
   ArrowUpRight,
   CheckCircle2,
   Clock3,
-  Info,
   MapPin,
   ShieldAlert,
 } from "lucide-react";
@@ -175,9 +172,6 @@ function AlertsHero({
       aria-labelledby="alerts-page-title"
     >
       <div className="alerts-editorial-copy">
-        <Link className="alerts-editorial-back" to="/" aria-label="Voltar ao tempo agora em Pelotas">
-          <ArrowLeft aria-hidden="true" /> Visão geral
-        </Link>
         <span className="alerts-editorial-eyebrow">Avisos oficiais do INMET · Pelotas e região</span>
         <h1 id="alerts-page-title">Alertas meteorológicos em Pelotas</h1>
         <p>
@@ -520,21 +514,6 @@ export function WeatherAlertsPage({ data }: { data: WeatherIntelligenceData }) {
           </div>
         </section>
       ) : null}
-
-      <section className="alerts-method" aria-labelledby="alerts-method-title">
-        <Info aria-hidden="true" />
-        <div>
-          <h2 id="alerts-method-title">Informação oficial e tomada de decisão</h2>
-          <p>
-            O Tempo Pelotas não emite alertas. A página organiza dados publicados pelo INMET para
-            facilitar a consulta. Em situações de risco, as orientações do INMET, da Defesa Civil e das
-            autoridades locais têm prioridade.
-          </p>
-          <Link to="/status-dos-dados">
-            Ver dados e fontes <ArrowRight aria-hidden="true" />
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
