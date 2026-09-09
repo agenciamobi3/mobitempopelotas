@@ -88,13 +88,15 @@ test("rota de 15 dias usa shell próprio sem camada editorial duplicada", () => 
   assert.doesNotMatch(route, /EditorialContentSection|createFaqPageJsonLd|FIFTEEN_DAY_PAGE_CONTENT/);
 });
 
-test("hero de 15 dias possui superfície editorial própria sem foto, tiles ou CTAs retail", () => {
+test("hero de 15 dias possui superfície editorial própria sem foto, tiles, CTAs retail ou fonte exposta", () => {
   assert.match(hero, /className={`fifteen-day-retail-hero fifteen-day-retail-hero--\$\{advisoryLevel\}`}/);
   assert.match(hero, /className="fifteen-day-retail-hero__inner"/);
   assert.match(hero, /Previsão estendida · Pelotas/);
   assert.match(hero, /Previsão de 15 dias para Pelotas/);
   assert.match(hero, /Temperaturas entre \$\{minimum\}° e \$\{maximum\}°/);
   assert.match(hero, /Janela disponível/);
+  assert.match(hero, /Atualizado em \{formatDateTime\(forecast\.source\.fetchedAt\)\}/);
+  assert.doesNotMatch(hero, /forecast\.source\.model/);
   assert.match(hero, /fifteen-day-retail-hero__facts/);
   assert.match(hero, /Maior volume/);
   assert.match(hero, /Rajadas/);
@@ -175,10 +177,11 @@ test("estrutura visual de 15 dias mantém cards só onde a comparação pede e a
   assert.match(pageStyles, /content-visibility:\s*auto/);
 });
 
-test("rodapé de 15 dias concentra fonte e navegação sem novos cards", () => {
+test("rodapé de 15 dias concentra atualização e navegação sem expor fonte em novos cards", () => {
   assert.match(page, /<footer className="fifteen-day__footer">/);
-  assert.match(page, /forecast\.source\.model/);
+  assert.doesNotMatch(page, /forecast\.source\.model/);
   assert.match(page, /forecast\.source\.returnedDays/);
+  assert.match(page, /forecast\.source\.requestedDays/);
   assert.match(page, /to="\/previsao-7-dias-pelotas">7 dias/);
   assert.match(page, /to="\/tempo-amanha-pelotas">Amanhã/);
   assert.match(page, /to="\/chuva-em-pelotas">Chuva/);
