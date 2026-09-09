@@ -6,6 +6,10 @@ const laranjalRoute = readFileSync(
   "src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx",
   "utf8",
 );
+const laranjalPage = readFileSync(
+  "src/components/hydrology/HydrologyPages.tsx",
+  "utf8",
+);
 const situationRoute = readFileSync("src/routes/situacao-hidrologica-pelotas.tsx", "utf8");
 const detailHero = readFileSync(
   "src/components/hydrology/HydrologyEditorialHero.tsx",
@@ -23,10 +27,12 @@ const currentAnswerStyles = readFileSync(
 test("Laranjal page absorbs the real search language without changing its canonical route", () => {
   assert.match(laranjalRoute, /Nível da Lagoa dos Patos hoje no Laranjal, Pelotas/);
   assert.match(laranjalRoute, /horário da última leitura, tendência e variação nas últimas 24 horas/);
-  assert.match(laranjalRoute, /Qual é o nível da Lagoa dos Patos hoje em Pelotas\?/);
   assert.match(detailHero, /Nível da Lagoa dos Patos hoje no Laranjal\./);
   assert.match(detailHero, /Última leitura com horário e estado de atualização/);
   assert.match(detailHero, /Tendência e variações de 1 h, 6 h e 24 h/);
+  assert.match(laranjalPage, /Nível medido no Laranjal/);
+  assert.match(laranjalPage, /Variação em 24 horas/);
+  assert.doesNotMatch(laranjalRoute, /EditorialContentSection|createFaqPageJsonLd|Como interpretar o nível no Laranjal/);
   assert.match(laranjalRoute, /PAGE_PATH = "\/nivel-da-lagoa-dos-patos-laranjal"/);
 });
 
