@@ -8,7 +8,6 @@ import {
   Eye,
   Navigation,
   Waves,
-  Wind,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -149,7 +148,7 @@ function fallbackHours(data: WeatherIntelligenceData): MeteogramHour[] {
     boundaryLayerHeight: hour.boundaryLayerHeight ?? null,
     windSpeed: hour.windSpeed,
     windGust: hour.windGust,
-    windDirectionDegrees: null,
+    windDirectionDegrees: hour.windDirectionDegrees ?? null,
     weatherCode: null,
     isDay: null,
   }));
@@ -159,21 +158,12 @@ function usableHours(weather: WeatherIntelligenceData, meteogram: MeteogramData)
   return meteogram.status === "live" && meteogram.hours.length ? meteogram.hours : fallbackHours(weather);
 }
 
-function sourceLabel(weather: WeatherIntelligenceData, meteogram: MeteogramData) {
-  if (meteogram.status === "live") return `${meteogram.source.name} ${meteogram.source.model}`;
-  return weather.weather.quality.forecastProvider ?? "Previsão disponível";
-}
-
 function sourceFetchedAt(weather: WeatherIntelligenceData, meteogram: MeteogramData) {
   if (meteogram.status === "live") return meteogram.source.fetchedAt;
   const key = weather.weather.quality.forecastSource;
-  return key ? weather.weather.sources[key].fetchedAt : weather.weather.source.fetchedAt;
-}
-
-function temperatureSpread(hour: MeteogramHour) {
-  return hour.temperature === null || hour.dewPoint === null
-    ? null
-    : Math.max(0, hour.temperature - hour.dewPoint);
+  return key && weather.weather.sources[key]
+    ? weather.weather.sources[key].fetchedAt
+    : weather.weather.source.fetchedAt;
 }
 
 function lineSegments(
@@ -383,9 +373,19 @@ function selectedWindDetail(hour: MeteogramHour) {
   return `${directionText} · Rajada ${formatGust(hour.windGust)}`;
 }
 
+function selectedCloudDetail(hour: MeteogramHour) {
+  const layers = [
+    hour.cloudCoverLow === null ? null : `Baixas ${formatNumber(hour.cloudCoverLow, "%")}`,
+    hour.cloudCoverMid === null ? null : `Médias ${formatNumber(hour.cloudCoverMid, "%")}`,
+    hour.cloudCoverHigh === null ? null : `Altas ${formatNumber(hour.cloudCoverHigh, "%")}`,
+  ].filter((value): value is string => Boolean(value));
+
+  return layers.length ? layers.join(" · ") : undefined;
+}
+
 function selectedInstabilityDetail(hour: MeteogramHour) {
   return hour.boundaryLayerHeight === null
-    ? "Camada próxima ao solo não informada"
+    ? undefined
     : `Camada próxima ao solo: ${formatNumber(hour.boundaryLayerHeight, " m")}`;
 }
 
@@ -418,8 +418,8 @@ export function MeteogramHero({
 
       <div className="meteogram-hero__panel">
         <header>
-          <span>24 horas</span>
-          <strong>{sourceLabel(weather, meteogram)}</strong>
+          <span>Janela analisada</span>
+          <strong>Próximas 24 horas</strong>
           <small>Atualizado em {formatDateTime(sourceFetchedAt(weather, meteogram))}</small>
         </header>
         <div>
@@ -526,6 +526,7 @@ export function MeteogramPage({
               {selectedMetric("Temperatura", formatNumber(selected.temperature, " °C", 1), selected.feelsLike === null ? "Sensação não informada" : `Sensação ${formatNumber(selected.feelsLike, " °C", 1)}`)}
               {selectedMetric("Chuva", formatRainChance(selected.precipitationProbability), selected.precipitationMm === null ? "Volume não informado" : `${formatNumber(selected.precipitationMm, " mm", 1)} na hora`)}
               {selectedMetric("Umidade", formatNumber(selected.relativeHumidity, "%"), selected.dewPoint === null ? "Ponto de orvalho não informado" : `Ponto de orvalho ${formatNumber(selected.dewPoint, " °C", 1)}`)}
+              {selectedMetric("Nuvens", formatNumber(selected.cloudCover, "%"), selectedCloudDetail(selected))}
               {selectedMetric("Vento", formatNumber(selected.windSpeed, " km/h", 1), selectedWindDetail(selected))}
               {selectedMetric("Pressão", formatNumber(selected.pressure, " hPa", 1))}
               {selectedMetric("Visibilidade", formatNumber(selected.visibilityKm, " km", 1))}
@@ -621,14 +622,13 @@ export function MeteogramPage({
 
       <footer className="meteogram-footer">
         <div>
-          <strong>Previsão: {sourceLabel(weather, meteogram)}</strong>
-          <span>Atualizado em {formatDateTime(sourceFetchedAt(weather, meteogram))}</span>
-          {sourceIsFallback ? <small>Previsão detalhada indisponível; usando os dados horários disponíveis.</small> : null}
+          <strong>Atualizado em {formatDateTime(sourceFetchedAt(weather, meteogram))}</strong>
+          {sourceIsFallback ? <small>Previsão detalhada indisponível; usando os dados horários disponíveis.</small> : meteogram.message ? <small>{meteogram.message}</small> : null}
         </div>
         <div>
           <span>Medições reais ficam separadas no Tempo de hoje.</span>
           <Link to="/tempo-hoje-pelotas">Tempo de hoje</Link>
-          <a href={meteogram.source.url} target="_blank" rel="noopener noreferrer">Fonte</a>
+          <Link to="/status-dos-dados">Sobre os dados</Link>
         </div>
       </footer>
 
