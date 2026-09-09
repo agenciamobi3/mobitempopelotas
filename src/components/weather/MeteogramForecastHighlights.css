@@ -1,0 +1,143 @@
+.meteogram-forecast-highlights {
+  width: min(var(--tp-home-container-max, 1440px), calc(100% - 40px));
+  margin: 38px auto 10px;
+  padding-block: 28px 30px;
+  border-top: 1px solid rgb(15 43 58 / 14%);
+  border-bottom: 1px solid rgb(15 43 58 / 14%);
+}
+
+.meteogram-forecast-highlights > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.meteogram-forecast-highlights > header > div > span {
+  display: block;
+  margin-bottom: 5px;
+  color: #0b8196;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.meteogram-forecast-highlights h2 {
+  margin: 0;
+  color: #082235;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  line-height: 1.05;
+}
+
+.meteogram-forecast-highlights > header > small {
+  max-width: 420px;
+  color: #607887;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.meteogram-forecast-highlights__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-top: 1px solid rgb(15 43 58 / 10%);
+}
+
+.meteogram-forecast-highlights__grid article {
+  min-width: 0;
+  padding: 16px 16px 4px;
+  border-right: 1px solid rgb(15 43 58 / 10%);
+}
+
+.meteogram-forecast-highlights__grid article:first-child {
+  padding-left: 0;
+}
+
+.meteogram-forecast-highlights__grid article:last-child {
+  border-right: 0;
+}
+
+.meteogram-forecast-highlights__grid span,
+.meteogram-forecast-highlights__grid small {
+  display: block;
+  color: #68808e;
+}
+
+.meteogram-forecast-highlights__grid span {
+  margin-bottom: 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.meteogram-forecast-highlights__grid strong {
+  display: block;
+  color: #0a2437;
+  font-size: 1.05rem;
+  line-height: 1.15;
+}
+
+.meteogram-forecast-highlights__grid small {
+  margin-top: 5px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 1180px) {
+  .meteogram-forecast-highlights__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .meteogram-forecast-highlights__grid article:nth-child(4n) {
+    border-right: 0;
+  }
+
+  .meteogram-forecast-highlights__grid article:nth-child(n + 5) {
+    margin-top: 12px;
+    border-top: 1px solid rgb(15 43 58 / 10%);
+  }
+}
+
+@media (max-width: 720px) {
+  .meteogram-forecast-highlights {
+    width: min(100% - 28px, var(--tp-home-container-max, 1440px));
+    margin-top: 24px;
+  }
+
+  .meteogram-forecast-highlights > header {
+    align-items: start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .meteogram-forecast-highlights > header > small {
+    text-align: left;
+  }
+
+  .meteogram-forecast-highlights__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .meteogram-forecast-highlights__grid article {
+    padding: 14px 12px;
+    border-top: 1px solid rgb(15 43 58 / 10%);
+  }
+
+  .meteogram-forecast-highlights__grid article:nth-child(odd) {
+    padding-left: 0;
+  }
+
+  .meteogram-forecast-highlights__grid article:nth-child(even) {
+    border-right: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .meteogram-forecast-highlights,
+  .meteogram-forecast-highlights__grid,
+  .meteogram-forecast-highlights__grid article {
+    border-color: CanvasText;
+  }
+}
