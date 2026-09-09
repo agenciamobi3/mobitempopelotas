@@ -9,6 +9,7 @@ const expectedAssets = [
   "/weather/hero/pelotas-laranjal-chuva.webp",
   "/weather/hero/pelotas-noite-chuva.png",
   "/weather/hero/pelotas-noite-tempestade.png",
+  "/weather/hero/pelotas-noite-madrugada-nublado.png",
   "/weather/hero/pelotas-meio-dia-nublado.png",
   "/weather/hero/pelotas-nevoeiro-centro.webp",
   "/weather/hero/pelotas-laranjal-ceu-aberto.webp",
