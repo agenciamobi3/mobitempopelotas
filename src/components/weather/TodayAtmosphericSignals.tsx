@@ -231,12 +231,6 @@ export function TodayAtmosphericSignals({ data }: { data: WeatherIntelligenceDat
     .slice(0, 6);
   const forecastSource = data.weather.quality.forecastSource;
   const sourceHealth = forecastSource ? data.weather.sources[forecastSource] : null;
-  const modelLabel =
-    forecastSource === "open-meteo"
-      ? "Previsão horária: Open-Meteo"
-      : data.weather.quality.forecastProvider
-        ? `Previsão horária: ${data.weather.quality.forecastProvider}`
-        : "Fonte da previsão não informada";
 
   return (
     <section
@@ -366,7 +360,6 @@ export function TodayAtmosphericSignals({ data }: { data: WeatherIntelligenceDat
       <footer className="today-atmosphere__footer">
         <Gauge aria-hidden="true" />
         <span>
-          <strong>{modelLabel}</strong>
           <small>
             {pressureChange === null
               ? "Variação da pressão ainda não disponível."
