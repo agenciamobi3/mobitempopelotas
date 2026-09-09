@@ -14,6 +14,7 @@ A Home do Tempo Pelotas usa fotografias locais de Pelotas como fonte visual prim
 - sol entre nuvens/parcialmente nublado durante o dia: registros locais rotacionados de forma determinística, preservando a divisão por cobertura de nuvens;
 - parcialmente nublado com poucas nuvens no fim de tarde: registro local específico entre 16h e 18h59;
 - parcialmente nublado na madrugada: registro local específico disponível para `partly-cloudy-night` entre 00h e 06h59;
+- nublado na madrugada: usa `pelotas-madrugada-parcialmente-nublado.png` entre 00h e 06h59 para não exibir fotografia diurna durante a madrugada;
 - nublado no entorno do meio-dia: `pelotas-meio-dia-nublado.png` entre 11h e 14h59;
 - nublado nos demais horários: mantém o registro-base anterior.
 
@@ -26,6 +27,8 @@ Os três arquivos adicionados em 07/09/2026 entram de acordo com o próprio esta
 - `pelotas-noite-chuva.png`, do commit `ddc478159b666f868fe6b81e6694e2baadedb144`, é usado quando a condição resolvida é `rain` e a hora local está entre 19h e 06h59;
 - `pelotas-noite-tempestade.png`, do mesmo commit, é usado quando a condição resolvida é `storm` no mesmo período noturno;
 - `pelotas-meio-dia-nublado.png`, do commit `3ec47026de6cb2ac5c42247ee9bed96a23c91f9a`, é usado quando a condição resolvida é `cloud` entre 11h e 14h59.
+
+Para `cloud` entre 00h e 06h59, o resolvedor usa `pelotas-madrugada-parcialmente-nublado.png` como fallback visual compatível com o período. O `kind` continua sendo `cloudy`: a fotografia é reaproveitada apenas para evitar a incoerência de mostrar um registro diurno durante a madrugada. O arquivo não é usado para `cloud` entre 19h e 23h59 porque ele é explicitamente identificado como madrugada; essa faixa continua aguardando uma fotografia própria de noite nublada.
 
 Fora dessas faixas, o acervo anterior continua sendo usado. A regra é determinística e não usa `Math.random()`. Isso evita mostrar uma fotografia explicitamente noturna durante o dia ou uma imagem identificada como meio-dia em horários incompatíveis.
 
