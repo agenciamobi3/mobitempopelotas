@@ -7,9 +7,15 @@ import {
   costaDoceCoverage,
   costaDoceWeatherPath,
 } from "../src/lib/hydrology/costa-doce-cities.ts";
+import {
+  findRegionalCity,
+  isRegionalCityIndexable,
+  regionalCityCoverage,
+} from "../src/lib/regional-cities.ts";
 
 const page = readFileSync("src/components/hydrology/LagoonHydrologyLocalityPage.tsx", "utf8");
 const route = readFileSync("src/routes/nivel-da-lagoa-dos-patos/index.tsx", "utf8");
+const editorial = readFileSync("src/lib/regional-city-editorial-costa-doce.ts", "utf8");
 
 const EXPECTED_CITIES = [
   "Arambaré",
@@ -47,34 +53,18 @@ const LEVEL_CITIES = [
   "São Lourenço do Sul",
 ];
 
-const WEATHER_CITIES = [
-  "Arroio do Padre",
-  "Arroio Grande",
-  "Canguçu",
-  "Chuí",
-  "Cristal",
-  "Jaguarão",
-  "Morro Redondo",
-  "Pelotas",
-  "Piratini",
-  "Rio Grande",
-  "Santa Vitória do Palmar",
-  "São José do Norte",
-  "São Lourenço do Sul",
-  "Turuçu",
-];
-
-const WEATHER_MISSING_WITHOUT_LEVEL = [
-  "Barra do Ribeiro",
-  "Camaquã",
-  "Cerro Grande do Sul",
-  "Dom Feliciano",
-  "Guaíba",
-  "Mariana Pimentel",
-  "Mostardas",
-  "Sertão Santana",
-  "Tapes",
-  "Tavares",
+const NEW_BASIC_WEATHER_SLUGS = [
+  "arambare-rs",
+  "barra-do-ribeiro-rs",
+  "camaqua-rs",
+  "cerro-grande-do-sul-rs",
+  "dom-feliciano-rs",
+  "guaiba-rs",
+  "mariana-pimentel-rs",
+  "mostardas-rs",
+  "sertao-santana-rs",
+  "tapes-rs",
+  "tavares-rs",
 ];
 
 test("Costa Doce mantém as 25 cidades do recorte regional", () => {
@@ -88,19 +78,25 @@ test("somente medições de nível já integradas recebem link hidrológico", ()
   assert.equal(coverage.withLagoonLevel.length, 5);
 });
 
-test("cobertura meteorológica usa somente páginas regionais já publicadas", () => {
+test("todas as 25 cidades da Costa Doce possuem destino meteorológico", () => {
   const coverage = costaDoceCoverage();
-  assert.deepEqual(coverage.withWeather.map((city) => city.name), WEATHER_CITIES);
-  assert.equal(coverage.withWeather.length, 14);
-  assert.equal(costaDoceWeatherPath(COSTA_DOCE_CITIES.find((city) => city.name === "Pelotas")!), "/tempo-hoje-pelotas");
+  assert.deepEqual(coverage.withWeather.map((city) => city.name), EXPECTED_CITIES);
+  assert.equal(coverage.withWeather.length, 25);
+  assert.equal(coverage.weatherMissing.length, 0);
+  assert.equal(
+    costaDoceWeatherPath(COSTA_DOCE_CITIES.find((city) => city.name === "Pelotas")!),
+    "/tempo-hoje-pelotas",
+  );
 });
 
-test("dez cidades sem nível ainda precisam de página meteorológica dedicada", () => {
-  const coverage = costaDoceCoverage();
-  const missing = coverage.weatherMissing
-    .filter((city) => city.lagoonLevelPath === null)
-    .map((city) => city.name);
-  assert.deepEqual(missing, WEATHER_MISSING_WITHOUT_LEVEL);
+test("as 11 novas páginas permanecem basic e noindex até o gate completo", () => {
+  for (const slug of NEW_BASIC_WEATHER_SLUGS) {
+    const city = findRegionalCity(slug);
+    assert.ok(city, `${slug} deve estar no inventário regional`);
+    assert.equal(regionalCityCoverage(city), "basic");
+    assert.equal(isRegionalCityIndexable(city), false);
+    assert.match(editorial, new RegExp(`"${slug}"`));
+  }
 });
 
 test("índice da Lagoa explica cobertura sem afirmar inexistência de estação", () => {
