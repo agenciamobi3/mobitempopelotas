@@ -88,7 +88,7 @@ export type MeteogramHour = {
 };
 
 export type MeteogramData = {
-  status: "live" | "partial" | "unavailable";
+  status: "live" | "unavailable";
   hours: MeteogramHour[];
   source: {
     name: "Open-Meteo";
@@ -176,11 +176,8 @@ function normalize(
         : seriesValue(payload.hourly.is_day, index) !== 0,
   }));
 
-  const status: MeteogramData["status"] =
-    hours.length >= FORECAST_HOURS ? "live" : hours.length ? "partial" : "unavailable";
-
   return {
-    status,
+    status: hours.length ? "live" : "unavailable",
     hours,
     source: {
       name: "Open-Meteo",
@@ -193,7 +190,7 @@ function normalize(
       generationTimeMs: payload.generationtime_ms ?? null,
     },
     message:
-      status === "live"
+      hours.length >= FORECAST_HOURS
         ? null
         : hours.length
           ? `${hours.length} de ${FORECAST_HOURS} horários estão disponíveis nesta atualização.`
