@@ -2,6 +2,7 @@ import type {
   AggregatedCurrentField,
   AggregatedCurrentProvenance,
   AggregatedWeatherData,
+  NowObservationSourceKey,
   WeatherConfidence,
   WeatherSourceHealth,
   WeatherSourceKey,
@@ -62,6 +63,7 @@ export function contingencyKeyFor(_selected: ForecastSourceKey): ForecastSourceK
 export type TraceabilityInput = {
   baseline: WeatherBaselineData;
   sources: Record<WeatherSourceKey, WeatherSourceHealth>;
+  currentSource: NowObservationSourceKey | null;
   confidence: WeatherConfidence;
   hasWeatherData: boolean;
 };
@@ -79,6 +81,7 @@ export type TraceabilityOutput = {
 export function deriveTraceability({
   baseline,
   sources,
+  currentSource,
   confidence,
   hasWeatherData,
 }: TraceabilityInput): TraceabilityOutput {
@@ -88,6 +91,12 @@ export function deriveTraceability({
 
   const degradedSources = (Object.keys(sources) as WeatherSourceKey[]).filter((source) => {
     if (source === contingencyKey) return false;
+
+    // Quando a Embrapa está servindo o Agora, a Defesa Civil é apenas o módulo
+    // de contingência observacional. Uma oscilação nele não rebaixa a página
+    // nem gera mensagem pública enquanto a leitura principal segue válida.
+    if (source === "defesa-civil-rs" && currentSource === "embrapa") return false;
+
     return sources[source].status !== "live" || !sources[source].usable;
   });
 
