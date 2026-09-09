@@ -59,7 +59,7 @@ test("tomorrow content uses direct language without generic section tags", () =>
   assert.match(page, /InternalPageChapters/);
   assert.match(page, /Hoje x amanhã/);
   assert.match(page, /O que observar amanhã/);
-  assert.match(page, /INMET e UFPel para amanhã/);
+  assert.match(page, /officialContextLabel/);
   assert.match(page, /Perguntas sobre amanhã/);
   assert.match(page, /Confira amanhã cedo/);
   assert.match(page, /dayWeatherSummary/);
@@ -160,9 +160,15 @@ test("tomorrow normalizes abbreviated weekdays before matching CPPMet textual fo
 });
 
 test("tomorrow official context is only public when real source content exists", () => {
-  assert.match(page, /const hasOfficialContext = inmetPeriods\.length > 0 \|\| Boolean\(cppmetContext\)/);
-  assert.match(page, /buildChapters\(hasOfficialContext\)/);
-  assert.match(page, /\{hasOfficialContext \? \([\s\S]*id="contexto-oficial-amanha"/);
+  assert.match(page, /const hasInmetContext = inmetPeriods\.length > 0/);
+  assert.match(page, /const hasCppmetContext = Boolean\(cppmetContext\)/);
+  assert.match(page, /const hasOfficialContext = hasInmetContext \|\| hasCppmetContext/);
+  assert.match(page, /officialContextLabel\(hasInmetContext, hasCppmetContext\)/);
+  assert.match(page, /buildChapters\(officialLabel\)/);
+  assert.match(page, /\{hasOfficialContext && officialLabel \? \([\s\S]*id="contexto-oficial-amanha"/);
+  assert.match(page, /if \(hasInmet && hasCppmet\) return "INMET e UFPel"/);
+  assert.match(page, /if \(hasInmet\) return "INMET"/);
+  assert.match(page, /return "UFPel"/);
   assert.doesNotMatch(page, /Sem previsão específica do INMET ou da UFPel para amanhã/);
   assert.doesNotMatch(page, /A previsão principal acima continua disponível/);
   assert.doesNotMatch(page, /to="\/status-dos-dados">Dados e fontes/);
