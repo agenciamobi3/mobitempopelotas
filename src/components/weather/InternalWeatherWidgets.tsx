@@ -114,8 +114,10 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
   const current = weather.current;
   const hasMeasurement =
     current?.temperature !== null && current?.temperature !== undefined;
+  const temperatureProvenance = weather.currentProvenance.temperature;
   const observed =
-    hasMeasurement && weather.currentProvenance.temperature === "defesa-civil-rs";
+    hasMeasurement &&
+    (temperatureProvenance === "embrapa" || temperatureProvenance === "defesa-civil-rs");
 
   const metrics = current
     ? [
@@ -156,7 +158,7 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
             <small className="internal-observation-status">
               {observed ? (
                 <>
-                  <CheckCircle2 aria-hidden="true" /> Medição da Rede Defesa Civil RS
+                  <CheckCircle2 aria-hidden="true" /> Medição observada
                 </>
               ) : (
                 <>
