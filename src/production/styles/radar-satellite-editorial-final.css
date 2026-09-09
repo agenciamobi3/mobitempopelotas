@@ -1,0 +1,130 @@
+/*
+ * Contrato final da página /radar-e-satelite-pelotas.
+ * Entra depois da barreira editorial antiga para devolver à rota o mesmo
+ * acabamento das internas atuais: rail da Home, cards claros e radius suave.
+ */
+.site-shell--topic .radar-satellite-page {
+  display: grid;
+  gap: clamp(18px, 2.4vw, 28px);
+  width: 100%;
+}
+
+.site-shell--topic .radar-satellite-page > .redemet-page {
+  display: grid;
+  gap: clamp(18px, 2.4vw, 28px);
+  width: 100%;
+  max-width: none;
+}
+
+.site-shell--topic .redemet-hero,
+.site-shell--topic .redemet-page > section,
+.site-shell--topic .radar-satellite-page > .redemet-collections,
+.site-shell--topic .radar-satellite-page > .radar-forecast-context,
+.site-shell--topic .radar-satellite-page > .editorial-answer-section {
+  border: 1px solid var(--internal-line, rgb(7 30 47 / 10%)) !important;
+  border-radius: 18px !important;
+  background-color: #fff !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+
+.site-shell--topic .redemet-hero {
+  background-color: #f3f7f8 !important;
+}
+
+.site-shell--topic .redemet-source-overview__list,
+.site-shell--topic .redemet-monitor__surface,
+.site-shell--topic .redemet-satellite-products,
+.site-shell--topic .redemet-storms__reading,
+.site-shell--topic .redemet-collections__list,
+.site-shell--topic .redemet-collections__storms,
+.site-shell--topic .redemet-collections__storms dl {
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 14px;
+  background: #f8faf9;
+}
+
+.site-shell--topic .redemet-source-overview__list,
+.site-shell--topic .redemet-collections__list {
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.site-shell--topic .redemet-source-row,
+.site-shell--topic .redemet-collections__row {
+  padding-right: 1rem;
+  padding-left: 1rem;
+}
+
+.site-shell--topic .redemet-satellite-section {
+  background-color: #fbfcfc !important;
+}
+
+.site-shell--topic .redemet-satellite-grid .redemet-monitor {
+  padding: clamp(14px, 1.8vw, 20px);
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.site-shell--topic .redemet-satellite-grid .redemet-monitor__surface {
+  background: #f6f8f8;
+}
+
+.site-shell--topic .redemet-storms > [class*="StormMapFrame"] {
+  border-radius: 16px;
+}
+
+.site-shell--topic .redemet-reading-note {
+  background-color: #f4f8f8 !important;
+}
+
+.site-shell--topic .radar-forecast-context {
+  background-color: #f4f8f8 !important;
+}
+
+.site-shell--topic .redemet-collections__storms {
+  padding: clamp(18px, 2.4vw, 28px);
+}
+
+.site-shell--topic .redemet-collections__storms dl {
+  background: #fff;
+}
+
+.site-shell--topic .redemet-monitor__heading h2,
+.site-shell--topic .redemet-source-overview h2,
+.site-shell--topic .redemet-satellite-section h2,
+.site-shell--topic .redemet-reading-note h2,
+.site-shell--topic .redemet-collections h2,
+.site-shell--topic .radar-forecast-context h2 {
+  font-size: clamp(1.9rem, 3vw, 3.2rem);
+}
+
+@media (max-width: 720px) {
+  .site-shell--topic .redemet-hero,
+  .site-shell--topic .redemet-page > section,
+  .site-shell--topic .radar-satellite-page > .redemet-collections,
+  .site-shell--topic .radar-satellite-page > .radar-forecast-context,
+  .site-shell--topic .radar-satellite-page > .editorial-answer-section {
+    border-radius: 14px !important;
+  }
+
+  .site-shell--topic .redemet-satellite-grid .redemet-monitor {
+    padding: 12px;
+    border-radius: 14px;
+  }
+}
+
+@media (forced-colors: active) {
+  .site-shell--topic .redemet-hero,
+  .site-shell--topic .redemet-page > section,
+  .site-shell--topic .radar-satellite-page > .redemet-collections,
+  .site-shell--topic .radar-satellite-page > .radar-forecast-context,
+  .site-shell--topic .radar-satellite-page > .editorial-answer-section {
+    border-color: CanvasText !important;
+    background: Canvas !important;
+    color: CanvasText !important;
+  }
+}
