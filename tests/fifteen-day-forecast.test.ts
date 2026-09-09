@@ -44,19 +44,27 @@ test("previsão estendida preserva ausência e diferencia janela parcial", () =>
   assert.doesNotMatch(extendedServer, /windGust:\s*.*\?\?\s*0/);
 });
 
-test("previsão estendida usa contingência Edge como janela parcial quando a consulta direta falha", () => {
+test("previsão estendida tenta duas janelas de 15 dias antes da contingência legada", () => {
+  assert.match(extendedServer, /GFS_FORECAST_ENDPOINT/);
+  assert.match(extendedServer, /model:\s*"Open-Meteo Best Match"/);
+  assert.match(extendedServer, /model:\s*"NOAA GFS"/);
+  assert.match(extendedServer, /fetchOpenMeteoExtendedPayloadViaEdge/);
   assert.match(extendedServer, /fetchOpenMeteoPayloadViaEdge/);
-  assert.match(extendedServer, /fetchExtendedForecastEdgeFallback/);
-  assert.match(extendedServer, /edge\.payload/);
-  assert.match(extendedServer, /edge\.fetchedAt/);
-  assert.match(extendedServer, /normalizeExtendedForecast\(parsed\.data\)/);
-  assert.match(extendedServer, /consulta direta de 15 dias não respondeu/);
-  assert.match(extendedServer, /dias preservados pela contingência Open-Meteo/);
+  assert.match(extendedServer, /const extendedEdgePromise = fetchExtendedForecastEdgeFallback\(\)/);
+  assert.match(extendedServer, /preferBroaderForecast/);
+  assert.match(extendedServer, /fetchLegacySevenDayEdgeFallback/);
+  assert.match(extendedServer, /model:\s*"Open-Meteo 7-day Cache"/);
   assert.doesNotMatch(extendedServer, /requestedDays:\s*7/);
 });
 
-test("função pública da previsão estendida possui cache próprio", () => {
+test("função pública usa cache longo só para janela completa e recupera rápido de parcial", () => {
+  assert.match(extendedFunctions, /status === "live"/);
   assert.match(extendedFunctions, /max-age=300, stale-while-revalidate=300/);
+  assert.match(extendedFunctions, /status === "partial"/);
+  assert.match(extendedFunctions, /max-age=60, stale-while-revalidate=120/);
+  assert.match(extendedFunctions, /no-store, max-age=0/);
+  assert.match(extendedFunctions, /setExtendedForecastCacheHeaders\(forecast\.status\)/);
+  assert.match(extendedFunctions, /setExtendedForecastCacheHeaders\(unavailable\.status\)/);
   assert.match(extendedFunctions, /fetchPelotasExtendedForecast/);
   assert.match(extendedFunctions, /createUnavailableExtendedForecast/);
 });
@@ -65,14 +73,13 @@ test("loader público de 15 dias degrada as duas consultas de forma independente
   assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800/);
   assert.match(extendedPageLoader, /settlePageDependency/);
   assert.match(extendedPageLoader, /Promise\.race/);
-  assert.match(extendedPageLoader, /Promise\.allSettled/);
+  assert.match(extendedPageLoader, /const \[weather, extendedForecast\] = await Promise\.all\(\[/);
   assert.match(extendedPageLoader, /getWeatherIntelligence\(\)/);
   assert.match(extendedPageLoader, /getPelotasExtendedForecast\(\)/);
   assert.match(extendedPageLoader, /createUnavailableWeatherIntelligence/);
   assert.match(extendedPageLoader, /status:\s*"unavailable"/);
   assert.match(extendedPageLoader, /days:\s*\[\]/);
   assert.match(extendedPageLoader, /requestedDays:\s*15/);
-  assert.doesNotMatch(extendedPageLoader, /Promise\.all\(/);
 });
 
 test("rota de 15 dias usa shell próprio sem camada editorial duplicada", () => {
