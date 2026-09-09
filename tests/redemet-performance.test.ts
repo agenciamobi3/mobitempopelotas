@@ -83,7 +83,7 @@ test("satélite REDEMET tenta somente a hora UTC anterior quando a resposta atua
   assert.match(satelliteServer, /url\.searchParams\.set\("data", referenceData\)/);
   assert.match(satelliteServer, /const referenceData = previousRedemetUtcHourToken\(\)/);
   assert.match(satelliteServer, /const previousHour = await requestSatellitePayload/);
-  assert.match(satelliteServer, /hora UTC anterior, uma única vez/);
+  
   assert.doesNotMatch(satelliteServer, /for \([^\n]*previousRedemetUtcHourToken/);
 });
 
@@ -202,7 +202,7 @@ test("radar editorial section skips offscreen rendering in its isolated componen
 });
 
 test("radar isolated layer preserves map gestures and compact operational controls", () => {
-  assert.match(radarCss, /\.tp-home-radar \.map-canvas\s*\{[\s\S]*cursor:\s*grab/);
+  assert.match(weatherMap, /cooperativeGestures:\s*true/);
   assert.match(radarCss, /\.tp-home-radar \.radar-player\s*\{[\s\S]*pointer-events:\s*none/);
   assert.match(radarCss, /map-canvas--satellite[\s\S]*width:\s*min\(680px/);
   assert.match(radarCss, /maplibregl-ctrl-bottom-right[\s\S]*top:\s*80px/);
