@@ -13,6 +13,9 @@ const GFS_FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/gfs";
 const OPEN_METEO_URL = "https://open-meteo.com/";
 const TIMEZONE = "America/Sao_Paulo";
 const REQUEST_TIMEOUT_MS = 2_200;
+const TOTAL_FETCH_BUDGET_MS = 2_550;
+const EXTENDED_EDGE_MAX_WAIT_MS = 900;
+const LEGACY_EDGE_MAX_WAIT_MS = 500;
 export const EXTENDED_FORECAST_DAYS = 15 as const;
 
 const PELOTAS = {
@@ -331,7 +334,29 @@ function preferBroaderForecast(
   return selected;
 }
 
+function remainingBudget(startedAt: number, capMs: number) {
+  const remaining = TOTAL_FETCH_BUDGET_MS - (Date.now() - startedAt);
+  return Math.max(0, Math.min(capMs, remaining));
+}
+
+async function settleWithin<T>(promise: Promise<T>, waitMs: number): Promise<T | null> {
+  if (waitMs <= 0) return null;
+
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), waitMs);
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastData> {
+  const startedAt = Date.now();
   const bestMatchCandidate: DirectForecastCandidate = {
     endpoint: FORECAST_ENDPOINT,
     model: "Open-Meteo Best Match",
@@ -341,19 +366,28 @@ export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastDa
     model: "NOAA GFS",
   };
 
-  const [bestMatch, gfs, extendedEdge, legacySevenDay] = await Promise.all([
+  const [bestMatch, gfs] = await Promise.all([
     fetchDirectExtendedForecast(bestMatchCandidate),
     fetchDirectExtendedForecast(gfsCandidate),
-    fetchExtendedForecastEdgeFallback(),
-    fetchLegacySevenDayEdgeFallback(),
   ]);
 
-  const selected = preferBroaderForecast([
-    bestMatch,
-    gfs,
-    extendedEdge,
-    legacySevenDay,
-  ]);
+  const direct = preferBroaderForecast([bestMatch, gfs]);
+  if (direct?.status === "live") return direct;
+
+  const extendedEdge = await settleWithin(
+    fetchExtendedForecastEdgeFallback(),
+    remainingBudget(startedAt, EXTENDED_EDGE_MAX_WAIT_MS),
+  );
+  const extended = preferBroaderForecast([direct, extendedEdge]);
+  if (extended?.status === "live" || (extended && extended.days.length >= 7)) {
+    return extended;
+  }
+
+  const legacySevenDay = await settleWithin(
+    fetchLegacySevenDayEdgeFallback(),
+    remainingBudget(startedAt, LEGACY_EDGE_MAX_WAIT_MS),
+  );
+  const selected = preferBroaderForecast([extended, legacySevenDay]);
 
   return (
     selected ??
