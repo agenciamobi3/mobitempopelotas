@@ -51,10 +51,10 @@ test("rota dinâmica valida slug pelo registry e páginas preservam referências
   assert.match(page, /não soma, subtrai ou converte automaticamente/);
 });
 
-test("somente cidades meteorológicas verificadas recebem associação de águas", () => {
+test("cidades meteorológicas verificadas recebem associação de águas", () => {
   assert.deepEqual(
     HYDROLOGY_LOCALITIES.filter((locality) => locality.weatherCitySlug).map((locality) => locality.weatherCitySlug),
-    ["rio-grande-rs", "sao-lourenco-do-sul-rs", "sao-jose-do-norte-rs"],
+    ["rio-grande-rs", "sao-lourenco-do-sul-rs", "arambare-rs", "sao-jose-do-norte-rs"],
   );
 });
 
