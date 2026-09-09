@@ -71,12 +71,12 @@ function makeProvider(key: ForecastSourceKey, live: boolean): WeatherHomeData {
 
 function healthyOther(): Pick<
   Record<WeatherSourceKey, WeatherSourceHealth>,
-  "embrapa" | "inmet" | "cppmet"
+  "defesa-civil-rs" | "inmet" | "cppmet"
 > {
   const now = new Date().toISOString();
   return {
-    embrapa: {
-      source: "embrapa",
+    "defesa-civil-rs": {
+      source: "defesa-civil-rs",
       status: "live",
       role: "observation",
       fetchedAt: now,
@@ -164,6 +164,7 @@ test("Agregação com Open-Meteo saudável: forecastSource=open-meteo, provider 
   const trace = deriveTraceability({
     baseline,
     sources,
+    currentSource: "embrapa",
     confidence: "high",
     hasWeatherData: true,
   });
@@ -184,6 +185,7 @@ test("Agregação: falha apenas do MET Norway não entra em degradedSources nem 
   const trace = deriveTraceability({
     baseline,
     sources,
+    currentSource: "embrapa",
     confidence: "high",
     hasWeatherData: true,
   });
@@ -192,6 +194,31 @@ test("Agregação: falha apenas do MET Norway não entra em degradedSources nem 
   assert.equal(trace.status, "live");
   assert.deepEqual(trace.degradedSources, []);
   assert.equal(sources["met-norway"].usable, false);
+});
+
+test("Falha da Defesa Civil fica silenciosa quando Embrapa está servindo o Agora", () => {
+  const baseline = selectBaseline(
+    makeProvider("open-meteo", true),
+    makeProvider("met-norway", true),
+  );
+  const sources = makeSources(baseline);
+  sources["defesa-civil-rs"] = {
+    ...sources["defesa-civil-rs"],
+    status: "unavailable",
+    usable: false,
+    reason: "timeout",
+  };
+
+  const trace = deriveTraceability({
+    baseline,
+    sources,
+    currentSource: "embrapa",
+    confidence: "high",
+    hasWeatherData: true,
+  });
+
+  assert.equal(trace.status, "live");
+  assert.ok(!trace.degradedSources.includes("defesa-civil-rs"));
 });
 
 test("Agregação com contingência MET Norway: forecastSource=met-norway, provider MET Norway, status degraded", () => {
@@ -203,6 +230,7 @@ test("Agregação com contingência MET Norway: forecastSource=met-norway, provi
   const trace = deriveTraceability({
     baseline,
     sources,
+    currentSource: "embrapa",
     confidence: "high",
     hasWeatherData: true,
   });
@@ -211,7 +239,6 @@ test("Agregação com contingência MET Norway: forecastSource=met-norway, provi
   assert.equal(trace.forecastSource, "met-norway");
   assert.equal(trace.forecastProvider, "MET Norway");
   assert.equal(trace.status, "degraded");
-  // Open-Meteo indisponível deve aparecer como degradada
   assert.ok(trace.degradedSources.includes("open-meteo"));
 });
 
