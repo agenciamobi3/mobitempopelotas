@@ -142,8 +142,8 @@ export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData
                   className="alerts-source-logo"
                   src="/inmet_logo_banner.png"
                   alt="INMET — Instituto Nacional de Meteorologia"
-                  width="136"
-                  height="24"
+                  width="227"
+                  height="40"
                 />
               ) : (
                 "INMET indisponível"
