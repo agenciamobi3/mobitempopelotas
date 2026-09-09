@@ -15,6 +15,7 @@ type MegaMenuId = "forecast" | "water" | "region" | "explore";
 type HeaderStaticPath =
   | EditorialInternalPath
   | "/blog"
+  | "/estacao-embrapa-pelotas"
   | "/nivel-da-lagoa-dos-patos"
   | "/nivel-do-canal-sao-goncalo"
   | "/nivel-do-rio-jaguarao"
@@ -301,6 +302,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
     label: "Explorar",
     summary: "Observação, clima, histórico, conteúdo editorial e transparência dos dados.",
     activePaths: [
+      "/estacao-embrapa-pelotas",
       "/cameras-ao-vivo-pelotas",
       "/mapa-de-geadas-rio-grande-do-sul",
       "/clima-em-pelotas",
@@ -318,6 +320,11 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
       {
         title: "Observação e contexto",
         links: [
+          {
+            label: "Estação Embrapa",
+            to: "/estacao-embrapa-pelotas",
+            description: "Medições locais de temperatura, chuva, vento e pressão.",
+          },
           {
             label: "Câmeras ao vivo",
             to: "/cameras-ao-vivo-pelotas",
