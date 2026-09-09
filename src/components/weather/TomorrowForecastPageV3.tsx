@@ -426,7 +426,11 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
         >
           <header>
             <div>
-              <h2 id="tomorrow-v3-official-title">{officialLabel} para amanhã</h2>
+              <h2 id="tomorrow-v3-official-title">
+                {hasCppmetContext && !hasInmetContext
+                  ? "Previsão do Centro de Pesquisas e Previsões Meteorológicas UFPEL para amanhã"
+                  : `${officialLabel} para amanhã`}
+              </h2>
             </div>
           </header>
 
