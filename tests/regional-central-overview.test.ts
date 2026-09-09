@@ -49,10 +49,10 @@ const overviewSnapshotReconciliation = readFileSync(
   "utf8",
 );
 
-test("a Central Regional inclui 35 cidades públicas sem antecipar indexação das 11 novas", () => {
+test("a Central Regional publica e indexa as 35 cidades aprovadas", () => {
   assert.equal(REGIONAL_CITIES.length, 35);
   assert.equal(PUBLIC_REGIONAL_CITIES.length, 35);
-  assert.equal(INDEXABLE_REGIONAL_CITIES.length, 24);
+  assert.equal(INDEXABLE_REGIONAL_CITIES.length, 35);
   assert.equal(REGIONAL_CITY_GROUPS.length, 4);
   assert.deepEqual(
     REGIONAL_CITY_GROUPS.map((group) => group.name),
