@@ -27,10 +27,8 @@ const ALERTS_PAGE_CONTENT = {
     "O alerta amarelo indica perigo potencial; o laranja indica perigo; e o vermelho indica grande perigo.",
     "Confira sempre os horários de início e término, porque um aviso programado ainda pode não estar em vigor.",
     "Um alerta regional ou estadual não significa, necessariamente, que todos os bairros de Pelotas terão o mesmo impacto.",
-    "A página preserva o horário de publicação, a validade e a lista territorial recebida do aviso oficial quando esses campos estão disponíveis no CAP/RSS do INMET.",
     "Um alerta de chuva não informa quanto já choveu na estação local; acumulados observados e previsão ficam na página de chuva.",
     "A ausência de alerta não elimina mudanças rápidas no tempo nem substitui o acompanhamento de radar e previsão.",
-    "Quando a consulta ao INMET estiver indisponível, a página informa a falha em vez de interpretar a ausência de dados como ausência de risco.",
     "Em situação de risco, siga prioritariamente as orientações do INMET, da Defesa Civil e das autoridades locais.",
   ],
   faqs: [
