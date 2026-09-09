@@ -2,6 +2,12 @@ import type { DailyForecast } from "./types";
 
 export type ExtendedForecastStatus = "live" | "partial" | "unavailable";
 
+export type ExtendedForecastModel =
+  | "Open-Meteo Best Match"
+  | "NOAA GFS"
+  | "Open-Meteo Extended Cache"
+  | "Open-Meteo 7-day Cache";
+
 export type ExtendedForecastData = {
   status: ExtendedForecastStatus;
   days: DailyForecast[];
@@ -9,7 +15,7 @@ export type ExtendedForecastData = {
     name: "Open-Meteo";
     url: string;
     fetchedAt: string;
-    model: "Open-Meteo Best Match";
+    model: ExtendedForecastModel;
     requestedDays: 15;
     returnedDays: number;
   };
