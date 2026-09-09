@@ -138,13 +138,21 @@ export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData
             <dt>Fonte oficial</dt>
             <dd className="alerts-source-logo-cell">
               {inmet.usable ? (
-                <img
-                  className="alerts-source-logo"
-                  src="/inmet_logo_banner.png"
-                  alt="INMET — Instituto Nacional de Meteorologia"
-                  width="227"
-                  height="40"
-                />
+                <a
+                  className="alerts-source-logo-link"
+                  href="https://avisos.inmet.gov.br/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Abrir avisos oficiais do INMET em nova aba"
+                >
+                  <img
+                    className="alerts-source-logo"
+                    src="/inmet_logo_banner.png"
+                    alt="INMET — Instituto Nacional de Meteorologia"
+                    width="227"
+                    height="40"
+                  />
+                </a>
               ) : (
                 "INMET indisponível"
               )}
