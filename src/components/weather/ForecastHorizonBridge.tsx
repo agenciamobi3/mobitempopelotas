@@ -6,13 +6,15 @@ import "./ForecastHorizonBridge.css";
 export function ForecastHorizonBridge() {
   return (
     <section className="forecast-horizon-bridge" aria-labelledby="forecast-horizon-bridge-title">
-      <CalendarRange aria-hidden="true" />
-      <div>
-        <h2 id="forecast-horizon-bridge-title">Previsão para os próximos 15 dias</h2>
-        <p>A segunda semana tem mais incerteza. Confira novamente mais perto da data.</p>
-      </div>
-      <Link to="/previsao-15-dias-pelotas">
-        Ver 15 dias <ArrowRight aria-hidden="true" />
+      <Link to="/previsao-15-dias-pelotas" aria-labelledby="forecast-horizon-bridge-title">
+        <CalendarRange aria-hidden="true" />
+        <div>
+          <h2 id="forecast-horizon-bridge-title">Previsão para os próximos 15 dias</h2>
+          <p>A segunda semana tem mais incerteza. Confira novamente mais perto da data.</p>
+        </div>
+        <span>
+          Ver 15 dias <ArrowRight aria-hidden="true" />
+        </span>
       </Link>
     </section>
   );
