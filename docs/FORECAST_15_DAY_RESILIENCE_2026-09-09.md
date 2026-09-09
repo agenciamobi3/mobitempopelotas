@@ -51,7 +51,9 @@ Não foram adicionados `current` nem `hourly` ao contrato de 15 dias.
 
 O loader público continua com deadline próprio de 2,8 s por dependência. O objetivo é impedir que a nova camada de contingência transforme uma resposta direta já disponível em timeout de SSR.
 
-Se Best Match ou GFS retornarem os 15 dias, a função retorna imediatamente sem esperar Edge ou cache legado.
+A leitura do cache estendido agora começa **em paralelo** às consultas Best Match e NOAA GFS. Isso evita um buraco operacional: se os dois upstreams diretos consumirem quase todo o timeout de 2,2 s, a contingência já teve esse mesmo período para consultar o snapshot persistido, em vez de começar somente nos últimos milissegundos do budget público.
+
+Se Best Match ou GFS retornarem os 15 dias, a função retorna imediatamente sem esperar o resultado da contingência. A leitura paralela do cache não muda a prioridade da fonte; apenas aquece o caminho de fallback.
 
 ## Cache dedicado
 
@@ -108,16 +110,19 @@ Foi adicionado contrato estático para proteger:
 - RPC pública restrita;
 - ordem Best Match → GFS na Edge;
 - seleção da janela mais ampla;
+- aquecimento paralelo da contingência estendida antes de aguardar os upstreams diretos;
 - preservação da contingência de 7 dias.
 
-Não declarar build, typecheck, lint ou testes como PASS enquanto não houver execução real em runner funcional.
+A alteração de aquecimento paralelo também passou por verificação sintática isolada com TypeScript 5.8.3 e pelas asserções estáticas específicas do novo fluxo. Isso não equivale à execução da suíte completa do projeto.
+
+Não declarar build, typecheck, lint ou suíte geral como PASS enquanto não houver execução real em runner funcional.
 
 ## Implantação em produção
 
 Em 09/09/2026 a infraestrutura estendida foi aplicada ao projeto Supabase `tempopelotas`:
 
 1. migration `add_open_meteo_extended_cache` aplicada com sucesso, registrada remotamente como versão `20260909192047`;
-2. Edge Function `open-meteo-extended-forecast` implantada e ativa, versão 1, usando autenticação própria por `X-Collector-Token`;
+2. Edge Function `open-meteo-extended-forecast` implantada e ativa; a versão 2 é a versão operacional atual, usando autenticação própria por `X-Collector-Token`;
 3. o cache foi aquecido por uma chamada controlada à própria Edge Function;
 4. a chamada respondeu HTTP 200 com `cacheStatus: refreshed`;
 5. o payload persistido continha 15 datas, de 09/09/2026 a 23/09/2026, originadas de `Open-Meteo Best Match`;
