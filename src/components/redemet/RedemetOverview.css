@@ -168,6 +168,11 @@
   background: #fff8e5;
 }
 
+.redemet-source-state.is-daylight {
+  color: #5d5a17;
+  background: #fffce8;
+}
+
 .redemet-freshness.is-stale,
 .redemet-source-state.is-unavailable {
   color: #9a4936;
@@ -460,6 +465,67 @@
   padding-top: clamp(2.4rem, 5vw, 4rem);
 }
 
+.redemet-satellite-products {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1rem, 2.5vw, 2rem);
+  padding: 1rem 0;
+  border-top: 1px solid var(--redemet-line);
+  border-bottom: 1px solid var(--redemet-line);
+}
+
+.redemet-satellite-products__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--redemet-line-strong);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.redemet-satellite-products__buttons button {
+  min-height: 42px;
+  padding: 0.65rem 0.9rem;
+  border: 0;
+  border-right: 1px solid var(--redemet-line);
+  color: #35505d;
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.redemet-satellite-products__buttons button:last-child {
+  border-right: 0;
+}
+
+.redemet-satellite-products__buttons button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--redemet-ink);
+}
+
+.redemet-satellite-products > p {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  color: var(--redemet-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.redemet-satellite-products > p strong {
+  color: var(--redemet-ink);
+  font-size: 0.84rem;
+}
+
+.redemet-satellite-products > p small {
+  color: #8b5d00;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
 .redemet-satellite-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -602,9 +668,15 @@
     font-size: clamp(2.7rem, 13vw, 4.6rem);
   }
 
+  .redemet-satellite-products,
   .redemet-satellite-grid,
   .redemet-storms__reading {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .redemet-satellite-products__buttons {
+    width: fit-content;
+    max-width: 100%;
   }
 
   .redemet-storms__reading > div + div {
@@ -631,6 +703,18 @@
     grid-column: 2;
     justify-self: start;
     text-align: left;
+  }
+
+  .redemet-satellite-products__buttons {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .redemet-satellite-products__buttons button {
+    min-width: 0;
+    padding-inline: 0.55rem;
+    font-size: 0.7rem;
   }
 
   .redemet-frame-controls,
@@ -670,7 +754,8 @@
     .redemet-monitor__surface,
     .redemet-reading-note,
     .redemet-storms__reading,
-    .redemet-layer-empty
+    .redemet-layer-empty,
+    .redemet-satellite-products
   ) {
     border: 1px solid CanvasText;
     background: Canvas;
