@@ -11,7 +11,6 @@ const editorialRouteFiles = [
   "src/routes/cameras-ao-vivo-pelotas.tsx",
   "src/routes/mapa-de-geadas-rio-grande-do-sul.tsx",
   "src/routes/situacao-hidrologica-pelotas.tsx",
-  "src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx",
 ] as const;
 
 function read(path: string) {
@@ -25,6 +24,23 @@ test("content routes with dedicated editorial blocks expose visible answers and 
     assert.match(source, /createFaqPageJsonLd/);
     assert.match(source, /about:\s*\[/);
   }
+});
+
+test("Laranjal level keeps direct hydrology content without a duplicate operational explainer", () => {
+  const route = read("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
+  const page = read("src/components/hydrology/HydrologyPages.tsx");
+  assert.match(route, /createEditorialPageJsonLd/);
+  assert.match(route, /about:\s*\[/);
+  assert.match(route, /LaranjalLevelPage/);
+  assert.match(route, /AnaRhnLaranjalStationProfile/);
+  assert.match(route, /LaranjalMonitoringHistory/);
+  assert.doesNotMatch(
+    route,
+    /EditorialContentSection|createFaqPageJsonLd|LARANJAL_PAGE_CONTENT|LARANJAL_LEVEL_EDITORIAL_CONTENT|como-interpretar-nivel-laranjal/,
+  );
+  assert.match(page, /Nível medido no Laranjal/);
+  assert.match(page, /Variação em 24 horas/);
+  assert.match(page, /Esta leitura não é uma cota oficial de risco ou inundação/);
 });
 
 test("seven-day forecast keeps visible direct content without a duplicate editorial or FAQ layer", () => {
@@ -76,6 +92,7 @@ test("core search intents remain distinct and internally connected", () => {
   const rainRoute = read("src/routes/chuva-em-pelotas.tsx");
   const rainPage = read("src/components/weather/RainForecastPageV2.tsx");
   const laranjal = read("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
+  const hydrologyPages = read("src/components/hydrology/HydrologyPages.tsx");
   const situation = read("src/routes/situacao-hidrologica-pelotas.tsx");
 
   assert.match(home, /Tempo agora em Pelotas: temperatura, chuva e previsão/);
@@ -85,11 +102,11 @@ test("core search intents remain distinct and internally connected", () => {
   assert.match(rainRoute, /Chuva em Pelotas hoje: acumulado, chance e previsão/);
   assert.match(rainPage, /\/radar-e-satelite-pelotas/);
   assert.match(rainPage, /\/vento-em-pelotas/);
-  assert.match(laranjal, /O nível da Lagoa dos Patos está em tempo real\?/);
-  assert.match(laranjal, /atrasada ou indisponível/);
-  assert.match(laranjal, /\/nivel-do-guaiba/);
-  assert.match(laranjal, /\/enchente-1941-pelotas/);
-  assert.match(laranjal, /\/enchente-2024-pelotas-laranjal/);
+  assert.match(laranjal, /Nível da Lagoa dos Patos hoje no Laranjal, Pelotas/);
+  assert.match(laranjal, /horário da última leitura, tendência e variação nas últimas 24 horas/);
+  assert.doesNotMatch(laranjal, /Como interpretar o nível no Laranjal|Por que a fonte da leitura pode mudar/);
+  assert.match(hydrologyPages, /Nível medido no Laranjal/);
+  assert.match(hydrologyPages, /Variação em 24 horas/);
   assert.match(situation, /\/enchente-1941-pelotas/);
   assert.match(situation, /\/enchente-2024-pelotas-laranjal/);
 });
