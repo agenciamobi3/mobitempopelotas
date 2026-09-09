@@ -1,12 +1,14 @@
-import { fetchDefesaCivilCurrentObservation } from "./defesa-civil-current.server";
 import type { CurrentWeatherObservation } from "./current-observation.types";
 import { fetchOfficialWeatherSources } from "./official-sources.server";
 import type { InmetForecastPeriod } from "./official-sources.types";
 import { fetchPelotasWeather, type WeatherBaselineData } from "./weather-baseline.server";
 import type { CurrentWeather, DailyForecast, ForecastSourceKey, WeatherHomeData } from "./types";
 import type {
+  AggregatedCurrentWeather,
   AggregatedWeatherData,
+  NowObservationSourceKey,
   WeatherConfidence,
+  WeatherDataSourceKey,
   WeatherDiscrepancy,
   WeatherDiscrepancyField,
   WeatherSourceHealth,
@@ -17,12 +19,9 @@ import {
   createProviderHealth,
   deriveTraceability,
 } from "./weather-traceability";
-import {
-  OBSERVATION_MAX_AGE_MINUTES,
-  deriveObservedCurrent,
-  getObservationAgeMinutes,
-} from "./current-observation";
+import { OBSERVATION_MAX_AGE_MINUTES } from "./current-observation";
 import { localForecastDateKey } from "./daily-temperature-reconciliation";
+import { fetchNowSourceResolution } from "./now-source.server";
 
 const TIMEZONE = "America/Sao_Paulo";
 
@@ -39,8 +38,8 @@ function addDiscrepancy(
   options: {
     scope: "current" | "daily";
     field: WeatherDiscrepancyField;
-    referenceSource: WeatherSourceKey;
-    comparisonSource: WeatherSourceKey;
+    referenceSource: WeatherDataSourceKey;
+    comparisonSource: WeatherDataSourceKey;
     referenceValue: number | null;
     comparisonValue: number | null;
     noticeThreshold: number;
@@ -70,20 +69,20 @@ function addDiscrepancy(
 
 function compareCurrentSources(
   baseline: CurrentWeather | null,
-  observation: CurrentWeatherObservation,
-  usable: boolean,
+  current: AggregatedCurrentWeather | null,
+  comparisonSource: NowObservationSourceKey | null,
   referenceKey: ForecastSourceKey,
 ) {
   const discrepancies: WeatherDiscrepancy[] = [];
-  if (!baseline || !usable) return discrepancies;
+  if (!baseline || !current || !comparisonSource) return discrepancies;
 
   addDiscrepancy(discrepancies, {
     scope: "current",
     field: "temperature",
     referenceSource: referenceKey,
-    comparisonSource: "defesa-civil-rs",
+    comparisonSource,
     referenceValue: baseline.temperature,
-    comparisonValue: observation.current.temperature,
+    comparisonValue: current.temperature,
     noticeThreshold: 2.5,
     significantThreshold: 5,
     unit: "°C",
@@ -92,9 +91,9 @@ function compareCurrentSources(
     scope: "current",
     field: "feelsLike",
     referenceSource: referenceKey,
-    comparisonSource: "defesa-civil-rs",
+    comparisonSource,
     referenceValue: baseline.feelsLike,
-    comparisonValue: observation.current.feelsLike,
+    comparisonValue: current.feelsLike,
     noticeThreshold: 3,
     significantThreshold: 6,
     unit: "°C",
@@ -103,9 +102,9 @@ function compareCurrentSources(
     scope: "current",
     field: "humidity",
     referenceSource: referenceKey,
-    comparisonSource: "defesa-civil-rs",
+    comparisonSource,
     referenceValue: baseline.humidity,
-    comparisonValue: observation.current.humidity,
+    comparisonValue: current.humidity,
     noticeThreshold: 12,
     significantThreshold: 25,
     unit: "%",
@@ -114,9 +113,9 @@ function compareCurrentSources(
     scope: "current",
     field: "pressure",
     referenceSource: referenceKey,
-    comparisonSource: "defesa-civil-rs",
+    comparisonSource,
     referenceValue: baseline.pressure,
-    comparisonValue: observation.current.pressure,
+    comparisonValue: current.pressure,
     noticeThreshold: 4,
     significantThreshold: 8,
     unit: "hPa",
@@ -125,9 +124,9 @@ function compareCurrentSources(
     scope: "current",
     field: "windSpeed",
     referenceSource: referenceKey,
-    comparisonSource: "defesa-civil-rs",
+    comparisonSource,
     referenceValue: baseline.windSpeed,
-    comparisonValue: observation.current.windSpeed,
+    comparisonValue: current.windSpeed,
     noticeThreshold: 12,
     significantThreshold: 25,
     unit: "km/h",
@@ -371,26 +370,16 @@ function createSources(
 }
 
 function buildNotes(options: {
-  currentSource: "defesa-civil-rs" | ForecastSourceKey | null;
+  currentSource: NowObservationSourceKey | null;
   selectedForecastKey: ForecastSourceKey;
   usingContingency: boolean;
   sources: Record<WeatherSourceKey, WeatherSourceHealth>;
   discrepancies: WeatherDiscrepancy[];
   inmetForecastLive: boolean;
   inmetStationName: string | null;
-  observation: CurrentWeatherObservation;
 }) {
   const notes: string[] = [];
 
-  if (options.currentSource === "defesa-civil-rs") {
-    notes.push(
-      `Condições atuais medidas pela ${options.observation.source.name}, estação ${options.observation.station.name}.`,
-    );
-  } else {
-    notes.push(
-      "Sem estação meteorológica recente da rede estadual: condições atuais ficam indisponíveis; a previsão permanece separada.",
-    );
-  }
   if (options.usingContingency) {
     notes.push("Open-Meteo não respondeu; a previsão foi assumida pela contingência do MET Norway.");
   } else {
@@ -400,9 +389,12 @@ function buildNotes(options: {
       notes.push("Contingência do MET Norway indisponível no momento; Open-Meteo segue como fonte ativa.");
     }
   }
-  if (options.sources["defesa-civil-rs"].status === "stale") {
+  if (
+    options.currentSource !== "embrapa" &&
+    options.sources["defesa-civil-rs"].status === "stale"
+  ) {
     notes.push(
-      "A leitura mais próxima da rede estadual está desatualizada; nenhum valor de modelo foi apresentado como observação.",
+      "A leitura observacional de contingência está desatualizada; nenhum valor de modelo foi apresentado como observação.",
     );
   }
   if (options.inmetForecastLive) {
@@ -410,7 +402,7 @@ function buildNotes(options: {
   }
   if (options.inmetStationName) {
     notes.push(
-      `O INMET identificou ${options.inmetStationName} como estação de referência; seus metadados não substituem a medição atual da rede estadual.`,
+      `O INMET identificou ${options.inmetStationName} como estação de referência; seus metadados não substituem a medição atual selecionada.`,
     );
   }
   if (options.sources.cppmet.usable) {
@@ -440,24 +432,23 @@ function buildMessage(
 }
 
 export async function fetchAggregatedPelotasWeather(): Promise<AggregatedWeatherData> {
-  const [baseline, official, observation] = await Promise.all([
+  const [baseline, official, now] = await Promise.all([
     fetchPelotasWeather(),
     fetchOfficialWeatherSources(),
-    fetchDefesaCivilCurrentObservation(),
+    fetchNowSourceResolution(),
   ]);
 
-  const observationAgeMinutes = getObservationAgeMinutes(observation);
-  const {
-    usable: observationUsable,
-    current,
-    provenance: currentProvenance,
-  } = deriveObservedCurrent(observation, observationAgeMinutes);
+  const observation = now.defesaCivilObservation;
+  const observationUsable = now.current !== null;
+  const current = now.current;
+  const currentProvenance = now.provenance;
+  const observationAgeMinutes = now.observationAgeMinutes;
 
   // Observação e previsão são séries distintas. A observação nunca sobrescreve hourly[0].
   const hourly = baseline.hourly;
 
   const discrepancies = [
-    ...compareCurrentSources(baseline.current, observation, observationUsable, baseline.source.key),
+    ...compareCurrentSources(baseline.current, current, now.selectedSource, baseline.source.key),
     ...compareInmetForecasts(baseline.daily, official.inmetForecast.periods, baseline.source.key),
     ...compareDailyForecasts(baseline.daily, official.cppmet.items, baseline.source.key),
   ];
@@ -465,8 +456,8 @@ export async function fetchAggregatedPelotasWeather(): Promise<AggregatedWeather
     baseline,
     observation,
     official,
-    observationAgeMinutes,
-    observationUsable,
+    now.defesaCivilAgeMinutes,
+    now.defesaCivilUsable,
   );
 
   const score = calculateQualityScore({
@@ -488,11 +479,15 @@ export async function fetchAggregatedPelotasWeather(): Promise<AggregatedWeather
     status,
     forecastSource,
     forecastProvider,
-  } = deriveTraceability({ baseline, sources, confidence, hasWeatherData });
+  } = deriveTraceability({
+    baseline,
+    sources,
+    currentSource: now.selectedSource,
+    confidence,
+    hasWeatherData,
+  });
 
-  const normalizedCurrentSource: "defesa-civil-rs" | null = observationUsable
-    ? "defesa-civil-rs"
-    : null;
+  const normalizedCurrentSource = now.selectedSource;
 
   return {
     status,
@@ -501,6 +496,15 @@ export async function fetchAggregatedPelotasWeather(): Promise<AggregatedWeather
     hourly,
     daily: baseline.daily,
     observation,
+    now: {
+      primarySource: now.primarySource,
+      selectedSource: now.selectedSource,
+      fallbackUsed: now.fallbackUsed,
+      sourceName: now.sourceName,
+      stationName: now.stationName,
+      sourceUrl: now.sourceUrl,
+      observedAt: now.observedAt,
+    },
     alerts: official.inmet.alerts,
     inmetForecast: official.inmetForecast.periods,
     inmetStation: official.inmetStation.station,
@@ -523,7 +527,6 @@ export async function fetchAggregatedPelotasWeather(): Promise<AggregatedWeather
         discrepancies,
         inmetForecastLive: official.inmetForecast.status === "live",
         inmetStationName: official.inmetStation.station?.name ?? null,
-        observation,
       }),
     },
     source: {
