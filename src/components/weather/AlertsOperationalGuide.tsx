@@ -136,7 +136,19 @@ export function AlertsOperationalGuide({ data }: { data: WeatherIntelligenceData
           </div>
           <div className={inmet.usable ? "is-live" : "is-unavailable"}>
             <dt>Fonte oficial</dt>
-            <dd>{inmet.usable ? "INMET consultado" : "INMET indisponível"}</dd>
+            <dd className="alerts-source-logo-cell">
+              {inmet.usable ? (
+                <img
+                  className="alerts-source-logo"
+                  src="/inmet_logo_banner.png"
+                  alt="INMET — Instituto Nacional de Meteorologia"
+                  width="136"
+                  height="24"
+                />
+              ) : (
+                "INMET indisponível"
+              )}
+            </dd>
             <small>
               {inmet.usable
                 ? "A ausência de aviso não elimina mudanças rápidas no tempo"
