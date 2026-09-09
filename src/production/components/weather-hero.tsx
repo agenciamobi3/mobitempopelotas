@@ -200,11 +200,6 @@ export function WeatherHero({
                 {secondaryAction.label} <span aria-hidden="true">→</span>
               </Link>
             </div>
-
-            <p className="tp-home-hero__source-inline">
-              <span>{current.available ? "Condição observada" : "Fonte da observação"}</span>
-              <strong>{current.source.name}</strong>
-            </p>
           </div>
 
           <div className="tp-home-hero__facts" aria-label="Resumo das condições atuais e da previsão de hoje">
