@@ -68,12 +68,13 @@ test("live Defesa Civil station cards keep number formatting and sensor semantic
   assert.doesNotMatch(area, /station\.capabilities\.riverLevel \|\| station\.river\.levelM !== null/);
 });
 
-test("public UI explains capability classification without converting it into risk", () => {
+test("public network UI keeps source context but omits raw station trend cards", () => {
   assert.match(area, /Inventário regional por capacidade/);
   assert.match(area, /Classificação automática baseada nas capacidades e variáveis/);
   assert.match(area, /não representa risco, prioridade ou estado operacional oficial/);
-  assert.match(area, /Tendência informada pela estação/);
-  assert.match(area, /não é convertido pelo Tempo Pelotas em classificação de\s+risco/);
+  assert.doesNotMatch(area, /Tendência informada pela estação/);
+  assert.doesNotMatch(area, /preservado como dado da fonte/);
+  assert.doesNotMatch(area, /defesa-civil-hydro__river-trend/);
   assert.match(area, /Fonte oficial e créditos/);
   assert.match(area, /Dados disponibilizados pela Defesa Civil RS através da MKS/);
 });
@@ -91,10 +92,10 @@ test("sanitized public endpoint exposes only normalized station inventory", () =
   assert.doesNotMatch(endpoint, /drainageArea/);
 });
 
-test("inventory UI remains responsive and readable", () => {
+test("inventory UI remains responsive and readable without trend-card styling", () => {
   assert.match(styles, /\.defesa-civil-hydro__inventory/);
   assert.match(styles, /\.defesa-civil-hydro__classification/);
-  assert.match(styles, /\.defesa-civil-hydro__river-trend/);
+  assert.doesNotMatch(styles, /\.defesa-civil-hydro__river-trend/);
   assert.match(styles, /@media \(max-width: 680px\)/);
   assert.match(styles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(styles, /!important/);
