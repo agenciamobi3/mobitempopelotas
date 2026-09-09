@@ -167,22 +167,26 @@
   white-space: nowrap;
 }
 
-/* Fonte oficial: o selo usa a marca fornecida no próprio repositório. */
-.internal-weather-shell--alerts .alerts-scope-summary .is-live dd {
-  width: 154px;
+/* Fonte oficial: marca real do INMET em um selo compacto e arredondado. */
+.internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
+  display: grid;
+  width: fit-content;
   min-height: 42px;
-  padding: 6px 10px;
+  place-items: center;
+  padding: 6px 9px;
   overflow: hidden;
   border: 1px solid rgb(7 30 47 / 10%);
   border-radius: 10px;
-  background-color: #fff;
-  background-image: url("/inmet_logo_banner.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: calc(100% - 18px) auto;
-  color: transparent;
-  font-size: 0;
+  background: #fff;
   line-height: 0;
+}
+
+.internal-weather-shell--alerts .alerts-source-logo {
+  display: block;
+  width: 136px;
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
 }
 
 @media (max-width: 1050px) {
@@ -248,11 +252,8 @@
     border-color: Highlight;
   }
 
-  .internal-weather-shell--alerts .alerts-scope-summary .is-live dd {
+  .internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
     border-color: CanvasText;
     background: Canvas;
-    color: CanvasText;
-    font-size: 1rem;
-    line-height: 1.2;
   }
 }
