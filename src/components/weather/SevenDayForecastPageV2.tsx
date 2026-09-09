@@ -302,7 +302,7 @@ export function SevenDayForecastPageV2({ data }: { data: WeatherIntelligenceData
         {hasOfficialContext ? (
           <div className="seven-day-v2-official__grid">
             <article>
-              <span>INMET</span>
+              <span>Instituto Nacional de Meteorologia</span>
               <strong>Pelotas</strong>
               <ul>
                 {officialPeriods.map((period) => (
@@ -311,7 +311,7 @@ export function SevenDayForecastPageV2({ data }: { data: WeatherIntelligenceData
               </ul>
             </article>
             <article className="is-regional">
-              <span>CPPMet / UFPel</span>
+              <span>Centro de Pesquisas e Previsões Meteorológicas da UFPel</span>
               <strong>Região de Pelotas</strong>
               {regionalDays.length ? (
                 <ul>
