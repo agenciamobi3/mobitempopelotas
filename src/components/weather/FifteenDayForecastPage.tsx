@@ -274,7 +274,7 @@ export function FifteenDayForecastPage({ forecast }: { forecast: ExtendedForecas
         <p>
           <Info aria-hidden="true" />
           <span>
-            Atualizado em {formatDateTime(forecast.source.fetchedAt)} · {forecast.source.model} · {forecast.source.returnedDays} de {forecast.source.requestedDays} dias.
+            Atualizado em {formatDateTime(forecast.source.fetchedAt)} · {forecast.source.returnedDays} de {forecast.source.requestedDays} dias.
           </span>
         </p>
         <nav aria-label="Outras previsões de Pelotas">
