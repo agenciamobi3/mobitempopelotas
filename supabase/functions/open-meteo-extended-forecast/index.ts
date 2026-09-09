@@ -5,6 +5,7 @@ const PROVIDER_KEY = "open-meteo-extended";
 const LOCATION_SLUG = "pelotas-rs";
 const BEST_MATCH_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 const GFS_ENDPOINT = "https://api.open-meteo.com/v1/gfs";
+const TIMEZONE = "America/Sao_Paulo";
 const FORECAST_DAYS = 15;
 const FRESH_SECONDS = 240;
 const STALE_LEASE_SECONDS = 45;
@@ -60,10 +61,26 @@ function hasExtendedForecastPayload(value: unknown) {
   );
 }
 
+function currentPelotasDate() {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: TIMEZONE,
+  }).format(new Date());
+}
+
+function startsOnCurrentPelotasDate(value: unknown) {
+  if (!isRecord(value) || !isRecord(value.daily)) return false;
+  const time = value.daily.time;
+  return Array.isArray(time) && time[0] === currentPelotasDate();
+}
+
 function parseCachedExtendedPayload(value: unknown): CachedExtendedPayload | null {
   if (!isRecord(value)) return null;
   if (value.model !== "Open-Meteo Best Match" && value.model !== "NOAA GFS") return null;
   if (!hasExtendedForecastPayload(value.forecast)) return null;
+  if (!startsOnCurrentPelotasDate(value.forecast)) return null;
   return {
     model: value.model,
     forecast: value.forecast as Record<string, unknown>,
@@ -81,7 +98,7 @@ function buildUrl(endpoint: string) {
   const params = new URLSearchParams({
     latitude: "-31.7654",
     longitude: "-52.3376",
-    timezone: "America/Sao_Paulo",
+    timezone: TIMEZONE,
     forecast_days: String(FORECAST_DAYS),
     temperature_unit: "celsius",
     wind_speed_unit: "kmh",
@@ -116,6 +133,9 @@ async function fetchCandidate(endpoint: string, model: ExtendedModel) {
   const payload: unknown = await response.json();
   if (!hasExtendedForecastPayload(payload)) {
     throw new Error(`${model} respondeu sem a série diária estendida esperada.`);
+  }
+  if (!startsOnCurrentPelotasDate(payload)) {
+    throw new Error(`${model} respondeu com uma janela iniciada em outro dia.`);
   }
 
   return {
@@ -235,7 +255,7 @@ Deno.serve(async (request) => {
         });
       }
       return json(
-        { success: false, error: "A previsão estendida está sendo atualizada e ainda não possui cache válido." },
+        { success: false, error: "A previsão estendida está sendo atualizada e ainda não possui cache válido para a data atual." },
         503,
       );
     }
