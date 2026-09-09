@@ -410,6 +410,101 @@
   font-weight: 760;
 }
 
+.lagoon-costa-doce {
+  padding: clamp(2.7rem, 5vw, 4rem) 0;
+  border-bottom: 1px solid var(--lagoon-line);
+}
+
+.lagoon-costa-doce > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, .7fr);
+  gap: 1.5rem;
+  align-items: end;
+}
+
+.lagoon-costa-doce h2 {
+  max-width: 21ch;
+  margin: 0;
+  color: var(--lagoon-ink);
+  font-size: clamp(2rem, 3.5vw, 3.2rem);
+  font-weight: 720;
+  line-height: .98;
+  letter-spacing: -.05em;
+  text-wrap: balance;
+}
+
+.lagoon-costa-doce > header > p,
+.lagoon-costa-doce__note {
+  margin: 0;
+  color: var(--lagoon-muted);
+  line-height: 1.6;
+}
+
+.lagoon-costa-doce__note {
+  max-width: 92ch;
+  margin-top: 1.3rem;
+  font-size: .82rem;
+}
+
+.lagoon-costa-doce__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+  gap: 0 1.2rem;
+  margin-top: 1.4rem;
+  border-top: 1px solid var(--lagoon-line);
+}
+
+.lagoon-costa-doce__city {
+  display: grid;
+  align-content: start;
+  gap: .55rem;
+  min-width: 0;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--lagoon-line);
+}
+
+.lagoon-costa-doce__city h3 {
+  margin: 0;
+  color: var(--lagoon-ink);
+  font-size: 1rem;
+}
+
+.lagoon-costa-doce__city > span {
+  width: fit-content;
+  color: var(--lagoon-muted);
+  font-size: .72rem;
+  font-weight: 760;
+}
+
+.lagoon-costa-doce__city > span.has-level {
+  color: #17633b;
+}
+
+.lagoon-costa-doce__city > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem .8rem;
+}
+
+.lagoon-costa-doce__city a {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  color: var(--lagoon-accent);
+  font-size: .78rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.lagoon-costa-doce__city a:hover {
+  color: #065f6d;
+}
+
+.lagoon-costa-doce__city a svg {
+  width: .82rem;
+  height: .82rem;
+}
+
 .lagoon-locality-page :is(a, button):focus-visible {
   outline: 3px solid rgb(8 127 145 / 30%);
   outline-offset: 3px;
@@ -417,7 +512,8 @@
 
 @media (max-width: 820px) {
   .lagoon-locality-reading__layout,
-  .lagoon-locality-explainer {
+  .lagoon-locality-explainer,
+  .lagoon-costa-doce > header {
     grid-template-columns: 1fr;
   }
 
@@ -461,6 +557,10 @@
   .lagoon-locality-metrics dl,
   .lagoon-network-locality-grid,
   .lagoon-locality-related {
+    grid-template-columns: 1fr;
+  }
+
+  .lagoon-costa-doce__grid {
     grid-template-columns: 1fr;
   }
 
