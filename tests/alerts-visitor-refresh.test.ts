@@ -50,3 +50,19 @@ test("official source renders a responsive 40px INMET logo inside a compact clic
   assert.match(accent, /\.alerts-source-logo[\s\S]*width:\s*min\(227px, 100%\)[\s\S]*height:\s*auto[\s\S]*border-radius:\s*6px/);
   assert.match(accent, /@media \(max-width: 720px\)[\s\S]*width:\s*min\(227px, calc\(100vw - 76px\)\)/);
 });
+
+test("civil defense source uses the full editorial rail with aligned icon and text", () => {
+  assert.match(guide, /className="alerts-civil-defense__source"/);
+  assert.match(
+    accent,
+    /\.alerts-civil-defense__source\s*\{[\s\S]*grid-template-columns:\s*34px minmax\(0, 1fr\)[\s\S]*width:\s*100%[\s\S]*max-width:\s*none[\s\S]*margin-top:\s*0/,
+  );
+  assert.match(
+    accent,
+    /\.alerts-civil-defense__source > svg\s*\{[\s\S]*width:\s*34px[\s\S]*height:\s*34px[\s\S]*border-radius:\s*9px/,
+  );
+  assert.match(
+    accent,
+    /@media \(max-width: 720px\)[\s\S]*\.alerts-civil-defense__source\s*\{[\s\S]*grid-template-columns:\s*30px minmax\(0, 1fr\)[\s\S]*align-items:\s*start/,
+  );
+});
