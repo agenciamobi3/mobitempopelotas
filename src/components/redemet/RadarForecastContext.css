@@ -138,6 +138,19 @@
   border-right: 0;
 }
 
+.radar-forecast-context__metrics article.is-summary {
+  grid-column: 1 / -1;
+  min-height: 0;
+  border-right: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.radar-forecast-context__metrics article.is-summary strong {
+  font-size: 0.9rem;
+  font-weight: 720;
+  line-height: 1.45;
+}
+
 .radar-forecast-context__metrics article > svg {
   width: 1.2rem;
   height: 1.2rem;
@@ -162,12 +175,6 @@
   color: #58717d;
   font-size: 0.86rem;
   line-height: 1.6;
-}
-
-.radar-forecast-context > footer {
-  color: #607984;
-  font-size: 0.74rem;
-  line-height: 1.55;
 }
 
 @media (max-width: 1080px) {
@@ -196,6 +203,12 @@
   .radar-forecast-context__metrics article:last-child:nth-child(odd) {
     grid-column: auto;
   }
+
+  .radar-forecast-context__metrics article.is-summary {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
 }
 
 @media (max-width: 860px) {
@@ -223,8 +236,10 @@
   .radar-forecast-context__metrics article,
   .radar-forecast-context__metrics article:nth-child(2n),
   .radar-forecast-context__metrics article:nth-child(3n),
-  .radar-forecast-context__metrics article:nth-last-child(-n + 2) {
+  .radar-forecast-context__metrics article:nth-last-child(-n + 2),
+  .radar-forecast-context__metrics article.is-summary {
     min-height: 0;
+    grid-column: auto;
     border-right: 0;
     border-bottom: 1px solid rgb(7 30 47 / 9%);
   }
