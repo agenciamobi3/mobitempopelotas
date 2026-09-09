@@ -76,6 +76,12 @@ function startsOnCurrentPelotasDate(value: unknown) {
   return Array.isArray(time) && time[0] === currentPelotasDate();
 }
 
+function forecastDayCount(value: CachedExtendedPayload) {
+  const daily = value.forecast.daily;
+  if (!isRecord(daily) || !Array.isArray(daily.time)) return 0;
+  return daily.time.length;
+}
+
 function parseCachedExtendedPayload(value: unknown): CachedExtendedPayload | null {
   if (!isRecord(value)) return null;
   if (value.model !== "Open-Meteo Best Match" && value.model !== "NOAA GFS") return null;
@@ -149,21 +155,39 @@ async function fetchExtendedForecastPayload() {
     { endpoint: BEST_MATCH_ENDPOINT, model: "Open-Meteo Best Match" as const },
     { endpoint: GFS_ENDPOINT, model: "NOAA GFS" as const },
   ];
-  let lastError = "Previsão estendida Open-Meteo indisponível";
 
-  for (const candidate of candidates) {
-    try {
-      return await fetchCandidate(candidate.endpoint, candidate.model);
-    } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
-      console.warn("[open-meteo-extended-forecast] Candidato indisponível", {
-        model: candidate.model,
-        message: lastError,
-      });
+  const attempts = await Promise.all(
+    candidates.map(async (candidate) => {
+      try {
+        return {
+          payload: await fetchCandidate(candidate.endpoint, candidate.model),
+          error: null,
+        };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn("[open-meteo-extended-forecast] Candidato indisponível", {
+          model: candidate.model,
+          message,
+        });
+        return { payload: null, error: message };
+      }
+    }),
+  );
+
+  let selected: CachedExtendedPayload | null = null;
+  for (const attempt of attempts) {
+    if (!attempt.payload) continue;
+    if (!selected || forecastDayCount(attempt.payload) > forecastDayCount(selected)) {
+      selected = attempt.payload;
     }
   }
 
-  throw new Error(lastError);
+  if (selected) return selected;
+
+  const errors = attempts
+    .map((attempt) => attempt.error)
+    .filter((error): error is string => Boolean(error));
+  throw new Error(errors.at(-1) ?? "Previsão estendida Open-Meteo indisponível");
 }
 
 Deno.serve(async (request) => {
