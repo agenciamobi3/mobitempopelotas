@@ -173,7 +173,6 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
 
       <RainHourlyVolumeContext
         hourly={weather.hourly}
-        forecastProvider={weather.quality.forecastProvider}
         forecastFetchedAt={forecastFetchedAt}
       />
 
@@ -278,9 +277,7 @@ export function RainForecastPageV2({ data }: { data: WeatherIntelligenceData }) 
       <footer className="rain-page__footer">
         <p>
           <Info aria-hidden="true" />
-          <span>
-            Atualizado em {formatFetchedAt(weather.source.fetchedAt)} · {weather.quality.forecastProvider ?? "modelo meteorológico disponível"}.
-          </span>
+          <span>Atualizado em {formatFetchedAt(weather.source.fetchedAt)}.</span>
         </p>
         <nav aria-label="Outras páginas sobre o tempo em Pelotas">
           <Link to="/radar-e-satelite-pelotas">Radar</Link>
