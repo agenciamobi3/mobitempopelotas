@@ -78,15 +78,6 @@ function saceAvailabilityDetail(sace: SaceGuaibaData) {
   return `${sace.counts.aboveNormal} em categoria diferente de Normal`;
 }
 
-function ageLabel(value: number | null) {
-  if (value === null) return "Tempo desde a leitura não informado";
-  if (value < 1) return "Menos de 1 minuto";
-  if (value < 60) return `${Math.round(value)} min`;
-  const hours = Math.floor(value / 60);
-  const minutes = Math.round(value % 60);
-  return minutes ? `${hours} h ${minutes} min` : `${hours} h`;
-}
-
 function trendState(value: number | null) {
   if (value === null) {
     return { label: "Tendência não informada", className: "is-unknown", icon: Activity };
@@ -106,27 +97,12 @@ function trendState(value: number | null) {
 
 function statusCopy(level: LaranjalLevelData) {
   if (level.status === "live") {
-    return {
-      label: "Leitura atualizada",
-      title: "Nível local disponível",
-      description: "A estação publicou uma medição dentro do tempo considerado recente pelo portal.",
-      icon: CheckCircle2,
-    };
+    return { label: "Leitura atualizada", icon: CheckCircle2 };
   }
   if (level.status === "stale") {
-    return {
-      label: "Última leitura conhecida",
-      title: "A estação está sem nova medição",
-      description: "O valor permanece visível como referência anterior e não como nível atual.",
-      icon: Clock3,
-    };
+    return { label: "Última leitura conhecida", icon: Clock3 };
   }
-  return {
-    label: "Leitura indisponível",
-    title: "O nível local não pôde ser consultado",
-    description: "A página não substitui a ausência da estação por um nível estimado ou demonstrativo.",
-    icon: AlertTriangle,
-  };
+  return { label: "Leitura indisponível", icon: AlertTriangle };
 }
 
 function LevelSparkline({ level }: { level: LaranjalLevelData }) {
@@ -196,28 +172,69 @@ function LevelSparkline({ level }: { level: LaranjalLevelData }) {
   );
 }
 
+function completeHourlyValues(
+  values: Array<number | null | undefined>,
+  expectedLength: number,
+) {
+  const valid = values.filter(
+    (value): value is number => value !== null && value !== undefined && Number.isFinite(value),
+  );
+  return values.length === expectedLength && valid.length === expectedLength ? valid : null;
+}
+
 function forecastHydrologyContext(weather: WeatherIntelligenceData) {
   const hourly = weather.weather.hourly.slice(0, 24);
-  const precipitation = hourly
-    .map((item) => item.precipitationMm)
-    .filter((value): value is number => value !== null && value !== undefined);
-  const probabilities = hourly
-    .map((item) => item.precipitationProbability)
-    .filter((value): value is number => value !== null);
-  const gusts = hourly
-    .map((item) => item.windGust)
-    .filter((value): value is number => value !== null);
+  if (hourly.length < 24) {
+    return {
+      precipitationTotal: null,
+      maximumRainChance: null,
+      maximumGust: null,
+    };
+  }
+
+  const precipitation = completeHourlyValues(
+    hourly.map((item) => item.precipitationMm),
+    24,
+  );
+  const probabilities = completeHourlyValues(
+    hourly.map((item) => item.precipitationProbability),
+    24,
+  );
+  const gusts = completeHourlyValues(
+    hourly.map((item) => item.windGust),
+    24,
+  );
 
   return {
-    precipitationTotal: precipitation.length
+    precipitationTotal: precipitation
       ? precipitation.reduce((total, value) => total + value, 0)
       : null,
-    maximumRainChance: probabilities.length ? Math.max(...probabilities) : null,
-    maximumGust: gusts.length ? Math.max(...gusts) : null,
+    maximumRainChance: probabilities ? Math.max(...probabilities) : null,
+    maximumGust: gusts ? Math.max(...gusts) : null,
   };
 }
 
-export function HydrologyOverviewHero({ level, lagoon, sace }: Pick<HydrologyOverviewProps, "level" | "lagoon" | "sace">) {
+function observedHydrologyContext(weather: WeatherIntelligenceData) {
+  const current = weather.weather.current;
+  const currentSource = weather.weather.quality.currentSource;
+  const currentIsObserved =
+    current !== null && (currentSource === "embrapa" || currentSource === "defesa-civil-rs");
+  const defesaCivil = weather.weather.observation;
+  const defesaCivilHealth = weather.weather.sources["defesa-civil-rs"];
+
+  return {
+    rain1hMm:
+      defesaCivil.status === "live" && defesaCivilHealth.usable ? defesaCivil.rain.h1Mm : null,
+    windSpeedKmh: currentIsObserved ? current.windSpeed : null,
+    windDirection: currentIsObserved ? current.windDirection : null,
+  };
+}
+
+export function HydrologyOverviewHero({
+  level,
+  lagoon,
+  sace,
+}: Pick<HydrologyOverviewProps, "level" | "lagoon" | "sace">) {
   const status = statusCopy(level);
   const StatusIcon = status.icon;
   const trend = trendState(level.trendCmPerHour);
@@ -229,18 +246,28 @@ export function HydrologyOverviewHero({ level, lagoon, sace }: Pick<HydrologyOve
         <span className="hydrology-v2-eyebrow">Níveis da água em Pelotas e na região</span>
         <h1 id="hydrology-v2-hero-title">Situação das águas no Laranjal e na Lagoa dos Patos.</h1>
         <p>
-          Comece pela medição local da UFPel e depois compare a situação em outros pontos. Cada estação
-          usa sua própria referência, por isso os níveis não devem ser tratados como uma única régua.
+          Comece pela medição local no Laranjal e depois compare a situação em outros pontos. Cada
+          estação usa sua própria referência, por isso os níveis não devem ser tratados como uma única
+          régua.
         </p>
         <div className="hydrology-v2-hero__actions">
-          <a href="#leitura-local">Ver nível no Laranjal <ArrowRight aria-hidden="true" /></a>
+          <a href="#leitura-local">
+            Ver nível no Laranjal <ArrowRight aria-hidden="true" />
+          </a>
           <Link to="/nivel-da-lagoa-dos-patos-laranjal">Abrir página da estação</Link>
         </div>
       </div>
 
-      <aside className={`hydrology-v2-hero__reading is-${level.status}`} aria-label="Resumo da Estação Laranjal">
+      <aside
+        className={`hydrology-v2-hero__reading is-${level.status}`}
+        aria-label="Resumo da Estação Laranjal"
+        role="status"
+      >
         <header>
-          <span><StatusIcon aria-hidden="true" />{status.label}</span>
+          <span>
+            <StatusIcon aria-hidden="true" />
+            {status.label}
+          </span>
           <small>{formatDateTime(level.updatedAt)}</small>
         </header>
         <div className="hydrology-v2-hero__level">
@@ -250,11 +277,20 @@ export function HydrologyOverviewHero({ level, lagoon, sace }: Pick<HydrologyOve
         </div>
         <div className={`hydrology-v2-hero__trend ${trend.className}`}>
           <TrendIcon aria-hidden="true" />
-          <span><small>Mudança recente</small><strong>{trend.label}</strong></span>
+          <span>
+            <small>Mudança recente</small>
+            <strong>{trend.label}</strong>
+          </span>
         </div>
         <dl>
-          <div><dt>Pontos da Lagoa disponíveis</dt><dd>{lagoonAvailabilityLabel(lagoon)}</dd></div>
-          <div><dt>Estações do SACE disponíveis</dt><dd>{saceAvailabilityLabel(sace)}</dd></div>
+          <div>
+            <dt>Pontos da Lagoa disponíveis</dt>
+            <dd>{lagoonAvailabilityLabel(lagoon)}</dd>
+          </div>
+          <div>
+            <dt>Estações do SACE disponíveis</dt>
+            <dd>{saceAvailabilityLabel(sace)}</dd>
+          </div>
         </dl>
         <footer>Referência local · não é cota oficial de inundação</footer>
       </aside>
@@ -262,13 +298,17 @@ export function HydrologyOverviewHero({ level, lagoon, sace }: Pick<HydrologyOve
   );
 }
 
-export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: HydrologyOverviewProps) {
-  const status = statusCopy(level);
-  const StatusIcon = status.icon;
+export function HydrologyOverviewV2({
+  weather,
+  level,
+  guaiba,
+  lagoon,
+  sace,
+}: HydrologyOverviewProps) {
   const trend = trendState(level.trendCmPerHour);
   const TrendIcon = trend.icon;
   const forecast = forecastHydrologyContext(weather);
-  const current = weather.weather.current;
+  const observed = observedHydrologyContext(weather);
 
   const datasetSchema = level.currentLevel !== null
     ? {
@@ -293,36 +333,43 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
       {datasetSchema ? (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(datasetSchema).replace(/</g, "\\u003c") }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(datasetSchema).replace(/</g, "\\u003c"),
+          }}
         />
       ) : null}
 
       <nav className="hydrology-v2-chapters" aria-label="Seções da situação das águas">
-        <a href="#estado-da-telemetria"><span>01</span><strong>Situação</strong><small>Horário e atualização</small></a>
-        <a href="#leitura-local"><span>02</span><strong>Laranjal</strong><small>Nível e mudança recente</small></a>
-        <a href="#rede-regional"><span>03</span><strong>Lagoa</strong><small>Outros pontos de medição</small></a>
-        <a href="#bacia-do-guaiba"><span>04</span><strong>Rios e Guaíba</strong><small>Estações do SACE</small></a>
-        <a href="#contexto-meteorologico"><span>05</span><strong>Chuva e vento</strong><small>Previsão para 24 horas</small></a>
+        <a href="#leitura-local">
+          <span>01</span>
+          <strong>Laranjal</strong>
+          <small>Nível e mudança recente</small>
+        </a>
+        <a href="#rede-regional">
+          <span>02</span>
+          <strong>Lagoa</strong>
+          <small>Outros pontos de medição</small>
+        </a>
+        <a href="#bacia-do-guaiba">
+          <span>03</span>
+          <strong>Rios e Guaíba</strong>
+          <small>Estações do SACE</small>
+        </a>
+        <a href="#contexto-meteorologico">
+          <span>04</span>
+          <strong>Chuva e vento</strong>
+          <small>Observação e previsão</small>
+        </a>
       </nav>
 
-      <section className={`hydrology-v2-source is-${level.status}`} id="estado-da-telemetria" aria-labelledby="hydrology-v2-source-title" role="status">
-        <StatusIcon aria-hidden="true" />
-        <div>
-          <span className="hydrology-v2-eyebrow">Situação da Estação Laranjal</span>
-          <h2 id="hydrology-v2-source-title">{status.title}</h2>
-          <p>{level.error ?? status.description}</p>
-        </div>
-        <dl>
-          <div><dt>Horário da medição</dt><dd>{formatDateTime(level.updatedAt)}</dd></div>
-          <div><dt>Tempo desde a leitura</dt><dd>{ageLabel(level.ageMinutes)}</dd></div>
-          <div><dt>Consulta do portal</dt><dd>{formatDateTime(level.source.fetchedAt)}</dd></div>
-        </dl>
-      </section>
-
-      <section className="hydrology-v2-local" id="leitura-local" aria-labelledby="hydrology-v2-local-title">
+      <section
+        className="hydrology-v2-local"
+        id="leitura-local"
+        aria-labelledby="hydrology-v2-local-title"
+      >
         <header className="hydrology-v2-section-heading">
           <div>
-            <span className="hydrology-v2-eyebrow">Estação Laranjal · LabHidroSens/UFPel</span>
+            <span className="hydrology-v2-eyebrow">Estação Laranjal</span>
             <h2 id="hydrology-v2-local-title">Como o nível mudou recentemente</h2>
           </div>
           <p>
@@ -351,28 +398,60 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
             <LevelSparkline level={level} />
 
             <div className="hydrology-v2-local-metrics">
-              <article><span>Variação em 1 hora</span><strong>{formatSigned(level.change1hCm, "cm")}</strong></article>
-              <article><span>Variação em 6 horas</span><strong>{formatSigned(level.change6hCm, "cm")}</strong></article>
-              <article><span>Variação em 24 horas</span><strong>{formatSigned(level.change24hCm, "cm")}</strong></article>
-              <article><span>Menor nível do período</span><strong>{level.periodMinimum === null ? "—" : `${formatNumber(level.periodMinimum, 2)} m`}</strong></article>
-              <article><span>Nível médio do período</span><strong>{level.periodAverage === null ? "—" : `${formatNumber(level.periodAverage, 2)} m`}</strong></article>
-              <article><span>Maior nível do período</span><strong>{level.periodMaximum === null ? "—" : `${formatNumber(level.periodMaximum, 2)} m`}</strong></article>
+              <article>
+                <span>Variação em 1 hora</span>
+                <strong>{formatSigned(level.change1hCm, "cm")}</strong>
+              </article>
+              <article>
+                <span>Variação em 6 horas</span>
+                <strong>{formatSigned(level.change6hCm, "cm")}</strong>
+              </article>
+              <article>
+                <span>Variação em 24 horas</span>
+                <strong>{formatSigned(level.change24hCm, "cm")}</strong>
+              </article>
+              <article>
+                <span>Menor nível do período</span>
+                <strong>
+                  {level.periodMinimum === null ? "—" : `${formatNumber(level.periodMinimum, 2)} m`}
+                </strong>
+              </article>
+              <article>
+                <span>Nível médio do período</span>
+                <strong>
+                  {level.periodAverage === null ? "—" : `${formatNumber(level.periodAverage, 2)} m`}
+                </strong>
+              </article>
+              <article>
+                <span>Maior nível do período</span>
+                <strong>
+                  {level.periodMaximum === null ? "—" : `${formatNumber(level.periodMaximum, 2)} m`}
+                </strong>
+              </article>
             </div>
           </>
         ) : (
           <div className="hydrology-v2-unavailable">
             <AlertTriangle aria-hidden="true" />
-            <div><strong>Sem leitura local válida</strong><p>A ausência da estação não é substituída por uma estimativa de nível.</p></div>
+            <div>
+              <strong>Sem leitura local válida</strong>
+              <p>A ausência da estação não é substituída por uma estimativa de nível.</p>
+            </div>
           </div>
         )}
 
         <div className="hydrology-v2-reference-warning">
           <ShieldAlert aria-hidden="true" />
-          <p>
-            <strong>Este valor não é uma classificação de risco.</strong> A Estação Laranjal não usa as
-            cotas de Atenção, Alerta ou Inundação de outras estações. Confira o horário e a mudança recente.
-          </p>
-          <a href={level.source.url} target="_blank" rel="noopener noreferrer">Abrir painel da estação <ExternalLink aria-hidden="true" /></a>
+          <div>
+            <p>
+              <strong>Este valor não é uma classificação de risco.</strong> A Estação Laranjal não usa
+              as cotas de Atenção, Alerta ou Inundação de outras estações. Confira o horário e a mudança
+              recente.
+            </p>
+            <a href={level.source.url} target="_blank" rel="noopener noreferrer">
+              Abrir painel da estação <ExternalLink aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </section>
 
@@ -382,23 +461,73 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
 
       <SaceGuaibaContext data={sace} />
 
-      <section className="hydrology-v2-weather" id="contexto-meteorologico" aria-labelledby="hydrology-v2-weather-title">
+      <section
+        className="hydrology-v2-weather"
+        id="contexto-meteorologico"
+        aria-labelledby="hydrology-v2-weather-title"
+      >
         <header className="hydrology-v2-section-heading">
           <div>
-            <span className="hydrology-v2-eyebrow">Previsão para as próximas 24 horas</span>
+            <span className="hydrology-v2-eyebrow">Condição observada e previsão · 24 horas</span>
             <h2 id="hydrology-v2-weather-title">Chuva e vento podem influenciar a água na Lagoa</h2>
           </div>
           <p>
-            Estes valores são previsão do tempo, não medições do nível da água. Eles ajudam a entender o
-            cenário, mas não calculam sozinhos quanto o nível do Laranjal vai subir ou baixar.
+            A chuva e o vento observados ficam separados da previsão das próximas 24 horas. Esses dados
+            ajudam a entender o cenário, mas não calculam sozinhos quanto o nível do Laranjal vai subir
+            ou baixar.
           </p>
         </header>
 
-        <div className="hydrology-v2-weather-grid">
-          <article><CloudRain aria-hidden="true" /><span>Chuva prevista</span><strong>{forecast.precipitationTotal === null ? "—" : `${formatNumber(forecast.precipitationTotal)} mm`}</strong><small>Soma dos valores disponíveis para 24 horas</small></article>
-          <article><Gauge aria-hidden="true" /><span>Maior chance de chuva</span><strong>{forecast.maximumRainChance === null ? "—" : `${formatNumber(forecast.maximumRainChance, 0)}%`}</strong><small>Maior valor previsto nas próximas 24 horas</small></article>
-          <article><Navigation aria-hidden="true" /><span>Maior rajada prevista</span><strong>{forecast.maximumGust === null ? "—" : `${formatNumber(forecast.maximumGust)} km/h`}</strong><small>O vento pode represar ou deslocar água</small></article>
-          <article><Wind aria-hidden="true" /><span>Vento agora</span><strong>{current?.windSpeed === null || current?.windSpeed === undefined ? "—" : `${formatNumber(current.windSpeed)} km/h`}</strong><small>Direção {current?.windDirection ?? "não informada"}</small></article>
+        <div className="hydrology-v2-weather-observed" aria-label="Condição meteorológica observada">
+          <article>
+            <CloudRain aria-hidden="true" />
+            <span>Chuva observada · 1 h</span>
+            <strong>
+              {observed.rain1hMm === null ? "—" : `${formatNumber(observed.rain1hMm)} mm`}
+            </strong>
+            <small>Acumulado medido na última hora disponível</small>
+          </article>
+          <article>
+            <Wind aria-hidden="true" />
+            <span>Vento agora</span>
+            <strong>
+              {observed.windSpeedKmh === null || observed.windSpeedKmh === undefined
+                ? "—"
+                : `${formatNumber(observed.windSpeedKmh)} km/h`}
+            </strong>
+            <small>Direção {observed.windDirection ?? "não informada"}</small>
+          </article>
+        </div>
+
+        <div className="hydrology-v2-weather-grid" aria-label="Previsão meteorológica para 24 horas">
+          <article>
+            <CloudRain aria-hidden="true" />
+            <span>Chuva prevista</span>
+            <strong>
+              {forecast.precipitationTotal === null
+                ? "—"
+                : `${formatNumber(forecast.precipitationTotal)} mm`}
+            </strong>
+            <small>Total somente quando as 24 horas estão completas</small>
+          </article>
+          <article>
+            <Gauge aria-hidden="true" />
+            <span>Maior chance de chuva</span>
+            <strong>
+              {forecast.maximumRainChance === null
+                ? "—"
+                : `${formatNumber(forecast.maximumRainChance, 0)}%`}
+            </strong>
+            <small>Maior valor da janela completa de 24 horas</small>
+          </article>
+          <article>
+            <Navigation aria-hidden="true" />
+            <span>Maior rajada prevista</span>
+            <strong>
+              {forecast.maximumGust === null ? "—" : `${formatNumber(forecast.maximumGust)} km/h`}
+            </strong>
+            <small>Maior valor da janela completa de 24 horas</small>
+          </article>
         </div>
       </section>
 
@@ -414,10 +543,45 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
           </p>
         </header>
         <div>
-          <article><Waves aria-hidden="true" /><span>Estação Laranjal</span><strong>{level.status === "live" ? "Atualizada" : level.status === "stale" ? "Atrasada" : "Indisponível"}</strong><small>Referência local da UFPel</small></article>
-          <article><MapPinned aria-hidden="true" /><span>Pontos da Lagoa</span><strong>{lagoonAvailabilityLabel(lagoon)}</strong><small>{lagoon.status === "unavailable" ? "Integração sem resposta nesta atualização" : "Com leitura disponível agora"}</small></article>
-          <article><Activity aria-hidden="true" /><span>Guaíba</span><strong>{guaiba.status === "live" ? "Atualizado" : guaiba.status === "stale" ? "Atrasado" : "Indisponível"}</strong><small>{guaiba.station}</small></article>
-          <article><RadioTower aria-hidden="true" /><span>Estações do SACE</span><strong>{saceAvailabilityLabel(sace)}</strong><small>{saceAvailabilityDetail(sace)}</small></article>
+          <article>
+            <Waves aria-hidden="true" />
+            <span>Estação Laranjal</span>
+            <strong>
+              {level.status === "live"
+                ? "Atualizada"
+                : level.status === "stale"
+                  ? "Atrasada"
+                  : "Indisponível"}
+            </strong>
+          </article>
+          <article>
+            <MapPinned aria-hidden="true" />
+            <span>Pontos da Lagoa</span>
+            <strong>{lagoonAvailabilityLabel(lagoon)}</strong>
+            <small>
+              {lagoon.status === "unavailable"
+                ? "Integração sem resposta nesta atualização"
+                : "Com leitura disponível agora"}
+            </small>
+          </article>
+          <article>
+            <Activity aria-hidden="true" />
+            <span>Guaíba</span>
+            <strong>
+              {guaiba.status === "live"
+                ? "Atualizado"
+                : guaiba.status === "stale"
+                  ? "Atrasado"
+                  : "Indisponível"}
+            </strong>
+            <small>{guaiba.station}</small>
+          </article>
+          <article>
+            <RadioTower aria-hidden="true" />
+            <span>Estações do SACE</span>
+            <strong>{saceAvailabilityLabel(sace)}</strong>
+            <small>{saceAvailabilityDetail(sace)}</small>
+          </article>
         </div>
       </section>
 
@@ -427,18 +591,31 @@ export function HydrologyOverviewV2({ weather, level, guaiba, lagoon, sace }: Hy
           <span className="hydrology-v2-eyebrow">Antes de tomar decisões</span>
           <h2 id="hydrology-v2-safety-title">Uma leitura isolada não define segurança</h2>
           <p>
-            Confira horário, mudança recente e alertas oficiais. Em emergência, siga a Defesa Civil e as
-            autoridades locais. Uma estação sem transmissão não deve ser interpretada como nível normal.
+            Confira horário, mudança recente e alertas oficiais. Em emergência, siga a Defesa Civil e
+            as autoridades locais. Uma estação sem transmissão não deve ser interpretada como nível
+            normal.
           </p>
         </div>
-        <Link to="/alertas">Ver alertas oficiais <ArrowRight aria-hidden="true" /></Link>
+        <Link to="/alertas">
+          Ver alertas oficiais <ArrowRight aria-hidden="true" />
+        </Link>
       </section>
 
-      <section className="hydrology-v2-actions" aria-label="Outras páginas relacionadas à situação das águas">
-        <div><span className="hydrology-v2-eyebrow">Veja os detalhes de cada fonte</span><h2>Consulte as medições na referência de cada estação</h2></div>
+      <section
+        className="hydrology-v2-actions"
+        aria-label="Outras páginas relacionadas à situação das águas"
+      >
         <div>
-          <a href={level.source.url} target="_blank" rel="noopener noreferrer">Estação Laranjal <ExternalLink aria-hidden="true" /></a>
-          <Link to="/nivel-da-lagoa-dos-patos-laranjal">Detalhes do Laranjal <ArrowRight aria-hidden="true" /></Link>
+          <span className="hydrology-v2-eyebrow">Veja os detalhes de cada fonte</span>
+          <h2>Consulte as medições na referência de cada estação</h2>
+        </div>
+        <div>
+          <a href={level.source.url} target="_blank" rel="noopener noreferrer">
+            Estação Laranjal <ExternalLink aria-hidden="true" />
+          </a>
+          <Link to="/nivel-da-lagoa-dos-patos-laranjal">
+            Detalhes do Laranjal <ArrowRight aria-hidden="true" />
+          </Link>
           <Link to="/tempo-hoje-pelotas">Tempo em Pelotas</Link>
           <Link to="/status-dos-dados">Dados e fontes</Link>
         </div>
