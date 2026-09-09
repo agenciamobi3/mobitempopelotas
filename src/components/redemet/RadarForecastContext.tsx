@@ -1,4 +1,4 @@
-import { CloudFog, CloudRain, Eye, Gauge, Wind } from "lucide-react";
+import { Droplets, Gauge, Info, Wind } from "lucide-react";
 
 import {
   formatRedemetDateTime,
@@ -6,7 +6,7 @@ import {
   redemetFrameDisplayLabel,
 } from "@/lib/redemet/redemet-display-time";
 import type { RedemetImageLayerResponse } from "@/lib/redemet/redemet.types";
-import type { HourlyForecast } from "@/lib/weather/types";
+import type { InmetForecastPeriod } from "@/lib/weather/official-sources.types";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
 import { RadarMapFrame } from "./RadarMapFrame";
@@ -18,52 +18,101 @@ function parseObservedTime(value: string | null | undefined) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-function parseForecastTime(value: string | null | undefined) {
-  if (!value) return null;
-  const hasZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value);
-  const normalized = hasZone
-    ? value
-    : `${value.length === 16 ? `${value}:00` : value}-03:00`;
-  const date = new Date(normalized);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
-
 function formatDateTime(value: string | null | undefined) {
   return formatRedemetDateTime(value ?? null);
 }
 
-function formatFetchedAt(value: string | null | undefined) {
-  if (!value) return "horário não informado";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "horário não informado";
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+function normalizedToken(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
 }
 
-function nearestForecastHour(hours: HourlyForecast[], observedAt: string | null) {
-  const observed = parseObservedTime(observedAt);
+function frameReference(value: string | null | undefined) {
+  const observed = parseObservedTime(value);
   if (!observed) return null;
 
-  const selected = hours.reduce<{ hour: HourlyForecast; difference: number } | null>(
-    (nearest, hour) => {
-      const forecast = parseForecastTime(hour.timestamp);
-      if (!forecast) return nearest;
-      const difference = Math.abs(forecast.getTime() - observed.getTime());
-      return !nearest || difference < nearest.difference ? { hour, difference } : nearest;
-    },
-    null,
-  );
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(observed);
 
-  if (!selected || selected.difference > 3 * 60 * 60 * 1_000) return null;
-  return selected.hour;
+  const part = (type: "year" | "month" | "day" | "hour") =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  const year = part("year");
+  const month = part("month");
+  const day = part("day");
+  const hour = Number(part("hour"));
+  if (!year || !month || !day || !Number.isFinite(hour)) return null;
+
+  return {
+    date: `${year}-${month}-${day}`,
+    period:
+      hour < 6 ? "madrugada" : hour < 12 ? "manha" : hour < 18 ? "tarde" : "noite",
+  };
 }
 
-function formatValue(value: number | null | undefined, suffix: string, digits = 0) {
-  if (value === null || value === undefined) return "Não informado";
-  return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: digits }).format(value)}${suffix}`;
+function selectInmetPeriod(periods: InmetForecastPeriod[], observedAt: string | null) {
+  const reference = frameReference(observedAt);
+  if (!reference) return null;
+
+  const sameDate = periods.filter((period) => period.date === reference.date);
+  if (!sameDate.length) return null;
+
+  return (
+    sameDate.find((period) => normalizedToken(period.period) === reference.period) ??
+    sameDate.find((period) =>
+      ["diainteiro", "previsaodiaria"].includes(normalizedToken(period.period)),
+    ) ??
+    sameDate[0] ??
+    null
+  );
+}
+
+function formatForecastDate(value: string | null) {
+  if (!value) return "Data não informada";
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return value;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+  }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+}
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(value);
+}
+
+function formatRange(
+  minimum: number | null | undefined,
+  maximum: number | null | undefined,
+  suffix: string,
+) {
+  if (minimum === null || minimum === undefined) {
+    return maximum === null || maximum === undefined
+      ? "Não informada"
+      : `Até ${formatNumber(maximum)}${suffix}`;
+  }
+  if (maximum === null || maximum === undefined) {
+    return `A partir de ${formatNumber(minimum)}${suffix}`;
+  }
+  return `${formatNumber(minimum)}${suffix} a ${formatNumber(maximum)}${suffix}`;
+}
+
+function windLabel(period: InmetForecastPeriod) {
+  const values = [period.windDirection, period.windIntensity].filter(
+    (value): value is string => Boolean(value),
+  );
+  return values.length ? values.join(" · ") : "Não informado";
 }
 
 export function RadarForecastContext({
@@ -76,23 +125,17 @@ export function RadarForecastContext({
   const frame = radar.frames[radar.currentIndex] ?? radar.frames.at(-1) ?? null;
   if (!frame) return null;
 
-  const forecast = nearestForecastHour(weather.weather.hourly, frame.observedAt);
-  const forecastSource = weather.weather.quality.forecastSource;
-  const sourceHealth = forecastSource ? weather.weather.sources[forecastSource] : null;
-  const modelLabel =
-    forecastSource === "open-meteo"
-      ? "Open-Meteo Best Match"
-      : weather.weather.quality.forecastProvider ?? "Modelo não informado";
+  const inmetPeriod = selectInmetPeriod(weather.weather.inmetForecast, frame.observedAt);
 
   return (
     <section className="radar-forecast-context" aria-labelledby="radar-forecast-context-title">
       <header>
         <div>
           <span>Compare com a previsão</span>
-          <h2 id="radar-forecast-context-title">Radar e previsão no mesmo horário</h2>
+          <h2 id="radar-forecast-context-title">Radar e previsão oficial do período</h2>
         </div>
         <p>
-          A imagem mostra o que o radar recebeu. Ao lado, veja o que a previsão indicava para o horário mais próximo.
+          A imagem mostra o radar recebido. Ao lado, a previsão do INMET para o mesmo período do dia, quando disponível.
         </p>
       </header>
 
@@ -113,45 +156,53 @@ export function RadarForecastContext({
 
         <div className="radar-forecast-context__forecast">
           <div className="radar-forecast-context__forecast-time">
-            <small>Previsão comparada</small>
-            <strong>{forecast?.time ?? "Sem horário próximo"}</strong>
-            <span>{modelLabel}</span>
+            <small>Previsão oficial do INMET</small>
+            <strong>{inmetPeriod?.period ?? "Em atualização"}</strong>
+            <span>
+              {inmetPeriod
+                ? formatForecastDate(inmetPeriod.date)
+                : "Sem período correspondente nesta coleta"}
+            </span>
           </div>
 
-          {forecast ? (
+          {inmetPeriod ? (
             <div className="radar-forecast-context__metrics">
-              <article>
-                <Gauge aria-hidden="true" />
-                <span><small>Temperatura</small><strong>{formatValue(forecast.temperature, " °C")}</strong></span>
+              <article className="is-summary">
+                <Info aria-hidden="true" />
+                <span>
+                  <small>Condição prevista</small>
+                  <strong>{inmetPeriod.summary}</strong>
+                </span>
               </article>
               <article>
-                <CloudRain aria-hidden="true" />
-                <span><small>Chance de chuva</small><strong>{formatValue(forecast.precipitationProbability, "%")}</strong></span>
+                <Gauge aria-hidden="true" />
+                <span>
+                  <small>Temperatura</small>
+                  <strong>{formatRange(inmetPeriod.minimum, inmetPeriod.maximum, " °C")}</strong>
+                </span>
+              </article>
+              <article>
+                <Droplets aria-hidden="true" />
+                <span>
+                  <small>Umidade</small>
+                  <strong>{formatRange(inmetPeriod.humidityMinimum, inmetPeriod.humidityMaximum, "%")}</strong>
+                </span>
               </article>
               <article>
                 <Wind aria-hidden="true" />
-                <span><small>Rajada</small><strong>{formatValue(forecast.windGust, " km/h")}</strong></span>
-              </article>
-              <article>
-                <CloudFog aria-hidden="true" />
-                <span><small>Nuvens baixas</small><strong>{formatValue(forecast.cloudCoverLow, "%")}</strong></span>
-              </article>
-              <article>
-                <Eye aria-hidden="true" />
-                <span><small>Visibilidade</small><strong>{formatValue(forecast.visibilityKm, " km", 1)}</strong></span>
+                <span>
+                  <small>Vento</small>
+                  <strong>{windLabel(inmetPeriod)}</strong>
+                </span>
               </article>
             </div>
           ) : (
             <div className="radar-forecast-context__unavailable">
-              Não há uma previsão por hora suficientemente próxima desta coleta para fazer a comparação.
+              O INMET não publicou um período correspondente a esta coleta do radar nesta atualização.
             </div>
           )}
         </div>
       </div>
-
-      <footer>
-        Previsão {modelLabel}, atualizada às {formatFetchedAt(sourceHealth?.fetchedAt)}. A imagem do radar continua sendo observação; os números ao lado continuam sendo previsão.
-      </footer>
     </section>
   );
 }
