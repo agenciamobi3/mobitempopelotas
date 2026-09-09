@@ -36,6 +36,8 @@ O schema exige somente o núcleo necessário para manter uma série horária uti
 
 A rota passou a usar `loadPublicWeatherWithMeteogram()`, que limita e degrada de forma independente a inteligência meteorológica compartilhada e o meteograma dedicado.
 
+Mesmo quando o meteograma dedicado cai e a página usa o conjunto horário compartilhado, a direção do vento é preservada quando existir no contrato de fallback.
+
 ## Cache
 
 - janela completa de 48 h: cache público de 5 min, com stale-while-revalidate;
@@ -58,7 +60,13 @@ Foi acrescentado um resumo editorial de 48 horas com derivados objetivos, sempre
 
 Quando o volume de chuva não está completo, a interface informa quantos horários possuem valor em vez de completar a soma com zero.
 
+No horário selecionado, a página passou a mostrar também cobertura total de nuvens e, quando disponíveis, as parcelas de nuvens baixas, médias e altas. A altura da camada próxima ao solo só aparece quando existe valor; sua ausência não gera um aviso repetitivo.
+
 Nenhum desses derivados é promovido a aviso oficial ou classificação de risco.
+
+## Copy de origem
+
+O Hero e o rodapé do meteograma deixaram de repetir o nome técnico do modelo. A interface mostra a janela e o horário de atualização; a proveniência continua nos contratos internos e em `/status-dos-dados`. O rodapé aponta para `Sobre os dados` em vez de repetir um link de fonte em cada superfície.
 
 ## SIMAGRO RS
 
@@ -79,6 +87,7 @@ Os meteogramas gráficos WRF, GFS e GFS Agro continuam complementares. Se uma im
 - `src/lib/weather/meteogram.functions.ts`;
 - `src/lib/weather/public-weather-page-loader.ts`;
 - `src/routes/meteograma-pelotas.tsx`;
+- `src/components/weather/MeteogramPage.tsx`;
 - `src/components/weather/MeteogramForecastHighlights.tsx`;
 - `src/components/weather/MeteogramForecastHighlights.css`;
 - `src/components/weather/SimagroModelProducts.tsx`;
