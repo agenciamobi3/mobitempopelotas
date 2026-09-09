@@ -59,7 +59,7 @@ Foi criado o provider interno:
 
 `open-meteo-extended`
 
-A migration `20260909192000_add_open_meteo_extended_cache.sql`:
+A migration `20260909192047_add_open_meteo_extended_cache.sql`:
 
 - adiciona o provider ao constraint de `weather_provider_payload_cache`;
 - cria a linha inicial do cache;
@@ -93,7 +93,7 @@ A interface pública não precisa expor `Open-Meteo Best Match`, `NOAA GFS` ou o
 - `src/lib/weather/extended-forecast.types.ts`;
 - `src/lib/weather/open-meteo-extended-edge.server.ts`;
 - `supabase/functions/open-meteo-extended-forecast/index.ts`;
-- `supabase/migrations/20260909192000_add_open_meteo_extended_cache.sql`;
+- `supabase/migrations/20260909192047_add_open_meteo_extended_cache.sql`;
 - `tests/open-meteo-extended-forecast.test.ts`;
 - `tests/fifteen-day-forecast.test.ts`.
 
@@ -116,12 +116,14 @@ Não declarar build, typecheck, lint ou testes como PASS enquanto não houver ex
 
 Em 09/09/2026 a infraestrutura estendida foi aplicada ao projeto Supabase `tempopelotas`:
 
-1. migration `add_open_meteo_extended_cache` aplicada com sucesso;
+1. migration `add_open_meteo_extended_cache` aplicada com sucesso, registrada remotamente como versão `20260909192047`;
 2. Edge Function `open-meteo-extended-forecast` implantada e ativa, versão 1, usando autenticação própria por `X-Collector-Token`;
 3. o cache foi aquecido por uma chamada controlada à própria Edge Function;
 4. a chamada respondeu HTTP 200 com `cacheStatus: refreshed`;
 5. o payload persistido continha 15 datas, de 09/09/2026 a 23/09/2026, originadas de `Open-Meteo Best Match`;
 6. a linha `open-meteo-extended` ficou em estado `live`, com 15 dias efetivamente persistidos.
+
+O nome do arquivo de migration no repositório foi alinhado à versão registrada pelo Supabase para evitar drift entre histórico remoto e migrations locais.
 
 Portanto a contingência de 15 dias não está apenas preparada em código: existe e possui um último payload válido no ambiente de produção.
 
