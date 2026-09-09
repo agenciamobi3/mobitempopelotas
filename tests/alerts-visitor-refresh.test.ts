@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+const route = readFileSync("src/routes/alertas.tsx", "utf8");
 const page = readFileSync("src/components/weather/WeatherAlertsPage.tsx", "utf8");
 const coverage = readFileSync("src/components/weather/InmetAlertCoverageDetails.tsx", "utf8");
 const guide = readFileSync("src/components/weather/AlertsOperationalGuide.tsx", "utf8");
@@ -12,6 +13,12 @@ test("alertas removes the redundant decision card and old hero back link", () =>
   assert.doesNotMatch(page, /className="alerts-method"/);
   assert.doesNotMatch(page, /alerts-editorial-back/);
   assert.doesNotMatch(page, /ArrowLeft/);
+});
+
+test("public alert copy does not expose internal ingestion notes", () => {
+  assert.doesNotMatch(route, /A página preserva o horário de publicação/);
+  assert.doesNotMatch(route, /CAP\/RSS do INMET/);
+  assert.doesNotMatch(route, /Quando a consulta ao INMET estiver indisponível, a página informa a falha/);
 });
 
 test("first fold is compact editorial instead of a duplicated dashboard", () => {
