@@ -71,13 +71,11 @@ export function InmetAlertCoverageDetails({ data }: { data: WeatherIntelligenceD
           <span>
             <MapPin aria-hidden="true" /> Abrangência oficial detalhada
           </span>
-          <h2 id="inmet-alert-coverage-title">Veja exatamente o território citado em cada aviso</h2>
+          <h2 id="inmet-alert-coverage-title">
+            Veja exatamente o território
+            <br className="inmet-alert-coverage-details__desktop-break" /> citado em cada aviso
+          </h2>
         </div>
-        <p>
-          O INMET pode publicar áreas amplas e listas extensas de municípios. A leitura principal resume
-          esse conteúdo; aqui o portal preserva o detalhe territorial recebido do aviso oficial para você
-          conferir quando precisar.
-        </p>
       </header>
 
       <div className="inmet-alert-coverage-details__list">
