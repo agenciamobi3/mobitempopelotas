@@ -1,4 +1,4 @@
-import { CloudRain, Database, Droplets } from "lucide-react";
+import { CloudRain, Droplets } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import type { HourlyForecast } from "@/lib/weather/types";
@@ -16,7 +16,6 @@ type RainVolumeHour = {
 
 type RainHourlyVolumeContextProps = {
   hourly: HourlyForecast[];
-  forecastProvider: string | null;
   forecastFetchedAt: string;
 };
 
@@ -77,24 +76,16 @@ function peakVolumeHour(hours: RainVolumeHour[]) {
   }, null);
 }
 
-function SourceFooter({
-  forecastProvider,
-  forecastFetchedAt,
-}: Pick<RainHourlyVolumeContextProps, "forecastProvider" | "forecastFetchedAt">) {
+function UpdateFooter({ forecastFetchedAt }: Pick<RainHourlyVolumeContextProps, "forecastFetchedAt">) {
   return (
     <footer>
-      <Database aria-hidden="true" />
-      <span>
-        <strong>{forecastProvider ?? "Modelo meteorológico disponível"}</strong>
-        <small>Atualizado em {formatDateTime(forecastFetchedAt)}</small>
-      </span>
+      <small>Atualizado em {formatDateTime(forecastFetchedAt)}</small>
     </footer>
   );
 }
 
 export function RainHourlyVolumeContext({
   hourly,
-  forecastProvider,
   forecastFetchedAt,
 }: RainHourlyVolumeContextProps) {
   const hours = normalizeHours(hourly);
@@ -125,10 +116,7 @@ export function RainHourlyVolumeContext({
           </div>
         </div>
 
-        <SourceFooter
-          forecastProvider={forecastProvider}
-          forecastFetchedAt={forecastFetchedAt}
-        />
+        <UpdateFooter forecastFetchedAt={forecastFetchedAt} />
       </section>
     );
   }
@@ -205,10 +193,7 @@ export function RainHourlyVolumeContext({
         })}
       </div>
 
-      <SourceFooter
-        forecastProvider={forecastProvider}
-        forecastFetchedAt={forecastFetchedAt}
-      />
+      <UpdateFooter forecastFetchedAt={forecastFetchedAt} />
     </section>
   );
 }
