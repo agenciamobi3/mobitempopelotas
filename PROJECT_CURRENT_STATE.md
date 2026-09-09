@@ -471,7 +471,9 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
 13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
 14. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
-15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+15. Validar no preview e no domínio canônico a página `/radar-e-satelite-pelotas` depois da propagação: radar REDEMET carregando e sequenciando, satélite REDEMET/INMET sem duplicação visual na contingência, STSC distinguindo ausência de coleta de zero real, e estabilidade do radar após o novo budget interno de 4,2 s.
+16. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+
 
 ## 15. Documentos principais
 
