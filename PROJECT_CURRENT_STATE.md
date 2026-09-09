@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 09/09/2026  
+Última atualização: 08/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
