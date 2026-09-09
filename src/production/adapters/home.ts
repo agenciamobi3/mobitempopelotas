@@ -88,9 +88,24 @@ function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
   };
 }
 
+function hasCurrentTemperatureDiscrepancy(data: AggregatedWeatherData) {
+  return (data.quality.discrepancies ?? []).some(
+    (item) => item.scope === "current" && item.field === "temperature",
+  );
+}
+
 function observedCurrent(data: AggregatedWeatherData): CurrentWeather {
   const current = data.current;
-  if (!current || data.quality.currentSource !== "defesa-civil-rs") return unavailableCurrent(data);
+  const temperatureIsReliable =
+    current?.temperature !== null && current?.temperature !== undefined && !hasCurrentTemperatureDiscrepancy(data);
+
+  if (
+    !current ||
+    data.quality.currentSource !== "defesa-civil-rs" ||
+    !temperatureIsReliable
+  ) {
+    return unavailableCurrent(data);
+  }
 
   return {
     available: true,
