@@ -1,0 +1,379 @@
+.site-shell--topic[data-topic="estacao-embrapa-pelotas"] {
+  --embrapa-ink: #071e2f;
+  --embrapa-muted: #5c7180;
+  --embrapa-line: rgb(7 30 47 / 10%);
+  --embrapa-accent: #18bdcd;
+  --embrapa-soft: #f5fafb;
+}
+
+.embrapa-station-page {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 20px 0 84px;
+  color: var(--embrapa-ink);
+}
+
+.embrapa-station-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: clamp(44px, 7vw, 100px);
+  align-items: end;
+  padding: clamp(58px, 7vw, 96px) 0 clamp(54px, 6vw, 82px);
+  border-bottom: 1px solid var(--embrapa-line);
+}
+
+.embrapa-station-hero__copy {
+  max-width: 780px;
+}
+
+.embrapa-station-eyebrow {
+  display: inline-block;
+  color: #0b8fa2;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.embrapa-station-hero h1,
+.embrapa-station-section h2 {
+  margin: 0;
+  color: var(--embrapa-ink);
+  letter-spacing: -0.055em;
+}
+
+.embrapa-station-hero h1 {
+  max-width: 840px;
+  margin-top: 14px;
+  font-size: clamp(2.9rem, 5.6vw, 5.9rem);
+  font-weight: 860;
+  line-height: 0.93;
+}
+
+.embrapa-station-hero__copy > p {
+  max-width: 66ch;
+  margin: 24px 0 0;
+  color: var(--embrapa-muted);
+  font-size: clamp(1rem, 1.2vw, 1.14rem);
+  line-height: 1.72;
+}
+
+.embrapa-station-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: center;
+  margin-top: 28px;
+  color: var(--embrapa-muted);
+  font-size: 0.78rem;
+}
+
+.embrapa-station-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #167b58;
+  font-weight: 800;
+}
+
+.embrapa-station-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.embrapa-station-status.is-partial {
+  color: #b47813;
+}
+
+.embrapa-station-status.is-unavailable {
+  color: #9a5a63;
+}
+
+.embrapa-station-now {
+  min-height: 260px;
+  padding: clamp(28px, 3vw, 38px);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(24 189 205 / 22%), transparent 16rem),
+    linear-gradient(145deg, #071e2f, #0e4153);
+  color: #fff;
+  box-shadow: 0 22px 56px rgb(7 30 47 / 13%);
+}
+
+.embrapa-station-now > span {
+  display: block;
+  color: rgb(255 255 255 / 64%);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.embrapa-station-now > strong {
+  display: block;
+  margin-top: 22px;
+  color: #fff;
+  font-size: clamp(4.4rem, 7vw, 7.2rem);
+  font-weight: 620;
+  line-height: 0.82;
+  letter-spacing: -0.09em;
+}
+
+.embrapa-station-now > p {
+  margin: 26px 0 0;
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.embrapa-station-now.is-unavailable {
+  background: #1b2e3a;
+}
+
+.embrapa-station-section {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.42fr) minmax(0, 1.58fr);
+  gap: clamp(42px, 7vw, 96px);
+  padding: clamp(62px, 7vw, 94px) 0;
+  border-bottom: 1px solid var(--embrapa-line);
+}
+
+.embrapa-station-section__heading {
+  max-width: 430px;
+}
+
+.embrapa-station-section h2 {
+  margin-top: 10px;
+  font-size: clamp(2rem, 3.3vw, 3.5rem);
+  font-weight: 850;
+  line-height: 0.98;
+}
+
+.embrapa-station-section__heading > p {
+  margin: 20px 0 0;
+  color: var(--embrapa-muted);
+  font-size: 0.9rem;
+  line-height: 1.72;
+}
+
+.embrapa-station-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--embrapa-line);
+}
+
+.embrapa-station-metrics article {
+  min-height: 150px;
+  padding: 24px 22px;
+  border-right: 1px solid var(--embrapa-line);
+  border-bottom: 1px solid var(--embrapa-line);
+}
+
+.embrapa-station-metrics article:nth-child(2n) {
+  border-right: 0;
+}
+
+.embrapa-station-metrics article:last-child {
+  grid-column: 1 / -1;
+  border-right: 0;
+}
+
+.embrapa-station-metrics span,
+.embrapa-station-accumulated span,
+.embrapa-station-extreme__value span {
+  display: block;
+  color: var(--embrapa-muted);
+  font-size: 0.7rem;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.embrapa-station-metrics strong,
+.embrapa-station-accumulated strong,
+.embrapa-station-extreme__value strong {
+  display: block;
+  margin-top: 14px;
+  color: var(--embrapa-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.embrapa-station-metrics strong {
+  font-size: clamp(1.65rem, 2.6vw, 2.5rem);
+  letter-spacing: -0.05em;
+}
+
+.embrapa-station-metrics small,
+.embrapa-station-extreme__value small {
+  display: block;
+  margin-top: 8px;
+  color: var(--embrapa-muted);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.embrapa-station-accumulated {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--embrapa-line);
+  border-radius: 18px;
+}
+
+.embrapa-station-accumulated article {
+  min-height: 154px;
+  padding: 28px;
+  border-right: 1px solid var(--embrapa-line);
+  background: #fff;
+}
+
+.embrapa-station-accumulated article:last-child {
+  border-right: 0;
+}
+
+.embrapa-station-accumulated strong {
+  font-size: clamp(2rem, 3vw, 3rem);
+  letter-spacing: -0.06em;
+}
+
+.embrapa-station-extremes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.embrapa-station-extremes article {
+  padding: 26px;
+  border: 1px solid var(--embrapa-line);
+  border-radius: 18px;
+  background: var(--embrapa-soft);
+}
+
+.embrapa-station-extremes h3 {
+  margin: 0;
+  color: var(--embrapa-ink);
+  font-size: 0.86rem;
+  font-weight: 820;
+}
+
+.embrapa-station-extremes article > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.embrapa-station-extreme__value {
+  min-width: 0;
+}
+
+.embrapa-station-extreme__value strong {
+  font-size: 1.55rem;
+  letter-spacing: -0.045em;
+}
+
+.embrapa-station-unavailable {
+  min-height: 300px;
+}
+
+.embrapa-station-source {
+  border-bottom: 0;
+}
+
+.embrapa-station-source__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.embrapa-station-source__actions a {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 1px solid var(--embrapa-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--embrapa-ink);
+  font-size: 0.78rem;
+  font-weight: 780;
+  text-decoration: none;
+}
+
+.embrapa-station-source__actions a:first-child {
+  border-color: var(--embrapa-ink);
+  background: var(--embrapa-ink);
+  color: #fff;
+}
+
+.embrapa-station-source__actions a:hover,
+.embrapa-station-source__actions a:focus-visible {
+  border-color: var(--embrapa-accent);
+}
+
+@media (max-width: 900px) {
+  .embrapa-station-page {
+    width: min(100% - 32px, 760px);
+  }
+
+  .embrapa-station-hero,
+  .embrapa-station-section {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .embrapa-station-now {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .embrapa-station-page {
+    width: calc(100% - 24px);
+    padding-top: 8px;
+  }
+
+  .embrapa-station-hero {
+    padding: 42px 0 46px;
+  }
+
+  .embrapa-station-hero h1 {
+    font-size: clamp(2.55rem, 13vw, 4rem);
+  }
+
+  .embrapa-station-section {
+    padding: 48px 0;
+  }
+
+  .embrapa-station-metrics,
+  .embrapa-station-extremes,
+  .embrapa-station-accumulated {
+    grid-template-columns: 1fr;
+  }
+
+  .embrapa-station-metrics article,
+  .embrapa-station-metrics article:nth-child(2n),
+  .embrapa-station-metrics article:last-child,
+  .embrapa-station-accumulated article {
+    grid-column: auto;
+    border-right: 0;
+  }
+
+  .embrapa-station-accumulated article {
+    border-bottom: 1px solid var(--embrapa-line);
+  }
+
+  .embrapa-station-accumulated article:last-child {
+    border-bottom: 0;
+  }
+
+  .embrapa-station-extremes article > div {
+    grid-template-columns: 1fr 1fr;
+  }
+}
