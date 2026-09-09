@@ -382,10 +382,19 @@ export function RedemetOverview({
   data: RedemetOverviewData;
   isRefreshing?: boolean;
 }) {
-  const allSources: SourceLayer[] = [data.radar, data.satellite, data.inmetSatellite, data.storms];
+  const satelliteUsesInmetFallback = data.satellite.provider === "INMET";
+  const allSources: SourceLayer[] = satelliteUsesInmetFallback
+    ? [data.radar, data.satellite, data.storms]
+    : [data.radar, data.satellite, data.inmetSatellite, data.storms];
   const availableSources = allSources.filter(sourceHasData).length;
   const latest = latestObservedAt(data);
   const latestFreshness = getRedemetFreshness(latest);
+  const selectedSatelliteTitle = satelliteUsesInmetFallback
+    ? "Satélite INMET · contingência"
+    : "Satélite REDEMET";
+  const selectedSatelliteDescription = satelliteUsesInmetFallback
+    ? "Imagem GOES usada como contingência oficial"
+    : "Nuvens na Região Sul";
 
   return (
     <div className="redemet-page">
@@ -420,8 +429,16 @@ export function RedemetOverview({
         </header>
         <div className="redemet-source-overview__list">
           <SourceSummaryRow icon={Radar} title="Radar REDEMET" description="Áreas de chuva" layer={data.radar} refreshing={isRefreshing} />
-          <SourceSummaryRow icon={Satellite} title="Satélite REDEMET" description="Nuvens na Região Sul" layer={data.satellite} refreshing={isRefreshing} />
-          <SourceSummaryRow icon={Satellite} title="Satélite INMET" description="Imagem GOES" layer={data.inmetSatellite} refreshing={isRefreshing} />
+          <SourceSummaryRow
+            icon={Satellite}
+            title={selectedSatelliteTitle}
+            description={selectedSatelliteDescription}
+            layer={data.satellite}
+            refreshing={isRefreshing}
+          />
+          {!satelliteUsesInmetFallback ? (
+            <SourceSummaryRow icon={Satellite} title="Satélite INMET" description="Imagem GOES" layer={data.inmetSatellite} refreshing={isRefreshing} />
+          ) : null}
           <SourceSummaryRow icon={CloudLightning} title="Raios REDEMET" description="Descargas elétricas" layer={data.storms} refreshing={isRefreshing} storm />
         </div>
       </section>
@@ -443,27 +460,35 @@ export function RedemetOverview({
             <span>Satélites</span>
             <h2 id="redemet-satellite-title">Como estão as nuvens sobre a Região Sul</h2>
           </div>
-          <p>Nuvens no satélite não significam necessariamente chuva no solo. Compare o horário com o radar e a previsão.</p>
+          <p>
+            {satelliteUsesInmetFallback
+              ? "A REDEMET não entregou uma imagem utilizável nesta composição. A camada principal usa a contingência oficial do INMET e permanece identificada como INMET."
+              : "Nuvens no satélite não significam necessariamente chuva no solo. Compare o horário com o radar e a previsão."}
+          </p>
         </header>
         <div className="redemet-satellite-grid">
           <ImageLayerPanel
-            id="satelite-redemet"
+            id={satelliteUsesInmetFallback ? "satelite-contingencia-inmet" : "satelite-redemet"}
             layer={data.satellite}
             kind="satellite"
-            kicker="Satélite REDEMET"
-            title="Imagem de nuvens pela REDEMET"
-            description="Veja a mudança da cobertura de nuvens entre as coletas recebidas."
+            kicker={selectedSatelliteTitle}
+            title={satelliteUsesInmetFallback ? "Imagem GOES da Região Sul" : "Imagem de nuvens pela REDEMET"}
+            description={satelliteUsesInmetFallback
+              ? "Contingência oficial usada somente porque a camada REDEMET selecionada não veio utilizável nesta atualização."
+              : "Veja a mudança da cobertura de nuvens entre as coletas recebidas."}
             refreshing={isRefreshing}
           />
-          <ImageLayerPanel
-            id="satelite-inmet"
-            layer={data.inmetSatellite}
-            kind="satellite"
-            kicker="Satélite INMET"
-            title="Imagem GOES da Região Sul"
-            description="Uma segunda fonte para comparar a cobertura de nuvens na região."
-            refreshing={isRefreshing}
-          />
+          {!satelliteUsesInmetFallback ? (
+            <ImageLayerPanel
+              id="satelite-inmet"
+              layer={data.inmetSatellite}
+              kind="satellite"
+              kicker="Satélite INMET"
+              title="Imagem GOES da Região Sul"
+              description="Uma segunda fonte para comparar a cobertura de nuvens na região."
+              refreshing={isRefreshing}
+            />
+          ) : null}
         </div>
       </section>
 
