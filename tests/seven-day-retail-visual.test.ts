@@ -43,7 +43,8 @@ test("weekly hero is editorial, search-oriented and free of the old retail photo
   assert.match(hero, /Temperaturas/);
   assert.match(hero, /Chuva/);
   assert.match(hero, /Rajadas/);
-  assert.match(hero, /Fonte principal:/);
+  assert.doesNotMatch(hero, /Fonte principal:/);
+  assert.doesNotMatch(hero, /sourceName/);
   assert.match(hero, /Sem aviso oficial para Pelotas/);
   assert.match(hero, /seven-day-retail-hero__summary/);
   assert.match(hero, /seven-day-retail-hero__facts/);
@@ -96,6 +97,8 @@ test("weekly page keeps direct section titles and the comparative data", () => {
   assert.match(page, /Temperaturas nos próximos 7 dias/);
   assert.match(page, /Chuva e rajadas nos próximos 7 dias/);
   assert.match(page, /INMET e UFPel nos próximos dias/);
+  assert.match(page, /Instituto Nacional de Meteorologia/);
+  assert.match(page, /Centro de Pesquisas e Previsões Meteorológicas da UFPel/);
   assert.match(page, /rainRanking/);
   assert.match(page, /windRanking/);
   assert.match(page, /--week-low/);
