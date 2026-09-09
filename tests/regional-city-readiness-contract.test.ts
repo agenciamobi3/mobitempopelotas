@@ -9,13 +9,16 @@ import {
   INDEXABLE_REGIONAL_CITIES,
   PUBLIC_REGIONAL_CITIES,
   REGIONAL_CITIES,
+  regionalCityCoverage,
 } from "../src/lib/regional-cities.ts";
 
 const baseCity = REGIONAL_CITIES[0]!;
 
-test("mantém o inventário regional atual público e indexável", () => {
-  assert.equal(PUBLIC_REGIONAL_CITIES.length, 24);
+test("inventário público inclui a expansão basic sem ampliar a indexação", () => {
+  assert.equal(REGIONAL_CITIES.length, 35);
+  assert.equal(PUBLIC_REGIONAL_CITIES.length, 35);
   assert.equal(INDEXABLE_REGIONAL_CITIES.length, 24);
+  assert.equal(REGIONAL_CITIES.filter((city) => regionalCityCoverage(city) === "basic").length, 11);
 });
 
 test("não considera cidade incompleta pronta para basic", () => {
@@ -42,7 +45,7 @@ test("basic exige IBGE, coordenadas e meteorologia validados", () => {
   );
 });
 
-test("complete exige contexto hidrológico, conteúdo, SEO e imagens além do basic", () => {
+test("complete exige evidência hidrológica, contexto, conteúdo, SEO e imagens além do basic", () => {
   assert.equal(
     isRegionalCityReadyForComplete({
       ...baseCity,
@@ -51,6 +54,7 @@ test("complete exige contexto hidrológico, conteúdo, SEO e imagens além do ba
         coordinatesValidated: true,
         weatherValidated: true,
         hydrologicalContextValidated: true,
+        hydrologyEvidenceValidated: true,
         editorialReady: true,
         seoReady: true,
         imageryReady: true,
