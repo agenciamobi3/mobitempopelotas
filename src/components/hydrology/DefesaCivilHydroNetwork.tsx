@@ -175,14 +175,6 @@ function StationCard({ station }: { station: DefesaCivilHydroStation }) {
         </dl>
       ) : null}
 
-      {hasHydrology && station.river.trend ? (
-        <p className="defesa-civil-hydro__river-trend">
-          <strong>Tendência informada pela estação:</strong> {station.river.trend}. Este texto é
-          preservado como dado da fonte e não é convertido pelo Tempo Pelotas em classificação de
-          risco.
-        </p>
-      ) : null}
-
       {hasWeather ? (
         <dl className="defesa-civil-hydro__weather-metrics">
           <div>
