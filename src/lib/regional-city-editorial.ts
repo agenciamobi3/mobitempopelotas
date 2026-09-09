@@ -1,3 +1,4 @@
+import { COSTA_DOCE_REGIONAL_EDITORIAL } from "./regional-city-editorial-costa-doce";
 import { REGIONAL_CITY_EDITORIAL_EXPANSION } from "./regional-city-editorial-expansion";
 import type { RegionalCity } from "./regional-cities";
 
@@ -184,6 +185,7 @@ export function regionalCityPageTitle(city: RegionalCity) {
 export function regionalCityMetaDescription(city: RegionalCity) {
   return (
     PRIORITY_REGIONAL_EDITORIAL[city.slug]?.metaDescription ??
+    COSTA_DOCE_REGIONAL_EDITORIAL[city.slug]?.metaDescription ??
     REGIONAL_CITY_EDITORIAL_EXPANSION[city.slug]?.metaDescription ??
     `Veja o tempo em ${city.name} hoje e a previsão para as próximas horas e 7 dias, com temperatura, chuva, vento e avisos oficiais do INMET.`
   );
@@ -192,6 +194,7 @@ export function regionalCityMetaDescription(city: RegionalCity) {
 export function regionalCityEditorialProfile(city: RegionalCity) {
   return (
     PRIORITY_REGIONAL_EDITORIAL[city.slug] ??
+    COSTA_DOCE_REGIONAL_EDITORIAL[city.slug] ??
     REGIONAL_CITY_EDITORIAL_EXPANSION[city.slug] ??
     null
   );
