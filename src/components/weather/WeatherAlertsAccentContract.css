@@ -43,6 +43,202 @@
   border-top-color: var(--alerts-accent);
 }
 
+/*
+ * Refresh visual de 09/09/2026.
+ * A primeira dobra segue a linguagem editorial das internas novas: menos altura,
+ * nenhuma duplicação de métricas e status lateral sem aparência de dashboard.
+ */
+.internal-weather-shell--alerts .alerts-editorial-hero {
+  grid-template-columns: minmax(0, 1.28fr) minmax(300px, 0.58fr);
+  min-height: 0;
+  background: #f6f9f9;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-copy {
+  padding: clamp(42px, 4.5vw, 62px) clamp(28px, 3.5vw, 48px);
+}
+
+.internal-weather-shell--alerts .alerts-editorial-copy h1 {
+  max-width: 13.5ch;
+  margin-top: 10px;
+  font-size: clamp(2.85rem, 4.65vw, 4.8rem);
+  line-height: 0.96;
+  letter-spacing: -0.06em;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-copy > p {
+  max-width: 66ch;
+  margin-top: 16px;
+  font-size: clamp(0.94rem, 1.05vw, 1.04rem);
+  line-height: 1.62;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-metrics {
+  display: none;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-actions {
+  margin-top: 24px;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel {
+  padding: clamp(34px, 3.7vw, 48px);
+  border-left: 1px solid rgb(7 30 47 / 10%);
+  background: transparent;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel-line {
+  width: 46px;
+  height: 3px;
+  margin-bottom: 18px;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel-status {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel > p {
+  margin-top: 18px;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel h2 {
+  max-width: 15ch;
+  margin-top: 9px;
+  font-size: clamp(1.95rem, 3vw, 3.05rem);
+  line-height: 0.98;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel dl {
+  margin-top: 22px;
+}
+
+.internal-weather-shell--alerts .alerts-editorial-panel > small {
+  margin-top: 20px;
+}
+
+/* O resumo que sucede o hero é uma faixa aberta, não três cards repetidos. */
+.internal-weather-shell--alerts .alerts-overview {
+  gap: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.internal-weather-shell--alerts .alerts-overview article,
+.internal-weather-shell--alerts .alerts-overview article.has-alert,
+.internal-weather-shell--alerts .alerts-overview article.is-unavailable {
+  min-height: 94px;
+  padding: 16px 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.internal-weather-shell--alerts .alerts-overview article:first-child {
+  padding-left: 0;
+}
+
+.internal-weather-shell--alerts .alerts-overview article:last-child {
+  border-right: 0;
+}
+
+/* Abrangência: título em duas linhas, sem parágrafo lateral documental. */
+.internal-weather-shell--alerts .inmet-alert-coverage-details > header {
+  display: block;
+}
+
+.internal-weather-shell--alerts .inmet-alert-coverage-details > header > div {
+  max-width: 940px;
+}
+
+.internal-weather-shell--alerts .inmet-alert-coverage-details h2 {
+  max-width: 940px;
+  font-size: clamp(2rem, 3.2vw, 3.35rem);
+}
+
+.internal-weather-shell--alerts .inmet-alert-coverage-details > footer {
+  max-width: none;
+  white-space: nowrap;
+}
+
+/* Fonte oficial: o selo usa a marca fornecida no próprio repositório. */
+.internal-weather-shell--alerts .alerts-scope-summary .is-live dd {
+  width: 154px;
+  min-height: 42px;
+  padding: 6px 10px;
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 10px;
+  background-color: #fff;
+  background-image: url("/inmet_logo_banner.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: calc(100% - 18px) auto;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+}
+
+@media (max-width: 1050px) {
+  .internal-weather-shell--alerts .inmet-alert-coverage-details > footer {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 720px) {
+  .internal-weather-shell--alerts .alerts-editorial-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--alerts .alerts-editorial-copy {
+    padding: 34px 20px 30px;
+  }
+
+  .internal-weather-shell--alerts .alerts-editorial-copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.45rem, 11.5vw, 3.7rem);
+  }
+
+  .internal-weather-shell--alerts .alerts-editorial-panel {
+    padding: 26px 20px 32px;
+    border-top: 1px solid rgb(7 30 47 / 10%);
+    border-left: 0;
+  }
+
+  .internal-weather-shell--alerts .alerts-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internal-weather-shell--alerts .alerts-overview article,
+  .internal-weather-shell--alerts .alerts-overview article.has-alert,
+  .internal-weather-shell--alerts .alerts-overview article.is-unavailable,
+  .internal-weather-shell--alerts .alerts-overview article:first-child,
+  .internal-weather-shell--alerts .alerts-overview article:last-child {
+    min-height: 78px;
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 10%);
+  }
+
+  .internal-weather-shell--alerts .alerts-overview article:last-child {
+    border-bottom: 0;
+  }
+
+  .internal-weather-shell--alerts .inmet-alert-coverage-details__desktop-break {
+    display: none;
+  }
+
+  .internal-weather-shell--alerts .inmet-alert-coverage-details h2 {
+    max-width: none;
+  }
+}
+
 @media (forced-colors: active) {
   .internal-weather-shell--alerts :is(
     .alerts-editorial-panel-status,
@@ -50,5 +246,13 @@
     .alerts-featured
   ) {
     border-color: Highlight;
+  }
+
+  .internal-weather-shell--alerts .alerts-scope-summary .is-live dd {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    font-size: 1rem;
+    line-height: 1.2;
   }
 }
