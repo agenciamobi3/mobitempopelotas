@@ -22,7 +22,6 @@ import {
 
 import type { WeatherCamera, WeatherCameraData } from "@/lib/cameras/cameras.types";
 import { absoluteUrl } from "@/lib/site-config";
-import type { WeatherSourceKey } from "@/lib/weather/aggregated-weather.types";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
 import "./CameraPageV2.css";
@@ -59,14 +58,6 @@ const stateCopy: Record<
     title: "Imagem ainda não disponível",
     description: "O ponto está cadastrado, mas ainda não possui uma transmissão pública estável.",
   },
-};
-
-const sourceNames: Record<WeatherSourceKey, string> = {
-  "defesa-civil-rs": "Defesa Civil RS",
-  inmet: "INMET",
-  cppmet: "CPPMet/UFPel",
-  "open-meteo": "Open-Meteo",
-  "met-norway": "MET Norway",
 };
 
 function cameraState(camera: WeatherCamera): CameraPresentationState {
@@ -359,7 +350,6 @@ export function CameraPageV2({ cameraData, weather }: CameraPageProps) {
     .map((hour) => hour.windGust)
     .filter((value): value is number => value !== null)
     .reduce<number | null>((maximum, value) => (maximum === null ? value : Math.max(maximum, value)), null);
-  const temperatureSource = weather.weather.currentProvenance.temperature;
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -417,14 +407,14 @@ export function CameraPageV2({ cameraData, weather }: CameraPageProps) {
             <span className="camera-v2-eyebrow">Informações do tempo</span>
             <h2 id="camera-v2-weather-title">A câmera e a previsão mostram coisas diferentes</h2>
           </div>
-          <p>A câmera mostra somente o local enquadrado. Temperatura, chance de chuva e rajadas vêm das fontes meteorológicas indicadas pelo portal.</p>
+          <p>A câmera mostra somente o local enquadrado. A medição atual e a previsão meteorológica são tratadas separadamente pelo portal.</p>
         </header>
         <div className="camera-v2-weather__grid">
           <article>
             <Thermometer aria-hidden="true" />
             <span>Temperatura agora</span>
             <strong>{formatNumber(current?.temperature, " °C", 1)}</strong>
-            <small>{temperatureSource ? `Origem: ${sourceNames[temperatureSource]}` : "Origem não informada"}</small>
+            <small>{current?.temperature === null || current?.temperature === undefined ? "Medição em atualização" : "Medição observada"}</small>
           </article>
           <article><CloudRain aria-hidden="true" /><span>Maior chance de chuva</span><strong>{formatNumber(maxRainChance, "%")}</strong><small>Nas próximas 12 horas</small></article>
           <article><Wind aria-hidden="true" /><span>Maior rajada prevista</span><strong>{formatNumber(maxGust, " km/h")}</strong><small>Nas próximas 24 horas</small></article>
