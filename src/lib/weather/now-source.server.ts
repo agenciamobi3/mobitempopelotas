@@ -11,11 +11,15 @@ import {
 import type { CurrentWeatherObservation } from "./current-observation.types";
 import { fetchDefesaCivilCurrentObservation } from "./defesa-civil-current.server";
 import { fetchEmbrapaObservation } from "./embrapa-observation.server";
+import { EMBRAPA_MONITOR_URL } from "./embrapa-observation.types";
 import { getNowSourcePriority, NOW_PRIMARY_SOURCE } from "./now-source.config";
 
 const TIMEZONE = "America/Sao_Paulo";
 const FUTURE_TOLERANCE_MS = 5 * 60_000;
 const DAY_MS = 24 * 60 * 60_000;
+const NOW_MODULE_DEADLINE_MS = 5_500;
+const DEFESA_CIVIL_MAP_URL = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
+const DEFESA_CIVIL_DOCS_URL = "https://sistemas.defesacivil.rs.gov.br/api-redehidrometeorologica";
 
 type NowSourceCandidate = {
   source: NowObservationSourceKey;
@@ -65,6 +69,58 @@ function ageMinutes(observedAt: string | null, fetchedAt: string) {
   if (!Number.isFinite(observed) || !Number.isFinite(fetched)) return null;
   if (observed > fetched + FUTURE_TOLERANCE_MS) return null;
   return Math.max(0, (fetched - observed) / 60_000);
+}
+
+async function settleModule<T>(promise: Promise<T>): Promise<T | null> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), NOW_MODULE_DEADLINE_MS);
+    void promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        resolve(null);
+      });
+  });
+}
+
+function unavailableDefesaCivilObservation(): CurrentWeatherObservation {
+  const fetchedAt = new Date().toISOString();
+  return {
+    status: "unavailable",
+    station: {
+      code: null,
+      name: "Estação meteorológica recente de Pelotas não disponível",
+      basin: null,
+      region: null,
+      latitude: null,
+      longitude: null,
+      altitudeM: null,
+      distanceFromPelotasKm: null,
+    },
+    current: {
+      temperature: null,
+      feelsLike: null,
+      humidity: null,
+      dewPoint: null,
+      pressure: null,
+      windSpeed: null,
+      windGust: null,
+      windDirection: null,
+      windDirectionDegrees: null,
+    },
+    rain: { h1Mm: null, h3Mm: null, h6Mm: null, h12Mm: null, h24Mm: null },
+    source: {
+      name: "Defesa Civil RS — Rede de Monitoramento Hidrometeorológico",
+      url: DEFESA_CIVIL_MAP_URL,
+      documentationUrl: DEFESA_CIVIL_DOCS_URL,
+      fetchedAt,
+      observedAt: null,
+    },
+    error: "O módulo de observação da Defesa Civil excedeu o tempo desta consulta.",
+  };
 }
 
 /**
@@ -145,8 +201,23 @@ function candidateFromDefesaCivil(observation: CurrentWeatherObservation): NowSo
 }
 
 function candidateFromEmbrapa(
-  observation: Awaited<ReturnType<typeof fetchEmbrapaObservation>>,
+  observation: Awaited<ReturnType<typeof fetchEmbrapaObservation>> | null,
 ): NowSourceCandidate {
+  if (!observation) {
+    return {
+      source: "embrapa",
+      usable: false,
+      ageMinutes: null,
+      current: null,
+      provenance: {},
+      sourceName: "Embrapa Clima Temperado",
+      stationName: "Posto Meteorológico da Sede",
+      sourceUrl: EMBRAPA_MONITOR_URL,
+      observedAt: null,
+      error: "O módulo de observação da Embrapa excedeu o tempo desta consulta.",
+    };
+  }
+
   const observedAt = normalizeEmbrapaObservedAt(
     observation.source.observationTime,
     observation.source.fetchedAt,
@@ -219,18 +290,19 @@ export function selectNowCandidate(
 }
 
 /**
- * Os dois módulos são consultados de forma independente. A chave de prioridade
- * decide somente qual leitura vence quando ambas estão utilizáveis. Se a fonte
- * principal cair, a contingência assume sem transformar previsão em medição.
+ * Os dois módulos são consultados em paralelo com deadline independente. A
+ * prioridade decide somente qual leitura vence quando ambas estão utilizáveis.
+ * Se a principal cair, a contingência assume sem transformar previsão em medição.
  */
 export async function fetchNowSourceResolution(): Promise<NowSourceResolution> {
-  const [embrapaObservation, defesaCivilObservation] = await Promise.all([
-    fetchEmbrapaObservation(),
-    fetchDefesaCivilCurrentObservation(),
+  const [embrapaResult, defesaCivilResult] = await Promise.all([
+    settleModule(fetchEmbrapaObservation()),
+    settleModule(fetchDefesaCivilCurrentObservation()),
   ]);
+  const defesaCivilObservation = defesaCivilResult ?? unavailableDefesaCivilObservation();
 
   const candidates: Record<NowObservationSourceKey, NowSourceCandidate> = {
-    embrapa: candidateFromEmbrapa(embrapaObservation),
+    embrapa: candidateFromEmbrapa(embrapaResult),
     "defesa-civil-rs": candidateFromDefesaCivil(defesaCivilObservation),
   };
   const { selected, fallbackUsed } = selectNowCandidate(candidates);
