@@ -145,18 +145,12 @@ export function LagoonHydrologyNetworkIndex({ network }: { network: LagoonMonito
             {costaDoce.withLagoonLevel.length} cidades possuem medição de nível integrada ao Tempo Pelotas e {costaDoce.withWeather.length} já possuem acompanhamento meteorológico publicado.
           </p>
         </header>
-        <p className="lagoon-costa-doce__note">
-          “Sem medição integrada” significa apenas que o portal ainda não possui uma leitura de nível da Lagoa dos Patos vinculada à cidade. Isso não afirma que não existam estações de outros órgãos, rios ou canais no município.
-        </p>
         <div className="lagoon-costa-doce__grid">
           {COSTA_DOCE_CITIES.map((city) => {
             const weatherPath = costaDoceWeatherPath(city);
             return (
               <article className="lagoon-costa-doce__city" key={city.slug}>
                 <h3>{city.name}</h3>
-                <span className={city.lagoonLevelPath ? "has-level" : "no-level"}>
-                  {city.lagoonLevelPath ? "Nível integrado" : "Sem medição integrada"}
-                </span>
                 <div>
                   {city.lagoonLevelPath ? <a href={city.lagoonLevelPath}>Ver nível <ArrowRight aria-hidden="true" /></a> : null}
                   {weatherPath ? <a href={weatherPath}>Ver previsão <ArrowRight aria-hidden="true" /></a> : null}
