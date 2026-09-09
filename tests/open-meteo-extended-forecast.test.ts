@@ -29,6 +29,19 @@ test("previsão de 15 dias possui Best Match, NOAA GFS e cache Edge estendido", 
   assert.match(extendedServer, /candidate\.days\.length > selected\.days\.length/);
 });
 
+test("cache estendido começa em paralelo aos upstreams diretos para preservar o budget", () => {
+  assert.match(extendedServer, /TOTAL_FETCH_BUDGET_MS = 2_550/);
+  assert.match(extendedServer, /EXTENDED_EDGE_MAX_WAIT_MS = 900/);
+  assert.match(
+    extendedServer,
+    /const extendedEdgePromise = fetchExtendedForecastEdgeFallback\(\);[\s\S]*const \[bestMatch, gfs\] = await Promise\.all\(\[/,
+  );
+  assert.match(
+    extendedServer,
+    /const extendedEdge = await settleWithin\([\s\S]*extendedEdgePromise,[\s\S]*remainingBudget\(startedAt, EXTENDED_EDGE_MAX_WAIT_MS\)/,
+  );
+});
+
 test("consulta estendida continua diária e não amplia o payload compartilhado", () => {
   assert.match(extendedServer, /EXTENDED_FORECAST_DAYS = 15/);
   assert.match(extendedServer, /forecast_days:\s*String\(EXTENDED_FORECAST_DAYS\)/);
