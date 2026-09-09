@@ -8,27 +8,26 @@ Status deste documento: **arquivo mestre de evoluções futuras e oportunidades 
 
 Este documento registra ideias, fontes, integrações e capacidades com potencial real para evoluir o Tempo Pelotas sem confundir descoberta com implementação.
 
-Ele existe para preservar oportunidades que merecem ser retomadas depois, especialmente quando o portal já está próximo de fechar uma etapa e uma integração nova poderia aumentar risco, escopo ou regressões.
-
-Regras:
+Regras permanentes:
 
 - registrar aqui não autoriza alteração imediata de runtime, banco, loaders, UI ou páginas públicas;
 - prioridade estratégica e prioridade de implementação são coisas diferentes;
-- uma evolução pode ser classificada como muito valiosa e, ainda assim, permanecer deliberadamente fora do ciclo atual;
-- provas de conceito devem começar isoladas quando houver risco de afetar integrações maduras;
-- observação, previsão, alerta oficial, reanálise e dado derivado continuam semanticamente separados;
+- uma evolução pode ser muito valiosa e permanecer deliberadamente fora do ciclo atual;
+- provas de conceito começam isoladas quando houver risco de afetar integrações maduras;
+- observação, previsão, alerta oficial, reanálise e dado derivado permanecem semanticamente separados;
 - nenhuma nova fonte hidrológica autoriza comparar cotas, réguas ou referências verticais incompatíveis;
-- quando uma evolução virar funcionalidade real, o estado operacional deve ser consolidado também em `PROJECT_CURRENT_STATE.md` e na documentação especializada correspondente.
+- diagnóstico técnico de uma biblioteca não vira automaticamente classificação pública de qualidade;
+- quando uma evolução virar funcionalidade real, o estado operacional deve ser consolidado em `PROJECT_CURRENT_STATE.md` e na documentação especializada correspondente.
 
-Estados sugeridos para futuras entradas:
+Estados usados neste arquivo:
 
 - `registrada` — oportunidade preservada, sem implementação;
 - `pesquisa` — investigação técnica permitida, sem impacto público;
 - `POC isolado` — prova de conceito fora do fluxo público;
 - `validada` — utilidade e limites comprovados;
 - `planejada` — integração aprovada para ciclo futuro;
-- `implementada` — já incorporada ao produto e transferida para a documentação operacional;
-- `descartada` — não seguirá adiante, mantendo o motivo registrado.
+- `implementada` — incorporada ao produto e transferida para documentação operacional;
+- `descartada` — não seguirá adiante, com motivo preservado.
 
 ---
 
@@ -40,99 +39,47 @@ Estados sugeridos para futuras entradas:
 **Estado:** `registrada`  
 **Decisão atual:** não alterar o runtime público nesta etapa.
 
-### Oportunidade
+O Tempo Pelotas já utiliza Open-Meteo para previsão meteorológica, mas o projeto cobre capacidades adicionais como Historical, Air Quality, Marine, Elevation e Flood API, além da possibilidade futura de self-host.
 
-O Tempo Pelotas já utiliza Open-Meteo para previsão meteorológica, mas o projeto aberto cobre um conjunto muito maior de capacidades, incluindo Weather, Historical, Air Quality, Marine, Elevation e Flood API, além da possibilidade futura de self-host.
-
-A oportunidade de maior interesse imediato é hidrológica: explorar o Flood API / GloFAS como camada de **previsão regional de vazões**, complementar às fontes observacionais e oficiais já utilizadas pelo portal.
-
-A camada modelada não deve substituir ANA, SGB/SACE, Defesa Civil, LabHidroSens/UFPel, FURG/Portos RS nem qualquer outra fonte observacional ou oficial.
-
-### Enquadramento semântico obrigatório
-
-O Flood API não deve ser apresentado como `nível previsto da Lagoa dos Patos` nem convertido em uma leitura equivalente à régua do Laranjal.
+A oportunidade de maior interesse é explorar Flood API / GloFAS como camada de **previsão regional de vazões**, complementar às fontes observacionais e oficiais. Essa camada não deve substituir ANA, SGB/SACE, Defesa Civil, LabHidroSens/UFPel, FURG/Portos RS nem ser rotulada como nível previsto da Lagoa dos Patos.
 
 Uso futuro aceitável:
 
-- previsão modelada de vazões em rios/bacias relevantes;
+- previsão modelada de vazões em rios e bacias relevantes;
 - contexto de antecedência hidrológica regional;
 - comparação histórica entre cenário modelado e observações reais;
 - pesquisa interna sobre relações temporais entre chuva, vazões, Guaíba, Lagoa dos Patos e leituras locais.
 
-Uso não autorizado:
+Primeiro experimento seguro:
 
-- transformar vazão modelada em cota da Lagoa;
-- publicar alerta oficial próprio a partir do modelo;
-- misturar Forecast API meteorológica e Flood API em um único valor sem proveniência;
-- substituir fonte observada quando ela estiver indisponível.
+1. mapear bacias e rios relevantes com apoio da hidrografia ANA/SNIRH;
+2. testar células/coordenadas candidatas do modelo;
+3. validar qual curso d'água cada ponto representa;
+4. criar POC isolado sem UI pública;
+5. comparar previsão modelada com observações existentes;
+6. só então decidir sobre integração pública.
 
-### Arquitetura futura sugerida
+Self-host permanece evolução de longo prazo. Deve ser reconsiderado somente quando volume, custos, termos de uso ou resiliência justificarem estudar operação própria.
 
-Quando a pesquisa for retomada, preferir integração irmã e isolada, por exemplo:
+**Guardrail do ciclo atual:** não alterar adapter meteorológico Open-Meteo, loaders hidrológicos, `/situacao-hidrologica-pelotas`, páginas de nível, migrations ou classificação pública de risco.
 
-```text
-src/lib/hydrology/open-meteo-flood.server.ts
-src/lib/hydrology/open-meteo-flood.functions.ts
-```
-
-A primeira etapa deve ser uma auditoria de mapeamento hidrológico entre a hidrografia ANA/SNIRH e células/rios representados pelo GloFAS. Não assumir que a latitude/longitude de Pelotas identifica automaticamente o curso d'água adequado.
-
-Sequência segura sugerida:
-
-1. mapear bacias e rios relevantes para o sistema regional;
-2. testar células/coordenadas candidatas;
-3. validar qual rio o modelo representa em cada ponto;
-4. criar POC isolado, sem UI pública e sem migration obrigatória;
-5. comparar previsões modeladas com observações existentes;
-6. só então decidir se a fonte merece integração pública.
-
-### Self-host
-
-Self-host permanece evolução de longo prazo. Não é tarefa do ciclo atual.
-
-O objetivo futuro seria reduzir dependência operacional de uma única API pública e estudar infraestrutura própria quando volume, custos, termos de uso ou resiliência justificarem. Antes disso, devem ser avaliados licenciamento, dados utilizados, cache, armazenamento, operação e diferença entre hospedar apenas a API e manter também datasets/modelos próprios.
-
-### Guardrail do ciclo atual
-
-Não mexer agora em:
-
-- adapter Open-Meteo meteorológico existente;
-- loaders hidrológicos públicos;
-- `/situacao-hidrologica-pelotas`;
-- páginas de nível da Lagoa/Guaíba;
-- migrations;
-- contratos de observação atuais;
-- classificação pública de risco.
-
-**Gatilho de retomada:** estabilidade sustentada do ciclo atual e disponibilidade para uma POC isolada sem pressionar o fechamento do portal.
+**Gatilho de retomada:** estabilidade sustentada do ciclo atual e espaço para POC isolada.
 
 ---
 
 ## 3. Arquivo hidrológico oficial da ANA e catálogo próprio de estações
 
-**Origens principais:**
-
-- `anagovbr/dados-estacoes-hidro`;
-- `anagovbr/hidro-dados-estacoes-convencionais`.
-
+**Origens:** `anagovbr/dados-estacoes-hidro` e `anagovbr/hidro-dados-estacoes-convencionais`  
 **Prioridade estratégica:** ALTÍSSIMA  
 **Prioridade de implementação agora:** MÉDIA para pesquisa/backfill isolado; BAIXA para exposição pública nova  
 **Estado:** `pesquisa`  
 **Decisão atual:** pode ser explorado sem tocar no runtime público.
 
-### Descoberta verificada em 09/09/2026
+Em 09/09/2026 foi verificado que `hidro-dados-estacoes-convencionais` preserva um histórico Git extenso, mas sua árvore principal foi esvaziada em 18/12/2025. Seu valor atual é principalmente de arquivo histórico/backfill via histórico Git.
 
-O repositório `anagovbr/hidro-dados-estacoes-convencionais` preserva um histórico Git muito extenso das séries convencionais da ANA, mas a árvore principal foi esvaziada em 18/12/2025 com a remoção de `fluviometricas/`, `pluviometricas/`, inventário, descrição de arquivos e README.
+`anagovbr/dados-estacoes-hidro` permanece ativo e recebe sincronizações automáticas. Foi confirmada a presença e atualização de `hidroobserva/HidroObserva_RS.zip`.
 
-Portanto, seu maior valor atual para o Tempo Pelotas é de **arquivo histórico/backfill via histórico Git**, não de dataset vivo no HEAD.
-
-O repositório `anagovbr/dados-estacoes-hidro`, por outro lado, permanece ativo e recebe sincronizações automáticas. Em 09/09/2026 foi confirmada a atualização da pasta `hidroobserva`, incluindo `hidroobserva/HidroObserva_RS.zip`.
-
-### Valor para o Tempo Pelotas
-
-Essas fontes podem alimentar um catálogo hidrológico próprio, normalizado e rastreável, sem substituir os sistemas oficiais de consulta em tempo real.
-
-Modelo conceitual desejado:
+Objetivo de longo prazo: construir um catálogo hidrológico próprio e rastreável:
 
 ```text
 estação
@@ -149,89 +96,323 @@ estação
 → última observação disponível
 ```
 
-A `última observação` e o período disponível devem preferencialmente ser derivados da série armazenada (`MIN(observed_at)` / `MAX(observed_at)`) em vez de duplicados como metadados manuais que possam ficar desatualizados.
+A evolução deve reutilizar a Historical Data Layer existente, principalmente `historical_data_sources`, `historical_stations`, `historical_measurements`, `quality_flag`, `source_record_id` e `metadata`.
 
-### Encaixe arquitetural
+`MIN(observed_at)` e `MAX(observed_at)` devem ser preferidos para derivar cobertura temporal e última observação, evitando metadados duplicados que possam ficar desatualizados.
 
-A evolução deve reutilizar a Historical Data Layer existente em vez de criar um arquivo paralelo.
-
-Estruturas já adequadas ao objetivo:
-
-- `historical_data_sources`;
-- `historical_stations`;
-- `historical_measurements`;
-- classes `observation`, `forecast`, `reanalysis` e `derived`;
-- `quality_flag`;
-- `source_record_id`;
-- `metadata` para proveniência adicional.
-
-O catálogo pode enriquecer `historical_stations.metadata` ou, se a escala justificar, ganhar tabelas próprias de inventário/variáveis/referências em uma evolução posterior. Não criar nova modelagem antes de inspecionar o formato real dos arquivos da ANA.
-
-### Referência vertical e consistência
-
-A experiência com as estações ANA `87955000` e `87955001` continua sendo regra para esta evolução.
-
-Ter uma série de nível não significa que ela possa ser comparada diretamente a outra estação.
-
-O catálogo deve conseguir representar, no mínimo:
+Referência vertical deve admitir pelo menos:
 
 ```text
-verticalReference.status
-= confirmed
-= partial
-= unknown
-= incompatible
+confirmed
+partial
+unknown
+incompatible
 ```
 
-Bruto e consistido devem permanecer distinguíveis. Nenhum backfill pode sobrescrever silenciosamente um valor bruto por um consistido ou vice-versa.
+Bruto e consistido permanecem distintos. Nenhum backfill pode sobrescrever silenciosamente uma versão pela outra.
 
-### Primeira pesquisa segura
-
-Começar pelo Rio Grande do Sul e por um escopo pequeno:
+Primeiro experimento seguro:
 
 1. inspecionar `HidroObserva_RS.zip`;
 2. documentar formato, inventário e variáveis reais;
-3. identificar estações de Pelotas e bacias regionalmente relevantes;
-4. cruzar uma estação já conhecida pelo Tempo Pelotas com os metadados recuperados;
+3. identificar Pelotas e bacias regionalmente relevantes;
+4. cruzar uma estação já conhecida pelo portal;
 5. validar identidade, período, qualidade, consistência e referência;
-6. produzir relatório antes de qualquer ingestão em massa;
-7. somente depois desenhar o backfill.
+6. produzir relatório antes de ingestão em massa.
 
-### Possibilidades futuras
+**Guardrail do ciclo atual:** não alterar `Agora`, nível do Laranjal, gate ANA `87955001`, SACE, Defesa Civil, rede da Lagoa, loaders ou status público das fontes.
 
-Depois de validado, o catálogo pode sustentar:
-
-- histórico de longo prazo por estação;
-- backfill oficial para eventos históricos;
-- validação cruzada de séries já usadas pelo portal;
-- descoberta de estações regionais úteis;
-- inventário de cobertura temporal;
-- distinção entre séries brutas e consistidas;
-- pesquisa de eventos extremos;
-- documentação de referências verticais;
-- seleção mais segura de fontes para novas páginas e análises.
-
-### Guardrail do ciclo atual
-
-A pesquisa pode avançar como ingestão offline/backfill experimental, mas sem alterar por consequência automática:
-
-- `Agora`;
-- nível publicado do Laranjal;
-- ANA `87955001` e seu gate vertical;
-- SACE;
-- Defesa Civil;
-- rede da Lagoa dos Patos;
-- loaders públicos;
-- páginas atuais;
-- status público das fontes.
-
-**Gatilho de retomada:** análise do `HidroObserva_RS.zip` e validação de uma estação conhecida, mantendo toda a primeira rodada fora do fluxo público.
+**Gatilho de retomada:** validação de uma estação conhecida a partir do pacote do RS.
 
 ---
 
-## 4. Regra para as próximas descobertas
+## 4. pyHidroWeb como worker de normalização e diagnóstico ANA
 
-Novas ideias podem ser acrescentadas diretamente a este arquivo usando a estrutura:
+**Origem:** `duartejr/pyHidroWeb`  
+**Prioridade estratégica:** ALTÍSSIMA  
+**Prioridade de implementação agora:** MÉDIA para POC de worker isolado; BAIXA para consumo público direto  
+**Estado:** `pesquisa`  
+**Decisão atual:** não colocar Python no frontend; estudar como serviço auxiliar desacoplado.
+
+O pyHidroWeb é especialmente alinhado à fase atual da hidrologia porque normaliza diferentes caminhos de acesso aos dados ANA para um contrato diário comum. A versão atual documenta aquisição por HidroWebService autenticada e WebService legado, leitura de XML, JSON e arquivos HidroWeb, além de cota, vazão, chuva, análises, curvas-chave, seções transversais e diagnósticos fluviométricos.
+
+Contrato normalizado de referência:
+
+```text
+station_code | date | variable | value | unit | consistency_level | source_status | source
+```
+
+A biblioteca distingue `consistency_level=2` como consistido e `consistency_level=1` como bruto, resolvendo duplicatas com preferência pelo consistido. Para o Tempo Pelotas, essa lógica é útil como referência de ingestão, mas o portal deve continuar preservando bruto e consistido como proveniências distintas quando a rastreabilidade histórica exigir.
+
+Arquitetura preferida:
+
+```text
+ANA / HidroWeb / arquivos históricos
+            ↓
+worker hidrológico Python isolado
+            ↓
+JSON normalizado e auditável
+            ↓
+Supabase / Historical Data Layer / Nitro
+            ↓
+Tempo Pelotas
+```
+
+Possíveis responsabilidades do worker:
+
+- normalizar XML, JSON, CSV/ZIP e respostas dos serviços ANA;
+- produzir inventário de estação e produtos disponíveis;
+- separar cota, vazão e chuva;
+- preservar nível de consistência e origem;
+- recuperar curvas-chave e seções quando aplicável;
+- gerar diagnósticos internos de disponibilidade e coerência;
+- alimentar backfill e validação cruzada.
+
+Relação com `/status-dos-dados`: o worker pode fortalecer a evidência interna usada para separar disponibilidade da integração e condição real dos dados. Porém, diagnósticos da biblioteca não devem virar automaticamente badge público, selo de qualidade ou autorização de publicação.
+
+A biblioteca também mantém um retrato interno estático de inventário e medições, útil para diagnóstico offline, mas qualquer dado embutido deve ser tratado como snapshot com data de referência, nunca como estado atual da ANA.
+
+Primeiro experimento seguro:
+
+1. executar o worker fora do frontend e fora do loader público;
+2. processar uma estação ANA já conhecida pelo portal;
+3. comparar saída XML, JSON e/ou arquivo histórico para o mesmo período;
+4. verificar bruto versus consistido;
+5. gerar somente JSON e relatório, sem gravação automática;
+6. só depois avaliar integração com Historical Data Layer.
+
+**Guardrail do ciclo atual:** não trocar adapters TypeScript existentes por Python e não introduzir dependência síncrona do worker nas páginas públicas.
+
+**Gatilho de retomada:** necessidade real de unificar múltiplos formatos ANA ou acelerar o catálogo/backfill da seção anterior.
+
+---
+
+## 5. Herbie e acesso direto a modelos numéricos
+
+**Origem:** `blaylockbk/Herbie`  
+**Prioridade estratégica:** ALTÍSSIMA PARA 2027  
+**Prioridade de implementação agora:** MUITO BAIXA  
+**Estado:** `registrada`  
+**Horizonte:** 2027, depois da consolidação operacional e histórica do portal.
+
+Herbie permite acessar diretamente dados de modelos numéricos de previsão e baixar arquivos completos ou subconjuntos de variáveis. O projeto documenta mais de 15 modelos e inclui, entre outros, GFS, GEFS, ECMWF IFS e ECMWF AIFS, com busca em diferentes infraestruturas de dados e leitura para xarray.
+
+A evolução desejada não é simplesmente trocar Open-Meteo por GRIB bruto. É criar uma camada independente de **comparação entre modelos**.
+
+Pergunta futura central:
+
+```text
+GFS, GEFS, IFS e AIFS estão contando uma história semelhante para Pelotas?
+```
+
+Produtos possíveis:
+
+- convergência ou divergência entre modelos;
+- faixa prevista de temperatura e precipitação;
+- dispersão entre cenários;
+- evolução da concordância conforme o evento se aproxima;
+- identificação de mudanças bruscas entre rodadas;
+- suporte a uma futura linguagem editorial de incerteza.
+
+Exemplo conceitual futuro:
+
+```text
+Cenário mais estável
+Os principais modelos convergem para chuva durante a tarde.
+```
+
+ou:
+
+```text
+Cenário ainda incerto
+Os modelos divergem sobre horário e volume de chuva.
+```
+
+Regra científica importante: **concordância entre modelos não é, sozinha, confiança calibrada**. Modelos podem compartilhar vieses ou errar juntos. Qualquer futura classificação `confiança alta/média/baixa` deve combinar dispersão entre modelos com desempenho histórico verificado contra observações. Por isso, esta evolução deve ser construída junto da camada de verificação descrita na seção `nci/scores`.
+
+Arquitetura futura preferida:
+
+```text
+Herbie / fontes oficiais de modelo
+       ↓
+worker NWP / GRIB
+       ↓
+extração apenas das variáveis e pontos necessários
+       ↓
+forecast snapshots por modelo e rodada
+       ↓
+verificação + consenso + dispersão
+       ↓
+JSON editorial para o Tempo Pelotas
+```
+
+O frontend não deve baixar ou processar GRIB.
+
+Primeiro experimento seguro em 2027:
+
+1. escolher temperatura e precipitação para Pelotas;
+2. consultar duas fontes/modelos inicialmente, não quatro de uma vez;
+3. armazenar snapshots de rodada, lead time e valor previsto;
+4. comparar com observação real;
+5. adicionar modelos gradualmente;
+6. somente depois testar linguagem pública de convergência/divergência.
+
+**Guardrail:** Herbie não substitui a previsão atual antes de existir histórico comparativo suficiente.
+
+**Gatilho de retomada:** Historical Data Layer madura, observações confiáveis e pipeline de verificação consolidado.
+
+---
+
+## 6. nci/scores e verificação meteorológica própria
+
+**Origem:** `nci/scores`  
+**Prioridade estratégica:** ALTA  
+**Prioridade de implementação agora:** MÉDIA para conceitos e métricas simples; BAIXA para dependência Python  
+**Estado:** `pesquisa`  
+**Decisão atual:** usar o projeto como referência científica; não é necessário instalar a biblioteca no runtime.
+
+O Tempo Pelotas já possui a semente de avaliação da previsão. O `scores` amplia isso para uma estrutura científica muito mais completa. O projeto reúne mais de 75 métricas, técnicas estatísticas e ferramentas de processamento para previsões contínuas, probabilísticas, categóricas e espaciais.
+
+A estratégia recomendada é implementar em SQL/TypeScript apenas as métricas que respondam perguntas reais do portal.
+
+Primeiro conjunto sugerido:
+
+### Temperatura
+
+- MAE por horizonte (`+1`, `+2`, `+3` dias etc.);
+- RMSE quando fizer sentido penalizar erros maiores;
+- bias para identificar tendência sistemática de superestimar ou subestimar.
+
+### Chuva como evento
+
+- Probability of Detection / taxa de detecção;
+- False Alarm Ratio / falso alarme;
+- Critical Success Index ou métrica equivalente para acerto do evento;
+- matriz de contingência por limiar de precipitação.
+
+### Probabilidade de chuva
+
+- Brier Score, quando houver probabilidade prevista comparável com evento observado;
+- calibração/reliability em estágio posterior, com amostra suficiente.
+
+### Fase posterior
+
+- Heidke Skill Score;
+- Gilbert/Equitable Threat Score;
+- métricas probabilísticas e espaciais somente quando o produto tiver dados e amostra adequados.
+
+Exemplo futuro de transparência:
+
+```text
+Open-Meteo
+Erro médio de temperatura em +2 dias: 1,3 °C
+Detecção de chuva acima do limiar definido: 74%
+Falso alarme: 11%
+```
+
+Toda métrica pública deve informar período analisado, tamanho da amostra, horizonte, variável e limiar. Não publicar um percentual isolado que pareça universal.
+
+A rota `/metodologia` está aposentada e redireciona para `/status-dos-dados`. Portanto, esta evolução não deve reativá-la por acidente. Resultados futuros podem entrar em `Dados e fontes` de forma resumida ou justificar uma página própria de desempenho da previsão quando houver histórico suficiente.
+
+Essa camada também é pré-requisito para transformar convergência de GFS/GEFS/IFS/AIFS em uma futura medida de confiança mais defensável.
+
+Primeiro experimento seguro:
+
+1. definir claramente observação de referência;
+2. escolher um provedor e um horizonte;
+3. calcular MAE/bias de temperatura e matriz de contingência de chuva;
+4. validar os resultados manualmente em uma amostra;
+5. armazenar métricas agregadas sem publicar;
+6. só depois desenhar copy pública.
+
+**Guardrail:** métrica não pode esconder ausência, mudança de estação, alteração de fonte observacional ou amostra insuficiente.
+
+**Gatilho de retomada:** volume histórico suficiente para que as métricas deixem de ser anedóticas.
+
+---
+
+## 7. Meteostat para histórico, climatologia e descoberta de estações
+
+**Origens:** `meteostat/meteostat` e `meteostat/weather-stations`  
+**Prioridade estratégica:** MÉDIA  
+**Prioridade de implementação agora:** BAIXA  
+**Estado:** `registrada`  
+**Decisão atual:** fonte complementar; não superar INMET nem observações locais oficiais na hierarquia do portal.
+
+Meteostat é útil para pesquisa histórica e climatológica. A biblioteca documenta busca de estações próximas, acesso a séries históricas e interpolação. O repositório `weather-stations` mantém um diretório global aberto com localização, altitude, identificadores, região e timezone, além de dumps de inventário.
+
+Usos possíveis:
+
+- descoberta de estações próximas;
+- comparação de inventários;
+- cross-check de séries históricas;
+- climatologia complementar;
+- investigação de lacunas;
+- apoio a pesquisas de eventos históricos.
+
+Hierarquia recomendada:
+
+```text
+observação oficial/local validada
+        ↓
+INMET e demais fontes oficiais pertinentes
+        ↓
+Meteostat como apoio histórico/cross-check
+```
+
+Interpolação exige atenção especial. Um valor interpolado é **dado derivado**, não observação da estação. Se algum dia for armazenado, deve usar `data_class=derived` ou contrato equivalente, com método, estações de origem e parâmetros preservados em metadata.
+
+O diretório de estações pode ser cruzado com o catálogo próprio do Tempo Pelotas, mas identificadores semelhantes não autorizam merge automático entre estações de redes diferentes.
+
+Primeiro experimento seguro:
+
+1. listar estações Meteostat próximas de Pelotas;
+2. cruzar coordenadas e identificadores com INMET/ICAO/WMO quando disponíveis;
+3. comparar uma pequena série histórica com a fonte oficial correspondente;
+4. medir divergências;
+5. decidir se existe valor adicional suficiente para ingestão.
+
+**Guardrail:** nunca preencher automaticamente uma observação pública ausente com interpolação Meteostat sem rotulá-la como derivada e sem política explícita.
+
+**Gatilho de retomada:** necessidade concreta de climatologia, descoberta de estações ou cross-check histórico não atendida pelas fontes prioritárias.
+
+---
+
+## 8. Relação entre as evoluções registradas
+
+As descobertas não são quatro frentes isoladas. Elas formam camadas que podem amadurecer em sequência:
+
+```text
+ANA datasets + pyHidroWeb
+        ↓
+catálogo e histórico hidrológico próprio
+
+observações + histórico de previsões
+        ↓
+nci/scores
+        ↓
+desempenho verificável por fonte e horizonte
+        ↓
+Herbie / modelos brutos em 2027
+        ↓
+comparação multimodelo + incerteza calibrada
+
+Meteostat
+        ↓
+apoio histórico, climatologia e descoberta
+
+Open-Meteo Flood
+        ↓
+previsão hidrológica modelada regional
+```
+
+Essa sequência evita implementar a camada sofisticada antes de existir histórico e observação capazes de avaliá-la.
+
+---
+
+## 9. Regra para as próximas descobertas
+
+Novas ideias podem ser acrescentadas usando a estrutura:
 
 ```text
 Nome da evolução
@@ -247,4 +428,4 @@ Primeiro experimento seguro
 Gatilho de retomada
 ```
 
-A intenção é permitir acumular boas descobertas sem transformar cada descoberta em nova frente de desenvolvimento.
+A intenção é acumular boas descobertas sem transformar cada uma em uma nova frente imediata de desenvolvimento.
