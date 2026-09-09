@@ -79,10 +79,12 @@ export function WindRetailHero({
       ? formatSpeed(nextHour.windSpeed)
       : "—";
   const primaryDetail = hasCurrentObservation
-    ? `${current.windDirection ? `Direção ${current.windDirection}` : "Direção não informada"} · ${current.source.name}`
+    ? current.windDirection
+      ? `Direção ${current.windDirection}`
+      : "Direção não informada"
     : nextHour
       ? `${nextHour.time}${nextHour.windGust === null ? " · rajada não informada" : ` · ${formatGust(nextHour.windGust)}`}`
-      : "Fonte em atualização";
+      : "Dados em atualização";
 
   return (
     <section
