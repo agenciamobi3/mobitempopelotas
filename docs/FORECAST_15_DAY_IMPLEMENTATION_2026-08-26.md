@@ -93,7 +93,7 @@ O provider dedicado é:
 
 `open-meteo-extended`
 
-A migration `20260909192000_add_open_meteo_extended_cache.sql`:
+A migration `20260909192047_add_open_meteo_extended_cache.sql`:
 
 - adiciona o provider ao cache meteorológico;
 - cria a linha inicial;
@@ -104,6 +104,8 @@ A migration `20260909192000_add_open_meteo_extended_cache.sql`:
 Em 09/09/2026 a migration foi aplicada no Supabase de produção e a Edge Function `open-meteo-extended-forecast` foi implantada como versão 1.
 
 Uma chamada controlada de aquecimento retornou HTTP 200, `cacheStatus: refreshed` e persistiu 15 datas, de 09/09/2026 a 23/09/2026, originadas de Open-Meteo Best Match. O provider ficou em estado `live`.
+
+A versão remota da migration é `20260909192047`; o arquivo local usa a mesma versão para evitar drift no histórico de migrations.
 
 A proveniência continua armazenada internamente em `source.model`, mesmo que o nome da fonte não seja exibido na interface pública.
 
