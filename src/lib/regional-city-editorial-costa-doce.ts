@@ -7,8 +7,8 @@ export type CostaDoceRegionalEditorialProfile = {
 };
 
 /**
- * Conteúdo local mínimo para a expansão meteorológica da Costa Doce.
- * As páginas continuam em coverage=basic e noindex até o gate completo.
+ * Conteúdo local da expansão meteorológica da Costa Doce.
+ * Os 11 perfis abaixo passaram pelo gate final de publicação em 09/09/2026.
  */
 export const COSTA_DOCE_REGIONAL_EDITORIAL: Readonly<
   Record<string, CostaDoceRegionalEditorialProfile>
