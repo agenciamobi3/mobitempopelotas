@@ -18,19 +18,50 @@ const satellite = readFileSync(
 );
 const storms = readFileSync("src/lib/redemet/redemet-stsc.server.ts", "utf8");
 
-test("INMET fallback is identified once instead of duplicating the same satellite collection", () => {
-  assert.match(overview, /const satelliteUsesInmetFallback = data\.satellite\.provider === "INMET"/);
+test("INMET fallback is identified once instead of duplicating the selected satellite collection", () => {
+  assert.match(overview, /const satelliteUsesInmetFallback = selectedSatellite\.provider === "INMET"/);
   assert.match(overview, /Satélite INMET · contingência/);
   assert.match(overview, /!satelliteUsesInmetFallback \? \(/);
-  assert.match(overview, /A camada principal usa a contingência oficial do INMET/);
+  assert.match(overview, /O INMET assumiu como contingência oficial/);
   assert.match(
     overview,
-    /satelliteUsesInmetFallback\s*\? \[data\.radar, data\.satellite, data\.storms\]\s*:\s*\[data\.radar, data\.satellite, data\.inmetSatellite, data\.storms\]/,
+    /satelliteUsesInmetFallback\s*\? \[data\.radar, selectedSatellite, data\.storms\]\s*:\s*\[data\.radar, selectedSatellite, data\.inmetSatellite, data\.storms\]/,
   );
 
   assert.match(derived, /const satelliteUsesInmetFallback = data\.satellite\.provider === "INMET"/);
   assert.match(derived, /Satélite INMET · contingência/);
   assert.match(derived, /!satelliteUsesInmetFallback \? \(/);
+});
+
+test("dedicated page exposes realçado, infravermelho and visível without fabricating browser timestamps", () => {
+  assert.match(overview, /RedemetSatelliteType/);
+  assert.match(overview, /type: "realcada"/);
+  assert.match(overview, /type: "ir"/);
+  assert.match(overview, /type: "vis"/);
+  assert.match(overview, /useState<RedemetSatelliteType>\("realcada"\)/);
+  assert.match(overview, /\{ realcada: data\.satellite \}/);
+  assert.match(overview, /selectedSatelliteType === "realcada"\s*\? data\.satellite/);
+  assert.match(overview, /fetch\(`\/api\/redemet\/satellite\?type=\$\{type\}&frames=4`/);
+  assert.match(overview, /const controller = new AbortController\(\)/);
+  assert.match(overview, /signal: controller\.signal/);
+  assert.match(overview, /return \(\) => controller\.abort\(\)/);
+  assert.match(overview, /updatedAt: ""/);
+  assert.doesNotMatch(overview, /new Date\(\)/);
+  assert.match(overview, /aria-pressed=\{selectedSatelliteType === product\.type\}/);
+  assert.match(overview, /Produto de satélite REDEMET/);
+});
+
+test("visible satellite has an explicit daylight pause and never masquerades as a generic source failure", () => {
+  assert.match(overview, /availabilityReason === "daylight"/);
+  assert.match(overview, /Aguardando luz solar/);
+  assert.match(overview, /Canal Visível aguardando luz solar/);
+  assert.match(overview, /O canal Visível usa luz solar refletida/);
+  assert.match(overview, /nextExpectedAt/);
+  assert.match(overview, /Próxima janela estimada/);
+  assert.match(overview, /Durante a noite ele aguarda a próxima janela útil sem ser substituído por infravermelho/);
+
+  assert.match(satellite, /if \(redemet\.available \|\| type === "vis"\) return redemet/);
+  assert.match(satellite, /O canal Visível não recebe fallback infravermelho/);
 });
 
 test("missing STSC collection never becomes a fabricated zero-lightning reading", () => {
