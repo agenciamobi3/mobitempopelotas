@@ -26,10 +26,10 @@ Regras permanentes:
 | Domínio | Estado atual |
 | --- | --- |
 | Portal público | Produção ativa em `tempopelotas.com.br`; estado do Git, build/sincronização e propagação no domínio são provas separadas |
-| Header público | `SiteHeader` reutiliza `HomeEditorialHeader`; a antiga implementação paralela `src/components/layout/Header.tsx` e seu CSS foram removidos em 08/09 |
+| Header público | `SiteHeader` reutiliza `HomeEditorialHeader`; a antiga implementação paralela `src/components/layout/Header.tsx` e seu CSS foram removidos em 08/09; `Explorar` voltou a descobrir a página da Estação Embrapa em 09/09 |
 | Footer público | Uma implementação compartilhada em `SiteFooter` → `Footer`; não publica inventário completo de fornecedores em todas as páginas |
 | Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; usa leitura editorial aberta em linhas, `ServiceStatus.state` descreve a integração e `dataCondition` descreve separadamente a condição publicável do dado para Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; critérios gerais ficam no fechamento da página |
-| Rota de compatibilidade aposentada | `/metodologia` permanece redirect 301 para `/status-dos-dados`; `/estacao-embrapa-pelotas` voltou em 09/09 como página interna real, `noindex`, fora do sitemap e sem promoção em header/footer |
+| Rota de compatibilidade aposentada | `/metodologia` permanece redirect 301 para `/status-dos-dados`; `/estacao-embrapa-pelotas` voltou em 09/09 como página interna real, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer |
 | SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts`; a página Embrapa restaurada ainda não altera esse inventário |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
 | Embrapa | Coletor operacional/scheduler continuam aposentados; `/estacao-embrapa-pelotas` voltou como consulta server-side direta, somente leitura, à página pública da Embrapa, sem alterar a fonte do `Agora` |
@@ -99,7 +99,7 @@ Em 09/09, após a página pública `Current_Monitor.htm` voltar a responder, a r
 Compatibilidade e limites atuais:
 
 - `/estacao-embrapa-pelotas` voltou a renderizar página real;
-- a rota permanece `noindex` e fora do sitemap/header/footer enquanto a estabilidade da fonte é revalidada;
+- a rota permanece `noindex` e fora do sitemap; voltou ao megamenu `Explorar`, mas segue fora do footer enquanto a estabilidade da fonte é revalidada;
 - `/api/weather/embrapa` continua `410 retired` e não voltou a oferecer a integração antiga;
 - o reader restaurado não grava no banco nem reativa histórico automático;
 - a Home e o `Agora` continuam usando a Rede da Defesa Civil RS;
@@ -133,9 +133,9 @@ A apresentação pública foi reorganizada em 08/09 para uma leitura editorial a
 ### 5.2 Rotas de compatibilidade e páginas em revalidação
 
 - `/metodologia` → 301 para `/status-dos-dados`;
-- `/estacao-embrapa-pelotas` → página interna ativa, `noindex`, fora do sitemap e ainda sem promoção no megamenu/footer.
+- `/estacao-embrapa-pelotas` → página interna ativa, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer.
 
-A página Embrapa voltou como superfície funcional, não como restauração automática do antigo produto operacional. Reindexação, retorno aos menus e eventual uso como observação principal são decisões separadas.
+A página Embrapa voltou como superfície funcional, não como restauração automática do antigo produto operacional. Reindexação, retorno ao footer e eventual uso como observação principal são decisões separadas.
 
 ### 5.3 Header e footer
 
@@ -151,7 +151,7 @@ O header público canônico é `src/production/components/home-editorial-header.
 - Explorar;
 - Avisos.
 
-`Explorar` concentra clima, câmeras, geadas, histórico, blog e `Dados e fontes`. Nesta fase de revalidação, ainda não mantém atalho para a página da estação Embrapa; `/metodologia` também não volta ao menu.
+`Explorar` concentra clima, Estação Embrapa, câmeras, geadas, histórico, blog e `Dados e fontes`. `/metodologia` continua ausente do menu.
 
 A implementação paralela `src/components/layout/Header.tsx` e `Header.css` foi removida depois da migração dos contratos para o header canônico. Isso evita duas árvores de navegação divergirem novamente.
 
@@ -185,7 +185,7 @@ Uma URL nova só nasce quando existe:
 - links internos úteis;
 - contrato que impeça expansão acidental.
 
-`/estacao-embrapa-pelotas` voltou funcionalmente, mas **não voltou ao inventário indexável**. Enquanto a fonte é revalidada, a rota usa `noindex`, permanece fora de `src/lib/public-routes.ts` e do sitemap. `/metodologia` continua redirect de compatibilidade.
+`/estacao-embrapa-pelotas` voltou funcionalmente, mas **não voltou ao inventário indexável**. Enquanto a fonte é revalidada, a rota usa `noindex`, permanece fora de `src/lib/public-routes.ts` e do sitemap. A presença no megamenu é somente descoberta interna e não altera esse contrato de indexação. `/metodologia` continua redirect de compatibilidade.
 
 O estado de código, o build/sincronização, a propagação em `tempopelotas.com.br` e a descoberta/indexação por buscadores são provas diferentes.
 
@@ -429,9 +429,10 @@ A consolidação de 08–09/09 atualizou contratos para:
 - `dataCondition` público em `/status-dos-dados` separado de `state`/`detail` e restrito nesta fase a Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; o contrato `tests/data-status-data-condition.test.ts` impede espalhar a semântica para outras fontes sem definição própria;
 - visual editorial de `/status-dos-dados` em linhas abertas, sem antiga grade de duas colunas, com condição do dado separada do badge de estado, histórico em faixas/linhas e critérios de publicação no fechamento; protegido por `tests/data-status-editorial-visual.test.ts`;
 - redirect 301 de `/metodologia` mantido;
-- `/estacao-embrapa-pelotas` restaurada em 09/09 como página interna real, com reader server-side direto, `noindex`, sem sitemap/menu/footer e sem reativar o coletor aposentado; protegida por `tests/embrapa-station-page.test.ts` e pelo contrato de separação em `tests/retired-weather-source-cleanup.test.ts`;
-- header canônico `HomeEditorialHeader` sem implementação paralela;
+- `/estacao-embrapa-pelotas` restaurada em 09/09 como página interna real, com reader server-side direto, `noindex`, fora do sitemap e do footer, novamente descoberta no megamenu `Explorar` e sem reativar o coletor aposentado; protegida por `tests/embrapa-station-page.test.ts` e pelo contrato de separação em `tests/retired-weather-source-cleanup.test.ts`;
+- header canônico `HomeEditorialHeader` sem implementação paralela e com a Estação Embrapa novamente em `Explorar > Observação e contexto`;
 - footer compartilhado sem inventário repetido de fornecedores;
+- overlay fotográfico da Home em preto neutro, com opacidade geral reduzida e blur de 10 px mascarado para desaparecer antes da área direita da fotografia; protegido por `tests/home-hero-overlay-and-recovery.test.ts`;
 - proteção contra shell duplicado em rotas autocontidas;
 - `/tempo-hoje-pelotas` com hero editorial route-scoped, sem fotografia/tiles/CTAs, separação explícita entre observação atual e próxima hora prevista, corpo aberto e referência SEO antiga da Embrapa removida;
 - `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles e sem rótulo de provedor, corpo aberto e índice de capítulos visualmente reduzido; contexto INMET/CPPMet-UFPel só é renderizado quando há conteúdo real, e o matcher da previsão textual CPPMet normaliza dias abreviados da recuperação diária (`Qui`/`Sex` etc.) para os nomes completos antes da comparação;
@@ -468,8 +469,8 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 ## 14. Próximas prioridades
 
 1. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
-2. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível e permanência fora do sitemap.
-3. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático ou à descoberta pública.
+2. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível, atalho no megamenu e permanência fora do sitemap.
+3. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático, ao sitemap/indexação ou ao footer.
 4. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
 5. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
 6. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
