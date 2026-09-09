@@ -54,7 +54,7 @@ test("consulta estendida continua diária e não amplia o payload compartilhado"
   assert.doesNotMatch(extendedServer, /\bcurrent:\s*\[/);
 });
 
-test("Edge estendido persiste somente a janela diária e tenta GFS após Best Match", () => {
+test("Edge estendido compara Best Match e GFS e persiste a janela mais ampla", () => {
   assert.match(extendedEdgeFunction, /PROVIDER_KEY = "open-meteo-extended"/);
   assert.match(extendedEdgeFunction, /FORECAST_DAYS = 15/);
   assert.match(extendedEdgeFunction, /BEST_MATCH_ENDPOINT = "https:\/\/api\.open-meteo\.com\/v1\/forecast"/);
@@ -63,6 +63,13 @@ test("Edge estendido persiste somente a janela diária e tenta GFS após Best Ma
   assert.match(extendedEdgeFunction, /daily:\s*\[/);
   assert.doesNotMatch(extendedEdgeFunction, /\bcurrent:\s*\[/);
   assert.doesNotMatch(extendedEdgeFunction, /\bhourly:\s*\[/);
+  assert.match(extendedEdgeFunction, /const attempts = await Promise\.all\(/);
+  assert.match(extendedEdgeFunction, /candidates\.map\(async \(candidate\)/);
+  assert.match(extendedEdgeFunction, /function forecastDayCount/);
+  assert.match(
+    extendedEdgeFunction,
+    /forecastDayCount\(attempt\.payload\) > forecastDayCount\(selected\)/,
+  );
 
   const bestMatchIndex = extendedEdgeFunction.indexOf('model: "Open-Meteo Best Match" as const');
   const gfsIndex = extendedEdgeFunction.indexOf('model: "NOAA GFS" as const');
