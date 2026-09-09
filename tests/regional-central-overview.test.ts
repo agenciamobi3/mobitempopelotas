@@ -49,9 +49,9 @@ const overviewSnapshotReconciliation = readFileSync(
   "utf8",
 );
 
-test("a Central Regional permanece limitada às 24 cidades aprovadas nesta etapa", () => {
-  assert.equal(REGIONAL_CITIES.length, 24);
-  assert.equal(PUBLIC_REGIONAL_CITIES.length, 24);
+test("a Central Regional inclui 35 cidades públicas sem antecipar indexação das 11 novas", () => {
+  assert.equal(REGIONAL_CITIES.length, 35);
+  assert.equal(PUBLIC_REGIONAL_CITIES.length, 35);
   assert.equal(INDEXABLE_REGIONAL_CITIES.length, 24);
   assert.equal(REGIONAL_CITY_GROUPS.length, 4);
   assert.deepEqual(
@@ -95,7 +95,7 @@ test("o resumo regional possui fallback persistente para sobreviver a 429 e rein
   assert.match(overviewSnapshotReconciliation, /rename column collected_at to fetched_at/);
 });
 
-test("rota Edge regional é fixa, cacheada e não funciona como proxy arbitrário", () => {
+test("rota Edge regional é fixa, cacheada e rejeita snapshots de inventários antigos", () => {
   assert.match(regionalEdge, /const FRESH_SNAPSHOT_MS = 5 \* 60 \* 1_000/);
   assert.match(regionalEdge, /const STALE_SNAPSHOT_MS = 6 \* 60 \* 60 \* 1_000/);
   assert.match(regionalEdge, /const RETENTION_MS = 24 \* 60 \* 60 \* 1_000/);
@@ -103,6 +103,9 @@ test("rota Edge regional é fixa, cacheada e não funciona como proxy arbitrári
   assert.match(regionalEdge, /cell_selection:\s*"land"/);
   assert.match(regionalEdge, /from\(SNAPSHOT_TABLE\)\.insert/);
   assert.match(regionalEdge, /request\.method !== "GET"/);
+  assert.match(regionalEdge, /function snapshotMatchesCurrentCities/);
+  assert.match(regionalEdge, /root\.items\.length !== CITIES\.length/);
+  assert.match(regionalEdge, /latestMatchesCurrentCities/);
   assert.doesNotMatch(regionalEdge, /request\.json\(/);
   assert.doesNotMatch(regionalEdge, /searchParams\.get/);
 
