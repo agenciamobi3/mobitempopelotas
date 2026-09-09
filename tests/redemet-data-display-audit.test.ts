@@ -90,12 +90,12 @@ test("STSC player changes a real regional map and keeps valid zero-point frames"
   assert.match(derived, /Nenhum raio detectado na última coleta recebida/);
 });
 
-test("post-hydration recovery still covers upstream collections used by the page", () => {
+test("post-hydration recovery waits only for collections that are still public requirements", () => {
   assert.match(recovery, /hasFrames\(data\.radar\)/);
   assert.match(recovery, /hasFrames\(data\.satellite\)/);
-  assert.match(recovery, /hasFrames\(data\.inmetSatellite\)/);
   assert.match(recovery, /hasFrames\(data\.storms\)/);
-  assert.match(recovery, /satélite REDEMET, satélite INMET ou STSC/);
+  assert.doesNotMatch(recovery, /hasFrames\(data\.inmetSatellite\)/);
+  assert.match(recovery, /painel INMET complementar deixou de ser uma\s*coleção pública obrigatória/);
   assert.match(recovery, /mergeRedemetOverview/);
   assert.match(recovery, /if \(recovered\.frames\.length > 0\) return recovered/);
   assert.match(recovery, /if \(baseline\.frames\.length > 0\) return baseline/);
