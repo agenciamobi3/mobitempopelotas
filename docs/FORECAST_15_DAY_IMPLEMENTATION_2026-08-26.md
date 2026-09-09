@@ -60,13 +60,12 @@ A documentação oficial do Open-Meteo permite horizonte de até 16 dias nas API
 A chamada estendida possui:
 
 - Best Match e NOAA GFS consultados em paralelo;
+- leitura do cache estendido iniciada em paralelo às consultas diretas, sem alterar a prioridade das fontes;
 - timeout direto de 2,2 s por candidato;
 - budget interno total de 2,55 s;
 - tentativa da Edge estendida limitada ao tempo restante, com teto de 900 ms;
 - contingência legada limitada ao tempo restante, com teto de 500 ms;
 - `cache: no-store` nas consultas upstream diretas;
-- cache público do server function por 5 minutos;
-- `stale-while-revalidate` por mais 5 minutos;
 - teto público da página de 2,8 s por dependência em `extended-forecast-page-loader.ts`;
 - estado `live` somente quando 15 dias utilizáveis são recebidos;
 - estado `partial` quando apenas parte da janela pode ser publicada;
@@ -75,6 +74,14 @@ A chamada estendida possui:
 Entre respostas utilizáveis, vence a janela com maior número de dias. Em empate, a prioridade operacional preserva Best Match antes de GFS e das contingências.
 
 Se Best Match ou GFS entregarem os 15 dias, a função retorna sem esperar as camadas Edge.
+
+O cache HTTP da server function agora é proporcional à qualidade do resultado:
+
+- `live`: `max-age=300` e `stale-while-revalidate=300`;
+- `partial`: `max-age=60` e `stale-while-revalidate=120`;
+- `unavailable`: `no-store`.
+
+Isso evita que uma queda transitória para 7 dias fique presa por cinco a dez minutos no CDN justamente quando a contingência estendida já pode ter se recuperado.
 
 Regras permanentes:
 
@@ -101,9 +108,17 @@ A migration `20260909192047_add_open_meteo_extended_cache.sql`:
 - mantém a tabela privada;
 - expõe somente payload meteorológico público e timestamps necessários à contingência.
 
-Em 09/09/2026 a migration foi aplicada no Supabase de produção e a Edge Function `open-meteo-extended-forecast` foi implantada como versão 1.
+Em 09/09/2026 a migration foi aplicada no Supabase de produção e a Edge Function `open-meteo-extended-forecast` foi implantada. A versão operacional atual é a **versão 3**.
 
-Uma chamada controlada de aquecimento retornou HTTP 200, `cacheStatus: refreshed` e persistiu 15 datas, de 09/09/2026 a 23/09/2026, originadas de Open-Meteo Best Match. O provider ficou em estado `live`.
+A Edge v3:
+
+- rejeita cache cuja primeira data não seja o dia atual de Pelotas;
+- consulta Best Match e NOAA GFS em paralelo durante o refresh;
+- escolhe a janela com maior quantidade real de dias;
+- preserva Best Match como prioridade em empate;
+- grava junto ao payload qual modelo originou a janela persistida.
+
+Após o deploy da versão 3, uma chamada controlada de refresh retornou HTTP 200, `cacheStatus: refreshed` e persistiu 15 datas, de 09/09/2026 a 23/09/2026, originadas de Open-Meteo Best Match. O provider permaneceu em estado `live`.
 
 A versão remota da migration é `20260909192047`; o arquivo local usa a mesma versão para evitar drift no histórico de migrations.
 
@@ -212,14 +227,17 @@ A rota permanece em `PUBLIC_ROUTES` com atualização diária.
 
 ## 10. Contratos automatizados
 
-`tests/fifteen-day-forecast.test.ts` protege, entre outros pontos:
+`tests/fifteen-day-forecast.test.ts` foi realinhado em 09/09 ao fluxo atual e protege, entre outros pontos:
 
 - consulta diária dedicada de 15 dias;
 - permanência do contrato global em 7 dias;
 - ausência de payload horário na chamada estendida;
 - estados `live`, `partial` e `unavailable`;
+- duas fontes diretas de 15 dias antes da contingência legada;
 - preservação de `requestedDays: 15`;
+- cache HTTP adaptativo para `live`, `partial` e `unavailable`;
 - teto público de 2,8 s por dependência;
+- degradação independente das duas dependências do loader;
 - hero sem fotografia, CTAs ou fonte exposta;
 - uma única superfície para primeira e segunda semana;
 - ausência de rótulos artificiais de risco;
@@ -233,8 +251,9 @@ A rota permanece em `PUBLIC_ROUTES` com atualização diária.
 - horizonte de 15 dias;
 - provider/cache estendido separado;
 - RPC pública restrita;
-- ordem Best Match → GFS na Edge;
-- seleção da janela mais ampla;
+- comparação paralela Best Match + GFS na Edge;
+- seleção da janela mais ampla no servidor e na Edge;
+- aquecimento paralelo da contingência estendida;
 - preservação da contingência legada de 7 dias.
 
 `tests/seo-editorial-enrichment.test.ts` protege que a página não recupere a antiga camada editorial explicadora.
