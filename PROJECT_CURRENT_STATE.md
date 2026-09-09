@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 08/09/2026  
+Última atualização: 09/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -40,7 +40,7 @@ Regras permanentes:
 | Página Chuva | `/chuva-em-pelotas` usa hero editorial dedicado sem fotografia/CTAs e rail próprio; mantém chuva medida em 24 h separada do volume previsto hoje e em 7 dias, sem transformar chance ausente em zero ou somar janelas/origens diferentes |
 | Página Vento | `/vento-em-pelotas` usa hero editorial dedicado sem fotografia/CTAs e rail próprio; só publica `Vento medido agora` quando há observação real e usa `Previsão da próxima hora` quando a medição falta; vento sustentado não substitui rajada ausente |
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
-| Radar / satélite / STSC | Página dedicada usa coletas reais e horário da própria fonte, com recuperação pós-hidratação quando o SSR não conclui a composição no budget |
+| Radar / satélite / STSC | `/radar-e-satelite-pelotas` mantém radar REDEMET georreferenciado, satélite REDEMET, satélite INMET e STSC com horários reais, sequência e recuperação pós-hidratação; duplicação visual do INMET corrigida, ausência de quadro STSC com horário não vira zero raios, timeout interno do radar ajustado para 4,2 s (abaixo dos 4,5 s do overview e 5 s do probe); endpoint `/api/redemet/satellite` suporta `realcada`, `ir` e `vis`, mas a página dedicada segue usando `realcada` neste checkpoint |
 | Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` usa inventário/cartografia ANA/SNIRH e concentra a explicação metodológica num fechamento curto; `/nivel-da-lagoa-dos-patos-laranjal` mostra ficha cadastral `87955001` e cronologia documentada do monitoramento no Trapiche, sem promover esses recursos a medição ANA |
 | ANA 87955001 | Readiness/cross-check somente; inventário registra telemetria iniciada em 08/06/2026; `publishableMeasurement=false`; gate vertical exige referência confirmada, nivelamento/RN específico recuperado e continuidade vertical com `87955000` comprovada antes de qualquer reconsideração técnica |
 | Enchente de 2001 | `/enchente-2001-pelotas` preserva 290 cm bruto e 190 cm consistido/estimado e pode exibir `Indice`/`Notas` da camada ANA `NotasConsistencia` somente quando houver registro real para `87955000`; isso não é nota do evento nem explicação da revisão |
@@ -304,20 +304,29 @@ Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-0
 
 ## 8. Radar, satélite e alertas
 
-`/radar-e-satelite-pelotas` mantém radar, satélite e STSC como produtos complementares, com horário real da própria fonte.
+`/radar-e-satelite-pelotas` mantém radar REDEMET georreferenciado, satélite REDEMET, satélite INMET e STSC como produtos complementares, com horários reais, sequência de imagens e recuperação pós-hidratação.
 
-Contrato:
+Contrato atualizado em 08/09/2026:
 
 - janela pública compacta de 4 imagens e 6 leituras STSC;
-- SSR com budget de 2,8 s;
-- uma recuperação pós-hidratação quando a composição inicial estiver incompleta;
+- SSR com budget de 2,8 s no documento inicial;
+- uma recuperação pós-hidratação quando a composição inicial estiver incompleta, agora cobrindo também `inmetSatellite` como coleção visível;
 - merge conservador, sem apagar quadros já recebidos;
+- quando o satélite REDEMET falha e o INMET é usado como contingência, a mesma coleta INMET não é contada nem renderizada duas vezes;
+- ausência de quadro STSC com horário utilizável não vira zero raios: zeros só aparecem quando existe quadro válido com zero pontos;
+- timeout interno do radar foi alinhado de 2,4 s para 4,2 s, abaixo do teto de 4,5 s do overview e de 5 s do probe independente;
+- endpoint `/api/redemet/satellite` suporta `realcada`, `ir` e `vis`; a página dedicada continua usando `realcada` como camada principal neste checkpoint;
 - satélite/radar/trovoada não viram alerta oficial;
 - falha de integração não vira afirmação de indisponibilidade global da fonte.
+
+Antes da correção, o status público observado mostrava radar REDEMET oscilante, satélite REDEMET e STSC operacionais e satélite INMET complementar sem coleta utilizável; isso descreve a integração do portal naquele momento, não a disponibilidade global das instituições.
 
 Rajada ausente no contexto do radar permanece `Não informado`; vento sustentado não é usado como substituto.
 
 INMET continua sendo a origem dos avisos meteorológicos oficiais consumidos pelo portal. Falha na consulta deve aparecer como indisponibilidade de confirmação, nunca como “sem alerta”.
+
+Referências: `docs/REDEMET_RADAR_SATELLITE_AUDIT_2026-09-08.md` e `tests/redemet-data-display-audit.test.ts`.
+
 
 ## 9. Pipeline INMET por Gmail
 
@@ -462,7 +471,9 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
 13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
 14. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
-15. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+15. Validar no preview e no domínio canônico a página `/radar-e-satelite-pelotas` depois da propagação: radar REDEMET carregando e sequenciando, satélite REDEMET/INMET sem duplicação visual na contingência, STSC distinguindo ausência de coleta de zero real, e estabilidade do radar após o novo budget interno de 4,2 s.
+16. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+
 
 ## 15. Documentos principais
 
