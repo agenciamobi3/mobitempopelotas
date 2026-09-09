@@ -6,35 +6,15 @@ import "@/components/weather/MeteogramHomeContract.css";
 import "@/components/weather/MeteogramStateContract.css";
 import "@/components/weather/MeteogramRefinement.css";
 import { SimagroModelProducts } from "@/components/weather/SimagroModelProducts";
-import type { MeteogramData } from "@/lib/weather/meteogram.server";
-import { getPelotasMeteogram } from "@/lib/weather/meteogram.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
+import { loadPublicWeatherWithMeteogram } from "@/lib/weather/public-weather-page-loader";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
 const PAGE_TITLE = "Meteograma de Pelotas: previsão hora a hora por 48h";
 const PAGE_DESCRIPTION =
   "Meteograma de Pelotas com temperatura, chuva, nuvens, visibilidade, pressão, vento e rajadas hora a hora por até 48 horas.";
 const PAGE_PATH = "/meteograma-pelotas";
-
-function unavailableMeteogram(message: string): MeteogramData {
-  return {
-    status: "unavailable",
-    hours: [],
-    source: {
-      name: "Open-Meteo",
-      model: "Best Match",
-      url: "https://open-meteo.com/",
-      fetchedAt: new Date().toISOString(),
-      timezone: "America/Sao_Paulo",
-      temporalResolutionMinutes: 60,
-      forecastHours: 48,
-      generationTimeMs: null,
-    },
-    message,
-  };
-}
 
 function normalizeWeatherTraceability(data: WeatherIntelligenceData): WeatherIntelligenceData {
   const key = data.weather.quality.forecastSource;
@@ -54,30 +34,10 @@ function normalizeWeatherTraceability(data: WeatherIntelligenceData): WeatherInt
 }
 
 async function loadMeteogramPageData() {
-  const [weatherResult, meteogramResult] = await Promise.allSettled([
-    getWeatherIntelligence(),
-    getPelotasMeteogram(),
-  ]);
-
-  let weather: WeatherIntelligenceData;
-  if (weatherResult.status === "fulfilled") {
-    weather = weatherResult.value;
-  } else {
-    weather = await getWeatherIntelligence();
-  }
-
-  let meteogram: MeteogramData;
-  if (meteogramResult.status === "fulfilled") {
-    meteogram = meteogramResult.value;
-  } else {
-    try {
-      meteogram = await getPelotasMeteogram();
-    } catch {
-      meteogram = unavailableMeteogram(
-        "A previsão detalhada não respondeu. Mostrando os dados horários disponíveis.",
-      );
-    }
-  }
+  const { weather, meteogram } = await loadPublicWeatherWithMeteogram({
+    meteogramUnavailableMessage:
+      "A previsão detalhada não respondeu. Mostrando os dados horários disponíveis.",
+  });
 
   return {
     weather: normalizeWeatherTraceability(weather),
@@ -107,6 +67,7 @@ export const Route = createFileRoute("/meteograma-pelotas")({
           "Vento e rajadas por hora",
           "CAPE e possibilidade de tempestade",
           "Open-Meteo Best Match",
+          "NOAA GFS",
           "SIMAGRO RS",
           "Meteograma WRF para Pelotas",
           "Meteograma GFS para Pelotas",
