@@ -129,13 +129,15 @@ test("divergência da previsão não apaga uma observação atual válida", () =
   assert.equal(weather.hourly[0]?.temperature, 7);
 });
 
-test("overlay do hero usa preto neutro com blur que desaparece à direita", async () => {
+test("overlay do hero usa preto neutro mais leve e blur que termina antes da direita", async () => {
   const css = await readFile(HERO_FACTS_CSS, "utf8");
 
   assert.match(css, /\.site-shell--home-editorial \.tp-home-hero__overlay\s*\{/);
-  assert.match(css, /rgb\(0 0 0 \/ 82%\)/);
-  assert.match(css, /backdrop-filter: blur\(12px\)/);
-  assert.match(css, /transparent 87%/);
+  assert.match(css, /rgb\(0 0 0 \/ 74%\)/);
+  assert.match(css, /rgb\(0 0 0 \/ 3%\)/);
+  assert.match(css, /backdrop-filter: blur\(10px\)/);
+  assert.match(css, /transparent 82%/);
+  assert.doesNotMatch(css, /rgb\(0 0 0 \/ 82%\) 0%/);
   assert.doesNotMatch(css, /rgb\(4 18 31 \/ 88%\)/);
 });
 
