@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { LagoonHydrologyNetworkIndex } from "@/components/hydrology/LagoonHydrologyLocalityPage";
+import "@/components/hydrology/LagoonHydrologyNetworkIndex.css";
 import { loadLagoonLocalityNetwork } from "@/lib/hydrology/lagoon-locality-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
@@ -43,5 +44,9 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos")({
 });
 
 function LagoonNetworkIndexRoute() {
-  return <LagoonHydrologyNetworkIndex network={Route.useLoaderData()} />;
+  return (
+    <div className="lagoon-network-index-shell">
+      <LagoonHydrologyNetworkIndex network={Route.useLoaderData()} />
+    </div>
+  );
 }
