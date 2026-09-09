@@ -29,10 +29,10 @@ Regras permanentes:
 | Header público | `SiteHeader` reutiliza `HomeEditorialHeader`; a antiga implementação paralela `src/components/layout/Header.tsx` e seu CSS foram removidos em 08/09 |
 | Footer público | Uma implementação compartilhada em `SiteFooter` → `Footer`; não publica inventário completo de fornecedores em todas as páginas |
 | Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; usa leitura editorial aberta em linhas, `ServiceStatus.state` descreve a integração e `dataCondition` descreve separadamente a condição publicável do dado para Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; critérios gerais ficam no fechamento da página |
-| Rotas aposentadas | `/metodologia` e `/estacao-embrapa-pelotas` permanecem apenas como redirects 301 para `/status-dos-dados`; não são páginas indexáveis nem destinos de descoberta pública |
-| SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts` |
+| Rota de compatibilidade aposentada | `/metodologia` permanece redirect 301 para `/status-dos-dados`; `/estacao-embrapa-pelotas` voltou em 09/09 como página interna real, `noindex`, fora do sitemap e sem promoção em header/footer |
+| SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts`; a página Embrapa restaurada ainda não altera esse inventário |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
-| Embrapa | Integração operacional aposentada em 08/09; histórico já armazenado é preservado, mas scheduler, configuração e automações específicas foram desligados/removidos |
+| Embrapa | Coletor operacional/scheduler continuam aposentados; `/estacao-embrapa-pelotas` voltou como consulta server-side direta, somente leitura, à página pública da Embrapa, sem alterar a fonte do `Agora` |
 | Previsão | Open-Meteo principal; MET Norway contingência quando aplicável |
 | Página Hoje | `/tempo-hoje-pelotas` usa hero editorial próprio e sem fotografia; chama de leitura atual somente `current` observacional, identifica fonte/horário e, quando a medição local falta, rotula a série horária explicitamente como `Previsão da próxima hora`; corpo principal usa capítulos abertos e o Schema não anuncia mais a Embrapa como observação atual |
 | Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos e sem repetir o provedor no hero; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã e FAQ; o contexto INMET/CPPMet-UFPel só aparece quando existe previsão real para amanhã, e o matcher textual da UFPel normaliza abreviações da recuperação diária (`Qui` → `quinta`, etc.) para não produzir falso estado de ausência |
@@ -70,9 +70,9 @@ Budgets atuais:
 
 Shell-first mantém a rota navegável durante a recuperação. Não autoriza transformar fallback em estado final quando a informação real ainda pode chegar.
 
-## 4. Observação meteorológica e aposentadoria da Embrapa
+## 4. Observação meteorológica e Embrapa
 
-A observação atual foi consolidada na Rede de Monitoramento Hidrometeorológico da Defesa Civil RS.
+A observação atual da Home continua consolidada na Rede de Monitoramento Hidrometeorológico da Defesa Civil RS.
 
 Contrato atual:
 
@@ -83,7 +83,7 @@ Contrato atual:
 - ausência de rajada permanece ausência de rajada;
 - fonte e horário acompanham a leitura quando disponíveis.
 
-A integração operacional da Embrapa foi aposentada pela migration `20260908060000_retire_embrapa_collector.sql`.
+A integração operacional antiga da Embrapa continua aposentada pela migration `20260908060000_retire_embrapa_collector.sql`.
 
 A migration:
 
@@ -94,13 +94,21 @@ A migration:
 - remove trigger/funções específicas de espelhamento e coleta;
 - preserva `weather_station_observations` e demais dados históricos já armazenados.
 
-Compatibilidade:
+Em 09/09, após a página pública `Current_Monitor.htm` voltar a responder, a rota `/estacao-embrapa-pelotas` foi restaurada como **consulta isolada e somente leitura**. Ela usa um reader server-side próprio com timeout de 5 s, cache de 5 min e parser `windows-1252`, sem religar cron, collector, lease ou configuração antiga do Supabase.
 
-- `/estacao-embrapa-pelotas` → 301 para `/status-dos-dados`;
-- endpoints antigos da Embrapa não voltam a oferecer a integração como fonte atual;
-- menus, footer, atalhos da Home e links editoriais não promovem mais a estação aposentada.
+Compatibilidade e limites atuais:
 
-Documentos históricos sobre o antigo coletor continuam válidos como registro do que existia, não como descrição do runtime atual.
+- `/estacao-embrapa-pelotas` voltou a renderizar página real;
+- a rota permanece `noindex` e fora do sitemap/header/footer enquanto a estabilidade da fonte é revalidada;
+- `/api/weather/embrapa` continua `410 retired` e não voltou a oferecer a integração antiga;
+- o reader restaurado não grava no banco nem reativa histórico automático;
+- a Home e o `Agora` continuam usando a Rede da Defesa Civil RS;
+- previsão Open-Meteo/MET Norway nunca preenche uma leitura ausente da Embrapa como se fosse observação;
+- a página interna pode degradar para `partial` ou `unavailable` sem afetar as demais superfícies meteorológicas.
+
+Documento da restauração: `docs/EMBRAPA_PAGE_RESTORATION_2026-09-09.md`.
+
+Documentos históricos sobre o antigo coletor continuam válidos como registro do que existia, não como descrição do reader atual.
 
 ## 5. Transparência, navegação e shell público
 
@@ -122,12 +130,12 @@ A copy pública usa estados compreensíveis. Termos como probe, upstream, readin
 
 A apresentação pública foi reorganizada em 08/09 para uma leitura editorial aberta. O hero ficou mais compacto, o resumo de estados virou uma faixa, e cada fonte ocupa uma única linha com três zonas no desktop: identidade, conteúdo/condição do dado e metadados de estado/horário/origem. A antiga grade de duas colunas foi aposentada. O histórico usa faixas e linhas abertas, e `Critérios de publicação` permanece no fim da página como fechamento educativo, depois das fontes e dos incidentes/disponibilidade.
 
-### 5.2 Rotas de compatibilidade
+### 5.2 Rotas de compatibilidade e páginas em revalidação
 
 - `/metodologia` → 301 para `/status-dos-dados`;
-- `/estacao-embrapa-pelotas` → 301 para `/status-dos-dados`.
+- `/estacao-embrapa-pelotas` → página interna ativa, `noindex`, fora do sitemap e ainda sem promoção no megamenu/footer.
 
-Essas rotas podem permanecer no route tree por compatibilidade, mas não pertencem ao inventário indexável, ao megamenu, ao footer nem ao smoke visual de páginas reais.
+A página Embrapa voltou como superfície funcional, não como restauração automática do antigo produto operacional. Reindexação, retorno aos menus e eventual uso como observação principal são decisões separadas.
 
 ### 5.3 Header e footer
 
@@ -143,11 +151,11 @@ O header público canônico é `src/production/components/home-editorial-header.
 - Explorar;
 - Avisos.
 
-`Explorar` concentra clima, câmeras, geadas, histórico, blog e `Dados e fontes`. Não mantém atalhos para a estação Embrapa ou metodologia antiga.
+`Explorar` concentra clima, câmeras, geadas, histórico, blog e `Dados e fontes`. Nesta fase de revalidação, ainda não mantém atalho para a página da estação Embrapa; `/metodologia` também não volta ao menu.
 
 A implementação paralela `src/components/layout/Header.tsx` e `Header.css` foi removida depois da migração dos contratos para o header canônico. Isso evita duas árvores de navegação divergirem novamente.
 
-O footer compartilhado mantém descoberta editorial e aponta a transparência para `/status-dos-dados`; a lista completa de fornecedores não é repetida em todas as páginas.
+O footer compartilhado mantém descoberta editorial e aponta a transparência para `/status-dos-dados`; a lista completa de fornecedores não é repetida em todas as páginas. A página Embrapa ainda não foi reintroduzida no footer.
 
 ### 5.4 Proteção contra shell duplicado
 
@@ -161,7 +169,7 @@ A regressão de header/footer duplicados foi corrigida para, entre outras superf
 - `ObservationDataPageShell`;
 - uso direto de `SiteHeader` + `SiteFooter`.
 
-A rota legada `/metodologia` permanece na lista standalone por compatibilidade, embora hoje redirecione antes de renderizar conteúdo.
+A rota `/estacao-embrapa-pelotas` usa o shell genérico de página interna do `SiteLayout` e não deve ser adicionada ao conjunto standalone enquanto não renderizar shell próprio. A rota legada `/metodologia` permanece na lista standalone por compatibilidade, embora hoje redirecione antes de renderizar conteúdo.
 
 ## 6. SEO, rotas públicas e descoberta
 
@@ -177,7 +185,7 @@ Uma URL nova só nasce quando existe:
 - links internos úteis;
 - contrato que impeça expansão acidental.
 
-Não reintroduzir `/metodologia` ou `/estacao-embrapa-pelotas` no sitemap para preservar URLs antigas. Compatibilidade é resolvida pelos redirects permanentes.
+`/estacao-embrapa-pelotas` voltou funcionalmente, mas **não voltou ao inventário indexável**. Enquanto a fonte é revalidada, a rota usa `noindex`, permanece fora de `src/lib/public-routes.ts` e do sitemap. `/metodologia` continua redirect de compatibilidade.
 
 O estado de código, o build/sincronização, a propagação em `tempopelotas.com.br` e a descoberta/indexação por buscadores são provas diferentes.
 
@@ -392,7 +400,7 @@ O arquivo canônico separa:
 - `reanalysis`;
 - `derived`.
 
-Fontes novas exigem governança antes de ingestão. O histórico Embrapa já armazenado não é apagado pela aposentadoria da fonte operacional.
+Fontes novas exigem governança antes de ingestão. O histórico Embrapa já armazenado não é apagado pela aposentadoria do coletor; a página restaurada não voltou a alimentar automaticamente esse arquivo.
 
 Se a série ANA `87955000` for importada futuramente, bruto e consistido precisam continuar distinguíveis por proveniência/status.
 
@@ -415,16 +423,15 @@ E2E autenticado completo de Widget Builder, conta e contribuição continua pend
 
 Contratos versionados cobrem meteorologia, navegação, shells, hidrologia, REDEMET, histórico, widgets, enchentes e colaboração.
 
-A consolidação de 08/09 atualizou contratos para:
+A consolidação de 08–09/09 atualizou contratos para:
 
 - `/status-dos-dados` como única superfície pública indexável de transparência;
 - `dataCondition` público em `/status-dos-dados` separado de `state`/`detail` e restrito nesta fase a Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; o contrato `tests/data-status-data-condition.test.ts` impede espalhar a semântica para outras fontes sem definição própria;
 - visual editorial de `/status-dos-dados` em linhas abertas, sem antiga grade de duas colunas, com condição do dado separada do badge de estado, histórico em faixas/linhas e critérios de publicação no fechamento; protegido por `tests/data-status-editorial-visual.test.ts`;
-- redirects 301 de `/metodologia` e `/estacao-embrapa-pelotas`;
-- ausência dessas rotas na descoberta pública e no smoke visual de páginas reais;
+- redirect 301 de `/metodologia` mantido;
+- `/estacao-embrapa-pelotas` restaurada em 09/09 como página interna real, com reader server-side direto, `noindex`, sem sitemap/menu/footer e sem reativar o coletor aposentado; protegida por `tests/embrapa-station-page.test.ts` e pelo contrato de separação em `tests/retired-weather-source-cleanup.test.ts`;
 - header canônico `HomeEditorialHeader` sem implementação paralela;
 - footer compartilhado sem inventário repetido de fornecedores;
-- retirada de links públicos para a antiga Estação Embrapa;
 - proteção contra shell duplicado em rotas autocontidas;
 - `/tempo-hoje-pelotas` com hero editorial route-scoped, sem fotografia/tiles/CTAs, separação explícita entre observação atual e próxima hora prevista, corpo aberto e referência SEO antiga da Embrapa removida;
 - `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles e sem rótulo de provedor, corpo aberto e índice de capítulos visualmente reduzido; contexto INMET/CPPMet-UFPel só é renderizado quando há conteúdo real, e o matcher da previsão textual CPPMet normaliza dias abreviados da recuperação diária (`Qui`/`Sex` etc.) para os nomes completos antes da comparação;
@@ -440,8 +447,6 @@ A consolidação de 08/09 atualizou contratos para:
 - ficha cadastral exata da `87955001` em `/nivel-da-lagoa-dos-patos-laranjal`, sem solicitar medição ANA e sem participar do seletor de nível atual;
 - gate vertical da `87955001` com três bloqueios independentes e prova negativa explícita contra uso de WGS 84, `Altitude` cadastral isolada ou status de qualidade como referência da régua;
 - cronologia editorial 2024–2026 do monitoramento no Trapiche com datas e fontes nomeadas, incluindo marco cadastral dinâmico da telemetria `87955001`, sem fabricar continuidade de hardware, zero, RN ou datum entre HidroSens, ANA, CIEX/FURG e os códigos `87955000`/`87955001`.
-
-O smoke visual interno não trata mais redirects aposentados como páginas que deveriam possuir H1, shell e namespace visual próprios.
 
 ### 13.1 GitHub Actions
 
@@ -463,21 +468,22 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 ## 14. Próximas prioridades
 
 1. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
-2. Confirmar no domínio canônico os redirects 301 de `/metodologia` e `/estacao-embrapa-pelotas`, além de canonical/sitemap de `/status-dos-dados`.
-3. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
-4. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
-5. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
-6. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar Moderação V1 com conta autorizada e contribuição descartável.
-7. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-8. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
-9. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
-10. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
-11. Validar visualmente a família `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas`, `/previsao-7-dias-pelotas`, `/previsao-15-dias-pelotas`, `/chuva-em-pelotas` e `/vento-em-pelotas` em desktop e mobile depois da propagação, conferindo rails, primeira dobra, estados indisponíveis e responsividade sem tratar preview isolado como prova de produção.
-12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
-13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
-14. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
-15. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
-16. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+2. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível e permanência fora do sitemap.
+3. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático ou à descoberta pública.
+4. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
+5. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
+6. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
+7. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar Moderação V1 com conta autorizada e contribuição descartável.
+8. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+9. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
+10. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
+11. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
+12. Validar visualmente a família `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas`, `/previsao-7-dias-pelotas`, `/previsao-15-dias-pelotas`, `/chuva-em-pelotas` e `/vento-em-pelotas` em desktop e mobile depois da propagação, conferindo rails, primeira dobra, estados indisponíveis e responsividade sem tratar preview isolado como prova de produção.
+13. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
+14. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
+15. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
+16. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
+17. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
@@ -486,6 +492,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — resiliência, budgets e estados de dados;
 - `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — monitor e scheduler;
 - `docs/DATA_STATUS_EDITORIAL_REFRESH_2026-09-08.md` — contrato visual/editorial da central pública de dados e fontes;
+- `docs/EMBRAPA_PAGE_RESTORATION_2026-09-09.md` — retorno isolado da página interna da Embrapa, sem reativar collector/Home;
 - `docs/REDEMET_OPERATIONS.md` — radar, satélite e STSC;
 - `docs/REDEMET_RADAR_SATELLITE_AUDIT_2026-09-08.md` — auditoria da coleta, exibição, contingências e seletor Realçado/IR/Visível da página dedicada;
 - `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências das fontes;
