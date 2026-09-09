@@ -14,7 +14,12 @@ function hasFrames(layer: RedemetLayer) {
 }
 
 export function hasPrimaryRedemetCollections(data: RedemetOverview) {
-  return hasFrames(data.radar) && hasFrames(data.satellite) && hasFrames(data.storms);
+  return (
+    hasFrames(data.radar) &&
+    hasFrames(data.satellite) &&
+    hasFrames(data.inmetSatellite) &&
+    hasFrames(data.storms)
+  );
 }
 
 function chooseLayer<T extends RedemetLayer>(baseline: T, recovered: T): T {
@@ -41,10 +46,10 @@ function runServerRecovery<T>(run: () => Promise<T>) {
 
 /**
  * O documento público continua com teto curto no SSR. Depois da hidratação,
- * quando radar, satélite ou STSC não chegaram dentro desse teto, fazemos uma
- * única consulta completa ao backend e aproveitamos as coletas reais que
- * terminarem depois. Uma coleta já recebida nunca é apagada por uma tentativa
- * posterior vazia.
+ * quando radar, satélite REDEMET, satélite INMET ou STSC não chegaram dentro
+ * desse teto, fazemos uma única consulta completa ao backend e aproveitamos as
+ * coletas reais que terminarem depois. Uma coleta já recebida nunca é apagada
+ * por uma tentativa posterior vazia.
  */
 export function useRedemetOverviewBrowserRecovery(baseline: RedemetOverview) {
   const [data, setData] = useState(baseline);
