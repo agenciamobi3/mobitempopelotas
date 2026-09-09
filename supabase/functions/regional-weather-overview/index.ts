@@ -194,6 +194,17 @@ function ageMs(value: string | null | undefined) {
   return Math.max(0, Date.now() - timestamp);
 }
 
+function snapshotMatchesCurrentCities(value: unknown) {
+  const root = record(value);
+  if (!root || !Array.isArray(root.items) || root.items.length !== CITIES.length) return false;
+
+  return root.items.every((candidate, index) => {
+    const item = record(candidate);
+    const city = record(item?.city);
+    return city?.slug === CITIES[index]?.slug;
+  });
+}
+
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return json({ ok: true }, 200, 300);
   if (request.method !== "GET") return json({ error: "Método não permitido." }, 405);
@@ -215,7 +226,12 @@ Deno.serve(async (request) => {
     .limit(1)
     .maybeSingle();
 
-  if (latest?.payload && ageMs(latest.fetched_at) <= FRESH_SNAPSHOT_MS) {
+  const latestMatchesCurrentCities = snapshotMatchesCurrentCities(latest?.payload);
+  if (
+    latestMatchesCurrentCities &&
+    latest?.payload &&
+    ageMs(latest.fetched_at) <= FRESH_SNAPSHOT_MS
+  ) {
     return json(latest.payload, 200, 120);
   }
 
@@ -253,7 +269,11 @@ Deno.serve(async (request) => {
 
     return json(overview, 200, 120);
   } catch (error) {
-    if (latest?.payload && ageMs(latest.fetched_at) <= STALE_SNAPSHOT_MS) {
+    if (
+      latestMatchesCurrentCities &&
+      latest?.payload &&
+      ageMs(latest.fetched_at) <= STALE_SNAPSHOT_MS
+    ) {
       return json(latest.payload, 200, 60);
     }
 
