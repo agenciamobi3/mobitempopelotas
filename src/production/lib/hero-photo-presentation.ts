@@ -92,6 +92,12 @@ const partlyCloudyMadrugadaAlternate = {
   credit: "Acervo Tempo Pelotas · Pelotas · madrugada",
 } as const;
 
+const cloudyNightAlternate = {
+  src: "/weather/hero/pelotas-noite-madrugada-nublado.png",
+  position: "center 50%",
+  credit: "Acervo Tempo Pelotas · Pelotas · noite/madrugada",
+} as const;
+
 const cloudyMiddayAlternate = {
   src: "/weather/hero/pelotas-meio-dia-nublado.png",
   position: "center 50%",
@@ -260,10 +266,10 @@ function stormPhoto(weather: WeatherData) {
 
 function cloudyPhoto(weather: WeatherData) {
   const hour = currentPelotasHour(weather);
-  if (hour !== null && hour >= 0 && hour < MADRUGADA_END_HOUR) {
+  if (isNightHour(hour)) {
     return {
       kind: "cloudy",
-      ...partlyCloudyMadrugadaAlternate,
+      ...cloudyNightAlternate,
     } satisfies HeroPhotoPresentation;
   }
   if (!isMiddayHour(hour)) return heroPhotos.cloudy;
