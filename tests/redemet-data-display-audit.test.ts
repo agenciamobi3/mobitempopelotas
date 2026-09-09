@@ -44,20 +44,26 @@ test("dedicated page exposes realçado, infravermelho and visível without fabri
   assert.match(overview, /fetch\(`\/api\/redemet\/satellite\?type=\$\{type\}&frames=4`/);
   assert.match(overview, /const controller = new AbortController\(\)/);
   assert.match(overview, /signal: controller\.signal/);
-  assert.match(overview, /return \(\) => controller\.abort\(\)/);
+  assert.match(
+    overview,
+    /return \(\) => \{\s*active = false;\s*controller\.abort\(\);\s*\}/,
+  );
   assert.match(overview, /updatedAt: ""/);
   assert.doesNotMatch(overview, /new Date\(\)/);
   assert.match(overview, /aria-pressed=\{selectedSatelliteType === product\.type\}/);
   assert.match(overview, /Produto de satélite REDEMET/);
 });
 
-test("visible satellite has an explicit daylight pause and never masquerades as a generic source failure", () => {
+test("visible satellite has an explicit daylight pause and a separate future-window formatter", () => {
   assert.match(overview, /availabilityReason === "daylight"/);
   assert.match(overview, /Aguardando luz solar/);
   assert.match(overview, /Canal Visível aguardando luz solar/);
   assert.match(overview, /O canal Visível usa luz solar refletida/);
   assert.match(overview, /nextExpectedAt/);
   assert.match(overview, /Próxima janela estimada/);
+  assert.match(overview, /formatExpectedSatelliteDateTime/);
+  assert.match(overview, /Date\.parse\(value\)/);
+  assert.match(overview, /timeZone: "America\/Sao_Paulo"/);
   assert.match(overview, /Durante a noite ele aguarda a próxima janela útil sem ser substituído por infravermelho/);
 
   assert.match(satellite, /if \(redemet\.available \|\| type === "vis"\) return redemet/);
