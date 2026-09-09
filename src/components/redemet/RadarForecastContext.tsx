@@ -9,6 +9,7 @@ import type { RedemetImageLayerResponse } from "@/lib/redemet/redemet.types";
 import type { HourlyForecast } from "@/lib/weather/types";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
+import { RadarMapFrame } from "./RadarMapFrame";
 import "./RadarForecastContext.css";
 
 function parseObservedTime(value: string | null | undefined) {
@@ -88,57 +89,68 @@ export function RadarForecastContext({
       <header>
         <div>
           <span>Compare com a previsão</span>
-          <h2 id="radar-forecast-context-title">O que estava previsto perto do horário desta imagem</h2>
+          <h2 id="radar-forecast-context-title">Radar e previsão no mesmo horário</h2>
         </div>
         <p>
-          A imagem é uma observação recebida da REDEMET. Os números abaixo vêm da previsão por hora mais próxima e não foram medidos pelo radar.
+          A imagem mostra o que o radar recebeu. Ao lado, veja o que a previsão indicava para o horário mais próximo.
         </p>
       </header>
 
-      <div className="radar-forecast-context__times">
-        <article>
-          <small>Imagem do radar</small>
-          <strong>{formatDateTime(frame.observedAt)}</strong>
-          <span>REDEMET/DECEA · {redemetFrameDisplayLabel(frame)}</span>
-        </article>
-        <article>
-          <small>Previsão comparada</small>
-          <strong>{forecast?.time ?? "Sem horário próximo"}</strong>
-          <span>{modelLabel}</span>
-        </article>
+      <div className="radar-forecast-context__comparison">
+        <figure className="radar-forecast-context__image">
+          <RadarMapFrame
+            frame={frame}
+            alt={`Imagem do radar REDEMET de ${formatDateTime(frame.observedAt)}`}
+          />
+          <figcaption>
+            <div>
+              <small>Imagem do radar</small>
+              <strong>{formatDateTime(frame.observedAt)}</strong>
+            </div>
+            <span>REDEMET/DECEA · {redemetFrameDisplayLabel(frame)}</span>
+          </figcaption>
+        </figure>
+
+        <div className="radar-forecast-context__forecast">
+          <div className="radar-forecast-context__forecast-time">
+            <small>Previsão comparada</small>
+            <strong>{forecast?.time ?? "Sem horário próximo"}</strong>
+            <span>{modelLabel}</span>
+          </div>
+
+          {forecast ? (
+            <div className="radar-forecast-context__metrics">
+              <article>
+                <Gauge aria-hidden="true" />
+                <span><small>Temperatura</small><strong>{formatValue(forecast.temperature, " °C")}</strong></span>
+              </article>
+              <article>
+                <CloudRain aria-hidden="true" />
+                <span><small>Chance de chuva</small><strong>{formatValue(forecast.precipitationProbability, "%")}</strong></span>
+              </article>
+              <article>
+                <Wind aria-hidden="true" />
+                <span><small>Rajada</small><strong>{formatValue(forecast.windGust, " km/h")}</strong></span>
+              </article>
+              <article>
+                <CloudFog aria-hidden="true" />
+                <span><small>Nuvens baixas</small><strong>{formatValue(forecast.cloudCoverLow, "%")}</strong></span>
+              </article>
+              <article>
+                <Eye aria-hidden="true" />
+                <span><small>Visibilidade</small><strong>{formatValue(forecast.visibilityKm, " km", 1)}</strong></span>
+              </article>
+            </div>
+          ) : (
+            <div className="radar-forecast-context__unavailable">
+              Não há uma previsão por hora suficientemente próxima desta coleta para fazer a comparação.
+            </div>
+          )}
+        </div>
       </div>
 
-      {forecast ? (
-        <div className="radar-forecast-context__metrics">
-          <article>
-            <Gauge aria-hidden="true" />
-            <span><small>Temperatura</small><strong>{formatValue(forecast.temperature, " °C")}</strong></span>
-          </article>
-          <article>
-            <CloudRain aria-hidden="true" />
-            <span><small>Chance de chuva</small><strong>{formatValue(forecast.precipitationProbability, "%")}</strong></span>
-          </article>
-          <article>
-            <Wind aria-hidden="true" />
-            <span><small>Rajada</small><strong>{formatValue(forecast.windGust, " km/h")}</strong></span>
-          </article>
-          <article>
-            <CloudFog aria-hidden="true" />
-            <span><small>Nuvens baixas</small><strong>{formatValue(forecast.cloudCoverLow, "%")}</strong></span>
-          </article>
-          <article>
-            <Eye aria-hidden="true" />
-            <span><small>Visibilidade</small><strong>{formatValue(forecast.visibilityKm, " km", 1)}</strong></span>
-          </article>
-        </div>
-      ) : (
-        <div className="radar-forecast-context__unavailable">
-          Não há uma previsão por hora suficientemente próxima desta coleta para fazer uma comparação segura.
-        </div>
-      )}
-
       <footer>
-        Previsão {modelLabel}, atualizada às {formatFetchedAt(sourceHealth?.fetchedAt)}. A sequência de imagens mostra o passado recente e não indica sozinha o que acontecerá depois.
+        Previsão {modelLabel}, atualizada às {formatFetchedAt(sourceHealth?.fetchedAt)}. A imagem do radar continua sendo observação; os números ao lado continuam sendo previsão.
       </footer>
     </section>
   );
