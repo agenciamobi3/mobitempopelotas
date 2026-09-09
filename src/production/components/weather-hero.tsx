@@ -132,6 +132,7 @@ export function WeatherHero({
       data-official-alerts={officialAlertCount > 0 ? "true" : "false"}
       data-official-alert-severity={officialAlertSeverity}
       aria-labelledby="weather-hero-title"
+      aria-busy={!current.available}
     >
       <div
         className="tp-home-hero__photo"
@@ -246,9 +247,7 @@ export function WeatherHero({
             <div className="tp-home-hero__hourly-list">
               {hourlyPreview.map((hour, index) => (
                 <div className="tp-home-hero__hour" key={`${hour.time}-${index}`}>
-                  <span className="tp-home-hero__hour-time">
-                    {index === 0 && current.available ? "Agora" : hour.time}
-                  </span>
+                  <span className="tp-home-hero__hour-time">{hour.time}</span>
                   <span className="tp-home-hero__hour-icon">
                     <WeatherIcon name={hour.icon} title={weatherConditionLabels[hour.icon]} />
                   </span>
