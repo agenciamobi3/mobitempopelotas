@@ -366,6 +366,11 @@ export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastDa
     model: "NOAA GFS",
   };
 
+  // O cache estendido começa a ser lido junto com as consultas diretas. Assim,
+  // se os upstreams consumirem quase todo o budget de 2,2 s, a contingência já
+  // teve tempo para responder e não precisa começar do zero no fim da janela.
+  const extendedEdgePromise = fetchExtendedForecastEdgeFallback();
+
   const [bestMatch, gfs] = await Promise.all([
     fetchDirectExtendedForecast(bestMatchCandidate),
     fetchDirectExtendedForecast(gfsCandidate),
@@ -375,7 +380,7 @@ export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastDa
   if (direct?.status === "live") return direct;
 
   const extendedEdge = await settleWithin(
-    fetchExtendedForecastEdgeFallback(),
+    extendedEdgePromise,
     remainingBudget(startedAt, EXTENDED_EDGE_MAX_WAIT_MS),
   );
   const extended = preferBroaderForecast([direct, extendedEdge]);
