@@ -40,7 +40,7 @@ Regras permanentes:
 | Página Chuva | `/chuva-em-pelotas` usa hero editorial dedicado sem fotografia/CTAs e rail próprio; mantém chuva medida em 24 h separada do volume previsto hoje e em 7 dias, sem transformar chance ausente em zero ou somar janelas/origens diferentes |
 | Página Vento | `/vento-em-pelotas` usa hero editorial dedicado sem fotografia/CTAs e rail próprio; só publica `Vento medido agora` quando há observação real e usa `Previsão da próxima hora` quando a medição falta; vento sustentado não substitui rajada ausente |
 | INMET | Avisos e produtos oficiais conforme o contrato de cada integração; pipeline Gmail para previsão estruturada continua fail-closed para entrega |
-| Radar / satélite / STSC | `/radar-e-satelite-pelotas` mantém radar REDEMET georreferenciado, satélite REDEMET, satélite INMET e STSC com horários reais, sequência e recuperação pós-hidratação; duplicação visual do INMET corrigida, ausência de quadro STSC com horário não vira zero raios, timeout interno do radar ajustado para 4,2 s (abaixo dos 4,5 s do overview e 5 s do probe); endpoint `/api/redemet/satellite` suporta `realcada`, `ir` e `vis`, mas a página dedicada segue usando `realcada` neste checkpoint |
+| Radar / satélite / STSC | `/radar-e-satelite-pelotas` mantém radar REDEMET georreferenciado, satélite REDEMET, satélite INMET e STSC com horários reais, sequência e recuperação pós-hidratação; a página dedicada agora expõe seletor `Realçado`/`Infravermelho`/`Visível`, inicia em `realcada`, busca IR/Visível sob demanda em janela de 4 imagens, preserva a fonte real e não duplica o INMET quando ele assume como contingência; o canal Visível permanece REDEMET, nunca recebe fallback infravermelho e, sem luz solar, mostra estado de espera e a próxima janela recebida sem fabricar timestamp; ausência de quadro STSC com horário não vira zero raios; timeout interno do radar está em 4,2 s, abaixo dos 4,5 s do overview e 5 s do probe |
 | Hidrologia | Laranjal, Lagoa dos Patos, Guaíba, SACE e Defesa Civil degradam independentemente; `/situacao-hidrologica-pelotas` usa inventário/cartografia ANA/SNIRH e concentra a explicação metodológica num fechamento curto; `/nivel-da-lagoa-dos-patos-laranjal` mostra ficha cadastral `87955001` e cronologia documentada do monitoramento no Trapiche, sem promover esses recursos a medição ANA |
 | ANA 87955001 | Readiness/cross-check somente; inventário registra telemetria iniciada em 08/06/2026; `publishableMeasurement=false`; gate vertical exige referência confirmada, nivelamento/RN específico recuperado e continuidade vertical com `87955000` comprovada antes de qualquer reconsideração técnica |
 | Enchente de 2001 | `/enchente-2001-pelotas` preserva 290 cm bruto e 190 cm consistido/estimado e pode exibir `Indice`/`Notas` da camada ANA `NotasConsistencia` somente quando houver registro real para `87955000`; isso não é nota do evento nem explicação da revisão |
@@ -52,7 +52,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34292993357` concluiu `failure` com `steps: null` |
+| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34297523601`, ligada ao fechamento do seletor de satélite, concluiu `failure` com job sem steps executados |
 
 ## 3. Stack e budgets públicos
 
@@ -308,25 +308,28 @@ Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-0
 
 Contrato atualizado em 08/09/2026:
 
-- janela pública compacta de 4 imagens e 6 leituras STSC;
+- janela pública inicial compacta de 4 imagens no satélite Realçado, 4 imagens de radar e 6 leituras STSC;
 - SSR com budget de 2,8 s no documento inicial;
-- uma recuperação pós-hidratação quando a composição inicial estiver incompleta, agora cobrindo também `inmetSatellite` como coleção visível;
+- uma recuperação pós-hidratação quando a composição inicial estiver incompleta, cobrindo também `inmetSatellite` como coleção visível;
 - merge conservador, sem apagar quadros já recebidos;
-- quando o satélite REDEMET falha e o INMET é usado como contingência, a mesma coleta INMET não é contada nem renderizada duas vezes;
+- a página dedicada inicia em `Realçado` e expõe seletor acessível para `Realçado`, `Infravermelho` e `Visível`;
+- `Infravermelho` e `Visível` são consultados sob demanda no endpoint existente `/api/redemet/satellite?type=<tipo>&frames=4`, com cancelamento da consulta anterior em troca rápida e cache de sessão da última resposta recebida;
+- fonte, produto, quantidade de imagens e horário do resumo/painel principal acompanham o produto selecionado em vez de permanecer presos ao Realçado do loader;
+- quando Realçado ou Infravermelho usam o INMET como contingência, a mesma coleta INMET não é contada nem renderizada novamente como painel complementar;
+- o canal Visível nunca recebe fallback infravermelho; durante a noite, a resposta `availabilityReason=daylight` vira estado público `Aguardando luz solar`, podendo mostrar `nextExpectedAt` com formatação específica de horário futuro e sem inventar uma coleta;
+- falha do fetch client-side sem cache produz camada vazia com `updatedAt` vazio; nenhum `new Date()` é usado para fabricar atualização;
 - ausência de quadro STSC com horário utilizável não vira zero raios: zeros só aparecem quando existe quadro válido com zero pontos;
-- timeout interno do radar foi alinhado de 2,4 s para 4,2 s, abaixo do teto de 4,5 s do overview e de 5 s do probe independente;
-- endpoint `/api/redemet/satellite` suporta `realcada`, `ir` e `vis`; a página dedicada continua usando `realcada` como camada principal neste checkpoint;
+- timeout interno do radar está em 4,2 s, abaixo do teto de 4,5 s do overview e de 5 s do probe independente;
 - satélite/radar/trovoada não viram alerta oficial;
 - falha de integração não vira afirmação de indisponibilidade global da fonte.
 
-Antes da correção, o status público observado mostrava radar REDEMET oscilante, satélite REDEMET e STSC operacionais e satélite INMET complementar sem coleta utilizável; isso descreve a integração do portal naquele momento, não a disponibilidade global das instituições.
+Antes dessas correções, o status público observado mostrava radar REDEMET oscilante, satélite REDEMET e STSC operacionais e satélite INMET complementar sem coleta utilizável; isso descreve a integração do portal naquele momento, não a disponibilidade global das instituições.
 
 Rajada ausente no contexto do radar permanece `Não informado`; vento sustentado não é usado como substituto.
 
 INMET continua sendo a origem dos avisos meteorológicos oficiais consumidos pelo portal. Falha na consulta deve aparecer como indisponibilidade de confirmação, nunca como “sem alerta”.
 
 Referências: `docs/REDEMET_RADAR_SATELLITE_AUDIT_2026-09-08.md` e `tests/redemet-data-display-audit.test.ts`.
-
 
 ## 9. Pipeline INMET por Gmail
 
@@ -428,6 +431,8 @@ A consolidação de 08/09 atualizou contratos para:
 - `/previsao-15-dias-pelotas` com hero editorial próprio, rail independente do shell genérico, sem foto/tiles/CTAs `TodayRetailHero`, capítulos principais abertos e rótulos heurísticos de risco removidos; a precedência retail antiga foi aposentada;
 - `/chuva-em-pelotas` com hero editorial dedicado, rail próprio e separação de chuva observada em 24 h, prevista hoje e prevista em 7 dias, sem transformar ausência em zero;
 - `/vento-em-pelotas` com hero editorial dedicado, rail próprio e distinção entre vento observado e previsão da próxima hora; vento sustentado não substitui rajada ausente;
+- `/radar-e-satelite-pelotas` com seletor `Realçado`/`Infravermelho`/`Visível`, Realçado vindo do loader recuperável, IR/Visível consultados sob demanda, AbortController em troca rápida, estado noturno específico do Visível, horário futuro formatado separadamente, contingência INMET sem duplicação e fallback client-side sem timestamp fabricado; protegido por `tests/redemet-data-display-audit.test.ts`;
+- contratos antigos de mapa REDEMET reconciliados com a implementação MapLibre atual: gesto cooperativo, player interativo na faixa inferior e controles nativos dentro da área real do mapa, sem reintroduzir `pointer-events:none` no player;
 - aposentadoria da pilha fotográfica compartilhada `TodayRetailHero.css`, `TodayRetailHeroPhoto.css`, `TodayRetailHeroRefinement.css` e `today-retail-hero-backgrounds.ts`; `InternalWeatherCleanHero.css` fica restrito ao Meteograma;
 - inventário regional ANA/SNIRH em `/situacao-hidrologica-pelotas`, com mapa MapLibre, hidrografia oficial opcional e separação explícita da medição atual do Laranjal;
 - fechamento educativo de `/situacao-hidrologica-pelotas` reduzido a regras de interpretação realmente necessárias, sem `OfficialDataAccessNotice` genérico no meio da experiência;
@@ -440,7 +445,7 @@ O smoke visual interno não trata mais redirects aposentados como páginas que d
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34292993357`, ligada ao commit `7bd0cb9b7f8454565f147b55f097a2a3d434db73`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` com `steps: null`.
+A infraestrutura do runner continua sendo uma limitação externa. Na run `34297523601`, ligada ao commit `02f459417268d39fac397bf5869aaa8c8651393f`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` sem steps executados.
 
 Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
 
@@ -471,9 +476,8 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 12. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
 13. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
 14. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
-15. Validar no preview e no domínio canônico a página `/radar-e-satelite-pelotas` depois da propagação: radar REDEMET carregando e sequenciando, satélite REDEMET/INMET sem duplicação visual na contingência, STSC distinguindo ausência de coleta de zero real, e estabilidade do radar após o novo budget interno de 4,2 s.
+15. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
 16. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
-
 
 ## 15. Documentos principais
 
@@ -483,6 +487,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/DATA_STATUS_MONITOR_RECOVERY_2026-08-28.md` — monitor e scheduler;
 - `docs/DATA_STATUS_EDITORIAL_REFRESH_2026-09-08.md` — contrato visual/editorial da central pública de dados e fontes;
 - `docs/REDEMET_OPERATIONS.md` — radar, satélite e STSC;
+- `docs/REDEMET_RADAR_SATELLITE_AUDIT_2026-09-08.md` — auditoria da coleta, exibição, contingências e seletor Realçado/IR/Visível da página dedicada;
 - `docs/SOURCE_RESILIENCE_INMET_REDEMET_2026-08-27.md` — contingências das fontes;
 - `docs/ANA_RHN_INTEGRATION.md` — política ANA/RHN e separação 87955000/87955001;
 - `docs/ANA_RHN_REGIONAL_INVENTORY_2026-09-08.md` — inventário e cartografia regional ANA/SNIRH;
