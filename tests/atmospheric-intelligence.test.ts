@@ -60,7 +60,10 @@ test("today page exposes atmospheric interpretation without replacing observed v
   assert.match(atmosphere, /Possibilidade de tempestade/);
   assert.match(atmosphere, /Esse valor sozinho não confirma temporal/);
   assert.match(atmosphere, /Camadas de nuvens nas próximas horas/);
-  assert.match(atmosphere, /Previsão horária: Open-Meteo/);
+  assert.doesNotMatch(atmosphere, /Previsão horária:/);
+  assert.doesNotMatch(atmosphere, /modelLabel/);
+  assert.match(atmosphere, /A pressão deve/);
+  assert.match(atmosphere, /Atualizado em/);
   assert.doesNotMatch(atmosphere, /Sinal ainda não calculável/);
   assert.doesNotMatch(atmosphere, /Energia convectiva/);
   assert.doesNotMatch(atmosphere, /Tendência de pressão não calculável/);
