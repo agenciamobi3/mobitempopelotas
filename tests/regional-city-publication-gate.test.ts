@@ -33,26 +33,19 @@ function candidate(
   return { ...baseCity, slug, name: `Teste ${slug}`, ...overrides };
 }
 
-test("inventário preserva 24 cidades completas e adiciona 11 básicas da Costa Doce", () => {
+test("inventário regional publica e indexa as 35 cidades aprovadas", () => {
   const complete = REGIONAL_CITIES.filter((city) => regionalCityCoverage(city) === "complete");
   const basic = REGIONAL_CITIES.filter((city) => regionalCityCoverage(city) === "basic");
 
   assert.equal(REGIONAL_CITIES.length, 35);
   assert.equal(PUBLIC_REGIONAL_CITIES.length, 35);
-  assert.equal(INDEXABLE_REGIONAL_CITIES.length, 24);
-  assert.equal(complete.length, 24);
-  assert.equal(basic.length, 11);
+  assert.equal(INDEXABLE_REGIONAL_CITIES.length, 35);
+  assert.equal(complete.length, 35);
+  assert.equal(basic.length, 0);
 
   for (const city of complete) {
     assert.equal(isRegionalCityPublic(city), true);
     assert.equal(isRegionalCityIndexable(city), true);
-  }
-
-  for (const city of basic) {
-    assert.equal(city.group, "Costa Doce");
-    assert.equal(city.indexable, false);
-    assert.equal(isRegionalCityPublic(city), true);
-    assert.equal(isRegionalCityIndexable(city), false);
   }
 });
 
