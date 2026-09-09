@@ -1,0 +1,394 @@
+.lagoon-network-index-shell {
+  --lagoon-index-page: #f7fafb;
+  --lagoon-index-surface: #ffffff;
+  --lagoon-index-soft: #eef7f8;
+  background: var(--lagoon-index-page);
+}
+
+.lagoon-network-index-shell .lagoon-locality-page {
+  width: min(1440px, calc(100% - 96px));
+  padding-bottom: 3.5rem;
+}
+
+.lagoon-network-index-shell .lagoon-locality-page > section {
+  box-shadow: none;
+}
+
+.lagoon-network-index-shell .lagoon-network-index-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
+  grid-template-areas:
+    "eyebrow eyebrow"
+    "title copy";
+  gap: .85rem clamp(2rem, 6vw, 7rem);
+  overflow: hidden;
+  margin-top: 1.4rem;
+  padding: clamp(4rem, 7vw, 6.5rem) clamp(2rem, 4.5vw, 4.5rem);
+  border: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 86% 22%, rgb(61 194 207 / 18%), transparent 31%),
+    linear-gradient(130deg, #f0fbfc 0%, #f8fbfb 48%, #f6f4ff 100%);
+}
+
+.lagoon-network-index-shell .lagoon-network-index-hero::after {
+  position: absolute;
+  right: -7%;
+  bottom: -50%;
+  width: 44%;
+  aspect-ratio: 1;
+  border: 1px solid rgb(8 127 145 / 12%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 34px rgb(8 127 145 / 4%),
+    0 0 0 72px rgb(8 127 145 / 3%);
+  content: "";
+  pointer-events: none;
+}
+
+.lagoon-network-index-shell .lagoon-network-index-hero .lagoon-locality-eyebrow {
+  grid-area: eyebrow;
+  position: relative;
+  z-index: 1;
+}
+
+.lagoon-network-index-shell .lagoon-network-index-hero h1 {
+  grid-area: title;
+  position: relative;
+  z-index: 1;
+  max-width: 12ch;
+  font-size: clamp(3.8rem, 6vw, 6.6rem);
+}
+
+.lagoon-network-index-shell .lagoon-network-index-hero p {
+  grid-area: copy;
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  max-width: 54ch;
+  margin: 0 0 .35rem;
+  font-size: clamp(1.05rem, 1.3vw, 1.22rem);
+}
+
+.lagoon-network-index-shell .lagoon-network-localities,
+.lagoon-network-index-shell .lagoon-costa-doce {
+  margin-top: clamp(1.2rem, 2vw, 2rem);
+  padding: clamp(3.2rem, 5vw, 5rem) 0;
+  border: 0;
+  border-bottom: 1px solid var(--lagoon-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.lagoon-network-index-shell .lagoon-network-localities > header,
+.lagoon-network-index-shell .lagoon-costa-doce > header {
+  align-items: end;
+  padding: 0 clamp(.25rem, 1vw, .75rem);
+}
+
+.lagoon-network-index-shell .lagoon-network-localities h2,
+.lagoon-network-index-shell .lagoon-costa-doce h2,
+.lagoon-network-index-shell .lagoon-locality-explainer h2 {
+  max-width: 18ch;
+  font-size: clamp(2.4rem, 4vw, 4.3rem);
+}
+
+.lagoon-network-index-shell .lagoon-network-localities > header > p,
+.lagoon-network-index-shell .lagoon-costa-doce > header > p {
+  max-width: 50ch;
+  font-size: .9rem;
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin-top: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--lagoon-line);
+  border-radius: 14px;
+  background: var(--lagoon-index-surface);
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-card,
+.lagoon-network-index-shell .lagoon-network-locality-card:nth-child(even),
+.lagoon-network-index-shell .lagoon-network-locality-card:nth-child(n + 3) {
+  display: flex;
+  flex-direction: column;
+  min-height: 310px;
+  padding: 1.6rem;
+  border: 0;
+  border-left: 1px solid var(--lagoon-line);
+  transition: background-color 160ms ease;
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-card:first-child {
+  border-left: 0;
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-card:hover {
+  background: #f4fafb;
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-card__reading strong {
+  font-size: clamp(2.8rem, 3.5vw, 4.2rem);
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-card__action {
+  margin-top: auto;
+  padding-top: 1.3rem;
+}
+
+.lagoon-network-index-shell .lagoon-network-locality-card > small {
+  margin-bottom: 1rem;
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce {
+  padding-top: clamp(3.6rem, 6vw, 5.5rem);
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--lagoon-line);
+  border-radius: 14px;
+  background: var(--lagoon-index-surface);
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__city {
+  min-height: 98px;
+  padding: 1rem 1.15rem;
+  gap: .65rem;
+  border-right: 1px solid var(--lagoon-line);
+  border-bottom: 1px solid var(--lagoon-line);
+  transition: background-color 160ms ease;
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(5n) {
+  border-right: 0;
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__city:nth-last-child(-n + 5) {
+  border-bottom: 0;
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__city:hover {
+  background: #f7fbfb;
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__city h3 {
+  font-size: .98rem;
+}
+
+.lagoon-network-index-shell .lagoon-costa-doce__city a {
+  font-size: .79rem;
+}
+
+.lagoon-network-index-shell .lagoon-locality-explainer {
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  margin-top: clamp(2rem, 4vw, 3.5rem);
+  padding: clamp(2.8rem, 5vw, 4.5rem) clamp(2rem, 4vw, 4rem);
+  border: 1px solid rgb(8 127 145 / 12%);
+  border-radius: 14px;
+  background: linear-gradient(115deg, #eef8f8 0%, #f7fbfb 58%, #f8f7ff 100%);
+}
+
+.lagoon-network-index-shell .lagoon-locality-explainer p {
+  font-size: 1.02rem;
+}
+
+.lagoon-network-index-shell .lagoon-locality-related {
+  margin-top: 1.2rem;
+  border-top: 1px solid var(--lagoon-line);
+  border-bottom: 1px solid var(--lagoon-line);
+}
+
+.lagoon-network-index-shell .lagoon-locality-related a {
+  min-height: 72px;
+  padding-inline: 1rem;
+}
+
+.lagoon-network-index-shell .lagoon-locality-related a:first-child {
+  padding-left: .25rem;
+}
+
+.lagoon-network-index-shell .lagoon-locality-source {
+  padding: 1rem .25rem 0;
+  color: #71858f;
+  font-size: .76rem;
+}
+
+@media (max-width: 1180px) {
+  .lagoon-network-index-shell .lagoon-locality-page {
+    width: min(100% - 48px, 1440px);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card,
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(even),
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(n + 3) {
+    border-left: 1px solid var(--lagoon-line);
+    border-top: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(3n + 1) {
+    border-left: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(-n + 3) {
+    border-top: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city,
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(5n) {
+    border-right: 1px solid var(--lagoon-line);
+    border-bottom: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(4n) {
+    border-right: 0;
+  }
+}
+
+@media (max-width: 880px) {
+  .lagoon-network-index-shell .lagoon-network-index-hero {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "eyebrow"
+      "title"
+      "copy";
+  }
+
+  .lagoon-network-index-shell .lagoon-network-index-hero p {
+    max-width: 62ch;
+    margin-top: 1rem;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(3n + 1) {
+    border-left: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(2n + 1) {
+    border-left: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(-n + 3) {
+    border-top: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(-n + 2) {
+    border-top: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(4n) {
+    border-right: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-locality-explainer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .lagoon-network-index-shell .lagoon-locality-page {
+    width: min(100% - 24px, 1440px);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-index-hero {
+    margin-top: .75rem;
+    padding: 3rem 1.25rem;
+    border-radius: 12px;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-index-hero h1 {
+    font-size: clamp(3rem, 15vw, 4.6rem);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-localities,
+  .lagoon-network-index-shell .lagoon-costa-doce {
+    padding-block: 2.8rem;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-localities > header,
+  .lagoon-network-index-shell .lagoon-costa-doce > header {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card,
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(even),
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(n + 3),
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(2n + 1),
+  .lagoon-network-index-shell .lagoon-network-locality-card:nth-child(3n + 1) {
+    min-height: 0;
+    padding: 1.35rem;
+    border-left: 0;
+    border-top: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-network-locality-card:first-child {
+    border-top: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city,
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(3n),
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(4n),
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(5n) {
+    border-right: 1px solid var(--lagoon-line);
+    border-bottom: 1px solid var(--lagoon-line);
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .lagoon-network-index-shell .lagoon-locality-explainer {
+    padding: 2rem 1.25rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .lagoon-network-index-shell .lagoon-costa-doce__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .lagoon-network-index-shell .lagoon-costa-doce__city,
+  .lagoon-network-index-shell .lagoon-costa-doce__city:nth-child(2n) {
+    border-right: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lagoon-network-index-shell .lagoon-network-locality-card,
+  .lagoon-network-index-shell .lagoon-costa-doce__city {
+    transition: none;
+  }
+}
