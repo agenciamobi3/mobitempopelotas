@@ -95,8 +95,8 @@ function StormDistanceReading({ layer }: { layer: RedemetStormLayerResponse }) {
         </h3>
         <p>
           {hasUsableFrame
-            ? "A distância é calculada em linha reta a partir das coordenadas recebidas. Ela serve apenas para localização e não indica intensidade, trajetória ou nível de risco."
-            : "Sem um quadro com horário válido, a página não calcula distância nem contagens por faixa. Isso não equivale a zero raios na região."}
+            ? "As faixas abaixo usam a distância em linha reta entre Pelotas e as coordenadas recebidas."
+            : "Sem um quadro com horário válido, a página não calcula as faixas de distância."}
         </p>
       </div>
       <dl aria-label="Raios detectados por distância de Pelotas">
@@ -109,30 +109,23 @@ function StormDistanceReading({ layer }: { layer: RedemetStormLayerResponse }) {
 }
 
 export function RedemetDerivedContext({ data }: { data: RedemetOverview }) {
-  const satelliteUsesInmetFallback = data.satellite.provider === "INMET";
+  const satelliteLabel = data.satellite.provider === "INMET"
+    ? "Satélite INMET · contingência"
+    : "Satélite REDEMET · Realçado";
 
   return (
     <section className="redemet-collections" aria-labelledby="redemet-collections-title">
       <header>
         <div>
-          <span>Histórico desta consulta</span>
-          <h2 id="redemet-collections-title">Últimas coletas realmente recebidas</h2>
+          <span>Horários recebidos</span>
+          <h2 id="redemet-collections-title">Coletas desta atualização</h2>
         </div>
-        <p>
-          Estes horários vêm dos próprios registros retornados pelas fontes. A página não cria horários para preencher lacunas.
-        </p>
+        <p>Consulte os horários para saber a idade de cada imagem ou leitura.</p>
       </header>
 
       <div className="redemet-collections__list">
         <CollectionRow icon={Radar} label="Radar REDEMET" layer={data.radar} />
-        <CollectionRow
-          icon={Satellite}
-          label={satelliteUsesInmetFallback ? "Satélite INMET · contingência" : "Satélite REDEMET"}
-          layer={data.satellite}
-        />
-        {!satelliteUsesInmetFallback ? (
-          <CollectionRow icon={Satellite} label="Satélite INMET" layer={data.inmetSatellite} />
-        ) : null}
+        <CollectionRow icon={Satellite} label={satelliteLabel} layer={data.satellite} />
         <CollectionRow icon={CloudLightning} label="Raios REDEMET" layer={data.storms} />
       </div>
 
