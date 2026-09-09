@@ -93,9 +93,7 @@ export function FifteenDayForecastHero({
             <div>
               <small>Janela disponível</small>
               <strong>{hasDays ? `${days.length} dias de previsão` : "Em atualização"}</strong>
-              <span>
-                {forecast.source.model} · atualizado em {formatDateTime(forecast.source.fetchedAt)}
-              </span>
+              <span>Atualizado em {formatDateTime(forecast.source.fetchedAt)}</span>
             </div>
           </div>
 
