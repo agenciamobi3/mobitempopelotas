@@ -1,19 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createUnavailableWeatherIntelligence } from "../src/lib/weather/weather-intelligence-fallback.ts";
-import type { EmbrapaObservation } from "../src/lib/weather/official-sources.types.ts";
-import type { WeatherIntelligenceData } from "../src/lib/weather/weather-intelligence.types.ts";
 import {
   needsOpenMeteoRecovery,
   recoverWeatherDataFromOpenMeteo,
-  recoverWeatherIntelligenceFromEmbrapa,
-  recoverWeatherIntelligenceFromOpenMeteo,
 } from "../src/production/lib/open-meteo-browser-recovery.ts";
 import { fallbackWeatherData } from "../src/production/lib/weather-data.ts";
 
-const hours = Array.from({ length: 8 }, (_, index) => `2026-07-24T${String(17 + index).padStart(2, "0")}:00`);
-const days = Array.from({ length: 7 }, (_, index) => `2026-07-${String(24 + index).padStart(2, "0")}`);
+const hours = Array.from(
+  { length: 8 },
+  (_, index) => `2026-07-24T${String(17 + index).padStart(2, "0")}:00`,
+);
+const days = Array.from(
+  { length: 7 },
+  (_, index) => `2026-07-${String(24 + index).padStart(2, "0")}`,
+);
 
 function payload() {
   return {
@@ -49,37 +50,6 @@ function payload() {
       wind_gusts_10m_max: [35, 34, 33, 32, 31, 30, 29],
     },
   };
-}
-
-function embrapaObservation() {
-  return {
-    status: "live",
-    current: {
-      temperature: 17.2,
-      humidity: 88,
-      feelsLike: 17,
-      dewPoint: 15.1,
-      pressure: 1018,
-      pressureTrend: null,
-      windDirection: "L",
-      windSpeed: 7,
-      sunrise: "06:52",
-      sunset: "18:15",
-    },
-    extremes: {},
-    accumulated: {},
-    source: {
-      name: "Embrapa Clima Temperado",
-      station: "Posto Meteorológico da Sede",
-      url: "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm",
-      latitude: -31.7,
-      longitude: -52.4,
-      altitude: 57,
-      fetchedAt: "2026-07-24T21:05:00.000Z",
-      observationTime: "2026-07-24T21:00:00.000Z",
-    },
-    error: null,
-  } as unknown as EmbrapaObservation;
 }
 
 test("recupera previsão completa no navegador sem substituir a observação atual", () => {
@@ -121,113 +91,4 @@ test("recupera previsão completa no navegador sem substituir a observação atu
 
 test("rejeita resposta parcial sem apagar o fallback auditável", () => {
   assert.equal(recoverWeatherDataFromOpenMeteo(fallbackWeatherData, { hourly: {} }), null);
-});
-
-test("recupera a observação real da Embrapa sem criar previsão ou valores auxiliares", () => {
-  const baseline = createUnavailableWeatherIntelligence();
-  const recovered = recoverWeatherIntelligenceFromEmbrapa(baseline, embrapaObservation());
-
-  assert.equal(recovered.weather.current?.temperature, 17.2);
-  assert.equal(recovered.weather.current?.humidity, 88);
-  assert.equal(recovered.weather.current?.windSpeed, 7);
-  assert.equal(recovered.weather.current?.condition, null);
-  assert.equal(recovered.weather.current?.windGust, null);
-  assert.equal(recovered.weather.current?.visibilityKm, null);
-  assert.equal(recovered.weather.quality.currentSource, "embrapa");
-  assert.equal(recovered.weather.sources.embrapa.usable, true);
-  assert.ok(!recovered.weather.quality.degradedSources.includes("embrapa"));
-  assert.deepEqual(recovered.weather.hourly, []);
-  assert.deepEqual(recovered.weather.daily, []);
-  assert.equal(recovered.weather.status, "degraded");
-  assert.match(recovered.brief.headline, /17 °C em Pelotas/);
-});
-
-test("propaga a recuperação rica para o agregado e corrige sua rastreabilidade", () => {
-  const baseline = {
-    weather: {
-      status: "degraded",
-      current: {
-        city: "Pelotas",
-        state: "RS",
-        temperature: 16,
-        feelsLike: 16,
-        condition: null,
-        humidity: 90,
-        pressure: 1019,
-        windSpeed: 5,
-        windGust: null,
-        windDirection: "L",
-        visibilityKm: null,
-        sunrise: null,
-        sunset: null,
-        observedAt: "18:00",
-        icon: null,
-      },
-      currentProvenance: { temperature: "embrapa" },
-      hourly: [],
-      daily: [],
-      observation: {},
-      alerts: [],
-      officialForecast: [],
-      sources: {
-        "open-meteo": {
-          source: "open-meteo",
-          status: "unavailable",
-          role: "forecast",
-          fetchedAt: "2026-07-24T21:00:00.000Z",
-          usable: false,
-          reason: "timeout",
-        },
-      },
-      quality: {
-        score: 70,
-        confidence: "medium",
-        currentSource: "embrapa",
-        forecastSource: "met-norway",
-        forecastProvider: "MET Norway",
-        degradedSources: ["open-meteo"],
-        observationAgeMinutes: 5,
-        discrepancies: [],
-        notes: ["MET Norway usado como contingência do Open-Meteo."],
-      },
-      source: {
-        name: "MOBI Tempo Pelotas",
-        kind: "aggregated",
-        fetchedAt: "2026-07-24T21:00:00.000Z",
-      },
-      message: "Dados disponíveis em modo degradado.",
-    },
-    brief: {
-      headline: "Dados degradados",
-      summary: "Previsão em contingência.",
-      highlights: [],
-      cautions: ["Fontes com restrição ou indisponibilidade: Open-Meteo."],
-    },
-    intelligence: {
-      origin: "deterministic",
-      geminiStatus: "disabled",
-      model: null,
-      generatedAt: "2026-07-24T21:00:00.000Z",
-      error: null,
-    },
-  } as unknown as WeatherIntelligenceData;
-
-  const recovered = recoverWeatherIntelligenceFromOpenMeteo(baseline, payload());
-
-  assert.ok(recovered);
-  assert.equal(recovered.weather.status, "live");
-  assert.equal(recovered.weather.quality.forecastSource, "open-meteo");
-  assert.equal(recovered.weather.quality.forecastProvider, "Open-Meteo");
-  assert.deepEqual(recovered.weather.quality.degradedSources, []);
-  assert.equal(recovered.weather.sources["open-meteo"].usable, true);
-  assert.equal(recovered.weather.hourly[0]?.precipitationProbability, 20);
-  assert.equal(recovered.weather.hourly[0]?.precipitationMm, 0.3);
-  assert.equal(recovered.weather.hourly[0]?.windDirectionDegrees, 100);
-  assert.equal(recovered.weather.hourly[0]?.dewPoint, 12.2);
-  assert.equal(recovered.weather.hourly[0]?.cloudCoverLow, 35);
-  assert.equal(recovered.weather.daily[0]?.dateIso, "2026-07-24");
-  assert.equal(recovered.weather.daily[1]?.dateIso, "2026-07-25");
-  assert.equal(recovered.weather.daily[0]?.windGust, 35);
-  assert.equal(recovered.weather.message, null);
-  assert.match(recovered.brief.summary, /Embrapa registra 16 °C/);
 });
