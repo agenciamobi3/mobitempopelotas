@@ -45,6 +45,7 @@ export function StormMapFrame({ frame }: { frame: RedemetStormFrame }) {
     if (!containerRef.current || mapRef.current) return;
 
     let cancelled = false;
+    let styleLoaded = false;
 
     void import("maplibre-gl")
       .then((maplibregl) => {
@@ -68,6 +69,7 @@ export function StormMapFrame({ frame }: { frame: RedemetStormFrame }) {
 
         map.once("load", () => {
           if (cancelled) return;
+          styleLoaded = true;
 
           map.addSource(STORM_SOURCE_ID, {
             type: "geojson",
@@ -105,7 +107,9 @@ export function StormMapFrame({ frame }: { frame: RedemetStormFrame }) {
           setMapLoaded(true);
         });
 
-        map.on("error", () => setFailed(true));
+        map.on("error", () => {
+          if (!styleLoaded) setFailed(true);
+        });
       })
       .catch(() => setFailed(true));
 
