@@ -1,10 +1,15 @@
 import { z } from "zod";
 
-import type { ExtendedForecastData } from "./extended-forecast.types";
+import type {
+  ExtendedForecastData,
+  ExtendedForecastModel,
+} from "./extended-forecast.types";
+import { fetchOpenMeteoExtendedPayloadViaEdge } from "./open-meteo-extended-edge.server";
 import { fetchOpenMeteoPayloadViaEdge } from "./open-meteo-edge.server";
 import type { DailyForecast, WeatherIconName } from "./types";
 
 const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
+const GFS_FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/gfs";
 const OPEN_METEO_URL = "https://open-meteo.com/";
 const TIMEZONE = "America/Sao_Paulo";
 const REQUEST_TIMEOUT_MS = 2_200;
@@ -46,6 +51,11 @@ const extendedForecastResponseSchema = z
 
 type ExtendedForecastResponse = z.infer<typeof extendedForecastResponseSchema>;
 
+type DirectForecastCandidate = {
+  endpoint: string;
+  model: Extract<ExtendedForecastModel, "Open-Meteo Best Match" | "NOAA GFS">;
+};
+
 function weatherCodeToIcon(code: number | null | undefined): WeatherIconName {
   if (code === 0) return "sun";
   if (code === 1 || code === 2) return "partly-cloudy";
@@ -78,12 +88,16 @@ function formatDate(date: string) {
     .replace(".", "");
 }
 
-function createSource(returnedDays: number): ExtendedForecastData["source"] {
+function createSource(
+  returnedDays: number,
+  model: ExtendedForecastModel = "Open-Meteo Best Match",
+  fetchedAt = new Date().toISOString(),
+): ExtendedForecastData["source"] {
   return {
     name: "Open-Meteo",
     url: OPEN_METEO_URL,
-    fetchedAt: new Date().toISOString(),
-    model: "Open-Meteo Best Match",
+    fetchedAt,
+    model,
     requestedDays: EXTENDED_FORECAST_DAYS,
     returnedDays,
   };
@@ -136,26 +150,33 @@ function normalizeDays(response: ExtendedForecastResponse): DailyForecast[] {
   return days;
 }
 
-export function normalizeExtendedForecast(response: ExtendedForecastResponse): ExtendedForecastData {
+export function normalizeExtendedForecast(
+  response: ExtendedForecastResponse,
+  model: ExtendedForecastModel = "Open-Meteo Best Match",
+  fetchedAt = new Date().toISOString(),
+): ExtendedForecastData {
   const days = normalizeDays(response);
   if (days.length === 0) {
-    return createUnavailableExtendedForecast(
-      "O Open-Meteo respondeu, mas não forneceu dias utilizáveis para a previsão estendida.",
-    );
+    return {
+      status: "unavailable",
+      days: [],
+      source: createSource(0, model, fetchedAt),
+      message: "O Open-Meteo respondeu, mas não forneceu dias utilizáveis para a previsão estendida.",
+    };
   }
 
   const complete = days.length >= EXTENDED_FORECAST_DAYS;
   return {
     status: complete ? "live" : "partial",
     days,
-    source: createSource(days.length),
+    source: createSource(days.length, model, fetchedAt),
     message: complete
       ? null
       : `A fonte retornou ${days.length} dos ${EXTENDED_FORECAST_DAYS} dias solicitados.`,
   };
 }
 
-export function createExtendedForecastUrl() {
+function buildExtendedForecastUrl(endpoint: string) {
   const params = new URLSearchParams({
     latitude: String(PELOTAS.latitude),
     longitude: String(PELOTAS.longitude),
@@ -176,13 +197,15 @@ export function createExtendedForecastUrl() {
     ].join(","),
   });
 
-  return `${FORECAST_ENDPOINT}?${params.toString()}`;
+  return `${endpoint}?${params.toString()}`;
 }
 
-function logExtendedForecastError(error: unknown) {
-  console.error("[weather/extended-forecast] Falha ao carregar previsão de 15 dias", {
-    message: error instanceof Error ? error.message : String(error),
-  });
+export function createExtendedForecastUrl() {
+  return buildExtendedForecastUrl(FORECAST_ENDPOINT);
+}
+
+export function createGfsExtendedForecastUrl() {
+  return buildExtendedForecastUrl(GFS_FORECAST_ENDPOINT);
 }
 
 function logInvalidPayload(prefix: string, error: z.ZodError) {
@@ -194,83 +217,147 @@ function logInvalidPayload(prefix: string, error: z.ZodError) {
   });
 }
 
-async function fetchExtendedForecastEdgeFallback(): Promise<ExtendedForecastData | null> {
+async function fetchDirectExtendedForecast(
+  candidate: DirectForecastCandidate,
+): Promise<ExtendedForecastData | null> {
   try {
-    const edge = await fetchOpenMeteoPayloadViaEdge();
-    const parsed = extendedForecastResponseSchema.safeParse(edge.payload);
+    const response = await fetch(buildExtendedForecastUrl(candidate.endpoint), {
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "MOBI-Tempo-Pelotas/2.0 (+https://tempopelotas.com.br)",
+      },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+
+    if (!response.ok) {
+      throw new Error(`${candidate.model} respondeu com status ${response.status}`);
+    }
+
+    const payload: unknown = await response.json();
+    const parsed = extendedForecastResponseSchema.safeParse(payload);
     if (!parsed.success) {
       logInvalidPayload(
-        "[weather/extended-forecast] Contingência Edge sem série diária compatível",
+        `[weather/extended-forecast] Resposta inválida de ${candidate.model}`,
         parsed.error,
       );
       return null;
     }
 
-    const fallback = normalizeExtendedForecast(parsed.data);
-    if (fallback.status === "unavailable") return null;
-
-    return {
-      ...fallback,
-      source: {
-        ...fallback.source,
-        fetchedAt: edge.fetchedAt ?? fallback.source.fetchedAt,
-      },
-      message: `A consulta direta de 15 dias não respondeu; exibindo ${fallback.days.length} dias preservados pela contingência Open-Meteo.`,
-    };
+    const normalized = normalizeExtendedForecast(parsed.data, candidate.model);
+    return normalized.status === "unavailable" ? null : normalized;
   } catch (error) {
-    console.warn("[weather/extended-forecast] Contingência Edge indisponível", {
+    console.warn("[weather/extended-forecast] Candidato direto indisponível", {
+      model: candidate.model,
       message: error instanceof Error ? error.message : String(error),
     });
     return null;
   }
 }
 
-export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastData> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
+async function fetchExtendedForecastEdgeFallback(): Promise<ExtendedForecastData | null> {
   try {
-    const response = await fetch(createExtendedForecastUrl(), {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "MOBI-Tempo-Pelotas/2.0 (+https://tempopelotas.com.br)",
-      },
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`Open-Meteo respondeu com status ${response.status}`);
-    }
-
-    const payload: unknown = await response.json();
-    const parsed = extendedForecastResponseSchema.safeParse(payload);
+    const edge = await fetchOpenMeteoExtendedPayloadViaEdge();
+    const parsed = extendedForecastResponseSchema.safeParse(edge.payload);
     if (!parsed.success) {
-      logInvalidPayload("[weather/extended-forecast] Resposta inválida", parsed.error);
-      const fallback = await fetchExtendedForecastEdgeFallback();
-      return (
-        fallback ??
-        createUnavailableExtendedForecast(
-          "A previsão estendida foi recebida, mas não pôde ser processada.",
-        )
+      logInvalidPayload(
+        "[weather/extended-forecast] Cache Edge estendido sem série diária compatível",
+        parsed.error,
       );
+      return null;
     }
 
-    const direct = normalizeExtendedForecast(parsed.data);
-    if (direct.status !== "unavailable") return direct;
-
-    const fallback = await fetchExtendedForecastEdgeFallback();
-    return fallback ?? direct;
-  } catch (error) {
-    logExtendedForecastError(error);
-    const fallback = await fetchExtendedForecastEdgeFallback();
-    return (
-      fallback ??
-      createUnavailableExtendedForecast(
-        "A previsão de 15 dias está temporariamente indisponível.",
-      )
+    const fallback = normalizeExtendedForecast(
+      parsed.data,
+      edge.model,
+      edge.fetchedAt ?? new Date().toISOString(),
     );
-  } finally {
-    clearTimeout(timeout);
+    if (fallback.status === "unavailable") return null;
+
+    return {
+      ...fallback,
+      message:
+        edge.warning ??
+        (fallback.status === "partial"
+          ? `A contingência estendida preservou ${fallback.days.length} dos ${EXTENDED_FORECAST_DAYS} dias solicitados.`
+          : null),
+    };
+  } catch (error) {
+    console.warn("[weather/extended-forecast] Cache Edge estendido indisponível", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
   }
+}
+
+async function fetchLegacySevenDayEdgeFallback(): Promise<ExtendedForecastData | null> {
+  try {
+    const edge = await fetchOpenMeteoPayloadViaEdge();
+    const parsed = extendedForecastResponseSchema.safeParse(edge.payload);
+    if (!parsed.success) return null;
+
+    const fallback = normalizeExtendedForecast(
+      parsed.data,
+      "Open-Meteo 7-day Cache",
+      edge.fetchedAt ?? new Date().toISOString(),
+    );
+    if (fallback.status === "unavailable") return null;
+
+    return {
+      ...fallback,
+      message: `As fontes estendidas não responderam; exibindo ${fallback.days.length} dias preservados pela contingência de 7 dias.`,
+    };
+  } catch (error) {
+    console.warn("[weather/extended-forecast] Contingência legada de 7 dias indisponível", {
+      message: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
+function preferBroaderForecast(
+  candidates: Array<ExtendedForecastData | null>,
+): ExtendedForecastData | null {
+  let selected: ExtendedForecastData | null = null;
+
+  for (const candidate of candidates) {
+    if (!candidate || candidate.status === "unavailable" || candidate.days.length === 0) continue;
+    if (!selected || candidate.days.length > selected.days.length) {
+      selected = candidate;
+    }
+  }
+
+  return selected;
+}
+
+export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastData> {
+  const bestMatchCandidate: DirectForecastCandidate = {
+    endpoint: FORECAST_ENDPOINT,
+    model: "Open-Meteo Best Match",
+  };
+  const gfsCandidate: DirectForecastCandidate = {
+    endpoint: GFS_FORECAST_ENDPOINT,
+    model: "NOAA GFS",
+  };
+
+  const [bestMatch, gfs, extendedEdge, legacySevenDay] = await Promise.all([
+    fetchDirectExtendedForecast(bestMatchCandidate),
+    fetchDirectExtendedForecast(gfsCandidate),
+    fetchExtendedForecastEdgeFallback(),
+    fetchLegacySevenDayEdgeFallback(),
+  ]);
+
+  const selected = preferBroaderForecast([
+    bestMatch,
+    gfs,
+    extendedEdge,
+    legacySevenDay,
+  ]);
+
+  return (
+    selected ??
+    createUnavailableExtendedForecast(
+      "A previsão de 15 dias está temporariamente indisponível.",
+    )
+  );
 }
