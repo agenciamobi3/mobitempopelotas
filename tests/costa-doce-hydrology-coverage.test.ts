@@ -53,7 +53,7 @@ const LEVEL_CITIES = [
   "São Lourenço do Sul",
 ];
 
-const NEW_BASIC_WEATHER_SLUGS = [
+const NEW_WEATHER_SLUGS = [
   "arambare-rs",
   "barra-do-ribeiro-rs",
   "camaqua-rs",
@@ -89,20 +89,21 @@ test("todas as 25 cidades da Costa Doce possuem destino meteorológico", () => {
   );
 });
 
-test("as 11 novas páginas permanecem basic e noindex até o gate completo", () => {
-  for (const slug of NEW_BASIC_WEATHER_SLUGS) {
+test("as 11 páginas adicionadas à expansão estão completas e indexáveis", () => {
+  for (const slug of NEW_WEATHER_SLUGS) {
     const city = findRegionalCity(slug);
     assert.ok(city, `${slug} deve estar no inventário regional`);
-    assert.equal(regionalCityCoverage(city), "basic");
-    assert.equal(isRegionalCityIndexable(city), false);
+    assert.equal(regionalCityCoverage(city), "complete");
+    assert.equal(isRegionalCityIndexable(city), true);
     assert.match(editorial, new RegExp(`"${slug}"`));
   }
 });
 
-test("índice da Lagoa explica cobertura sem afirmar inexistência de estação", () => {
+test("índice da Lagoa mantém links úteis sem tags técnicas de cobertura", () => {
   assert.match(page, /Costa Doce do Rio Grande do Sul/);
-  assert.match(page, /Sem medição integrada/);
-  assert.match(page, /Isso não afirma que não existam estações de outros órgãos, rios ou canais/);
+  assert.doesNotMatch(page, />Nível integrado</);
+  assert.doesNotMatch(page, />Sem medição integrada</);
+  assert.doesNotMatch(page, /“Sem medição integrada” significa/);
   assert.match(page, /Ver nível/);
   assert.match(page, /Ver previsão/);
   assert.match(route, /Costa Doce do RS/);
