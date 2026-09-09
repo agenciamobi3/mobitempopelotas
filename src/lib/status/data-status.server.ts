@@ -3,7 +3,11 @@ import { fetchDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.serve
 import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
+import { OBSERVATION_MAX_AGE_MINUTES } from "@/lib/weather/current-observation";
 import { selectDefesaCivilCurrentStation } from "@/lib/weather/defesa-civil-current.server";
+import { fetchEmbrapaObservation } from "@/lib/weather/embrapa-observation.server";
+import { NOW_PRIMARY_SOURCE } from "@/lib/weather/now-source.config";
+import { normalizeEmbrapaObservedAt } from "@/lib/weather/now-source.server";
 import { fetchOfficialWeatherSources } from "@/lib/weather/official-sources.server";
 import { fetchPelotasWeather } from "@/lib/weather/weather-baseline.server";
 
@@ -67,6 +71,14 @@ function latestCheckedAt(values: Array<string | null | undefined>, fallback: str
   return valid[0]?.value ?? fallback;
 }
 
+function ageMinutes(observedAt: string | null, fetchedAt: string) {
+  if (!observedAt) return null;
+  const observed = new Date(observedAt).getTime();
+  const fetched = new Date(fetchedAt).getTime();
+  if (!Number.isFinite(observed) || !Number.isFinite(fetched)) return null;
+  return Math.max(0, (fetched - observed) / 60_000);
+}
+
 function weatherService(
   id: string,
   name: string,
@@ -122,6 +134,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     baselineResult,
     openMeteoContingencyResult,
     officialResult,
+    embrapaResult,
     laranjalResult,
     guaibaResult,
     lagoonResult,
@@ -131,6 +144,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     fetchPelotasWeather(),
     getOpenMeteoContingencyStatus(new Date(checkedAt)),
     fetchOfficialWeatherSources(),
+    fetchEmbrapaObservation(),
     getLaranjalLevelData(),
     getGuaibaObservation(),
     getLagoonMonitoringNetwork(),
@@ -280,6 +294,67 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     );
   }
 
+  if (embrapaResult.status === "fulfilled") {
+    const data = embrapaResult.value;
+    const observedAt = normalizeEmbrapaObservedAt(
+      data.source.observationTime,
+      data.source.fetchedAt,
+    );
+    const observationAgeMinutes = ageMinutes(observedAt, data.source.fetchedAt);
+    const usableAsCurrent =
+      data.status !== "unavailable" &&
+      data.current.temperature !== null &&
+      observationAgeMinutes !== null &&
+      observationAgeMinutes <= OBSERVATION_MAX_AGE_MINUTES;
+    const state: ServiceState = usableAsCurrent
+      ? "operational"
+      : data.status === "unavailable"
+        ? "offline"
+        : "partial";
+    const role = NOW_PRIMARY_SOURCE === "embrapa" ? "fonte principal" : "contingência";
+    const detail = usableAsCurrent
+      ? `Módulo ${role} do Agora disponível com leitura recente do Posto Meteorológico da Sede.`
+      : data.status === "unavailable"
+        ? detailForState("offline")
+        : "A fonte respondeu, mas a leitura não atende ao critério de atualidade do Agora.";
+
+    services.push(
+      weatherService(
+        "embrapa-current",
+        "Observação meteorológica local",
+        "Embrapa Clima Temperado",
+        state,
+        observedAt ?? data.source.fetchedAt ?? checkedAt,
+        detail,
+      ),
+    );
+    const service = services.at(-1);
+    if (service) {
+      service.sourceUrl = data.source.url;
+      service.dataCondition = usableAsCurrent
+        ? `Temperatura e demais medições reconhecidas com leitura de até ${OBSERVATION_MAX_AGE_MINUTES} minutos, elegível para o módulo Embrapa do Agora.`
+        : observationAgeMinutes !== null && observationAgeMinutes > OBSERVATION_MAX_AGE_MINUTES
+          ? `A última leitura reconhecida tem mais de ${OBSERVATION_MAX_AGE_MINUTES} minutos e não é publicada como Agora.`
+          : "Não há leitura recente suficiente da Embrapa para compor o Agora nesta verificação.";
+    }
+  } else {
+    services.push(
+      weatherService(
+        "embrapa-current",
+        "Observação meteorológica local",
+        "Embrapa Clima Temperado",
+        "offline",
+        checkedAt,
+      ),
+    );
+    const service = services.at(-1);
+    if (service) {
+      service.sourceUrl = "https://agromet.cpact.embrapa.br/online/Current_Monitor.htm";
+      service.dataCondition =
+        "Não há leitura recente suficiente da Embrapa para compor o Agora nesta verificação.";
+    }
+  }
+
   if (laranjalResult.status === "fulfilled") {
     const data = laranjalResult.value;
     const state = stateFromHydrology(data.status);
@@ -396,11 +471,12 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     const networkState = stateFromDefesaCivil(data.status);
     const state: ServiceState =
       networkState === "operational" && !currentStation ? "partial" : networkState;
+    const role = NOW_PRIMARY_SOURCE === "defesa-civil-rs" ? "principal" : "de contingência";
     const detail =
       data.status === "live" && currentStation
-        ? `Estação usada no Agora: ${currentStation.name} (${currentStation.code}). A rede regional tem ${data.regionalStationCount} estações no recorte do portal e ${data.recentStationCount} leituras recentes.`
+        ? `Módulo ${role} do Agora disponível em ${currentStation.name} (${currentStation.code}). A rede regional tem ${data.regionalStationCount} estações no recorte do portal e ${data.recentStationCount} leituras recentes.`
         : data.status === "live"
-          ? "A rede respondeu, mas nenhuma estação elegível de Pelotas tem leitura recente para compor o Agora."
+          ? "A rede respondeu, mas nenhuma estação elegível de Pelotas tem leitura recente para o módulo do Agora."
           : data.status === "disabled"
             ? "A integração está desativada no Tempo Pelotas."
             : detailForState(state);
@@ -408,7 +484,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     services.push(
       weatherService(
         "defesa-civil-rs-hydromet",
-        "Observação atual e rede hidrometeorológica",
+        "Observação meteorológica e rede hidrometeorológica",
         "Defesa Civil RS / Casa Militar",
         state,
         currentStation?.observedAt ?? data.source.fetchedAt ?? checkedAt,
@@ -419,16 +495,16 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     if (service) {
       service.sourceUrl = data.source.mapUrl;
       service.dataCondition = currentStation
-        ? `Leitura recente elegível para compor o Agora em Pelotas: ${currentStation.name} (${currentStation.code}).`
+        ? `Leitura recente elegível para o módulo Defesa Civil do Agora em Pelotas: ${currentStation.name} (${currentStation.code}).`
         : data.status === "live" || data.status === "partial"
-          ? "Nenhuma estação elegível de Pelotas tem leitura recente para compor o Agora nesta verificação."
-          : "O Tempo Pelotas não tem uma leitura elegível disponível para o Agora nesta verificação.";
+          ? "Nenhuma estação elegível de Pelotas tem leitura recente para o módulo Defesa Civil do Agora nesta verificação."
+          : "O Tempo Pelotas não tem uma leitura elegível da Defesa Civil disponível para o Agora nesta verificação.";
     }
   } else {
     services.push(
       weatherService(
         "defesa-civil-rs-hydromet",
-        "Observação atual e rede hidrometeorológica",
+        "Observação meteorológica e rede hidrometeorológica",
         "Defesa Civil RS / Casa Militar",
         "offline",
         checkedAt,
@@ -438,7 +514,7 @@ export async function collectDataStatus(): Promise<DataStatusOverview> {
     if (service) {
       service.sourceUrl = "https://redehidrometeorologica.defesacivil.rs.gov.br/Mapa";
       service.dataCondition =
-        "O Tempo Pelotas não tem uma leitura elegível disponível para o Agora nesta verificação.";
+        "O Tempo Pelotas não tem uma leitura elegível da Defesa Civil disponível para o Agora nesta verificação.";
     }
   }
 
