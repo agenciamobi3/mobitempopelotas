@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 08/09/2026  
+Última atualização: 09/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -35,7 +35,7 @@ Regras permanentes:
 | Embrapa | Integração operacional aposentada em 08/09; histórico já armazenado é preservado, mas scheduler, configuração e automações específicas foram desligados/removidos |
 | Previsão | Open-Meteo principal; MET Norway contingência quando aplicável |
 | Página Hoje | `/tempo-hoje-pelotas` usa hero editorial próprio e sem fotografia; chama de leitura atual somente `current` observacional, identifica fonte/horário e, quando a medição local falta, rotula a série horária explicitamente como `Previsão da próxima hora`; corpo principal usa capítulos abertos e o Schema não anuncia mais a Embrapa como observação atual |
-| Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã, contexto INMET/UFPel, FAQ e recuperação shell-first |
+| Página Amanhã | `/tempo-amanha-pelotas` usa hero editorial claro em largura total, sem fotografia/tiles antigos e sem repetir o provedor no hero; mantém condição, temperatura, chuva, rajadas, comparação Hoje x Amanhã e FAQ; o contexto INMET/CPPMet-UFPel só aparece quando existe previsão real para amanhã, e o matcher textual da UFPel normaliza abreviações da recuperação diária (`Qui` → `quinta`, etc.) para não produzir falso estado de ausência |
 | Página 15 dias | `/previsao-15-dias-pelotas` usa hero editorial próprio, sem foto/tiles/CTAs retail e sem herdar `TodayRetailHero`; corpo aberto preserva cards apenas nos dias individuais; a precedência global antiga que tratava a rota como retail foi removida, enquanto a barreira do corpo editorial permanece |
 | Página Chuva | `/chuva-em-pelotas` usa hero editorial dedicado sem fotografia/CTAs e rail próprio; mantém chuva medida em 24 h separada do volume previsto hoje e em 7 dias, sem transformar chance ausente em zero ou somar janelas/origens diferentes |
 | Página Vento | `/vento-em-pelotas` usa hero editorial dedicado sem fotografia/CTAs e rail próprio; só publica `Vento medido agora` quando há observação real e usa `Previsão da próxima hora` quando a medição falta; vento sustentado não substitui rajada ausente |
@@ -427,7 +427,7 @@ A consolidação de 08/09 atualizou contratos para:
 - retirada de links públicos para a antiga Estação Embrapa;
 - proteção contra shell duplicado em rotas autocontidas;
 - `/tempo-hoje-pelotas` com hero editorial route-scoped, sem fotografia/tiles/CTAs, separação explícita entre observação atual e próxima hora prevista, corpo aberto e referência SEO antiga da Embrapa removida;
-- `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles, corpo aberto e índice de capítulos visualmente reduzido, preservando dados, fontes, SEO e estados indisponíveis;
+- `/tempo-amanha-pelotas` com hero editorial sem fotografia/tiles e sem rótulo de provedor, corpo aberto e índice de capítulos visualmente reduzido; contexto INMET/CPPMet-UFPel só é renderizado quando há conteúdo real, e o matcher da previsão textual CPPMet normaliza dias abreviados da recuperação diária (`Qui`/`Sex` etc.) para os nomes completos antes da comparação;
 - `/previsao-15-dias-pelotas` com hero editorial próprio, rail independente do shell genérico, sem foto/tiles/CTAs `TodayRetailHero`, capítulos principais abertos e rótulos heurísticos de risco removidos; a precedência retail antiga foi aposentada;
 - `/chuva-em-pelotas` com hero editorial dedicado, rail próprio e separação de chuva observada em 24 h, prevista hoje e prevista em 7 dias, sem transformar ausência em zero;
 - `/vento-em-pelotas` com hero editorial dedicado, rail próprio e distinção entre vento observado e previsão da próxima hora; vento sustentado não substitui rajada ausente;
