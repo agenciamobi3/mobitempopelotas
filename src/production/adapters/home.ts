@@ -57,11 +57,31 @@ function resolveAstronomy(data: AggregatedWeatherData): AstronomyData {
   };
 }
 
+function activeObservationMeta(data: AggregatedWeatherData) {
+  if (data.now?.selectedSource && data.now.sourceName) {
+    return {
+      name: data.now.sourceName,
+      station: data.now.stationName,
+      url: data.now.sourceUrl ?? DATA_SOURCES_URL,
+      observedAt: data.now.observedAt,
+    };
+  }
+
+  return {
+    name: data.observation.source.name,
+    station: data.observation.station.name,
+    url: data.observation.source.url,
+    observedAt: data.observation.source.observedAt,
+  };
+}
+
 function observationSourceName(data: AggregatedWeatherData) {
-  return `${data.observation.source.name} · ${data.observation.station.name}`;
+  const observation = activeObservationMeta(data);
+  return observation.station ? `${observation.name} · ${observation.station}` : observation.name;
 }
 
 function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
+  const observation = activeObservationMeta(data);
   return {
     available: false,
     city: "Pelotas",
@@ -80,8 +100,8 @@ function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
     updatedAt: null,
     icon: null,
     source: {
-      name: data.observation.source.name,
-      url: data.observation.source.url,
+      name: observation.name,
+      url: observation.url,
       kind: "unavailable",
       observedAt: null,
     },
@@ -90,7 +110,8 @@ function unavailableCurrent(data: AggregatedWeatherData): CurrentWeather {
 
 function observedCurrent(data: AggregatedWeatherData): CurrentWeather {
   const current = data.current;
-  if (!current || data.quality.currentSource !== "defesa-civil-rs") return unavailableCurrent(data);
+  if (!current || data.quality.currentSource === null) return unavailableCurrent(data);
+  const observation = activeObservationMeta(data);
 
   return {
     available: true,
@@ -111,15 +132,16 @@ function observedCurrent(data: AggregatedWeatherData): CurrentWeather {
     icon: null,
     source: {
       name: observationSourceName(data),
-      url: data.observation.source.url,
+      url: observation.url,
       kind: "observation",
-      observedAt: data.observation.source.observedAt,
+      observedAt: observation.observedAt,
     },
   };
 }
 
 export function toProductionWeatherData(data: AggregatedWeatherData): WeatherData {
   const daily = reconcileDailyTemperatures(data.daily, data.inmetForecast);
+  const observation = activeObservationMeta(data);
 
   return {
     current: observedCurrent(data),
@@ -162,7 +184,7 @@ export function toProductionWeatherData(data: AggregatedWeatherData): WeatherDat
       url: DATA_SOURCES_URL,
       isFallback: data.status !== "live",
       observationName: observationSourceName(data),
-      observationUrl: data.observation.source.url,
+      observationUrl: observation.url,
       forecastName: data.quality.forecastProvider ?? "Previsão meteorológica indisponível",
       forecastUrl: DATA_SOURCES_URL,
     },
