@@ -30,10 +30,11 @@ test("coverage title stays concise and removes the documentary side copy", () =>
   assert.match(accent, /\.inmet-alert-coverage-details > footer[\s\S]*white-space:\s*nowrap/);
 });
 
-test("official source renders the repository INMET logo with a compact rounded frame", () => {
+test("official source renders the repository INMET logo at 40px high and stays responsive", () => {
   assert.match(guide, /src="\/inmet_logo_banner\.png"/);
   assert.match(guide, /alt="INMET — Instituto Nacional de Meteorologia"/);
+  assert.match(guide, /width="227"[\s\S]*height="40"/);
   assert.doesNotMatch(guide, /INMET consultado/);
-  assert.match(accent, /dd\.alerts-source-logo-cell[\s\S]*border-radius:\s*10px/);
-  assert.match(accent, /\.alerts-source-logo[\s\S]*width:\s*136px[\s\S]*border-radius:\s*6px/);
+  assert.match(accent, /dd\.alerts-source-logo-cell[\s\S]*max-width:\s*100%[\s\S]*border-radius:\s*10px/);
+  assert.match(accent, /\.alerts-source-logo[\s\S]*width:\s*min\(227px, 100%\)[\s\S]*height:\s*auto[\s\S]*border-radius:\s*6px/);
 });
