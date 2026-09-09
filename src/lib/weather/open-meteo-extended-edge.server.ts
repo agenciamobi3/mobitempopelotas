@@ -10,6 +10,7 @@ const LOCATION_SLUG = "pelotas-rs";
 const PROVIDER_KEY = "open-meteo-extended";
 const EDGE_FUNCTION_NAME = "open-meteo-extended-forecast";
 const PUBLIC_CACHE_RPC = "get_public_open_meteo_extended_cache_snapshot";
+const PELOTAS_TIMEZONE = "America/Sao_Paulo";
 const CACHE_READ_TIMEOUT_MS = 1_200;
 const SETTINGS_READ_TIMEOUT_MS = 1_200;
 const EDGE_REQUEST_TIMEOUT_MS = 2_200;
@@ -120,9 +121,23 @@ function ageMs(value: string | null | undefined) {
   return Math.max(0, Date.now() - time);
 }
 
+function currentPelotasDate() {
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: PELOTAS_TIMEZONE,
+  }).format(new Date());
+}
+
+function startsOnCurrentPelotasDate(payload: z.infer<typeof forecastPayloadSchema>) {
+  return payload.daily.time[0] === currentPelotasDate();
+}
+
 function normalizePersistedRow(row: PersistedCacheRow): OpenMeteoExtendedEdgePayload | null {
   const parsedPayload = cachedPayloadSchema.safeParse(row.payload);
   if (!parsedPayload.success) return null;
+  if (!startsOnCurrentPelotasDate(parsedPayload.data.forecast)) return null;
 
   const referenceTime = row.last_success_at ?? row.fetched_at;
   if (!referenceTime) return null;
@@ -227,6 +242,9 @@ async function fetchViaEdge(
   const parsed = edgeResponseSchema.safeParse(body);
   if (!parsed.success) {
     throw new Error("A Edge Function Open-Meteo estendida respondeu em formato inválido.");
+  }
+  if (!startsOnCurrentPelotasDate(parsed.data.payload)) {
+    throw new Error("A Edge Function Open-Meteo estendida respondeu com janela iniciada em outro dia.");
   }
 
   return {
