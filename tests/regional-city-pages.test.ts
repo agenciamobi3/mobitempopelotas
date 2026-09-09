@@ -4,6 +4,7 @@ import test from "node:test";
 
 import { createPageHead } from "../src/lib/page-meta.ts";
 import {
+  INDEXABLE_REGIONAL_CITIES,
   REGIONAL_CITIES,
   REGIONAL_HOME_CITY_SLUG,
   nearestRegionalCities,
@@ -56,16 +57,24 @@ test("nearby regional cities are selected by geographic distance", () => {
   assert.doesNotMatch(page, /item\.group === city\.group/);
 });
 
-test("Pelotas consolidates authority on the homepage while other cities remain indexable", () => {
+test("Pelotas consolida autoridade na Home e sitemap inclui somente cidades indexáveis", () => {
   const publicPaths = new Set(PUBLIC_ROUTES.map((item) => item.path));
   const pelotas = REGIONAL_CITIES.find((city) => city.slug === REGIONAL_HOME_CITY_SLUG);
   assert.ok(pelotas);
   assert.equal(regionalCityPath(pelotas), "/");
   assert.ok(publicPaths.has("/"));
   assert.ok(!publicPaths.has("/tempo-em/pelotas-rs"));
-  for (const city of REGIONAL_CITIES.filter((item) => item.slug !== REGIONAL_HOME_CITY_SLUG)) {
+
+  for (const city of INDEXABLE_REGIONAL_CITIES.filter(
+    (item) => item.slug !== REGIONAL_HOME_CITY_SLUG,
+  )) {
     assert.ok(publicPaths.has(regionalCityPath(city)), `sitemap sem ${city.name}`);
   }
+
+  for (const city of REGIONAL_CITIES.filter((item) => item.coverage === "basic")) {
+    assert.ok(!publicPaths.has(regionalCityPath(city)), `cidade basic não deve entrar no sitemap: ${city.name}`);
+  }
+
   assert.match(route, /createFileRoute\("\/tempo-em\/\$citySlug"\)/);
   assert.match(route, /params\.citySlug === REGIONAL_HOME_CITY_SLUG/);
   assert.match(route, /statusCode:\s*301/);
