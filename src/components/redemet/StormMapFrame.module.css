@@ -1,0 +1,159 @@
+.shell {
+  position: relative;
+  min-height: 360px;
+  overflow: hidden;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 16px;
+  background: #eaf1f2;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  min-height: 360px;
+  background: #dfe9eb;
+}
+
+.hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading,
+.fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: 1.5rem;
+  color: #fff;
+  background: rgb(7 30 47 / 68%);
+  text-align: center;
+}
+
+.loading > span {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgb(255 255 255 / 22%);
+  border-top-color: #76eef2;
+  border-radius: 999px;
+  animation: storm-map-spin 850ms linear infinite;
+}
+
+.loading strong,
+.fallback strong {
+  font-size: 0.82rem;
+}
+
+.fallback span {
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.72rem;
+}
+
+.caption,
+.empty {
+  position: absolute;
+  z-index: 5;
+  max-width: min(330px, calc(100% - 24px));
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 12px;
+  background: rgb(7 30 47 / 84%);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.caption {
+  top: 12px;
+  right: 12px;
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.62rem 0.76rem;
+}
+
+.caption strong {
+  font-size: 0.72rem;
+}
+
+.caption span {
+  color: rgb(255 255 255 / 70%);
+  font-size: 0.64rem;
+  line-height: 1.35;
+}
+
+.empty {
+  right: 12px;
+  bottom: 12px;
+  padding: 0.62rem 0.76rem;
+  font-size: 0.72rem;
+  font-weight: 760;
+}
+
+.pelotasMarker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.48rem 0.28rem 0.3rem;
+  border: 1px solid rgb(255 255 255 / 86%);
+  border-radius: 999px;
+  background: rgb(7 30 47 / 88%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(7 30 47 / 24%);
+  font: 700 11px/1.1 system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+.pelotasMarker i {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #18bdcd;
+}
+
+@keyframes storm-map-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 700px) {
+  .shell,
+  .map {
+    min-height: 320px;
+  }
+
+  .caption {
+    top: 10px;
+    right: 10px;
+    max-width: min(250px, calc(100% - 20px));
+  }
+
+  .empty {
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .shell,
+  .map {
+    min-height: 285px;
+  }
+
+  .caption span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading > span {
+    animation: none;
+  }
+}
