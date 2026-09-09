@@ -68,7 +68,6 @@ export function TomorrowRetailHero({
   const condition = tomorrow ? weatherConditionLabels[iconName] : "Previsão em atualização";
   const hasAlert = officialAlertCount > 0;
   const amplitude = tomorrow ? Math.max(0, tomorrow.max - tomorrow.min) : null;
-  const sourceName = weather.source.forecastName ?? weather.source.name;
 
   return (
     <section
@@ -112,7 +111,6 @@ export function TomorrowRetailHero({
             <div>
               <small>Condição prevista</small>
               <strong>{condition}</strong>
-              <span>Fonte principal: {sourceName}</span>
             </div>
           </div>
 
