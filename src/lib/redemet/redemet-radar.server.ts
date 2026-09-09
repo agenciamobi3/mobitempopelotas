@@ -9,7 +9,9 @@ const PROVIDER = "REDEMET / DECEA" as const;
 const OFFICIAL_RADAR_URL = "https://redemet.decea.mil.br/radar/";
 const IMAGE_PROXY_PATH = "/api/redemet/image";
 const TIMEZONE = "America/Sao_Paulo";
-const REQUEST_TIMEOUT_MS = 2_400;
+// Fica abaixo do teto de 4,5 s do overview e de 5 s do probe independente.
+// O SSR dedicado continua com teto próprio de 2,8 s e recupera após hidratação.
+const REQUEST_TIMEOUT_MS = 4_200;
 const PELOTAS_COORDINATES = { latitude: -31.7654, longitude: -52.3376 } as const;
 const DEFAULT_RADAR_AREA = "sg";
 const DEFAULT_RADAR_PRODUCT = "maxcappi";
@@ -390,7 +392,7 @@ export async function fetchRedemetRadarResilient(
   return emptyRadarLayer(
     configuredProduct,
     signal.aborted
-      ? "A consulta do radar REDEMET excedeu o orçamento da página e será tentada novamente na próxima atualização."
+      ? "A consulta do radar REDEMET excedeu o orçamento da integração e será tentada novamente na próxima atualização."
       : "A REDEMET não retornou imagens recentes de radar com cobertura sobre Pelotas nas estações consultadas.",
   );
 }
