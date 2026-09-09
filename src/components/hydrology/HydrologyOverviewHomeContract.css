@@ -28,10 +28,117 @@
   background: #087f91;
 }
 
+/* A hora da última coleta acompanha o estado da leitura, sem criar uma segunda linha solta. */
+.internal-weather-shell--hydrology .hydrology-v2-hero__reading > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .55rem .75rem;
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-hero__reading > header > small {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* O aviso e o link pertencem ao mesmo bloco de conteúdo. */
+.internal-weather-shell--hydrology .hydrology-v2-reference-warning > div {
+  display: grid;
+  min-width: 0;
+  gap: .45rem;
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-reference-warning a {
+  width: fit-content;
+}
+
+/* Observação real e previsão permanecem visual e semanticamente separadas. */
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 1rem;
+  border-top: 1px solid var(--hydro-line);
+  border-bottom: 1px solid var(--hydro-line);
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed article {
+  display: grid;
+  min-width: 0;
+  gap: .4rem;
+  padding: 1rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed article + article {
+  padding-left: .9rem;
+  border-left: 1px solid var(--hydro-line);
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--hydro-accent);
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed span {
+  color: var(--hydro-muted);
+  font-size: .72rem;
+  font-weight: 760;
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed strong {
+  color: var(--hydro-ink);
+  font-size: clamp(1.25rem, 2.4vw, 1.9rem);
+  letter-spacing: -.04em;
+  overflow-wrap: anywhere;
+}
+
+.internal-weather-shell--hydrology .hydrology-v2-weather-observed small {
+  color: var(--hydro-muted);
+  font-size: .74rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 920px) {
+  .internal-weather-shell--hydrology .hydrology-v2-weather-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .internal-weather-shell--hydrology .hydrology-v2-weather-grid article:nth-child(3) {
+    grid-column: 1 / -1;
+    padding-left: 0;
+    border-top: 1px solid var(--hydro-line);
+    border-left: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .internal-weather-shell--hydrology .hydrology-v2-weather-observed,
+  .internal-weather-shell--hydrology .hydrology-v2-weather-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .internal-weather-shell--hydrology .hydrology-v2-weather-observed article + article,
+  .internal-weather-shell--hydrology .hydrology-v2-weather-grid article + article,
+  .internal-weather-shell--hydrology .hydrology-v2-weather-grid article:nth-child(3) {
+    grid-column: auto;
+    padding-left: 0;
+    border-top: 1px solid var(--hydro-line);
+    border-left: 0;
+  }
+}
+
 @media (forced-colors: active) {
   .internal-weather-shell--hydrology :is(
     .hydrology-v2-hero__content,
-    .hydrology-v2-hero__reading
+    .hydrology-v2-hero__reading,
+    .hydrology-v2-weather-observed
   ) {
     background: Canvas;
   }
