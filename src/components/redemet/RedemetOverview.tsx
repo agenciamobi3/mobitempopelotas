@@ -32,6 +32,7 @@ import type {
 } from "@/lib/redemet/redemet.types";
 
 import { RadarMapFrame } from "./RadarMapFrame";
+import { StormMapFrame } from "./StormMapFrame";
 import "./RedemetOverview.css";
 
 const REDEMET_URL = "https://redemet.decea.mil.br/";
@@ -45,20 +46,19 @@ const SATELLITE_PRODUCTS: Array<{
   {
     type: "realcada",
     label: "Realçado",
-    description:
-      "Destaca contrastes e temperaturas de topo de nuvem para facilitar a leitura regional.",
+    description: "Use a sequência para comparar contrastes e temperaturas de topo de nuvem.",
   },
   {
     type: "ir",
     label: "Infravermelho",
     description:
-      "Funciona dia e noite e mostra diferenças térmicas das nuvens.",
+      "Use a sequência para comparar diferenças térmicas das nuvens durante o dia e a noite.",
   },
   {
     type: "vis",
     label: "Visível",
     description:
-      "Depende de luz solar e mostra a cobertura de nuvens em luz refletida.",
+      "Use a sequência para acompanhar a cobertura de nuvens enquanto houver luz solar.",
   },
 ];
 
@@ -69,11 +69,15 @@ function latestFrameTime(frames: readonly ObservedFrame[]) {
   return latestUsableRedemetFrameTime(frames);
 }
 
-function latestObservedAt(data: RedemetOverviewData, selectedSatellite: RedemetImageLayerResponse) {
+function latestObservedAt(
+  data: RedemetOverviewData,
+  selectedSatellite: RedemetImageLayerResponse,
+  secondarySatellite: RedemetImageLayerResponse,
+) {
   return latestFrameTime([
     ...data.radar.frames,
     ...selectedSatellite.frames,
-    ...data.inmetSatellite.frames,
+    ...secondarySatellite.frames,
     ...data.storms.frames,
   ]);
 }
@@ -87,8 +91,8 @@ function awaitingDaylight(layer: SourceLayer) {
 }
 
 function sourceCountLabel(count: number) {
-  if (count === 1) return "1 fonte com dados";
-  return `${count} fontes com dados`;
+  if (count === 1) return "1 camada com dados";
+  return `${count} camadas com dados`;
 }
 
 function frameCountLabel(count: number, storm = false) {
@@ -131,6 +135,15 @@ function emptyBrowserSatelliteLayer(
     updatedAt: "",
     error,
   };
+}
+
+async function fetchSatelliteProduct(type: RedemetSatelliteType, signal: AbortSignal) {
+  const response = await fetch(`/api/redemet/satellite?type=${type}&frames=4`, {
+    headers: { Accept: "application/json" },
+    signal,
+  });
+  if (!response.ok) throw new Error(`Satélite respondeu com HTTP ${response.status}`);
+  return response.json() as Promise<RedemetImageLayerResponse>;
 }
 
 function FreshnessBadge({ value, reading = false }: { value: string | null; reading?: boolean }) {
@@ -268,14 +281,14 @@ function EmptyLayer({
             ? "Canal Visível aguardando luz solar"
             : refreshing
               ? "Buscando a coleta mais recente"
-              : "Nenhuma imagem recente recebida"}
+              : "Imagem indisponível nesta atualização"}
         </strong>
         <p>
           {daylight
-            ? `O canal Visível usa luz solar refletida e não produz uma imagem útil durante a noite.${nextExpected ? ` Próxima janela estimada: ${nextExpected}.` : ""}`
+            ? `O canal Visível usa luz solar refletida e volta a produzir imagem útil durante o dia.${nextExpected ? ` Próxima janela estimada: ${nextExpected}.` : ""}`
             : refreshing
-              ? `A página já abriu e continua consultando ${sourceName} em segundo plano.`
-              : `Nesta consulta, ${sourceName} não entregou uma imagem recente. Nada é preenchido manualmente.`}
+              ? `A página continua consultando ${sourceName} em segundo plano.`
+              : `Não recebemos uma imagem utilizável de ${sourceName} nesta atualização.`}
         </p>
       </div>
     </div>
@@ -308,7 +321,11 @@ function ImageLayerPanel({
   const sourceName = layer.provider === "INMET" ? "o INMET" : "a REDEMET";
 
   return (
-    <section className={`redemet-monitor${featured ? " is-featured" : ""}`} id={id} aria-labelledby={`${id}-title`}>
+    <section
+      className={`redemet-monitor${featured ? " is-featured" : ""}`}
+      id={id}
+      aria-labelledby={`${id}-title`}
+    >
       <header className="redemet-monitor__heading">
         <div>
           <span><Icon aria-hidden="true" /> {kicker}</span>
@@ -319,7 +336,10 @@ function ImageLayerPanel({
 
       <div className="redemet-monitor__surface">
         {hasImage && selected ? (
-          <figure className="redemet-image-frame" data-freshness={getRedemetFreshness(selected.observedAt).tone}>
+          <figure
+            className="redemet-image-frame"
+            data-freshness={getRedemetFreshness(selected.observedAt).tone}
+          >
             {kind === "radar" ? (
               <RadarMapFrame
                 frame={selected}
@@ -411,14 +431,28 @@ function StormPanel({ layer, refreshing }: { layer: RedemetStormLayerResponse; r
   const count = selected?.points.length ?? 0;
 
   return (
-    <section className="redemet-monitor redemet-storms" id="trovoadas-regionais" aria-labelledby="redemet-storms-title">
+    <section
+      className="redemet-monitor redemet-storms"
+      id="trovoadas-regionais"
+      aria-labelledby="redemet-storms-title"
+    >
       <header className="redemet-monitor__heading">
         <div>
           <span><CloudLightning aria-hidden="true" /> Raios detectados</span>
           <h2 id="redemet-storms-title">Atividade elétrica na região</h2>
         </div>
-        <p>Os registros mostram descargas elétricas detectadas pela REDEMET. Eles não são um alerta de risco.</p>
+        <p>Veja no mapa as descargas recebidas em cada coleta da REDEMET.</p>
       </header>
+
+      {hasReading && selected ? (
+        <StormMapFrame frame={selected} />
+      ) : (
+        <div className="redemet-storms__empty" role="status">
+          {refreshing
+            ? "Buscando a coleta mais recente de atividade elétrica."
+            : "Nenhuma coleta recente de atividade elétrica foi recebida nesta consulta."}
+        </div>
+      )}
 
       <div className="redemet-storms__reading">
         <div>
@@ -430,28 +464,53 @@ function StormPanel({ layer, refreshing }: { layer: RedemetStormLayerResponse; r
           <strong>{hasReading ? count : "—"}</strong>
           <span>
             {!hasReading
-              ? refreshing ? "buscando coleta" : "sem coleta recente"
-              : count === 0 ? "nenhum raio detectado"
-              : count === 1 ? "raio detectado"
-              : "raios detectados"}
+              ? refreshing
+                ? "buscando coleta"
+                : "sem coleta recente"
+              : count === 0
+                ? "nenhum raio detectado"
+                : count === 1
+                  ? "raio detectado"
+                  : "raios detectados"}
           </span>
         </div>
       </div>
 
       {hasReading ? (
         <div className="redemet-storm-controls">
-          <button type="button" onClick={() => playback.selectFrame(playback.selectedIndex - 1)} disabled={playback.selectedIndex === 0} aria-label="Ver horário anterior">
+          <button
+            type="button"
+            onClick={() => playback.selectFrame(playback.selectedIndex - 1)}
+            disabled={playback.selectedIndex === 0}
+            aria-label="Ver horário anterior"
+          >
             <ArrowLeft aria-hidden="true" />
           </button>
           <label>
             <span>Coleta {playback.selectedIndex + 1} de {layer.frames.length}</span>
-            <input type="range" min="0" max={Math.max(0, layer.frames.length - 1)} value={playback.selectedIndex} onChange={(event) => playback.selectFrame(Number(event.target.value))} />
+            <input
+              type="range"
+              min="0"
+              max={Math.max(0, layer.frames.length - 1)}
+              value={playback.selectedIndex}
+              onChange={(event) => playback.selectFrame(Number(event.target.value))}
+            />
           </label>
-          <button type="button" onClick={() => playback.selectFrame(playback.selectedIndex + 1)} disabled={playback.selectedIndex >= layer.frames.length - 1} aria-label="Ver próximo horário">
+          <button
+            type="button"
+            onClick={() => playback.selectFrame(playback.selectedIndex + 1)}
+            disabled={playback.selectedIndex >= layer.frames.length - 1}
+            aria-label="Ver próximo horário"
+          >
             <ArrowRight aria-hidden="true" />
           </button>
           <div className="redemet-frame-tools">
-            <button type="button" onClick={playback.togglePlayback} disabled={layer.frames.length <= 1} aria-pressed={playback.isPlaying}>
+            <button
+              type="button"
+              onClick={playback.togglePlayback}
+              disabled={layer.frames.length <= 1}
+              aria-pressed={playback.isPlaying}
+            >
               {playback.isPlaying ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
               {playback.isPlaying ? "Pausar" : "Reproduzir"}
             </button>
@@ -460,15 +519,13 @@ function StormPanel({ layer, refreshing }: { layer: RedemetStormLayerResponse; r
             </button>
           </div>
         </div>
-      ) : (
-        <div className="redemet-storms__empty" role="status">
-          {refreshing ? "Buscando a coleta mais recente de atividade elétrica." : "Nenhuma coleta recente de atividade elétrica foi recebida nesta consulta."}
-        </div>
-      )}
+      ) : null}
 
       <div className="redemet-safety-note">
         <AlertTriangle aria-hidden="true" />
-        <p>Para risco e segurança, consulte os <Link to="/alertas">avisos oficiais para Pelotas</Link>.</p>
+        <p>
+          Para risco e segurança, consulte os <Link to="/alertas">avisos oficiais para Pelotas</Link>.
+        </p>
       </div>
     </section>
   );
@@ -486,6 +543,7 @@ export function RedemetOverview({
     Partial<Record<RedemetSatelliteType, RedemetImageLayerResponse>>
   >({ realcada: data.satellite });
   const [loadingSatelliteType, setLoadingSatelliteType] = useState<RedemetSatelliteType | null>(null);
+  const [infraredPrefetching, setInfraredPrefetching] = useState(false);
 
   useEffect(() => {
     setSatelliteLayers((current) => ({ ...current, realcada: data.satellite }));
@@ -498,35 +556,26 @@ export function RedemetOverview({
     }
 
     const type = selectedSatelliteType;
+    if (satelliteLayers[type]) return;
+
     const controller = new AbortController();
     let active = true;
     setLoadingSatelliteType(type);
 
-    void fetch(`/api/redemet/satellite?type=${type}&frames=4`, {
-      headers: { Accept: "application/json" },
-      signal: controller.signal,
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Satélite respondeu com HTTP ${response.status}`);
-        return response.json() as Promise<RedemetImageLayerResponse>;
-      })
+    void fetchSatelliteProduct(type, controller.signal)
       .then((payload) => {
         if (!active) return;
         setSatelliteLayers((current) => ({ ...current, [type]: payload }));
       })
       .catch((error) => {
         if (!active || (error instanceof DOMException && error.name === "AbortError")) return;
-        setSatelliteLayers((current) =>
-          current[type]
-            ? current
-            : {
-                ...current,
-                [type]: emptyBrowserSatelliteLayer(
-                  type,
-                  "Não foi possível consultar este produto de satélite agora.",
-                ),
-              },
-        );
+        setSatelliteLayers((current) => ({
+          ...current,
+          [type]: emptyBrowserSatelliteLayer(
+            type,
+            "Não foi possível consultar este produto de satélite agora.",
+          ),
+        }));
       })
       .finally(() => {
         if (!active) return;
@@ -537,7 +586,39 @@ export function RedemetOverview({
       active = false;
       controller.abort();
     };
-  }, [selectedSatelliteType]);
+  }, [satelliteLayers, selectedSatelliteType]);
+
+  useEffect(() => {
+    if (satelliteLayers.ir || selectedSatelliteType === "ir") return;
+
+    const controller = new AbortController();
+    let active = true;
+    setInfraredPrefetching(true);
+
+    void fetchSatelliteProduct("ir", controller.signal)
+      .then((payload) => {
+        if (!active) return;
+        setSatelliteLayers((current) => ({ ...current, ir: payload }));
+      })
+      .catch((error) => {
+        if (!active || (error instanceof DOMException && error.name === "AbortError")) return;
+        setSatelliteLayers((current) => ({
+          ...current,
+          ir: emptyBrowserSatelliteLayer(
+            "ir",
+            "Não foi possível consultar o infravermelho da REDEMET agora.",
+          ),
+        }));
+      })
+      .finally(() => {
+        if (active) setInfraredPrefetching(false);
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [satelliteLayers.ir, selectedSatelliteType]);
 
   const selectedProduct = satelliteProduct(selectedSatelliteType);
   const selectedSatellite = selectedSatelliteType === "realcada"
@@ -546,26 +627,43 @@ export function RedemetOverview({
   const selectedSatelliteRefreshing =
     isRefreshing || loadingSatelliteType === selectedSatelliteType;
   const satelliteUsesInmetFallback = selectedSatellite.provider === "INMET";
-  const allSources: SourceLayer[] = satelliteUsesInmetFallback
-    ? [data.radar, selectedSatellite, data.storms]
-    : [data.radar, selectedSatellite, data.inmetSatellite, data.storms];
+
+  const secondarySatelliteType: RedemetSatelliteType = selectedSatelliteType === "ir" ? "realcada" : "ir";
+  const secondaryProduct = satelliteProduct(secondarySatelliteType);
+  const secondaryRaw = secondarySatelliteType === "realcada"
+    ? data.satellite
+    : satelliteLayers.ir ?? emptyBrowserSatelliteLayer("ir");
+  const secondarySatellite = secondaryRaw.provider === "REDEMET / DECEA"
+    ? secondaryRaw
+    : emptyBrowserSatelliteLayer(
+        secondarySatelliteType,
+        `A imagem ${secondaryProduct.label.toLowerCase()} da REDEMET não veio utilizável nesta atualização.`,
+      );
+  const secondaryRefreshing =
+    isRefreshing ||
+    (secondarySatelliteType === "ir" &&
+      (infraredPrefetching || loadingSatelliteType === "ir"));
+
+  const allSources: SourceLayer[] = [
+    data.radar,
+    selectedSatellite,
+    secondarySatellite,
+    data.storms,
+  ];
   const availableSources = allSources.filter(sourceHasData).length;
-  const latest = latestObservedAt(data, selectedSatellite);
+  const latest = latestObservedAt(data, selectedSatellite, secondarySatellite);
   const latestFreshness = getRedemetFreshness(latest);
   const selectedSatelliteTitle = satelliteUsesInmetFallback
     ? "Satélite INMET · contingência"
     : `Satélite REDEMET · ${selectedProduct.label}`;
-  const selectedSatelliteDescription = satelliteUsesInmetFallback
-    ? `Imagem GOES usada como contingência para ${selectedProduct.label}`
-    : selectedProduct.description;
   const selectedSatellitePanelTitle = satelliteUsesInmetFallback
     ? "Imagem GOES da Região Sul"
     : `Satélite ${selectedProduct.label} pela REDEMET`;
   const satelliteHeaderDescription = satelliteUsesInmetFallback
-    ? `A REDEMET não entregou ${selectedProduct.label} utilizável nesta consulta. O INMET assumiu como contingência oficial e permanece identificado como a fonte real.`
+    ? `A REDEMET não entregou ${selectedProduct.label} utilizável nesta consulta. O INMET aparece identificado porque assumiu esta coleta.`
     : selectedSatellite.availabilityReason === "daylight"
-      ? "O canal Visível depende de luz solar. Durante a noite ele aguarda a próxima janela útil sem ser substituído por infravermelho."
-      : "Nuvens no satélite não significam necessariamente chuva no solo. Compare o horário com o radar e a previsão.";
+      ? "O canal Visível depende de luz solar e volta a produzir imagem útil durante o dia."
+      : "Escolha o produto e compare as coletas recebidas pela REDEMET.";
 
   return (
     <div className="redemet-page">
@@ -574,7 +672,7 @@ export function RedemetOverview({
           <span>Pelotas · monitoramento regional</span>
           <h1 id="redemet-page-title">Radar, satélite e raios na região de Pelotas</h1>
           <p>
-            Veja as coletas mais recentes recebidas da REDEMET/DECEA e do INMET. Cada imagem mantém o horário e a fonte para você saber exatamente o que está olhando.
+            Veja as coletas mais recentes de radar, satélite e atividade elétrica, sempre com o horário da imagem selecionada.
           </p>
           <div className="redemet-hero__actions">
             <a href="#radar-regional">Ver radar <ArrowRight aria-hidden="true" /></a>
@@ -586,31 +684,48 @@ export function RedemetOverview({
           <span>Última coleta recebida</span>
           <strong>{formatRedemetDateTime(latest)}</strong>
           <FreshnessBadge value={latest} />
-          <small>{sourceCountLabel(availableSources)}{isRefreshing ? " · buscando fontes restantes" : ""}</small>
+          <small>{sourceCountLabel(availableSources)}{isRefreshing ? " · atualizando" : ""}</small>
         </aside>
       </section>
 
       <section className="redemet-source-overview" aria-labelledby="redemet-source-overview-title">
         <header>
           <div>
-            <span>Coletas reais recebidas</span>
-            <h2 id="redemet-source-overview-title">O que chegou das fontes agora</h2>
+            <span>Coletas recebidas</span>
+            <h2 id="redemet-source-overview-title">O que está disponível agora</h2>
           </div>
-          <p>Os horários podem ser diferentes entre radar, satélite e raios. Isso é normal: cada fonte atualiza no seu próprio ritmo.</p>
+          <p>Radar, satélite e raios podem ter horários diferentes porque cada produto atualiza no seu próprio ritmo.</p>
         </header>
         <div className="redemet-source-overview__list">
-          <SourceSummaryRow icon={Radar} title="Radar REDEMET" description="Áreas de chuva" layer={data.radar} refreshing={isRefreshing} />
+          <SourceSummaryRow
+            icon={Radar}
+            title="Radar REDEMET"
+            description="Áreas de chuva"
+            layer={data.radar}
+            refreshing={isRefreshing}
+          />
           <SourceSummaryRow
             icon={Satellite}
             title={selectedSatelliteTitle}
-            description={selectedSatelliteDescription}
+            description={selectedProduct.description}
             layer={selectedSatellite}
             refreshing={selectedSatelliteRefreshing}
           />
-          {!satelliteUsesInmetFallback ? (
-            <SourceSummaryRow icon={Satellite} title="Satélite INMET" description="GOES infravermelho complementar" layer={data.inmetSatellite} refreshing={isRefreshing} />
-          ) : null}
-          <SourceSummaryRow icon={CloudLightning} title="Raios REDEMET" description="Descargas elétricas" layer={data.storms} refreshing={isRefreshing} storm />
+          <SourceSummaryRow
+            icon={Satellite}
+            title={`Satélite REDEMET · ${secondaryProduct.label}`}
+            description={secondaryProduct.description}
+            layer={secondarySatellite}
+            refreshing={secondaryRefreshing}
+          />
+          <SourceSummaryRow
+            icon={CloudLightning}
+            title="Raios REDEMET"
+            description="Descargas elétricas"
+            layer={data.storms}
+            refreshing={isRefreshing}
+            storm
+          />
         </div>
       </section>
 
@@ -620,7 +735,7 @@ export function RedemetOverview({
         kind="radar"
         kicker="Radar REDEMET"
         title="Onde aparecem áreas de chuva"
-        description="Use a sequência para comparar as últimas imagens recebidas. O radar mostra a região, não uma rua específica."
+        description="Use a sequência para comparar as últimas imagens recebidas na região de Pelotas."
         refreshing={isRefreshing}
         featured
       />
@@ -629,13 +744,17 @@ export function RedemetOverview({
         <header>
           <div>
             <span>Satélites</span>
-            <h2 id="redemet-satellite-title">Como estão as nuvens sobre a Região Sul</h2>
+            <h2 id="redemet-satellite-title">Nuvens sobre a Região Sul</h2>
           </div>
           <p>{satelliteHeaderDescription}</p>
         </header>
 
         <div className="redemet-satellite-products">
-          <div className="redemet-satellite-products__buttons" role="group" aria-label="Produto de satélite REDEMET">
+          <div
+            className="redemet-satellite-products__buttons"
+            role="group"
+            aria-label="Produto de satélite REDEMET"
+          >
             {SATELLITE_PRODUCTS.map((product) => (
               <button
                 type="button"
@@ -662,21 +781,19 @@ export function RedemetOverview({
             kicker={selectedSatelliteTitle}
             title={selectedSatellitePanelTitle}
             description={satelliteUsesInmetFallback
-              ? `Contingência oficial usada somente porque ${selectedProduct.label} da REDEMET não veio utilizável nesta atualização.`
-              : `${selectedProduct.description} Use a sequência para comparar somente as coletas realmente recebidas.`}
+              ? `Contingência usada porque ${selectedProduct.label} da REDEMET não veio utilizável nesta atualização.`
+              : selectedProduct.description}
             refreshing={selectedSatelliteRefreshing}
           />
-          {!satelliteUsesInmetFallback ? (
-            <ImageLayerPanel
-              id="satelite-inmet"
-              layer={data.inmetSatellite}
-              kind="satellite"
-              kicker="Satélite INMET"
-              title="GOES infravermelho da Região Sul"
-              description="Referência infravermelha complementar do INMET. Ela não substitui silenciosamente o produto REDEMET selecionado."
-              refreshing={isRefreshing}
-            />
-          ) : null}
+          <ImageLayerPanel
+            id={`satelite-redemet-${secondarySatelliteType}-complementar`}
+            layer={secondarySatellite}
+            kind="satellite"
+            kicker={`Satélite REDEMET · ${secondaryProduct.label}`}
+            title={`${secondaryProduct.label} pela REDEMET`}
+            description={secondaryProduct.description}
+            refreshing={secondaryRefreshing}
+          />
         </div>
       </section>
 
@@ -687,7 +804,7 @@ export function RedemetOverview({
           <span>Leitura rápida</span>
           <h2>Imagem observada não é previsão</h2>
         </div>
-        <p>Radar, satélite e raios mostram registros já feitos. Para saber o que pode acontecer nas próximas horas, consulte a previsão e os avisos oficiais.</p>
+        <p>Radar, satélite e raios mostram registros já feitos. Para as próximas horas, consulte a previsão e os avisos oficiais.</p>
         <Link to="/tempo-hoje-pelotas">Ver previsão de hoje <ArrowRight aria-hidden="true" /></Link>
       </section>
     </div>
