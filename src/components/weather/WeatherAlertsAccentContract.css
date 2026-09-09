@@ -167,12 +167,25 @@
   white-space: nowrap;
 }
 
-/* Fonte oficial: marca real do INMET em um selo compacto e arredondado. */
+/* Fonte oficial: o próprio card da marca é o link e mede apenas o conteúdo. */
 .internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 0;
+  justify-self: start;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  line-height: 0;
+}
+
+.internal-weather-shell--alerts .alerts-source-logo-link {
   display: grid;
   width: fit-content;
-  min-height: 54px;
   max-width: 100%;
+  min-height: 54px;
   place-items: center;
   padding: 7px 10px;
   overflow: hidden;
@@ -180,6 +193,11 @@
   border-radius: 10px;
   background: #fff;
   line-height: 0;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .internal-weather-shell--alerts .alerts-source-logo {
@@ -187,6 +205,19 @@
   width: min(227px, 100%);
   height: auto;
   border-radius: 6px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .internal-weather-shell--alerts .alerts-source-logo-link:hover {
+    border-color: rgb(24 189 205 / 30%);
+    box-shadow: 0 8px 20px rgb(7 30 47 / 7%);
+    transform: translateY(-1px);
+  }
+}
+
+.internal-weather-shell--alerts .alerts-source-logo-link:focus-visible {
+  outline: 3px solid rgb(24 189 205 / 34%);
+  outline-offset: 3px;
 }
 
 @media (max-width: 1050px) {
@@ -242,12 +273,14 @@
     max-width: none;
   }
 
-  .internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
-    width: min(100%, 247px);
+  .internal-weather-shell--alerts .alerts-source-logo-link {
+    width: fit-content;
+    max-width: 100%;
   }
 
   .internal-weather-shell--alerts .alerts-source-logo {
-    width: min(227px, 100%);
+    width: min(227px, calc(100vw - 76px));
+    max-width: 100%;
   }
 }
 
@@ -260,8 +293,9 @@
     border-color: Highlight;
   }
 
-  .internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
+  .internal-weather-shell--alerts .alerts-source-logo-link {
     border-color: CanvasText;
     background: Canvas;
+    color: CanvasText;
   }
 }
