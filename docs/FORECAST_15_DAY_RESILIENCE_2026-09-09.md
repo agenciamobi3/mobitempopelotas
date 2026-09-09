@@ -51,7 +51,7 @@ Não foram adicionados `current` nem `hourly` ao contrato de 15 dias.
 
 O loader público continua com deadline próprio de 2,8 s por dependência. O objetivo é impedir que a nova camada de contingência transforme uma resposta direta já disponível em timeout de SSR.
 
-A leitura do cache estendido agora começa **em paralelo** às consultas Best Match e NOAA GFS. Isso evita um buraco operacional: se os dois upstreams diretos consumirem quase todo o timeout de 2,2 s, a contingência já teve esse mesmo período para consultar o snapshot persistido, em vez de começar somente nos últimos milissegundos do budget público.
+A leitura do cache estendido começa **em paralelo** às consultas Best Match e NOAA GFS. Isso evita um buraco operacional: se os dois upstreams diretos consumirem quase todo o timeout de 2,2 s, a contingência já teve esse mesmo período para consultar o snapshot persistido, em vez de começar somente nos últimos milissegundos do budget público.
 
 Se Best Match ou GFS retornarem os 15 dias, a função retorna imediatamente sem esperar o resultado da contingência. A leitura paralela do cache não muda a prioridade da fonte; apenas aquece o caminho de fallback.
 
@@ -72,7 +72,9 @@ A Edge Function dedicada fica em:
 
 `supabase/functions/open-meteo-extended-forecast/index.ts`
 
-Ela usa o mesmo token de coletor meteorológico já configurado para Pelotas, mas possui cache e payload próprios. Dentro da Edge, Best Match é tentado primeiro e NOAA GFS funciona como contingência do refresh.
+Ela usa o mesmo token de coletor meteorológico já configurado para Pelotas, mas possui cache e payload próprios.
+
+Na versão 3, a Edge também consulta Best Match e NOAA GFS em paralelo e aplica a mesma regra do servidor: persiste a resposta com maior quantidade real de dias. Em empate, Best Match continua vencendo por prioridade. Assim, uma resposta parcial válida do Best Match não impede o uso de uma janela maior fornecida pelo GFS.
 
 O payload persistido guarda também qual modelo originou a previsão, permitindo manter a proveniência interna mesmo quando a interface não mostra o nome da fonte.
 
@@ -108,8 +110,8 @@ Foi adicionado contrato estático para proteger:
 - ausência de payload horário/current;
 - provider/cache separado;
 - RPC pública restrita;
-- ordem Best Match → GFS na Edge;
-- seleção da janela mais ampla;
+- comparação paralela Best Match + GFS na Edge;
+- seleção da janela mais ampla no servidor e na Edge;
 - aquecimento paralelo da contingência estendida antes de aguardar os upstreams diretos;
 - preservação da contingência de 7 dias.
 
@@ -122,15 +124,15 @@ Não declarar build, typecheck, lint ou suíte geral como PASS enquanto não hou
 Em 09/09/2026 a infraestrutura estendida foi aplicada ao projeto Supabase `tempopelotas`:
 
 1. migration `add_open_meteo_extended_cache` aplicada com sucesso, registrada remotamente como versão `20260909192047`;
-2. Edge Function `open-meteo-extended-forecast` implantada e ativa; a versão 2 é a versão operacional atual, usando autenticação própria por `X-Collector-Token`;
-3. o cache foi aquecido por uma chamada controlada à própria Edge Function;
+2. Edge Function `open-meteo-extended-forecast` implantada e ativa; a versão 3 é a versão operacional atual, usando autenticação própria por `X-Collector-Token`;
+3. após o deploy da versão 3, o cache foi propositalmente tornado elegível a refresh e a própria Edge foi acionada por uma chamada controlada;
 4. a chamada respondeu HTTP 200 com `cacheStatus: refreshed`;
 5. o payload persistido continha 15 datas, de 09/09/2026 a 23/09/2026, originadas de `Open-Meteo Best Match`;
-6. a linha `open-meteo-extended` ficou em estado `live`, com 15 dias efetivamente persistidos.
+6. a linha `open-meteo-extended` permaneceu em estado `live`, com 15 dias efetivamente persistidos e timestamps renovados em 09/09/2026 19:49:02 UTC.
 
 O nome do arquivo de migration no repositório foi alinhado à versão registrada pelo Supabase para evitar drift entre histórico remoto e migrations locais.
 
-Portanto a contingência de 15 dias não está apenas preparada em código: existe e possui um último payload válido no ambiente de produção.
+Portanto a contingência de 15 dias não está apenas preparada em código: existe, foi exercitada após o deploy atual e possui um último payload válido no ambiente de produção.
 
 ## Segurança da RPC pública
 
