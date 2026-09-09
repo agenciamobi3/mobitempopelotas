@@ -34,6 +34,7 @@ const privacy = source("src/routes/privacidade-e-dados.tsx");
 const contentShell = source("src/components/layout/ContentPageShell.tsx");
 const regionalHub = source("src/routes/tempo-na-regiao-sul-rs.tsx");
 const laranjal = source("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx");
+const hydrologyPages = source("src/components/hydrology/HydrologyPages.tsx");
 const hydrology = source("src/routes/situacao-hidrologica-pelotas.tsx");
 const guaiba = source("src/routes/nivel-do-guaiba.tsx");
 const regionalEditorial = source("src/lib/regional-city-editorial.ts");
@@ -163,13 +164,13 @@ test("páginas de apoio preservam semântica, estrutura e entidades", () => {
   assert.match(regionalHub, /PUBLIC_REGIONAL_CITIES/);
 });
 
-test("cluster hidrológico conecta operação atual e memória histórica preservando referências", () => {
-  for (const route of [laranjal, hydrology, guaiba]) {
-    assert.match(route, /\/nivel-do-guaiba|Nível do Guaíba/);
-    assert.match(route, /\/enchente-1941-pelotas/);
-    assert.match(route, /\/enchente-2024-pelotas-laranjal/);
-  }
-  assert.match(laranjal, /não são convertidas em cota da Estação Laranjal/);
+test("cluster hidrológico mantém o Laranjal focado no dado e concentra explicações nas páginas adequadas", () => {
+  assert.match(laranjal, /Nível da Lagoa dos Patos hoje no Laranjal, Pelotas/);
+  assert.match(laranjal, /LaranjalLevelPage/);
+  assert.match(laranjal, /AnaRhnLaranjalStationProfile/);
+  assert.match(laranjal, /LaranjalMonitoringHistory/);
+  assert.doesNotMatch(laranjal, /EditorialContentSection|createFaqPageJsonLd|Como interpretar o nível no Laranjal/);
+  assert.match(hydrologyPages, /Esta leitura não é uma cota oficial de risco ou inundação/);
   assert.match(hydrology, /não devem ser comparados por simples subtração/);
   assert.match(guaiba, /não confirma risco de enchente em Pelotas/);
   assert.match(guaiba, /não transferi-la para as réguas atuais do Guaíba/);
