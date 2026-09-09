@@ -1,4 +1,4 @@
-import { findPublicRegionalCity, regionalCityPath } from "@/lib/regional-cities";
+import { findPublicRegionalCity, regionalCityPath } from "../regional-cities";
 
 export type CostaDoceCity = {
   slug: string;
