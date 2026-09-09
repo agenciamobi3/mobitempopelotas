@@ -304,20 +304,29 @@ Detalhes: `docs/ANA_RHN_INTEGRATION.md`, `docs/ANA_RHN_REGIONAL_INVENTORY_2026-0
 
 ## 8. Radar, satélite e alertas
 
-`/radar-e-satelite-pelotas` mantém radar, satélite e STSC como produtos complementares, com horário real da própria fonte.
+`/radar-e-satelite-pelotas` mantém radar REDEMET georreferenciado, satélite REDEMET, satélite INMET e STSC como produtos complementares, com horários reais, sequência de imagens e recuperação pós-hidratação.
 
-Contrato:
+Contrato atualizado em 08/09/2026:
 
 - janela pública compacta de 4 imagens e 6 leituras STSC;
-- SSR com budget de 2,8 s;
-- uma recuperação pós-hidratação quando a composição inicial estiver incompleta;
+- SSR com budget de 2,8 s no documento inicial;
+- uma recuperação pós-hidratação quando a composição inicial estiver incompleta, agora cobrindo também `inmetSatellite` como coleção visível;
 - merge conservador, sem apagar quadros já recebidos;
+- quando o satélite REDEMET falha e o INMET é usado como contingência, a mesma coleta INMET não é contada nem renderizada duas vezes;
+- ausência de quadro STSC com horário utilizável não vira zero raios: zeros só aparecem quando existe quadro válido com zero pontos;
+- timeout interno do radar foi alinhado de 2,4 s para 4,2 s, abaixo do teto de 4,5 s do overview e de 5 s do probe independente;
+- endpoint `/api/redemet/satellite` suporta `realcada`, `ir` e `vis`; a página dedicada continua usando `realcada` como camada principal neste checkpoint;
 - satélite/radar/trovoada não viram alerta oficial;
 - falha de integração não vira afirmação de indisponibilidade global da fonte.
+
+Antes da correção, o status público observado mostrava radar REDEMET oscilante, satélite REDEMET e STSC operacionais e satélite INMET complementar sem coleta utilizável; isso descreve a integração do portal naquele momento, não a disponibilidade global das instituições.
 
 Rajada ausente no contexto do radar permanece `Não informado`; vento sustentado não é usado como substituto.
 
 INMET continua sendo a origem dos avisos meteorológicos oficiais consumidos pelo portal. Falha na consulta deve aparecer como indisponibilidade de confirmação, nunca como “sem alerta”.
+
+Referências: `docs/REDEMET_RADAR_SATELLITE_AUDIT_2026-09-08.md` e `tests/redemet-data-display-audit.test.ts`.
+
 
 ## 9. Pipeline INMET por Gmail
 
