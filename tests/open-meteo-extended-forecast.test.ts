@@ -13,7 +13,7 @@ const extendedEdgeFunction = readFileSync(
   "utf8",
 );
 const extendedCacheMigration = readFileSync(
-  "supabase/migrations/20260909192000_add_open_meteo_extended_cache.sql",
+  "supabase/migrations/20260909192047_add_open_meteo_extended_cache.sql",
   "utf8",
 );
 
