@@ -112,16 +112,30 @@ test("radar, satellite and lightning remain separate concepts in plain language"
   assert.match(page, /Imagem observada não é previsão/);
 });
 
-test("radar comparison puts the observed image beside forecast values and never substitutes sustained wind for gust", () => {
-  assert.match(context, /nearestForecastHour/);
-  assert.match(context, /difference > 3 \* 60 \* 60 \* 1_000/);
+test("radar comparison keeps observation separate and uses the matching INMET period", () => {
+  assert.match(context, /selectInmetPeriod/);
+  assert.match(context, /weather\.weather\.inmetForecast/);
   assert.match(context, /isUsableRedemetObservedAt/);
-  assert.match(context, /Radar e previsão no mesmo horário/);
-  assert.match(context, /<RadarMapFrame/);
-  assert.match(context, /A imagem mostra o que o radar recebeu/);
-  assert.match(context, /formatValue\(forecast\.windGust, " km\/h"\)/);
-  assert.doesNotMatch(context, /forecast\.windGust \?\? forecast\.windSpeed/);
-  assert.match(context, /A imagem do radar continua sendo observação; os números ao lado continuam sendo previsão/);
+  assert.match(context, /Radar e previsão oficial do período/);
+  assert.match(context, /Previsão oficial do INMET/);
+  assert.match(context, /mesmo período do dia/);
+  assert.match(context, /inmetPeriod\.summary/);
+  assert.match(context, /inmetPeriod\.minimum/);
+  assert.match(context, /inmetPeriod\.humidityMinimum/);
+  assert.match(context, /windLabel\(inmetPeriod\)/);
+  assert.doesNotMatch(context, /Open-Meteo Best Match|nearestForecastHour|forecast\.windGust/);
+  assert.doesNotMatch(context, /<footer>/);
+});
+
+test("source overview keeps its explanatory sentence on one desktop line", () => {
+  assert.match(
+    finalStyles,
+    /\.redemet-source-overview > header p[\s\S]*max-width:\s*none/,
+  );
+  assert.match(
+    finalStyles,
+    /@media \(min-width: 1440px\)[\s\S]*\.redemet-source-overview > header p[\s\S]*white-space:\s*nowrap/,
+  );
 });
 
 test("radar visual uses rounded light internal-page surfaces while keeping dark imagery functional", () => {
@@ -145,6 +159,7 @@ test("radar visual uses rounded light internal-page surfaces while keeping dark 
   assert.match(contextStyles, /\.radar-forecast-context[\s\S]*border-radius:\s*18px/);
   assert.match(contextStyles, /\.radar-forecast-context__comparison[\s\S]*grid-template-columns:/);
   assert.match(contextStyles, /\.radar-forecast-context__metrics[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(contextStyles, /article\.is-summary/);
   assert.doesNotMatch(contextStyles, /radial-gradient|linear-gradient/);
   assert.ok(remValues.every((value) => value >= 0.7), "microtext must remain readable");
 });
