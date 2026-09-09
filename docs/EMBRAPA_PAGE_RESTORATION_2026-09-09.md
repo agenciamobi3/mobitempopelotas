@@ -17,7 +17,9 @@ Continuam aposentados nesta etapa:
 - lease/collector histórico;
 - endpoint antigo `/api/weather/embrapa`, que continua `410 retired`;
 - uso da Embrapa como fonte automática do `Agora` na Home;
-- descoberta da página em sitemap, header, footer ou atalhos editoriais.
+- descoberta da página no sitemap e no footer.
+
+A página voltou a ser descoberta pelo megamenu principal em `Explorar > Observação e contexto`, sem promover a Embrapa a fonte atual da Home.
 
 ## O que voltou
 
@@ -78,10 +80,11 @@ A rota voltou, mas permanece deliberadamente em fase de revalidação:
 - `noindex` nesta etapa;
 - fora de `src/lib/public-routes.ts`;
 - fora do sitemap;
-- sem retorno automático ao header/footer;
+- disponível no megamenu `Explorar` como acesso direto à página interna;
+- sem retorno ao footer nesta etapa;
 - canonical preservado na própria URL.
 
-A decisão de reindexar ou promover a página deve ocorrer somente depois de validar estabilidade da fonte e utilidade editorial sustentada.
+A decisão de reindexar a página deve ocorrer somente depois de validar estabilidade da fonte e utilidade editorial sustentada. A presença no megamenu não altera, por si só, o contrato de indexação.
 
 ## Arquivos ativos
 
@@ -95,4 +98,4 @@ A decisão de reindexar ou promover a página deve ocorrer somente depois de val
 
 ## Próximo passo possível
 
-Antes de qualquer retorno da Embrapa ao `Agora`, observar estabilidade da página pública e comparar leituras consecutivas com a Rede da Defesa Civil RS. A restauração da página interna não autoriza religar o coletor histórico nem mudar a prioridade das fontes do portal.
+Antes de qualquer retorno da Embrapa ao `Agora`, observar estabilidade da página pública e comparar leituras consecutivas com a Rede da Defesa Civil RS. A restauração da página interna e seu retorno ao megamenu não autorizam religar o coletor histórico nem mudar a prioridade das fontes do portal.
