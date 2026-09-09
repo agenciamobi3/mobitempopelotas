@@ -15,6 +15,8 @@
 
 Antes de alterações amplas, leia `PROJECT_CURRENT_STATE.md`. Ele é o inventário mestre do estado atual do Tempo Pelotas.
 
+`docs/PORTAL_EVOLUTIONS.md` é o arquivo mestre das evoluções futuras, descobertas estratégicas e oportunidades ainda não incorporadas ao runtime. Registrar uma ideia ali não a transforma em pendência operacional nem autoriza implementação imediata.
+
 `MIGRATION_MATRIX.md` continua sendo a matriz histórica de migração/paridade; não deve ser usado isoladamente para responder o que existe hoje no produto.
 
 Atualize `PROJECT_CURRENT_STATE.md` no mesmo conjunto de mudanças sempre que houver alteração estrutural em páginas públicas, cidades atendidas, funcionalidades ativas/suspensas, fontes de dados, integrações, APIs, crons/workflows, banco/auth, SEO/indexação, variáveis de ambiente estruturais, deploy/runtime ou pendências relevantes.
