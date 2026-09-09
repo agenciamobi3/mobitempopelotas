@@ -75,7 +75,8 @@ function CollectionRow({
 function StormDistanceReading({ layer }: { layer: RedemetStormLayerResponse }) {
   const frame = usableFrames(layer).at(-1) ?? null;
   const hasUsableFrame = frame !== null;
-  const distances = (frame?.points ?? []).map(distanceFromPelotas).sort((a, b) => a - b);
+  const points = frame && "points" in frame ? frame.points : [];
+  const distances = points.map(distanceFromPelotas).sort((a, b) => a - b);
   const nearest = distances[0] ?? null;
   const near = distances.filter((distance) => distance <= 50).length;
   const middle = distances.filter((distance) => distance > 50 && distance <= 150).length;
