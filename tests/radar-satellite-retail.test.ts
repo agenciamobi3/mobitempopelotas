@@ -8,9 +8,11 @@ const fallback = readFileSync("src/lib/redemet/redemet-fallback.ts", "utf8");
 const recovery = readFileSync("src/production/lib/redemet-browser-recovery.ts", "utf8");
 const page = readFileSync("src/components/redemet/RedemetOverview.tsx", "utf8");
 const pageStyles = readFileSync("src/components/redemet/RedemetOverview.css", "utf8");
+const finalStyles = readFileSync("src/production/styles/radar-satellite-editorial-final.css", "utf8");
 const context = readFileSync("src/components/redemet/RadarForecastContext.tsx", "utf8");
 const contextStyles = readFileSync("src/components/redemet/RadarForecastContext.css", "utf8");
-const styles = `${pageStyles}\n${contextStyles}`;
+const stormMap = readFileSync("src/components/redemet/StormMapFrame.tsx", "utf8");
+const styles = `${pageStyles}\n${finalStyles}\n${contextStyles}`;
 const visibleCopy = `${route}\n${page}\n${context}`;
 
 const remValues = [...styles.matchAll(/font-size:\s*(0\.\d+)rem/g)].map((match) =>
@@ -51,16 +53,19 @@ test("radar recovery keeps short SSR but replaces empty fallbacks with real back
   assert.match(fallback, /frames: \[\]/);
 });
 
-test("monitor shows received collections instead of technical integration cards", () => {
+test("monitor shows visitor-facing collections and REDEMET infrared instead of a permanent empty INMET panel", () => {
   assert.match(page, /Pelotas · monitoramento regional/);
   assert.match(page, /Radar, satélite e raios na região de Pelotas/);
   assert.match(page, /Última coleta recebida/);
-  assert.match(page, /Coletas reais recebidas/);
-  assert.match(page, /O que chegou das fontes agora/);
+  assert.match(page, /Coletas recebidas/);
+  assert.match(page, /O que está disponível agora/);
   assert.match(page, /SourceSummaryRow/);
   assert.match(page, /Radar REDEMET/);
   assert.match(page, /Satélite REDEMET/);
-  assert.match(page, /Satélite INMET/);
+  assert.match(page, /secondarySatelliteType/);
+  assert.match(page, /Satélite INMET · contingência/);
+  assert.doesNotMatch(page, /title="Satélite INMET"/);
+  assert.doesNotMatch(page, /GOES infravermelho complementar/);
   assert.match(page, /Raios REDEMET/);
   assert.match(page, /Última coleta/);
   assert.match(page, /frameCountLabel/);
@@ -68,17 +73,18 @@ test("monitor shows received collections instead of technical integration cards"
   assert.doesNotMatch(visibleCopy, /quadro utilizável|integração pendente|configuração da integração|grade de previsão|cadência observada/i);
 });
 
-test("missing collections remain explicit and never fabricate an image or timestamp", () => {
+test("missing collections remain explicit without internal-documentation filler", () => {
   assert.match(page, /Buscando a coleta mais recente/);
   assert.match(page, /continua consultando \$\{sourceName\} em segundo plano/);
-  assert.match(page, /Nenhuma imagem recente recebida/);
-  assert.match(page, /Nada é preenchido manualmente/);
+  assert.match(page, /Imagem indisponível nesta atualização/);
+  assert.match(page, /Não recebemos uma imagem utilizável/);
   assert.match(page, /Horário não recebido/);
   assert.match(page, /sem coleta recente/);
+  assert.doesNotMatch(page, /Nada é preenchido manualmente/);
   assert.doesNotMatch(page, /new Date\(\)\.toISOString\(\)/);
 });
 
-test("image and storm timelines preserve the real received sequence", () => {
+test("image and storm timelines preserve the real received sequence and the STSC player has a visual map", () => {
   assert.match(page, /useFramePlayback/);
   assert.match(page, /FRAME_INTERVAL_MS/);
   assert.match(page, /window\.setInterval/);
@@ -89,33 +95,37 @@ test("image and storm timelines preserve the real received sequence", () => {
   assert.match(page, /Abrir imagem/);
   assert.match(page, /aria-pressed=\{playback\.isPlaying\}/);
   assert.match(page, /redemet-storm-controls/);
+  assert.match(page, /<StormMapFrame frame=\{selected\} \/>/);
+  assert.match(stormMap, /type: "circle"/);
+  assert.match(stormMap, /source\?\.setData\(stormGeoJson\(frame\.points\)\)/);
   assert.match(page, /FreshnessBadge value=\{selected\?\.observedAt \?\? null\} reading/);
 });
 
 test("radar, satellite and lightning remain separate concepts in plain language", () => {
   assert.match(page, /Onde aparecem áreas de chuva/);
-  assert.match(page, /O radar mostra a região, não uma rua específica/);
-  assert.match(page, /Como estão as nuvens sobre a Região Sul/);
-  assert.match(page, /Nuvens no satélite não significam necessariamente chuva/);
+  assert.match(page, /Use a sequência para comparar as últimas imagens recebidas na região de Pelotas/);
+  assert.match(page, /Nuvens sobre a Região Sul/);
+  assert.match(page, /Use a sequência para comparar contrastes e temperaturas de topo de nuvem/);
   assert.match(page, /Raios detectados/);
-  assert.match(page, /Eles não são um alerta de risco/);
+  assert.match(page, /Veja no mapa as descargas recebidas em cada coleta da REDEMET/);
+  assert.match(page, /avisos oficiais para Pelotas/);
   assert.match(page, /Imagem observada não é previsão/);
 });
 
-test("radar comparison never substitutes sustained wind for a missing gust", () => {
+test("radar comparison puts the observed image beside forecast values and never substitutes sustained wind for gust", () => {
   assert.match(context, /nearestForecastHour/);
   assert.match(context, /difference > 3 \* 60 \* 60 \* 1_000/);
   assert.match(context, /isUsableRedemetObservedAt/);
-  assert.match(context, /A imagem é uma observação recebida da REDEMET/);
-  assert.match(context, /não foram medidos pelo radar/);
+  assert.match(context, /Radar e previsão no mesmo horário/);
+  assert.match(context, /<RadarMapFrame/);
+  assert.match(context, /A imagem mostra o que o radar recebeu/);
   assert.match(context, /formatValue\(forecast\.windGust, " km\/h"\)/);
   assert.doesNotMatch(context, /forecast\.windGust \?\? forecast\.windSpeed/);
-  assert.match(context, /A sequência de imagens mostra o passado recente/);
+  assert.match(context, /A imagem do radar continua sendo observação; os números ao lado continuam sendo previsão/);
 });
 
-test("new radar visual is open editorial monitoring with functional dark imagery", () => {
+test("radar visual uses rounded light internal-page surfaces while keeping dark imagery functional", () => {
   assert.match(pageStyles, /\.redemet-hero\s*\{[\s\S]*background:\s*var\(--redemet-soft\)/);
-  assert.match(pageStyles, /\.redemet-hero h1[\s\S]*font-size:\s*clamp\(3rem, 5\.7vw, 6\.1rem\)/);
   assert.match(pageStyles, /\.redemet-source-overview__list[\s\S]*border-top:/);
   assert.match(pageStyles, /\.redemet-source-row/);
   assert.match(pageStyles, /\.redemet-monitor__surface[\s\S]*border:/);
@@ -129,8 +139,12 @@ test("new radar visual is open editorial monitoring with functional dark imagery
   assert.doesNotMatch(pageStyles, /radial-gradient|linear-gradient/);
   assert.match(pageStyles, /box-shadow:\s*none/);
 
-  assert.match(contextStyles, /\.radar-forecast-context[\s\S]*border-top:/);
-  assert.match(contextStyles, /grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(finalStyles, /radar-satellite-page/);
+  assert.match(finalStyles, /border-radius:\s*18px !important/);
+  assert.match(finalStyles, /background-color:\s*#f3f7f8 !important/);
+  assert.match(contextStyles, /\.radar-forecast-context[\s\S]*border-radius:\s*18px/);
+  assert.match(contextStyles, /\.radar-forecast-context__comparison[\s\S]*grid-template-columns:/);
+  assert.match(contextStyles, /\.radar-forecast-context__metrics[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.doesNotMatch(contextStyles, /radial-gradient|linear-gradient/);
   assert.ok(remValues.every((value) => value >= 0.7), "microtext must remain readable");
 });
