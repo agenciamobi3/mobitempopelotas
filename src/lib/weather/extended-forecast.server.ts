@@ -296,16 +296,17 @@ async function fetchLegacySevenDayEdgeFallback(): Promise<ExtendedForecastData |
     const parsed = extendedForecastResponseSchema.safeParse(edge.payload);
     if (!parsed.success) return null;
 
-    const fallback = normalizeExtendedForecast(
-      parsed.data,
-      "Open-Meteo 7-day Cache",
-      edge.fetchedAt ?? new Date().toISOString(),
-    );
+    const fallback = normalizeExtendedForecast(parsed.data);
     if (fallback.status === "unavailable") return null;
 
     return {
       ...fallback,
-      message: `As fontes estendidas não responderam; exibindo ${fallback.days.length} dias preservados pela contingência de 7 dias.`,
+      source: {
+        ...fallback.source,
+        model: "Open-Meteo 7-day Cache",
+        fetchedAt: edge.fetchedAt ?? fallback.source.fetchedAt,
+      },
+      message: `A consulta direta de 15 dias não respondeu; exibindo ${fallback.days.length} dias preservados pela contingência Open-Meteo de 7 dias.`,
     };
   } catch (error) {
     console.warn("[weather/extended-forecast] Contingência legada de 7 dias indisponível", {
