@@ -10,7 +10,7 @@ const PAGE_DESCRIPTION =
 const PAGE_PATH = "/estacao-embrapa-pelotas";
 
 export const Route = createFileRoute("/estacao-embrapa-pelotas")({
-  head: () => createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH),
+  head: () => createPageHead(PAGE_TITLE, PAGE_DESCRIPTION, PAGE_PATH, [], { indexable: false }),
   loader: () => getEmbrapaObservation(),
   staleTime: 5 * 60 * 1_000,
   component: EstacaoEmbrapaPelotasPage,
