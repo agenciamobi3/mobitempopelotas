@@ -33,7 +33,8 @@ test("tomorrow hero uses a clean search-oriented headline and three essential fa
   assert.match(hero, /Temperatura/);
   assert.match(hero, /Chuva/);
   assert.match(hero, /Rajadas/);
-  assert.match(hero, /Fonte principal:/);
+  assert.doesNotMatch(hero, /Fonte principal:/);
+  assert.doesNotMatch(hero, /sourceName = weather\.source/);
   assert.match(hero, /Sem aviso oficial para Pelotas/);
   assert.match(hero, /tomorrow-retail-hero__summary/);
   assert.match(hero, /tomorrow-retail-hero__facts/);
@@ -147,6 +148,26 @@ test("tomorrow content matches official sources by stable ISO date", () => {
   assert.doesNotMatch(page, /day\.date\.slice\(0, 10\)/);
 });
 
+test("tomorrow normalizes abbreviated weekdays before matching CPPMet textual forecast", () => {
+  assert.match(page, /dom:\s*"domingo"/);
+  assert.match(page, /seg:\s*"segunda"/);
+  assert.match(page, /ter:\s*"terca"/);
+  assert.match(page, /qua:\s*"quarta"/);
+  assert.match(page, /qui:\s*"quinta"/);
+  assert.match(page, /sex:\s*"sexta"/);
+  assert.match(page, /sab:\s*"sabado"/);
+  assert.match(page, /aliases\[normalized\] \?\? normalized/);
+});
+
+test("tomorrow official context is only public when real source content exists", () => {
+  assert.match(page, /const hasOfficialContext = inmetPeriods\.length > 0 \|\| Boolean\(cppmetContext\)/);
+  assert.match(page, /buildChapters\(hasOfficialContext\)/);
+  assert.match(page, /\{hasOfficialContext \? \([\s\S]*id="contexto-oficial-amanha"/);
+  assert.doesNotMatch(page, /Sem previsão específica do INMET ou da UFPel para amanhã/);
+  assert.doesNotMatch(page, /A previsão principal acima continua disponível/);
+  assert.doesNotMatch(page, /to="\/status-dos-dados">Dados e fontes/);
+});
+
 test("tomorrow content remains comparative and source-aware", () => {
   assert.match(page, /buildPlanningCards/);
   assert.match(page, /forecastWeekdayKey/);
@@ -154,7 +175,7 @@ test("tomorrow content remains comparative and source-aware", () => {
   assert.match(page, /INMET · \{period\.period\}/);
   assert.match(page, /FAQPage/);
   assert.match(page, /Ainda não há previsão detalhada para amanhã/);
-  assert.match(page, /Fonte principal:/);
+  assert.doesNotMatch(page, /Fonte principal:/);
   assert.doesNotMatch(page, /Nenhum valor foi estimado manualmente/);
   assert.doesNotMatch(page, /<h1/);
   assert.doesNotMatch(page, /daily-hero/);
