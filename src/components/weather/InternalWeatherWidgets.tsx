@@ -70,18 +70,6 @@ function formatDateTime(value: string | null | undefined) {
   }).format(date);
 }
 
-function sourceName(
-  source: string | null | undefined,
-  forecastProvider: string | null | undefined,
-) {
-  if (source === "defesa-civil-rs") return "Defesa Civil RS";
-  if (source === "inmet") return "INMET";
-  if (source === "cppmet") return "CPPMet/UFPel";
-  if (source === "met-norway") return "MET Norway";
-  if (source === "open-meteo") return forecastProvider ?? "Open-Meteo";
-  return "Origem não informada";
-}
-
 export function InternalPageChapters({ items, label }: InternalPageChaptersProps) {
   return (
     <nav className="internal-page-chapters" aria-label={label}>
@@ -128,30 +116,25 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
     current?.temperature !== null && current?.temperature !== undefined;
   const observed =
     hasMeasurement && weather.currentProvenance.temperature === "defesa-civil-rs";
-  const forecastProvider = weather.quality.forecastProvider;
 
   const metrics = current
     ? [
         {
           label: "Umidade do ar",
           value: formatNumber(current.humidity, "%"),
-          source: sourceName(weather.currentProvenance.humidity, forecastProvider),
         },
         {
           label: "Vento agora",
           value: formatWind(current.windSpeed, current.windDirection),
-          source: sourceName(weather.currentProvenance.windSpeed, forecastProvider),
         },
         {
           label: "Pressão atmosférica",
           value: formatNumber(current.pressure, " hPa"),
-          source: sourceName(weather.currentProvenance.pressure, forecastProvider),
         },
         {
           label: "Pôr do sol",
           value:
             current.sunset ?? weather.inmetForecast[0]?.sunset ?? "Não informado",
-          source: sourceName(weather.currentProvenance.sunset, forecastProvider),
         },
       ]
     : [];
@@ -165,9 +148,6 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
       <div className="home-observation-story__intro">
         <span className="eyebrow">Condição atual</span>
         <h2 id="internal-observation-title">Temperatura e condições agora em Pelotas</h2>
-        <Link to="/status-dos-dados">
-          Dados e fontes <span aria-hidden="true">→</span>
-        </Link>
       </div>
 
       {current && hasMeasurement ? (
@@ -201,7 +181,6 @@ export function InternalObservationWidget({ data }: { data: WeatherIntelligenceD
                 <dt>{metric.label}</dt>
                 <dd>
                   <span>{metric.value}</span>
-                  <small>{metric.source}</small>
                 </dd>
               </div>
             ))}
