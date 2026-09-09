@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   CloudRain,
   Gauge,
-  Info,
   RefreshCw,
   Thermometer,
   TriangleAlert,
@@ -21,14 +20,6 @@ import { useOpenMeteoIntelligenceRecovery } from "@/production/lib/open-meteo-br
 
 import "./TomorrowForecastPageV3.css";
 
-const chapters = [
-  { href: "#resumo-amanha", label: "Resumo", detail: "Temperatura, chuva e vento" },
-  { href: "#comparacao-amanha", label: "Hoje x amanhã", detail: "O que muda" },
-  { href: "#planejamento-amanha", label: "Amanhã", detail: "O que observar" },
-  { href: "#contexto-oficial-amanha", label: "INMET e UFPel", detail: "Previsões disponíveis" },
-  { href: "#perguntas-amanha", label: "Perguntas", detail: "Respostas" },
-];
-
 type PlanningCard = {
   label: string;
   title: string;
@@ -36,6 +27,18 @@ type PlanningCard = {
   icon: LucideIcon;
   tone: "normal" | "attention";
 };
+
+function buildChapters(hasOfficialContext: boolean) {
+  return [
+    { href: "#resumo-amanha", label: "Resumo", detail: "Temperatura, chuva e vento" },
+    { href: "#comparacao-amanha", label: "Hoje x amanhã", detail: "O que muda" },
+    { href: "#planejamento-amanha", label: "Amanhã", detail: "O que observar" },
+    ...(hasOfficialContext
+      ? [{ href: "#contexto-oficial-amanha", label: "INMET e UFPel", detail: "Previsões disponíveis" }]
+      : []),
+    { href: "#perguntas-amanha", label: "Perguntas", detail: "Respostas" },
+  ];
+}
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "horário não informado";
@@ -72,12 +75,31 @@ function dayWeatherSummary(day: DailyForecast) {
 }
 
 function weekdayKey(value: string) {
-  return value
+  const normalized = value
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
     .replace(/-feira/g, "")
     .replace(/[^a-z]/g, "");
+
+  const aliases: Record<string, string> = {
+    dom: "domingo",
+    domingo: "domingo",
+    seg: "segunda",
+    segunda: "segunda",
+    ter: "terca",
+    terca: "terca",
+    qua: "quarta",
+    quarta: "quarta",
+    qui: "quinta",
+    quinta: "quinta",
+    sex: "sexta",
+    sexta: "sexta",
+    sab: "sabado",
+    sabado: "sabado",
+  };
+
+  return aliases[normalized] ?? normalized;
 }
 
 function forecastWeekdayKey(day: DailyForecast) {
@@ -246,6 +268,7 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
     .slice(0, 3);
   const cppmetContext = findCppmetContext(tomorrow, weather.officialForecast);
   const hasOfficialContext = inmetPeriods.length > 0 || Boolean(cppmetContext);
+  const chapters = buildChapters(hasOfficialContext);
   const faqs = [
     {
       question: "Qual será a temperatura amanhã em Pelotas?",
@@ -384,19 +407,18 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
         </div>
       </section>
 
-      <section
-        className="tomorrow-v3-official"
-        id="contexto-oficial-amanha"
-        aria-labelledby="tomorrow-v3-official-title"
-      >
-        <header>
-          <div>
-            <h2 id="tomorrow-v3-official-title">INMET e UFPel para amanhã</h2>
-          </div>
-          <Link to="/status-dos-dados">Dados e fontes</Link>
-        </header>
+      {hasOfficialContext ? (
+        <section
+          className="tomorrow-v3-official"
+          id="contexto-oficial-amanha"
+          aria-labelledby="tomorrow-v3-official-title"
+        >
+          <header>
+            <div>
+              <h2 id="tomorrow-v3-official-title">INMET e UFPel para amanhã</h2>
+            </div>
+          </header>
 
-        {hasOfficialContext ? (
           <div className="tomorrow-v3-official__grid">
             {inmetPeriods.map((period: InmetForecastPeriod) => (
               <article key={period.id}>
@@ -419,16 +441,8 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
               </article>
             ) : null}
           </div>
-        ) : (
-          <div className="tomorrow-v3-official__unavailable">
-            <Info aria-hidden="true" />
-            <div>
-              <strong>Sem previsão específica do INMET ou da UFPel para amanhã</strong>
-              <span>A previsão principal acima continua disponível.</span>
-            </div>
-          </div>
-        )}
-      </section>
+        </section>
+      ) : null}
 
       <section
         className="tomorrow-v3-faq"
@@ -458,11 +472,9 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
         <Link to="/vento-em-pelotas"><span><strong>Vento em Pelotas</strong></span><ArrowRight aria-hidden="true" /></Link>
       </nav>
 
-      <aside className="tomorrow-v3-source-note" aria-label="Fonte da previsão">
+      <aside className="tomorrow-v3-source-note" aria-label="Atualização da previsão">
         <Gauge aria-hidden="true" />
-        <p>
-          Atualizado em {formatDateTime(weather.source.fetchedAt)}. Fonte principal: {weather.quality.forecastProvider ?? "modelo meteorológico disponível"}.
-        </p>
+        <p>Atualizado em {formatDateTime(weather.source.fetchedAt)}.</p>
       </aside>
     </div>
   );
