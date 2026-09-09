@@ -73,8 +73,16 @@ export function SimagroModelProducts() {
 
         {failed ? (
           <div className="simagro-model-products__unavailable" role="status">
-            <strong>O gráfico não carregou.</strong>
-            <span>Consulte o SIMAGRO RS.</span>
+            <strong>O gráfico não carregou nesta página.</strong>
+            <span>O arquivo pode continuar disponível diretamente na fonte.</span>
+            <div>
+              <a href={selected.imageUrl} target="_blank" rel="noopener noreferrer">
+                Abrir imagem no SIMAGRO <ExternalLink aria-hidden="true" />
+              </a>
+              <a href={SIMAGRO_URL} target="_blank" rel="noopener noreferrer">
+                Abrir SIMAGRO RS <ExternalLink aria-hidden="true" />
+              </a>
+            </div>
           </div>
         ) : (
           <img
