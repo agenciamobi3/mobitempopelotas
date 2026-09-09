@@ -4,6 +4,7 @@ import test from "node:test";
 
 const page = readFileSync("src/components/weather/WeatherAlertsPage.tsx", "utf8");
 const coverage = readFileSync("src/components/weather/InmetAlertCoverageDetails.tsx", "utf8");
+const guide = readFileSync("src/components/weather/AlertsOperationalGuide.tsx", "utf8");
 const accent = readFileSync("src/components/weather/WeatherAlertsAccentContract.css", "utf8");
 
 test("alertas removes the redundant decision card and old hero back link", () => {
@@ -29,8 +30,10 @@ test("coverage title stays concise and removes the documentary side copy", () =>
   assert.match(accent, /\.inmet-alert-coverage-details > footer[\s\S]*white-space:\s*nowrap/);
 });
 
-test("official source uses the repository INMET logo with a soft rounded frame", () => {
-  assert.match(accent, /url\("\/inmet_logo_banner\.png"\)/);
-  assert.match(accent, /\.alerts-scope-summary \.is-live dd[\s\S]*border-radius:\s*10px/);
-  assert.match(accent, /background-size:\s*calc\(100% - 18px\) auto/);
+test("official source renders the repository INMET logo with a compact rounded frame", () => {
+  assert.match(guide, /src="\/inmet_logo_banner\.png"/);
+  assert.match(guide, /alt="INMET — Instituto Nacional de Meteorologia"/);
+  assert.doesNotMatch(guide, /INMET consultado/);
+  assert.match(accent, /dd\.alerts-source-logo-cell[\s\S]*border-radius:\s*10px/);
+  assert.match(accent, /\.alerts-source-logo[\s\S]*width:\s*136px[\s\S]*border-radius:\s*6px/);
 });
