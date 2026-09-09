@@ -8,6 +8,7 @@ const statusRoute = readFileSync("src/routes/status-dos-dados.tsx", "utf8");
 const anaServer = readFileSync("src/lib/hydrology/ana-rhn-public.server.ts", "utf8");
 
 const DATA_CONDITION_SERVICE_IDS = [
+  "embrapa-current",
   "laranjal-level",
   "guaiba-level",
   "lagoon-regional-network",
@@ -27,7 +28,7 @@ test("ServiceStatus supports an optional data condition separate from integratio
   assert.match(statusTypes, /dataCondition\?: string;/);
 });
 
-test("dataCondition is implemented only for the five scoped services", () => {
+test("dataCondition is implemented only for the six scoped services", () => {
   for (const id of DATA_CONDITION_SERVICE_IDS) {
     const window = windowAfter(statusServer, `\"${id}\"`);
     assert.match(window, /dataCondition/);
@@ -57,6 +58,14 @@ test("status page renders data condition only when the service supplies it", () 
   assert.match(statusRoute, /showDetail/);
 });
 
+test("Embrapa condition follows freshness required by the Agora module", () => {
+  const embrapaWindow = windowAfter(statusServer, 'if (embrapaResult.status === "fulfilled")', 4_000);
+  assert.match(embrapaWindow, /normalizeEmbrapaObservedAt/);
+  assert.match(embrapaWindow, /OBSERVATION_MAX_AGE_MINUTES/);
+  assert.match(embrapaWindow, /data\.current\.temperature !== null/);
+  assert.match(embrapaWindow, /elegível para o módulo Embrapa do Agora/);
+});
+
 test("Lagoa regional derives data condition from observation statuses", () => {
   const lagoonWindow = windowAfter(statusServer, 'if (lagoonResult.status === "fulfilled")', 3_400);
   assert.match(lagoonWindow, /data\.observations\.filter/);
@@ -70,10 +79,10 @@ test("Lagoa regional derives data condition from observation statuses", () => {
 });
 
 test("Defesa Civil condition follows the current eligible Pelotas station", () => {
-  const defesaWindow = windowAfter(statusServer, 'if (defesaCivilResult.status === "fulfilled")', 3_200);
+  const defesaWindow = windowAfter(statusServer, 'if (defesaCivilResult.status === "fulfilled")', 3_400);
   assert.match(defesaWindow, /selectDefesaCivilCurrentStation\(data\.stations\)/);
   assert.match(defesaWindow, /currentStation/);
-  assert.match(defesaWindow, /Leitura recente elegível para compor o Agora em Pelotas/);
+  assert.match(defesaWindow, /Leitura recente elegível para o módulo Defesa Civil do Agora em Pelotas/);
   assert.match(defesaWindow, /Nenhuma estação elegível de Pelotas tem leitura recente/);
 });
 
