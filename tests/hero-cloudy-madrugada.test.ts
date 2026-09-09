@@ -29,22 +29,32 @@ function cloudyWeatherAt(timestamp: string): WeatherData {
   };
 }
 
-test("céu nublado na madrugada usa fotografia compatível com o período", () => {
+test("céu nublado na madrugada usa a foto noite/madrugada", () => {
   const photo = resolveHeroPhoto({
     weather: cloudyWeatherAt("2026-09-09T03:30:00-03:00"),
     icon: "cloud",
   });
 
   assert.equal(photo.kind, "cloudy");
-  assert.equal(photo.src, "/weather/hero/pelotas-madrugada-parcialmente-nublado.png");
+  assert.equal(photo.src, "/weather/hero/pelotas-noite-madrugada-nublado.png");
 });
 
-test("céu nublado fora da madrugada não herda fotografia identificada como madrugada", () => {
+test("céu nublado à noite usa a mesma foto noturna", () => {
   const photo = resolveHeroPhoto({
     weather: cloudyWeatherAt("2026-09-09T21:00:00-03:00"),
     icon: "cloud",
   });
 
   assert.equal(photo.kind, "cloudy");
-  assert.notEqual(photo.src, "/weather/hero/pelotas-madrugada-parcialmente-nublado.png");
+  assert.equal(photo.src, "/weather/hero/pelotas-noite-madrugada-nublado.png");
+});
+
+test("céu nublado durante o dia não usa a foto noturna", () => {
+  const photo = resolveHeroPhoto({
+    weather: cloudyWeatherAt("2026-09-09T09:00:00-03:00"),
+    icon: "cloud",
+  });
+
+  assert.equal(photo.kind, "cloudy");
+  assert.notEqual(photo.src, "/weather/hero/pelotas-noite-madrugada-nublado.png");
 });
