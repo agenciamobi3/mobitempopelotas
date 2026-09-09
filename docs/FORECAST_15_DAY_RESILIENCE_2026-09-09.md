@@ -2,7 +2,7 @@
 
 Data: 09/09/2026  
 Rota: `/previsao-15-dias-pelotas`  
-Status: implementado na `main`; validação executável continua dependente de runner funcional
+Status: implementado na `main`; cache e Edge estendidos implantados no Supabase de produção; validação executável do app continua dependente de runner funcional
 
 ## Objetivo
 
@@ -112,11 +112,21 @@ Foi adicionado contrato estático para proteger:
 
 Não declarar build, typecheck, lint ou testes como PASS enquanto não houver execução real em runner funcional.
 
-## Gate de implantação
+## Implantação em produção
 
-Para a contingência persistida ficar operacional no ambiente Supabase, o ambiente precisa receber:
+Em 09/09/2026 a infraestrutura estendida foi aplicada ao projeto Supabase `tempopelotas`:
 
-1. a migration `20260909192000_add_open_meteo_extended_cache.sql`;
-2. deploy da Edge Function `open-meteo-extended-forecast`.
+1. migration `add_open_meteo_extended_cache` aplicada com sucesso;
+2. Edge Function `open-meteo-extended-forecast` implantada e ativa, versão 1, usando autenticação própria por `X-Collector-Token`;
+3. o cache foi aquecido por uma chamada controlada à própria Edge Function;
+4. a chamada respondeu HTTP 200 com `cacheStatus: refreshed`;
+5. o payload persistido continha 15 datas, de 09/09/2026 a 23/09/2026, originadas de `Open-Meteo Best Match`;
+6. a linha `open-meteo-extended` ficou em estado `live`, com 15 dias efetivamente persistidos.
 
-Mesmo antes disso, a aplicação já possui as duas consultas diretas de 15 dias, Best Match e NOAA GFS. A ausência temporária da nova Edge não deve derrubar a rota; ela apenas reduz uma camada de contingência.
+Portanto a contingência de 15 dias não está apenas preparada em código: existe e possui um último payload válido no ambiente de produção.
+
+## Segurança da RPC pública
+
+O Supabase Advisor sinaliza RPCs públicas `SECURITY DEFINER` como aviso genérico. Neste caso o acesso anônimo à `get_public_open_meteo_extended_cache_snapshot()` é deliberado, assim como no snapshot público já existente do Open-Meteo: a tabela permanece privada e a função retorna apenas o payload meteorológico público e timestamps, sem token, lease ou configurações internas.
+
+Os demais avisos retornados pelo Advisor já pertencem a outras áreas do banco e não foram alterados por esta implementação.
