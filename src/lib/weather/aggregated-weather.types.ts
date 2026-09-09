@@ -10,7 +10,9 @@ import type { DailyForecast, ForecastSourceKey, HourlyForecast, WeatherIconName 
 
 export type { ForecastSourceKey };
 
+export type NowObservationSourceKey = "embrapa" | "defesa-civil-rs";
 export type WeatherSourceKey = "defesa-civil-rs" | "inmet" | "cppmet" | ForecastSourceKey;
+export type WeatherDataSourceKey = WeatherSourceKey | NowObservationSourceKey;
 
 export type AggregatedWeatherStatus = "live" | "degraded" | "unavailable";
 export type WeatherConfidence = "high" | "medium" | "low";
@@ -36,7 +38,9 @@ export type AggregatedCurrentWeather = {
 
 export type AggregatedCurrentField = Exclude<keyof AggregatedCurrentWeather, "city" | "state">;
 
-export type AggregatedCurrentProvenance = Partial<Record<AggregatedCurrentField, WeatherSourceKey>>;
+export type AggregatedCurrentProvenance = Partial<
+  Record<AggregatedCurrentField, WeatherDataSourceKey>
+>;
 
 export type WeatherDiscrepancyField =
   | "temperature"
@@ -51,8 +55,8 @@ export type WeatherDiscrepancy = {
   scope: "current" | "daily";
   field: WeatherDiscrepancyField;
   severity: "notice" | "significant";
-  referenceSource: WeatherSourceKey;
-  comparisonSource: WeatherSourceKey;
+  referenceSource: WeatherDataSourceKey;
+  comparisonSource: WeatherDataSourceKey;
   referenceValue: number;
   comparisonValue: number;
   difference: number;
@@ -69,10 +73,20 @@ export type WeatherSourceHealth = {
   reason: string | null;
 };
 
+export type AggregatedNowObservation = {
+  primarySource: NowObservationSourceKey;
+  selectedSource: NowObservationSourceKey | null;
+  fallbackUsed: boolean;
+  sourceName: string | null;
+  stationName: string | null;
+  sourceUrl: string | null;
+  observedAt: string | null;
+};
+
 export type AggregatedWeatherQuality = {
   score: number;
   confidence: WeatherConfidence;
-  currentSource: "defesa-civil-rs" | ForecastSourceKey | null;
+  currentSource: NowObservationSourceKey | null;
   forecastSource: ForecastSourceKey | null;
   forecastProvider: string | null;
   degradedSources: WeatherSourceKey[];
@@ -88,6 +102,7 @@ export type AggregatedWeatherData = {
   hourly: HourlyForecast[];
   daily: DailyForecast[];
   observation: CurrentWeatherObservation;
+  now?: AggregatedNowObservation;
   alerts: InmetAlert[];
   inmetForecast: InmetForecastPeriod[];
   inmetStation: InmetStationReference["station"];
