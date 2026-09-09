@@ -75,7 +75,11 @@ function compactWeatherContext(weather: AggregatedWeatherData) {
   return {
     status: weather.status,
     observationPolicy: {
-      currentConditionsSource: "Embrapa Clima Temperado",
+      currentConditionsSource:
+        weather.now?.sourceName ?? weather.quality.currentSource ?? "sem observação atual selecionada",
+      primaryObservationModule: weather.now?.primarySource ?? null,
+      selectedObservationModule: weather.now?.selectedSource ?? weather.quality.currentSource,
+      fallbackObservationUsed: weather.now?.fallbackUsed ?? false,
       officialForecastAndAlertsSource: "INMET",
       detailedHourlyForecastSource: weather.quality.forecastProvider,
       regionalContextSource: "CPPMet / UFPel",
@@ -135,7 +139,8 @@ function buildPrompt(weather: AggregatedWeatherData) {
   const prompt = [
     "Produza uma síntese meteorológica objetiva para moradores de Pelotas, RS.",
     "Use exclusivamente os dados JSON fornecidos. Não invente valores, horários, alertas ou recomendações.",
-    "Condições atuais são medições apenas quando currentSource for Embrapa; não trate previsão do INMET, Open-Meteo ou MET Norway como observação atual.",
+    "Condições atuais são medições apenas quando currentSource estiver preenchido com um módulo observacional selecionado; nunca trate previsão do INMET, Open-Meteo ou MET Norway como observação atual.",
+    "Respeite selectedObservationModule e fallbackObservationUsed; uma troca silenciosa entre módulos observacionais não autoriza misturar campos de duas estações na mesma leitura.",
     "Use o INMET como previsão municipal e alertas oficiais, o provedor global como detalhamento temporal e o CPPMet/UFPel como contexto regional.",
     "O texto será reutilizado durante uma janela de até seis horas. Descreva o cenário do período e a tendência do dia.",
     "Evite as expressões agora, neste momento e neste instante. Não use uma medição pontual como manchete duradoura.",
