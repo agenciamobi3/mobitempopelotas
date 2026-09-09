@@ -53,19 +53,39 @@ function hasPositiveGust(day: DailyForecast) {
   return (day.windGust ?? 0) > 0;
 }
 
+function hasRainAttention(day: DailyForecast) {
+  return (day.rainChance ?? 0) >= 35 || day.precipitationMm >= 4;
+}
+
+function hasWindAttention(day: DailyForecast) {
+  return (day.windGust ?? 0) >= 35;
+}
+
 function dayTone(day: DailyForecast): DayTone {
   if ((day.rainChance ?? 0) >= 70 || day.precipitationMm >= 15 || (day.windGust ?? 0) >= 60) {
     return "high";
   }
-  if ((day.rainChance ?? 0) >= 35 || day.precipitationMm >= 4 || (day.windGust ?? 0) >= 35) {
+  if (hasRainAttention(day) || hasWindAttention(day)) {
     return "attention";
   }
   return "stable";
 }
 
-function toneLabel(tone: DayTone) {
-  if (tone === "high") return "Mais chuva/vento";
-  if (tone === "attention") return "Acompanhar";
+function toneLabel(day: DailyForecast, tone: DayTone) {
+  if (tone === "stable") return null;
+
+  const rain = hasRainAttention(day);
+  const wind = hasWindAttention(day);
+
+  if (tone === "high") {
+    if (rain && wind) return "Mais chuva/vento";
+    if (rain) return "Mais chuva";
+    if (wind) return "Rajadas fortes";
+  }
+
+  if (rain && wind) return "Chuva + rajadas";
+  if (rain) return "Chuva";
+  if (wind) return "Rajadas";
   return null;
 }
 
@@ -131,6 +151,7 @@ export function SevenDayForecastPageV2({ data }: { data: WeatherIntelligenceData
         <header>
           <div>
             <h2 id="seven-day-v2-days-title">Previsão dos próximos 7 dias</h2>
+            <p>Atualizado em {formatDateTime(weather.source.fetchedAt)}</p>
           </div>
           <Link to="/tempo-hoje-pelotas">Hoje em detalhes</Link>
         </header>
@@ -138,7 +159,7 @@ export function SevenDayForecastPageV2({ data }: { data: WeatherIntelligenceData
         <div className="seven-day-v2-days__grid">
           {days.map((day, index) => {
             const tone = dayTone(day);
-            const badge = index === 0 ? "Hoje" : index === 1 ? "Amanhã" : toneLabel(tone);
+            const badge = index === 0 ? "Hoje" : index === 1 ? "Amanhã" : toneLabel(day, tone);
             return (
               <article className={`tone-${tone}${index === 0 ? " is-today" : ""}`} key={`${day.weekday}-${day.date}`}>
                 <header>
@@ -336,13 +357,6 @@ export function SevenDayForecastPageV2({ data }: { data: WeatherIntelligenceData
         <Link to="/chuva-em-pelotas"><span><strong>Chuva por horário</strong></span><ArrowRight aria-hidden="true" /></Link>
         <Link to="/vento-em-pelotas"><span><strong>Vento em Pelotas</strong></span><ArrowRight aria-hidden="true" /></Link>
       </nav>
-
-      <aside className="seven-day-v2-source-note" aria-label="Origem e atualização da previsão">
-        <Info aria-hidden="true" />
-        <p>
-          Atualizado em {formatDateTime(weather.source.fetchedAt)} · Fonte principal: {weather.quality.forecastProvider ?? "modelo meteorológico disponível"}.
-        </p>
-      </aside>
     </div>
   );
 }
