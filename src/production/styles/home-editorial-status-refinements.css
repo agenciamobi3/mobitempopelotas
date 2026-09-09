@@ -240,6 +240,80 @@
   max-width: 30ch;
 }
 
+/*
+ * Falha total de meteorologia: a Home mantém a mesma primeira dobra do Hero.
+ * Os textos internos continuam disponíveis semanticamente, mas não aparecem
+ * visualmente; o visitante vê apenas um skeleton neutro enquanto as fontes
+ * são consultadas, sem o antigo card branco de "Atualizando dados".
+ */
+.site-shell--home-editorial .production-weather-unavailable {
+  position: relative;
+  width: min(1440px, calc(100% - 48px));
+  max-width: none;
+  min-height: 590px;
+  margin: 18px auto 0;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 9px;
+  background: #071b2c;
+  box-shadow: none;
+}
+
+.site-shell--home-editorial .production-weather-unavailable > * {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-shell--home-editorial .production-weather-unavailable::before {
+  position: absolute;
+  inset: 42px clamp(28px, 4vw, 58px);
+  display: block;
+  content: "";
+  background:
+    linear-gradient(rgb(255 255 255 / 12%), rgb(255 255 255 / 12%)) 0 0 / 210px 14px no-repeat,
+    linear-gradient(rgb(255 255 255 / 11%), rgb(255 255 255 / 11%)) 0 94px / min(520px, 62vw) 88px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 0 210px / min(460px, 56vw) 16px no-repeat,
+    linear-gradient(rgb(255 255 255 / 9%), rgb(255 255 255 / 9%)) 0 244px / min(340px, 44vw) 44px no-repeat,
+    linear-gradient(rgb(255 255 255 / 8%), rgb(255 255 255 / 8%)) 0 330px / min(900px, 76vw) 1px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 0 358px / 150px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 180px 358px / 150px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 360px 358px / 150px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 540px 358px / 150px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 720px 358px / 150px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 8%), rgb(255 255 255 / 8%)) 0 448px / min(1180px, 86vw) 1px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 0 474px / 118px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 155px 474px / 118px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 310px 474px / 118px 42px no-repeat,
+    linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 465px 474px / 118px 42px no-repeat;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.site-shell--home-editorial .production-weather-unavailable::after {
+  position: absolute;
+  inset: 0;
+  display: block;
+  content: "";
+  background: linear-gradient(
+    105deg,
+    transparent 34%,
+    rgb(255 255 255 / 4%) 45%,
+    rgb(255 255 255 / 9%) 50%,
+    rgb(255 255 255 / 4%) 55%,
+    transparent 66%
+  );
+  transform: translateX(-100%);
+  animation: tp-home-empty-skeleton-shimmer 1.7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tp-home-empty-skeleton-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @media (max-width: 1240px) {
   .tp-home-alert-index-shell {
     width: calc(100% - 32px);
@@ -308,5 +382,34 @@
     width: 38px;
     height: 44px;
     font-size: 2.1rem;
+  }
+
+  .site-shell--home-editorial .production-weather-unavailable {
+    width: calc(100% - 24px);
+    min-height: 520px;
+    margin-top: 12px;
+  }
+
+  .site-shell--home-editorial .production-weather-unavailable::before {
+    inset: 30px 24px;
+    background:
+      linear-gradient(rgb(255 255 255 / 12%), rgb(255 255 255 / 12%)) 0 0 / 150px 12px no-repeat,
+      linear-gradient(rgb(255 255 255 / 11%), rgb(255 255 255 / 11%)) 0 82px / 74vw 72px no-repeat,
+      linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 0 180px / 68vw 15px no-repeat,
+      linear-gradient(rgb(255 255 255 / 9%), rgb(255 255 255 / 9%)) 0 212px / 52vw 40px no-repeat,
+      linear-gradient(rgb(255 255 255 / 8%), rgb(255 255 255 / 8%)) 0 300px / 84vw 1px no-repeat,
+      linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 0 326px / 38vw 46px no-repeat,
+      linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 44vw 326px / 38vw 46px no-repeat,
+      linear-gradient(rgb(255 255 255 / 8%), rgb(255 255 255 / 8%)) 0 410px / 84vw 1px no-repeat,
+      linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 0 436px / 24vw 42px no-repeat,
+      linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 30vw 436px / 24vw 42px no-repeat,
+      linear-gradient(rgb(255 255 255 / 10%), rgb(255 255 255 / 10%)) 60vw 436px / 24vw 42px no-repeat;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-shell--home-editorial .production-weather-unavailable::after {
+    animation: none;
+    opacity: 0.35;
   }
 }
