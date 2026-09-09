@@ -171,9 +171,10 @@
 .internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
   display: grid;
   width: fit-content;
-  min-height: 42px;
+  min-height: 54px;
+  max-width: 100%;
   place-items: center;
-  padding: 6px 9px;
+  padding: 7px 10px;
   overflow: hidden;
   border: 1px solid rgb(7 30 47 / 10%);
   border-radius: 10px;
@@ -183,8 +184,7 @@
 
 .internal-weather-shell--alerts .alerts-source-logo {
   display: block;
-  width: 136px;
-  max-width: 100%;
+  width: min(227px, 100%);
   height: auto;
   border-radius: 6px;
 }
@@ -240,6 +240,14 @@
 
   .internal-weather-shell--alerts .inmet-alert-coverage-details h2 {
     max-width: none;
+  }
+
+  .internal-weather-shell--alerts .alerts-scope-summary .is-live dd.alerts-source-logo-cell {
+    width: min(100%, 247px);
+  }
+
+  .internal-weather-shell--alerts .alerts-source-logo {
+    width: min(227px, 100%);
   }
 }
 
