@@ -100,6 +100,20 @@ function satelliteProduct(type: RedemetSatelliteType) {
   return SATELLITE_PRODUCTS.find((product) => product.type === type) ?? SATELLITE_PRODUCTS[0]!;
 }
 
+function formatExpectedSatelliteDateTime(value: string | null | undefined) {
+  if (!value) return null;
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return null;
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(timestamp);
+}
+
 function emptyBrowserSatelliteLayer(
   type: RedemetSatelliteType,
   error: string | null = null,
@@ -241,8 +255,8 @@ function EmptyLayer({
   refreshing: boolean;
 }) {
   const daylight = layer.availabilityReason === "daylight";
-  const nextExpected = daylight && layer.nextExpectedAt
-    ? formatRedemetDateTime(layer.nextExpectedAt)
+  const nextExpected = daylight
+    ? formatExpectedSatelliteDateTime(layer.nextExpectedAt)
     : null;
 
   return (
@@ -485,6 +499,7 @@ export function RedemetOverview({
 
     const type = selectedSatelliteType;
     const controller = new AbortController();
+    let active = true;
     setLoadingSatelliteType(type);
 
     void fetch(`/api/redemet/satellite?type=${type}&frames=4`, {
@@ -496,10 +511,11 @@ export function RedemetOverview({
         return response.json() as Promise<RedemetImageLayerResponse>;
       })
       .then((payload) => {
+        if (!active) return;
         setSatelliteLayers((current) => ({ ...current, [type]: payload }));
       })
       .catch((error) => {
-        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (!active || (error instanceof DOMException && error.name === "AbortError")) return;
         setSatelliteLayers((current) =>
           current[type]
             ? current
@@ -513,10 +529,14 @@ export function RedemetOverview({
         );
       })
       .finally(() => {
+        if (!active) return;
         setLoadingSatelliteType((current) => (current === type ? null : current));
       });
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, [selectedSatelliteType]);
 
   const selectedProduct = satelliteProduct(selectedSatelliteType);
