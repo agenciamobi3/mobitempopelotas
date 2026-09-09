@@ -22,25 +22,25 @@
 
 /*
  * Overlay fotográfico: preto neutro em vez de azul marinho. A proteção de
- * contraste permanece forte onde existe conteúdo e desaparece gradualmente
- * para devolver a fotografia limpa no lado direito.
+ * contraste permanece na área de leitura, mas agora é mais leve no conjunto,
+ * e o blur termina antes para devolver mais fotografia no lado direito.
  */
 .site-shell--home-editorial .tp-home-hero__overlay {
   background:
     linear-gradient(
       90deg,
-      rgb(0 0 0 / 82%) 0%,
-      rgb(0 0 0 / 70%) 25%,
-      rgb(0 0 0 / 47%) 48%,
-      rgb(0 0 0 / 22%) 67%,
-      rgb(0 0 0 / 7%) 82%,
+      rgb(0 0 0 / 74%) 0%,
+      rgb(0 0 0 / 60%) 24%,
+      rgb(0 0 0 / 36%) 46%,
+      rgb(0 0 0 / 14%) 64%,
+      rgb(0 0 0 / 3%) 78%,
       rgb(0 0 0 / 0%) 100%
     ),
     linear-gradient(
       180deg,
       rgb(0 0 0 / 0%) 0%,
-      rgb(0 0 0 / 2%) 58%,
-      rgb(0 0 0 / 24%) 100%
+      rgb(0 0 0 / 1%) 58%,
+      rgb(0 0 0 / 14%) 100%
     );
 }
 
@@ -49,25 +49,25 @@
   inset: 0;
   content: "";
   background: rgb(0 0 0 / 1%);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   -webkit-mask-image: linear-gradient(
     90deg,
     #000 0%,
-    #000 34%,
-    rgb(0 0 0 / 78%) 50%,
-    rgb(0 0 0 / 38%) 68%,
-    rgb(0 0 0 / 10%) 79%,
-    transparent 87%
+    #000 30%,
+    rgb(0 0 0 / 62%) 46%,
+    rgb(0 0 0 / 24%) 62%,
+    rgb(0 0 0 / 8%) 73%,
+    transparent 82%
   );
   mask-image: linear-gradient(
     90deg,
     #000 0%,
-    #000 34%,
-    rgb(0 0 0 / 78%) 50%,
-    rgb(0 0 0 / 38%) 68%,
-    rgb(0 0 0 / 10%) 79%,
-    transparent 87%
+    #000 30%,
+    rgb(0 0 0 / 62%) 46%,
+    rgb(0 0 0 / 24%) 62%,
+    rgb(0 0 0 / 8%) 73%,
+    transparent 82%
   );
   pointer-events: none;
 }
@@ -155,19 +155,38 @@
       linear-gradient(
         90deg,
         rgb(0 0 0 / 80%) 0%,
-        rgb(0 0 0 / 68%) 36%,
-        rgb(0 0 0 / 42%) 66%,
-        rgb(0 0 0 / 12%) 88%,
+        rgb(0 0 0 / 68%) 52%,
+        rgb(0 0 0 / 38%) 76%,
+        rgb(0 0 0 / 8%) 92%,
         rgb(0 0 0 / 0%) 100%
       ),
-      linear-gradient(180deg, rgb(0 0 0 / 1%) 0%, rgb(0 0 0 / 28%) 100%);
+      linear-gradient(
+        180deg,
+        rgb(0 0 0 / 0%) 0%,
+        rgb(0 0 0 / 2%) 46%,
+        rgb(0 0 0 / 18%) 100%
+      );
   }
 
   .site-shell--home-editorial .tp-home-hero__overlay::before {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 48%, rgb(0 0 0 / 45%) 78%, transparent 96%);
-    mask-image: linear-gradient(90deg, #000 0%, #000 48%, rgb(0 0 0 / 45%) 78%, transparent 96%);
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      #000 0%,
+      #000 44%,
+      rgb(0 0 0 / 52%) 68%,
+      rgb(0 0 0 / 12%) 84%,
+      transparent 94%
+    );
+    mask-image: linear-gradient(
+      90deg,
+      #000 0%,
+      #000 44%,
+      rgb(0 0 0 / 52%) 68%,
+      rgb(0 0 0 / 12%) 84%,
+      transparent 94%
+    );
   }
 
   .tp-home-hero:has(.tp-home-hero__status.is-unavailable)::before {
