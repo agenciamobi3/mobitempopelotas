@@ -82,7 +82,6 @@ export function SevenDayRetailHero({
   const condition = hasDailyForecast
     ? weatherConditionLabels[iconName]
     : "Previsão semanal em atualização";
-  const sourceName = weather.source.forecastName ?? weather.source.name;
 
   return (
     <section
@@ -126,7 +125,6 @@ export function SevenDayRetailHero({
             <div>
               <small>Tendência da semana</small>
               <strong>{condition}</strong>
-              <span>Fonte principal: {sourceName}</span>
             </div>
           </div>
 
