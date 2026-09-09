@@ -259,7 +259,14 @@ function stormPhoto(weather: WeatherData) {
 }
 
 function cloudyPhoto(weather: WeatherData) {
-  if (!isMiddayHour(currentPelotasHour(weather))) return heroPhotos.cloudy;
+  const hour = currentPelotasHour(weather);
+  if (hour !== null && hour >= 0 && hour < MADRUGADA_END_HOUR) {
+    return {
+      kind: "cloudy",
+      ...partlyCloudyMadrugadaAlternate,
+    } satisfies HeroPhotoPresentation;
+  }
+  if (!isMiddayHour(hour)) return heroPhotos.cloudy;
   return {
     kind: "cloudy",
     ...cloudyMiddayAlternate,
