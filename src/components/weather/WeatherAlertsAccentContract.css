@@ -207,6 +207,43 @@
   border-radius: 6px;
 }
 
+/*
+ * Defesa Civil: a atribuição final usa toda a largura da seção e funciona como
+ * uma faixa editorial, não como um rodapé estreito ou um novo card.
+ */
+.internal-weather-shell--alerts .alerts-civil-defense__source {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  max-width: none;
+  margin-top: 0;
+  padding: 16px 0 0;
+}
+
+.internal-weather-shell--alerts .alerts-civil-defense__source > svg {
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid rgb(8 127 145 / 20%);
+  border-radius: 9px;
+  color: #087f91;
+  background: #fff;
+}
+
+.internal-weather-shell--alerts .alerts-civil-defense__source > span {
+  display: block;
+  min-width: 0;
+  line-height: 1.55;
+}
+
+.internal-weather-shell--alerts .alerts-civil-defense__source a {
+  white-space: normal;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .internal-weather-shell--alerts .alerts-source-logo-link:hover {
     border-color: rgb(24 189 205 / 30%);
@@ -282,6 +319,20 @@
     width: min(227px, calc(100vw - 76px));
     max-width: 100%;
   }
+
+  .internal-weather-shell--alerts .alerts-civil-defense__source {
+    grid-template-columns: 30px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 10px;
+    padding-top: 14px;
+  }
+
+  .internal-weather-shell--alerts .alerts-civil-defense__source > svg {
+    width: 30px;
+    height: 30px;
+    margin-top: 1px;
+    padding: 7px;
+  }
 }
 
 @media (forced-colors: active) {
@@ -293,7 +344,8 @@
     border-color: Highlight;
   }
 
-  .internal-weather-shell--alerts .alerts-source-logo-link {
+  .internal-weather-shell--alerts .alerts-source-logo-link,
+  .internal-weather-shell--alerts .alerts-civil-defense__source > svg {
     border-color: CanvasText;
     background: Canvas;
     color: CanvasText;
