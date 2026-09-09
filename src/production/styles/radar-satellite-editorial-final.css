@@ -33,6 +33,10 @@
   background-color: #f3f7f8 !important;
 }
 
+.site-shell--topic .redemet-source-overview > header p {
+  max-width: none;
+}
+
 .site-shell--topic .redemet-source-overview__list,
 .site-shell--topic .redemet-monitor__surface,
 .site-shell--topic .redemet-satellite-products,
@@ -100,6 +104,12 @@
 .site-shell--topic .redemet-collections h2,
 .site-shell--topic .radar-forecast-context h2 {
   font-size: clamp(1.9rem, 3vw, 3.2rem);
+}
+
+@media (min-width: 1440px) {
+  .site-shell--topic .redemet-source-overview > header p {
+    white-space: nowrap;
+  }
 }
 
 @media (max-width: 720px) {
