@@ -159,34 +159,43 @@ test("Defesa Civil RS map and section preserve safe rendering and responsive acc
   assert.match(defesaCivilStyles, /:focus-visible/);
 });
 
-test("local station distinguishes live, stale and unavailable readings", () => {
+test("local station distinguishes live, stale and unavailable readings in the hero", () => {
   assert.match(page, /level\.status === "live"/);
   assert.match(page, /level\.status === "stale"/);
   assert.match(page, /Última leitura conhecida/);
-  assert.match(page, /não como nível atual/);
   assert.match(page, /Leitura indisponível/);
-  assert.match(page, /não substitui a ausência da estação por um nível estimado/);
   assert.match(page, /role="status"/);
   assert.doesNotMatch(page, /level\.status === "stale"[^\n]{0,220}label:\s*"Nível atual"/i);
 });
 
-test("measurement time, age and portal update remain separate", () => {
-  assert.match(page, /Horário da medição/);
-  assert.match(page, /Tempo desde a leitura/);
-  assert.match(page, /Consulta do portal/);
-  assert.match(page, /formatDateTime\(level\.updatedAt\)/);
-  assert.match(page, /ageLabel\(level\.ageMinutes\)/);
-  assert.match(page, /formatDateTime\(level\.source\.fetchedAt\)/);
+test("hero keeps the last collection beside the status and removes the duplicate telemetry strip", () => {
+  assert.match(page, /\{status\.label\}[\s\S]{0,120}formatDateTime\(level\.updatedAt\)/);
+  assert.doesNotMatch(page, /id="estado-da-telemetria"/);
+  assert.doesNotMatch(page, /Situação da Estação Laranjal/);
+  assert.doesNotMatch(page, /Nível local disponível/);
+  assert.doesNotMatch(page, /Horário da medição/);
+  assert.doesNotMatch(page, /Tempo desde a leitura/);
+  assert.doesNotMatch(page, /Consulta do portal/);
+  assert.match(homeContract, /hydrology-v2-hero__reading > header[\s\S]*display:\s*flex/);
 });
 
 test("Laranjal level preserves its own reference and avoids cross-station conversion", () => {
   assert.match(page, /referência própria do equipamento/);
   assert.match(page, /não deve ser comparado diretamente com números absolutos de outras estações/);
   assert.match(page, /Este valor não é uma classificação de risco/);
-  assert.match(page, /não usa as[\s\S]*cotas de Atenção, Alerta ou Inundação de outras estações/);
+  assert.match(page, /não usa[\s\S]*cotas de Atenção, Alerta ou Inundação de outras estações/);
   assert.match(route, /os números não devem ser comparados por simples subtração/i);
   assert.match(route, /não são convertidas em classificação para o Laranjal/);
   assert.doesNotMatch(hydrologySource, /cota de inundação do Laranjal:\s*\d/i);
+  assert.doesNotMatch(page, /LabHidroSens\/UFPel/);
+  assert.doesNotMatch(page, /Referência local da UFPel/);
+});
+
+test("local warning keeps its copy and external station link aligned in one content column", () => {
+  assert.match(page, /hydrology-v2-reference-warning[\s\S]*<ShieldAlert[\s\S]*<div>[\s\S]*<p>/);
+  assert.match(page, /Abrir painel da estação/);
+  assert.match(homeContract, /hydrology-v2-reference-warning > div[\s\S]*display:\s*grid/);
+  assert.match(homeContract, /hydrology-v2-reference-warning a[\s\S]*width:\s*fit-content/);
 });
 
 test("local series exposes trend and changes without inventing missing data", () => {
@@ -212,14 +221,24 @@ test("regional network and SACE remain context rather than local forecasts", () 
   assert.match(route, /sem transformá-la em risco para Pelotas/);
 });
 
-test("weather information is clearly forecast and limited to 24 hours", () => {
+test("weather context uses real observations separately from a complete 24-hour forecast", () => {
   assert.match(page, /weather\.weather\.hourly\.slice\(0, 24\)/);
-  assert.match(page, /Previsão para as próximas 24 horas/);
-  assert.match(page, /Estes valores são previsão do tempo, não medições do nível da água/);
+  assert.match(page, /if \(hourly\.length < 24\)/);
+  assert.match(page, /completeHourlyValues/);
   assert.match(page, /precipitationMm/);
   assert.match(page, /precipitationProbability/);
   assert.match(page, /windGust/);
-  assert.match(page, /não calculam sozinhos quanto o nível do Laranjal vai subir ou baixar/);
+  assert.match(page, /weather\.weather\.quality\.currentSource/);
+  assert.match(page, /currentSource === "embrapa"/);
+  assert.match(page, /currentSource === "defesa-civil-rs"/);
+  assert.match(page, /weather\.weather\.observation/);
+  assert.match(page, /defesaCivil\.rain\.h1Mm/);
+  assert.match(page, /defesaCivilHealth\.usable/);
+  assert.match(page, /current\.windSpeed/);
+  assert.match(page, /Chuva observada · 1 h/);
+  assert.match(page, /Condição observada e previsão · 24 horas/);
+  assert.match(page, /Total somente quando as 24 horas estão completas/);
+  assert.match(page, /não calculam sozinhos quanto o nível do Laranjal vai subir/);
 });
 
 test("absence of transmission is never interpreted as normal level", () => {
@@ -256,11 +275,13 @@ test("hydrology overview follows the clean internal editorial layout", () => {
   assert.doesNotMatch(styles, /font-size:\s*0\.[0-6][0-9]rem/);
 });
 
-test("hydrology Home contract keeps water identity without decorative gradients", () => {
+test("hydrology Home contract keeps water identity and responsive observed-weather refinement", () => {
   assert.match(homeContract, /Situação das águas — acento hidrológico discreto/);
   assert.match(homeContract, /\.hydrology-v2-hero__content,[\s\S]*\.hydrology-v2-hero__reading[\s\S]*background:\s*transparent/);
   assert.match(homeContract, /\.hydrology-v2-hero__content::before,[\s\S]*\.hydrology-v2-hero__reading::before[\s\S]*display:\s*none/);
   assert.match(homeContract, /\.hydrology-v2-hero__actions a:first-child[\s\S]*background:\s*#071e2f/);
+  assert.match(homeContract, /\.hydrology-v2-weather-observed[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(homeContract, /\.hydrology-v2-weather-grid[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.doesNotMatch(homeContract, /radial-gradient|linear-gradient/);
   assert.match(homeContract, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(homeContract, /!important/);
