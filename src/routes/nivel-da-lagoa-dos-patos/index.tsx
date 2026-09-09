@@ -5,9 +5,9 @@ import { loadLagoonLocalityNetwork } from "@/lib/hydrology/lagoon-locality-page-
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
-const PAGE_TITLE = "Nível da Lagoa dos Patos hoje: estações e tendência";
+const PAGE_TITLE = "Nível da Lagoa dos Patos hoje: estações e Costa Doce";
 const PAGE_DESCRIPTION =
-  "Acompanhe o nível da Lagoa dos Patos hoje em cinco pontos de monitoramento, com leituras locais, tendência, horário e links para Rio Grande, São Lourenço do Sul, Arambaré, São José do Norte e Itapuã/Viamão.";
+  "Acompanhe o nível da Lagoa dos Patos em cinco pontos de monitoramento e navegue pelas cidades da Costa Doce do RS com medição de nível ou previsão meteorológica disponível no Tempo Pelotas.";
 const PAGE_PATH = "/nivel-da-lagoa-dos-patos";
 
 export const Route = createFileRoute("/nivel-da-lagoa-dos-patos")({
@@ -24,10 +24,12 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos")({
         ],
         about: [
           "Nível da Lagoa dos Patos hoje",
+          "Costa Doce do Rio Grande do Sul",
           "Rio Grande",
           "São Lourenço do Sul",
           "Arambaré",
           "São José do Norte",
+          "Pelotas",
           "Itapuã",
           "Monitoramento hidrológico regional",
           "FURG",
