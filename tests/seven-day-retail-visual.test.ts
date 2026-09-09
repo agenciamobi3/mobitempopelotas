@@ -74,12 +74,17 @@ test("weekly empty and zero states do not invent weather highlights", () => {
   assert.match(page, /Ainda não há dados suficientes para mostrar os próximos dias/);
 });
 
-test("weekly day badges keep only useful status labels", () => {
-  assert.match(page, /if \(tone === "high"\) return "Mais chuva\/vento"/);
-  assert.match(page, /if \(tone === "attention"\) return "Acompanhar"/);
-  assert.match(page, /return null/);
+test("weekly day badges explain the weather signal instead of saying acompanhar", () => {
+  assert.match(page, /function hasRainAttention\(day: DailyForecast\)/);
+  assert.match(page, /function hasWindAttention\(day: DailyForecast\)/);
+  assert.match(page, /if \(rain && wind\) return "Mais chuva\/vento"/);
+  assert.match(page, /if \(wind\) return "Rajadas fortes"/);
+  assert.match(page, /if \(rain && wind\) return "Chuva \+ rajadas"/);
+  assert.match(page, /if \(rain\) return "Chuva"/);
+  assert.match(page, /if \(wind\) return "Rajadas"/);
+  assert.doesNotMatch(page, /Acompanhar/);
   assert.doesNotMatch(page, /return "Sem destaque"/);
-  assert.match(page, /const badge = index === 0 \? "Hoje" : index === 1 \? "Amanhã" : toneLabel\(tone\)/);
+  assert.match(page, /const badge = index === 0 \? "Hoje" : index === 1 \? "Amanhã" : toneLabel\(day, tone\)/);
   assert.match(page, /\{badge \? <b>\{badge\}<\/b> : null\}/);
 });
 
@@ -94,6 +99,7 @@ test("weekly page keeps direct section titles and the comparative data", () => {
   assert.match(page, /weather\.daily\.slice\(0, 7\)/);
   assert.match(page, /InternalPageChapters/);
   assert.match(page, /Previsão dos próximos 7 dias/);
+  assert.match(page, /Atualizado em \{formatDateTime\(weather\.source\.fetchedAt\)\}/);
   assert.match(page, /Temperaturas nos próximos 7 dias/);
   assert.match(page, /Chuva e rajadas nos próximos 7 dias/);
   assert.match(page, /INMET e UFPel nos próximos dias/);
@@ -102,7 +108,8 @@ test("weekly page keeps direct section titles and the comparative data", () => {
   assert.match(page, /rainRanking/);
   assert.match(page, /windRanking/);
   assert.match(page, /--week-low/);
-  assert.match(page, /Atualizado em \{formatDateTime\(weather\.source\.fetchedAt\)\} · Fonte principal/);
+  assert.doesNotMatch(page, /Fonte principal:/);
+  assert.doesNotMatch(page, /seven-day-v2-source-note/);
   assert.doesNotMatch(page, /panorama-da-semana/);
   assert.doesNotMatch(page, /Resumo da semana|Resumo dos próximos 7 dias/);
   assert.doesNotMatch(page, /<h1/);
