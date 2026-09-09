@@ -48,3 +48,11 @@ test("volume conhecido mantém distinção entre janela completa, parcial, zero 
   assert.match(rainVolume, /chance não informada/);
   assert.match(rainVolume, /className=\{volumeKnown \? undefined : "is-unknown"\}/);
 });
+
+test("página mantém horário de atualização sem repetir provedor visualmente", () => {
+  assert.match(rainVolume, /Atualizado em \{formatDateTime\(forecastFetchedAt\)\}/);
+  assert.doesNotMatch(rainVolume, /forecastProvider|Database/);
+  assert.match(rainPage, /Atualizado em \{formatFetchedAt\(weather\.source\.fetchedAt\)\}\.<\/span>/);
+  assert.doesNotMatch(rainPage, /forecastProvider=\{weather\.quality\.forecastProvider\}/);
+  assert.doesNotMatch(rainPage, /Atualizado em \{formatFetchedAt\(weather\.source\.fetchedAt\)\} ·/);
+});
