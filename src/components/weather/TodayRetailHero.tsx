@@ -27,7 +27,7 @@ type TodayRetailHeroProps = {
 type HeroFact = {
   label: string;
   value: string;
-  detail: string;
+  detail?: string;
   icon: LucideIcon;
 };
 
@@ -46,19 +46,6 @@ function formatWind(value: number | null, direction?: string | null) {
   return value !== null && direction ? `${speed} · ${direction}` : speed;
 }
 
-function extractClock(value: string | null | undefined) {
-  if (!value) return null;
-  const matches = value.match(/\b(?:[01]?\d|2[0-3]):[0-5]\d\b/g);
-  return matches?.[0] ?? null;
-}
-
-function updateLabel(weather: WeatherData, hasObservedCurrent: boolean) {
-  if (!hasObservedCurrent) return "Medição local indisponível";
-  const updateValue = weather.current.source.observedAt ?? weather.current.updatedAt;
-  const clock = extractClock(updateValue);
-  return clock ? `Leitura das ${clock}` : "Leitura recente";
-}
-
 function alertLabel(count: number) {
   if (count === 1) return "1 aviso oficial para Pelotas";
   return `${count} avisos oficiais para Pelotas`;
@@ -70,19 +57,16 @@ function buildObservedFacts(weather: WeatherData): HeroFact[] {
     {
       label: "Sensação",
       value: formatValue(current.feelsLike, "°"),
-      detail: "Medição atual",
       icon: Thermometer,
     },
     {
       label: "Umidade",
       value: formatValue(current.humidity, "%"),
-      detail: "Medição atual",
       icon: Droplets,
     },
     {
       label: "Vento",
       value: formatWind(current.windSpeed, current.windDirection),
-      detail: "Medição atual",
       icon: Wind,
     },
   ];
@@ -140,9 +124,6 @@ export function TodayRetailHero({
   const temperature = hasObservedCurrent ? current.temperature : (nextHour?.temperature ?? null);
   const facts = hasObservedCurrent ? buildObservedFacts(weather) : buildForecastFacts(weather);
   const hasAlert = officialAlertCount > 0;
-  const sourceName = hasObservedCurrent
-    ? current.source.name
-    : weather.source.forecastName ?? weather.source.name;
 
   return (
     <section
@@ -165,16 +146,13 @@ export function TodayRetailHero({
                 : "A medição local e a previsão horária estão em atualização. Nenhum valor demonstrativo é usado enquanto os dados não chegam."}
           </p>
 
-          <div className="today-retail-hero__meta" aria-label="Situação dos dados de hoje">
-            <span>{updateLabel(weather, hasObservedCurrent)}</span>
-            {hasAlert ? (
+          {hasAlert ? (
+            <div className="today-retail-hero__meta" aria-label="Avisos oficiais para hoje">
               <a className="is-alert" href="/alertas">
                 <ShieldAlert aria-hidden="true" /> {alertLabel(officialAlertCount)}
               </a>
-            ) : (
-              <span className="is-stable">Sem aviso oficial listado para Pelotas</span>
-            )}
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="today-retail-hero__summary">
@@ -183,12 +161,13 @@ export function TodayRetailHero({
               <WeatherIcon name={iconName} title={condition} />
             </span>
             <div>
-              <small>{hasObservedCurrent ? "Leitura atual" : hasForecast ? "Previsão da próxima hora" : "Dados atuais"}</small>
+              {!hasObservedCurrent ? (
+                <small>{hasForecast ? "Previsão da próxima hora" : "Dados em atualização"}</small>
+              ) : null}
               <div className="today-retail-hero__temperature-line">
                 <strong>{formatValue(temperature, "°")}</strong>
                 <span>{condition}</span>
               </div>
-              <em>Fonte: {sourceName}</em>
             </div>
           </div>
 
@@ -201,7 +180,7 @@ export function TodayRetailHero({
                     <Icon aria-hidden="true" /> {fact.label}
                   </span>
                   <strong>{fact.value}</strong>
-                  <small>{fact.detail}</small>
+                  {fact.detail ? <small>{fact.detail}</small> : null}
                 </article>
               );
             })}
