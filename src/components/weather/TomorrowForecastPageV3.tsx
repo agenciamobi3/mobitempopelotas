@@ -28,13 +28,19 @@ type PlanningCard = {
   tone: "normal" | "attention";
 };
 
-function buildChapters(hasOfficialContext: boolean) {
+function officialContextLabel(hasInmet: boolean, hasCppmet: boolean) {
+  if (hasInmet && hasCppmet) return "INMET e UFPel";
+  if (hasInmet) return "INMET";
+  return "UFPel";
+}
+
+function buildChapters(officialLabel: string | null) {
   return [
     { href: "#resumo-amanha", label: "Resumo", detail: "Temperatura, chuva e vento" },
     { href: "#comparacao-amanha", label: "Hoje x amanhã", detail: "O que muda" },
     { href: "#planejamento-amanha", label: "Amanhã", detail: "O que observar" },
-    ...(hasOfficialContext
-      ? [{ href: "#contexto-oficial-amanha", label: "INMET e UFPel", detail: "Previsões disponíveis" }]
+    ...(officialLabel
+      ? [{ href: "#contexto-oficial-amanha", label: officialLabel, detail: "Previsões disponíveis" }]
       : []),
     { href: "#perguntas-amanha", label: "Perguntas", detail: "Respostas" },
   ];
@@ -267,8 +273,13 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
     .filter((period) => period.date?.slice(0, 10) === tomorrowDate)
     .slice(0, 3);
   const cppmetContext = findCppmetContext(tomorrow, weather.officialForecast);
-  const hasOfficialContext = inmetPeriods.length > 0 || Boolean(cppmetContext);
-  const chapters = buildChapters(hasOfficialContext);
+  const hasInmetContext = inmetPeriods.length > 0;
+  const hasCppmetContext = Boolean(cppmetContext);
+  const hasOfficialContext = hasInmetContext || hasCppmetContext;
+  const officialLabel = hasOfficialContext
+    ? officialContextLabel(hasInmetContext, hasCppmetContext)
+    : null;
+  const chapters = buildChapters(officialLabel);
   const faqs = [
     {
       question: "Qual será a temperatura amanhã em Pelotas?",
@@ -407,7 +418,7 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
         </div>
       </section>
 
-      {hasOfficialContext ? (
+      {hasOfficialContext && officialLabel ? (
         <section
           className="tomorrow-v3-official"
           id="contexto-oficial-amanha"
@@ -415,7 +426,7 @@ export function TomorrowForecastPageV3({ data }: { data: WeatherIntelligenceData
         >
           <header>
             <div>
-              <h2 id="tomorrow-v3-official-title">INMET e UFPel para amanhã</h2>
+              <h2 id="tomorrow-v3-official-title">{officialLabel} para amanhã</h2>
             </div>
           </header>
 
