@@ -33,11 +33,25 @@ test("gráfico de nível compartilhado é rico e não se resume a uma linha", ()
 
 test("série compartilhada normaliza ordem temporal e não aceita pontos inválidos", () => {
   assert.match(chart, /function normalizePoints/);
-  assert.match(chart, /new Map<number, HydrologyLevelChartPoint>/);
+  assert.match(chart, /new Map<number, NormalizedPoint>/);
   assert.match(chart, /new Date\(point\.timestamp\)\.getTime\(\)/);
   assert.match(chart, /!Number\.isFinite\(point\.level\)/);
-  assert.match(chart, /!Number\.isFinite\(timestamp\)/);
-  assert.match(chart, /\.sort\(\(\[left\], \[right\]\) => left - right\)/);
+  assert.match(chart, /!Number\.isFinite\(epoch\)/);
+  assert.match(chart, /\.sort\(\(left, right\) => left\.epoch - right\.epoch\)/);
+});
+
+test("eixo horizontal respeita tempo real e lacunas não são ligadas artificialmente", () => {
+  assert.match(chart, /const timeRange = Math\.max\(1, latestEpoch - firstEpoch\)/);
+  assert.match(chart, /const xForEpoch = \(epoch: number\)/);
+  assert.match(chart, /\(epoch - firstEpoch\) \/ timeRange/);
+  assert.match(chart, /function gapThreshold/);
+  assert.match(chart, /GAP_MULTIPLIER = 2\.5/);
+  assert.match(chart, /function splitCoordinatesOnGaps/);
+  assert.match(chart, /const segments = splitCoordinatesOnGaps/);
+  assert.match(chart, /segment\.length >= 2/);
+  assert.match(chart, /série com lacunas/);
+  assert.match(chart, /não liga\s+artificialmente períodos sem observação/);
+  assert.match(chartCss, /hydrology-rich-chart__gap-note/);
 });
 
 test("gráfico de nível permanece responsivo e legível em telas estreitas", () => {
@@ -59,7 +73,8 @@ test("pontos da série oferecem inspeção sem criar uma floresta de tab stops",
   assert.match(chart, /hydrology-rich-chart__hit-point/);
   assert.match(chart, /<title>\{`\$\{formatLevel\(point\.level, unit\)\}/);
   assert.doesNotMatch(chart, /className="hydrology-rich-chart__hit-point"[\s\S]{0,180}tabIndex/);
-  assert.match(chart, /className="hydrology-rich-chart__plot"[\s\S]{0,120}tabIndex=\{0\}/);
+  assert.match(chart, /className="hydrology-rich-chart__plot"[\s\S]{0,120}role="region"/);
+  assert.match(chart, /role="region"[\s\S]{0,80}tabIndex=\{0\}/);
 });
 
 test("Guaíba, Laranjal e visão integrada usam o mesmo componente de gráfico", () => {
