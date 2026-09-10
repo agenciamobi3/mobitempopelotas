@@ -9,7 +9,7 @@
 }
 
 .regional-city-page > :is(
-    .home-inmet-alerts,
+    .regional-city-official-alert,
     .regional-city-shared-forecast,
     .regional-city-context,
     .regional-city-related,
@@ -23,15 +23,12 @@
 }
 
 .regional-city-page > section.regional-city-official-alert {
-  width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
-  max-width: var(--regional-frame-max);
-  margin: clamp(20px, 2.5vw, 32px) auto 0;
-  padding: 0;
+  margin: clamp(16px, 2vw, 24px) auto 0;
   scroll-margin-top: 7.75rem;
 }
 
 .regional-city-page > .regional-city-shared-forecast {
-  margin-top: clamp(34px, 5vw, 64px);
+  margin-top: clamp(28px, 4vw, 52px);
   scroll-margin-top: 7.75rem;
 }
 
@@ -71,38 +68,6 @@
   padding: 22px 0 0;
 }
 
-.regional-city-official-alert.home-inmet-alerts.is-unverified[data-alert-period="none"] {
-  border-color: rgb(24 189 205 / 20%);
-  background: #fff;
-  box-shadow: none;
-}
-
-.regional-city-official-alert.home-inmet-alerts.is-unverified[data-alert-period="none"]
-  .home-inmet-alerts__mark {
-  background: #078997;
-}
-
-.regional-city-official-alert .home-inmet-alerts__aside > a {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  padding: 0 0.85rem;
-  border-radius: 10px;
-  background: #071e2f;
-  color: #fff;
-  font-size: 0.64rem;
-  font-weight: 780;
-  white-space: nowrap;
-}
-
-.regional-city-official-alert .home-inmet-alerts__aside > a:hover,
-.regional-city-official-alert .home-inmet-alerts__aside > a:focus-visible {
-  background: #12364c;
-  outline: none;
-}
-
 #previsao-hoje,
 #tendencia,
 #como-interpretar-previsao-regional,
@@ -136,11 +101,11 @@
   }
 
   .regional-city-page > section.regional-city-official-alert {
-    margin-top: 16px;
+    margin-top: 12px;
   }
 
   .regional-city-page > .regional-city-shared-forecast {
-    margin-top: 30px;
+    margin-top: 26px;
     padding: 0;
     border-radius: 0;
   }
@@ -166,8 +131,8 @@
 }
 
 @media (forced-colors: active) {
-  .regional-city-official-alert.home-inmet-alerts.is-unverified[data-alert-period="none"] {
-    border: 1px solid CanvasText;
+  .regional-city-official-alert {
+    border-color: CanvasText;
     background: Canvas;
     color: CanvasText;
   }
