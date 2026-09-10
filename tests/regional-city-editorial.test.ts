@@ -74,22 +74,23 @@ test("páginas regionais reutilizam os componentes meteorológicos sem duplicar 
 });
 
 test("primeira dobra regional responde com dados reais antes da copy institucional", () => {
-  assert.match(heroSource, /title={`Tempo em \$\{city\.name\}`}/);
+  assert.match(heroSource, /title={`Tempo agora em \$\{city\.name\}`}/);
   assert.match(heroSource, /const currentCopy = current/);
-  assert.match(heroSource, /Agora em \$\{city\.name\}/);
+  assert.match(heroSource, /\$\{condition\} agora em \$\{city\.name\}/);
   assert.match(heroSource, /const rangeCopy = today/);
-  assert.match(heroSource, /Hoje, a previsão vai de/);
+  assert.match(heroSource, /Hoje varia de/);
   assert.match(heroSource, /const rainCopy =/);
-  assert.match(heroSource, /Não há destaque de chuva nas próximas 24 horas/);
-  assert.match(heroSource, /currentLabel=\{current \? `Agora em \$\{city\.name\}` : "Condição atual"\}/);
-  assert.match(heroSource, /highlightLabel="Chuva nas próximas 24 horas"/);
-  assert.match(heroSource, /label: "Sensação térmica"/);
-  assert.match(heroSource, /label: "Mínima \/ máxima hoje"/);
+  assert.match(heroSource, /Sem destaque de chuva nas próximas 24 horas/);
+  assert.match(heroSource, /currentLabel="Agora"/);
+  assert.match(heroSource, /highlightLabel="Maior chance de chuva · 24h"/);
+  assert.match(heroSource, /label: "Mínima hoje"/);
+  assert.match(heroSource, /label: "Máxima hoje"/);
   assert.match(heroSource, /label: "Vento agora"/);
-  assert.match(heroSource, /label: "Rajada mais forte"/);
+  assert.match(heroSource, /label: "Maior rajada · 24h"/);
   assert.match(heroSource, /href="#previsao-hoje"/);
   assert.match(heroSource, /href="#tendencia"/);
   assert.match(heroSource, /href="#avisos-municipais"/);
+  assert.match(heroSource, /TriangleAlert/);
   assert.match(splitHeroSource, /weather-split-hero__copy/);
   assert.match(splitHeroSource, /weather-split-hero__card/);
   assert.match(splitHeroSource, /weather-split-hero__highlight/);
@@ -135,19 +136,19 @@ test("hero regional não inventa pico de chuva, rajada ou leitura atual", () => 
   assert.match(heroSource, /Sem horário de chuva em destaque/);
   assert.match(heroSource, /function gustMetric/);
   assert.match(heroSource, /if \(value <= 0\) return "Sem rajadas"/);
-  assert.match(heroSource, /A condição atual de \$\{city\.name\} está sendo atualizada/);
-  assert.match(heroSource, /chance de chuva nas próximas horas ainda está sendo atualizada/);
+  assert.match(heroSource, /Condição atual de \$\{city\.name\} em atualização/);
+  assert.match(heroSource, /Chance de chuva em atualização/);
 });
 
 test("hero regional escolhe CTA conforme a série realmente disponível", () => {
   assert.match(heroSource, /const hasHourlyForecast = Boolean\(today && data\.hourly\.length > 0\)/);
   assert.match(heroSource, /const hasDailyTrend = data\.daily\.length > 1/);
   assert.match(heroSource, /hasHourlyForecast \? \(/);
-  assert.match(heroSource, /Próximas horas/);
+  assert.match(heroSource, /Ver próximas horas/);
   assert.match(heroSource, /hasDailyTrend \? \(/);
-  assert.match(heroSource, /Próximos dias/);
+  assert.match(heroSource, /Ver próximos dias/);
   assert.match(heroSource, /to="\/tempo-na-regiao-sul-rs"/);
-  assert.match(heroSource, /Central regional/);
+  assert.match(heroSource, /Ver região/);
 });
 
 test("camada regional atual usa abertura clara full-bleed e rail de 1440", () => {
@@ -159,11 +160,12 @@ test("camada regional atual usa abertura clara full-bleed e rail de 1440", () =>
   assert.ok(visualIndex > accentIndex);
   assert.match(accentCss, /\.regional-city-page \.regional-city-split-hero/);
   assert.match(visualCss, /width:\s*100vw/);
-  assert.match(visualCss, /linear-gradient\(105deg, #f2fbfc/);
+  assert.match(visualCss, /linear-gradient\(106deg, #f0fbfc/);
   assert.match(visualCss, /var\(--tp-home-container-max, 1440px\)/);
-  assert.match(visualCss, /grid-template-columns: minmax\(0, 0\.92fr\) minmax\(430px, 0\.78fr\)/);
-  assert.match(visualCss, /\.weather-split-hero__copy h1[\s\S]*font-size: clamp\(2\.85rem, 4\.4vw, 4\.45rem\)/);
-  assert.match(visualCss, /\.weather-split-hero__card dl[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(visualCss, /grid-template-columns: minmax\(0, 1\.02fr\) minmax\(430px, 0\.98fr\)/);
+  assert.match(visualCss, /\.weather-split-hero__copy h1[\s\S]*font-size: clamp\(2\.75rem, 4\.05vw, 4\.05rem\)/);
+  assert.match(visualCss, /\.weather-split-hero__card dl[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(visualCss, /border-radius:\s*22px/);
   assert.doesNotMatch(visualCss, /!important/);
 });
 
@@ -186,8 +188,10 @@ test("aviso municipal segue o mesmo contrato visual do painel INMET interno", ()
   assert.match(pageSource, /home-inmet-alerts__mark/);
   assert.match(pageSource, /home-inmet-alerts__meta/);
   assert.match(pageSource, /home-inmet-alerts__aside/);
+  assert.match(pageSource, /data-alert-active=\{alert \? "true" : "false"\}/);
   assert.match(pageSource, /Sem aviso ativo do INMET para \$\{data\.city\.name\}/);
-  assert.match(pageSource, /Abrir INMET/);
+  assert.match(pageSource, /Confira a classificação no INMET/);
+  assert.match(pageSource, /Ver no INMET/);
 });
 
 test("previsão regional é adaptada sem duplicar a grade meteorológica", () => {
