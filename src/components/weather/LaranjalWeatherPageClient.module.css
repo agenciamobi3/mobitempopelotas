@@ -5,31 +5,49 @@
   --laranjal-muted: #58717d;
   --laranjal-soft: #f5f8f8;
   --laranjal-accent: #087f91;
+  --laranjal-frame-max: var(--tp-home-container-max, 1440px);
+  --laranjal-frame-gutter: var(--tp-home-container-gutter, 48px);
+  --laranjal-frame-compact-max: var(--tp-home-container-compact-max, 1180px);
+  --laranjal-frame-compact-gutter: var(--tp-home-container-compact-gutter, 32px);
+  --laranjal-frame-mobile-gutter: var(--tp-home-container-mobile-gutter, 20px);
   display: grid;
   gap: 0;
-  width: min(1440px, calc(100% - 48px));
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 0 0 clamp(56px, 7vw, 92px);
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .58fr);
-  gap: clamp(40px, 7vw, 96px);
-  align-items: end;
-  padding: clamp(58px, 7vw, 96px) 0 clamp(46px, 6vw, 72px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.62fr);
+  gap: clamp(42px, 6vw, 92px);
+  align-items: center;
+  width: 100%;
+  min-height: clamp(480px, 46vw, 640px);
+  padding:
+    clamp(58px, 7vw, 96px)
+    max(
+      var(--laranjal-frame-gutter),
+      calc((100vw - var(--laranjal-frame-max)) / 2 + var(--laranjal-frame-gutter))
+    )
+    clamp(52px, 6vw, 82px);
+  box-sizing: border-box;
   border: 0;
   border-bottom: 1px solid var(--laranjal-line);
   border-radius: 0;
-  background: var(--laranjal-soft);
+  background:
+    radial-gradient(circle at 8% 90%, rgb(24 189 205 / 12%), transparent 30rem),
+    radial-gradient(circle at 92% 12%, rgb(94 44 237 / 9%), transparent 30rem),
+    linear-gradient(106deg, #f0fbfc 0%, #f8fbfb 47%, #fbfaff 77%, #f4f1ff 100%);
   box-shadow: none;
 }
 
 .heroCopy {
   display: grid;
-  align-content: end;
+  align-content: center;
   gap: 0;
   min-width: 0;
+  max-width: 900px;
 }
 
 .heroCopy > span,
@@ -38,9 +56,9 @@
 .context > div > span,
 .portalFeature > div > span {
   color: var(--laranjal-accent);
-  font-size: .7rem;
+  font-size: 0.7rem;
   font-weight: 840;
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -51,16 +69,16 @@
 .portalFeature h2 {
   margin: 0;
   color: var(--laranjal-ink);
-  letter-spacing: -.055em;
+  letter-spacing: -0.055em;
   text-wrap: balance;
 }
 
 .hero h1 {
   max-width: 900px;
   margin-top: 12px;
-  font-size: clamp(3rem, 5.8vw, 6rem);
-  font-weight: 760;
-  line-height: .94;
+  font-size: clamp(3.15rem, 5.5vw, 5.9rem);
+  font-weight: 780;
+  line-height: 0.94;
 }
 
 .heroCopy > p,
@@ -72,7 +90,7 @@
   max-width: 76ch;
   margin: 0;
   color: var(--laranjal-muted);
-  font-size: clamp(.96rem, 1.15vw, 1.08rem);
+  font-size: clamp(0.96rem, 1.15vw, 1.08rem);
   line-height: 1.7;
 }
 
@@ -105,9 +123,9 @@
 
 .todaySummary span {
   color: #647985;
-  font-size: .64rem;
+  font-size: 0.64rem;
   font-weight: 780;
-  letter-spacing: .045em;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -134,7 +152,7 @@
   border-radius: 10px;
   color: var(--laranjal-ink);
   background: #fff;
-  font-size: .82rem;
+  font-size: 0.82rem;
   font-weight: 780;
   text-decoration: none;
   transform: none;
@@ -155,16 +173,16 @@
 
 .currentCard {
   display: grid;
-  align-self: end;
+  align-self: center;
   gap: 10px;
   min-width: 0;
-  padding: 0 0 0 clamp(22px, 3vw, 36px);
-  border: 0;
-  border-left: 1px solid var(--laranjal-line);
-  border-radius: 0;
-  background: transparent;
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid rgb(255 255 255 / 78%);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 82%);
   color: var(--laranjal-ink);
-  box-shadow: none;
+  box-shadow: 0 20px 52px rgb(7 30 47 / 10%);
+  backdrop-filter: blur(12px);
 }
 
 .currentHeading {
@@ -176,9 +194,9 @@
 
 .currentHeading > span {
   color: var(--laranjal-accent);
-  font-size: .68rem;
+  font-size: 0.68rem;
   font-weight: 840;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -192,8 +210,8 @@
 .currentCard > strong {
   font-size: clamp(3.5rem, 7vw, 5.5rem);
   font-weight: 760;
-  letter-spacing: -.07em;
-  line-height: .9;
+  letter-spacing: -0.07em;
+  line-height: 0.9;
 }
 
 .currentCard > p {
@@ -235,7 +253,7 @@
 .currentCard dt,
 .currentCard small {
   color: #70838d;
-  font-size: .68rem;
+  font-size: 0.68rem;
 }
 
 .currentCard dd {
@@ -249,7 +267,13 @@
 .context,
 .portalFeature,
 .sources {
+  width: min(
+    var(--laranjal-frame-max),
+    calc(100% - (var(--laranjal-frame-gutter) * 2))
+  );
+  margin-inline: auto;
   padding: clamp(42px, 6vw, 72px) 0;
+  box-sizing: border-box;
   border: 0;
   border-bottom: 1px solid var(--laranjal-line);
   border-radius: 0;
@@ -277,7 +301,7 @@
   margin-top: 8px;
   font-size: clamp(2rem, 3.6vw, 3.5rem);
   font-weight: 740;
-  line-height: .98;
+  line-height: 0.98;
 }
 
 .forecast header p {
@@ -309,7 +333,7 @@
 
 .days article > strong {
   color: var(--laranjal-ink);
-  font-size: .82rem;
+  font-size: 0.82rem;
   text-transform: capitalize;
 }
 
@@ -320,7 +344,7 @@
 .days article > span {
   min-height: 2.4em;
   color: #526b76;
-  font-size: .76rem;
+  font-size: 0.76rem;
   line-height: 1.2;
 }
 
@@ -333,7 +357,7 @@
 
 .days article > small {
   color: #6b808a;
-  font-size: .69rem;
+  font-size: 0.69rem;
   line-height: 1.4;
 }
 
@@ -369,9 +393,9 @@
   display: block;
   margin-bottom: 12px;
   color: var(--laranjal-accent);
-  font-size: .66rem;
+  font-size: 0.66rem;
   font-weight: 850;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .guideGrid h3 {
@@ -383,13 +407,13 @@
 .guideGrid p {
   margin: 7px 0 0;
   color: #647984;
-  font-size: .84rem;
+  font-size: 0.84rem;
   line-height: 1.55;
 }
 
 .context {
   display: grid;
-  grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
   gap: 22px 42px;
 }
 
@@ -448,6 +472,23 @@
   outline-offset: 3px;
 }
 
+@media (max-width: 1240px) {
+  .hero {
+    padding-inline: var(--laranjal-frame-compact-gutter);
+  }
+
+  .forecast,
+  .orlaGuide,
+  .context,
+  .portalFeature,
+  .sources {
+    width: min(
+      var(--laranjal-frame-compact-max),
+      calc(100% - (var(--laranjal-frame-compact-gutter) * 2))
+    );
+  }
+}
+
 @media (max-width: 900px) {
   .hero,
   .context,
@@ -455,10 +496,14 @@
     grid-template-columns: 1fr;
   }
 
+  .hero {
+    min-height: 0;
+    align-items: start;
+  }
+
   .currentCard {
-    padding: 24px 0 0;
-    border-top: 1px solid var(--laranjal-line);
-    border-left: 0;
+    align-self: stretch;
+    max-width: 620px;
   }
 
   .context ul {
@@ -479,8 +524,17 @@
 }
 
 @media (max-width: 720px) {
-  .page {
-    width: min(100% - 20px, 1440px);
+  .hero {
+    padding-right: var(--laranjal-frame-mobile-gutter);
+    padding-left: var(--laranjal-frame-mobile-gutter);
+  }
+
+  .forecast,
+  .orlaGuide,
+  .context,
+  .portalFeature,
+  .sources {
+    width: calc(100% - (var(--laranjal-frame-mobile-gutter) * 2));
   }
 
   .todaySummary,
@@ -512,10 +566,17 @@
 @media (max-width: 620px) {
   .hero {
     padding-top: 42px;
+    padding-bottom: 38px;
   }
 
   .hero h1 {
     font-size: clamp(2.6rem, 13vw, 4rem);
+  }
+
+  .currentCard {
+    padding: 22px 18px;
+    border-radius: 18px;
+    backdrop-filter: none;
   }
 
   .currentCard dl {
@@ -538,5 +599,17 @@
   .page *::before,
   .page *::after {
     transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .hero,
+  .currentCard,
+  .days article,
+  .actions a,
+  .portalLink {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
   }
 }
