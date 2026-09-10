@@ -199,7 +199,8 @@ test("local warning keeps its copy and external station link aligned in one cont
 });
 
 test("local series exposes trend and changes without inventing missing data", () => {
-  assert.match(page, /level\.series\.length < 2/);
+  assert.match(page, /<HydrologyLevelChart/);
+  assert.match(page, /points=\{level\.series\}/);
   assert.match(page, /level\.trendCmPerHour/);
   assert.match(page, /level\.change1hCm/);
   assert.match(page, /level\.change6hCm/);
