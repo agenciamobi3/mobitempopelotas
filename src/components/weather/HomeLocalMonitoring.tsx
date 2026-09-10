@@ -11,6 +11,10 @@ import {
   Wind,
 } from "lucide-react";
 
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { CurrentWeatherObservation } from "@/lib/weather/current-observation.types";
 
@@ -59,22 +63,22 @@ function waterStatus(laranjal: LaranjalLevelData) {
   return { label: "Dados atualizados", className: "is-live" };
 }
 
-function trendReading(value: number | null) {
-  if (value === null) {
-    return { label: "Sem tendência calculada", className: "is-unknown", icon: Minus };
+function movementReading(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", className: "is-unknown", icon: Minus };
   }
-  if (Math.abs(value) < 0.1) {
+  if (movement.direction === "stable") {
     return { label: "Nível praticamente estável", className: "is-stable", icon: Minus };
   }
-  if (value > 0) {
+  if (movement.direction === "rising") {
     return {
-      label: `Subindo ${formatNumber(value)} cm por hora`,
+      label: `Subindo ${formatNumber(Math.abs(movement.rateCmPerHour))} cm por hora`,
       className: "is-rising",
       icon: ArrowUp,
     };
   }
   return {
-    label: `Baixando ${formatNumber(Math.abs(value))} cm por hora`,
+    label: `Baixando ${formatNumber(Math.abs(movement.rateCmPerHour))} cm por hora`,
     className: "is-falling",
     icon: ArrowDown,
   };
@@ -89,7 +93,8 @@ export function HomeLocalMonitoring({
 }) {
   const observationState = observationStatus(observation);
   const waterState = waterStatus(laranjal);
-  const trend = trendReading(laranjal.trendCmPerHour);
+  const movement = deriveRecentHydrologySeriesMovement(laranjal.series, "m");
+  const trend = movementReading(movement);
   const TrendIcon = trend.icon;
   const observationAvailable = observation.status === "live";
   const waterAvailable = laranjal.status !== "unavailable" && laranjal.currentLevel !== null;
@@ -210,7 +215,8 @@ export function HomeLocalMonitoring({
             <h3>Acompanhe o nível da água no ponto local</h3>
             <p>
               A telemetria pública ajuda a observar subida, queda ou estabilidade sem criar uma cota
-              de risco própria para o portal.
+              de risco própria para o portal. O movimento recente é calculado somente com o último
+              trecho contínuo da série recebida.
             </p>
           </div>
 
