@@ -25,7 +25,7 @@
 .regional-city-page > section.regional-city-official-alert {
   width: min(calc(100% - var(--regional-frame-gap)), var(--regional-frame-max));
   max-width: var(--regional-frame-max);
-  margin: clamp(28px, 4vw, 52px) auto 0;
+  margin: clamp(20px, 2.5vw, 32px) auto 0;
   padding: 0;
   scroll-margin-top: 7.75rem;
 }
@@ -84,11 +84,11 @@
 
 .regional-city-official-alert .home-inmet-alerts__aside > a {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 40px;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  padding: 0 0.9rem;
+  padding: 0 0.85rem;
   border-radius: 10px;
   background: #071e2f;
   color: #fff;
@@ -136,7 +136,7 @@
   }
 
   .regional-city-page > section.regional-city-official-alert {
-    margin-top: 18px;
+    margin-top: 16px;
   }
 
   .regional-city-page > .regional-city-shared-forecast {
