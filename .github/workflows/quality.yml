@@ -65,6 +65,9 @@ jobs:
       - name: Índice de pesquisa das enchentes
         run: node --test tests/flood-history-index.test.ts
 
+      - name: Contrato visual da família histórica
+        run: node --test tests/flood-history-visual-contract.test.ts
+
       - name: Colaboração comunitária do arquivo histórico
         run: node --test tests/historical-collaboration.test.ts
 
