@@ -68,19 +68,19 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
   const statusLabel = alert
     ? verified
       ? alert.severityLabel
-      : "Classificação em validação"
+      : "Confira a classificação no INMET"
     : data.alerts.status === "unavailable"
       ? "Consulta indisponível"
       : "Sem aviso ativo";
   const title = alert
-    ? `Aviso meteorológico: ${alert.event}`
+    ? `${alert.event}: aviso do INMET para ${data.city.name}`
     : data.alerts.status === "unavailable"
       ? "Avisos do INMET indisponíveis nesta consulta"
       : `Sem aviso ativo do INMET para ${data.city.name}`;
   const validity = alert
     ? verified
       ? `${formatRegionalDateTime(alert.startsAt)} até ${formatRegionalDateTime(alert.expiresAt)}`
-      : "Período completo ainda não reconhecido; confirme no aviso original"
+      : "Consulte início e término no aviso oficial do INMET"
     : data.alerts.status === "unavailable"
       ? "Confirme a situação nos canais oficiais"
       : `Consulta feita em ${formatRegionalDateTime(data.source.fetchedAt)}`;
@@ -90,6 +90,7 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
     <section
       id="avisos-municipais"
       className={`home-inmet-alerts ${severityClass}${verified ? " is-officially-classified" : " is-unverified"} regional-city-official-alert`}
+      data-alert-active={alert ? "true" : "false"}
       data-alert-period={period ?? "none"}
       data-alert-severity={alert?.severity ?? "unknown"}
       data-alert-official-semantics={verified ? "verified" : "unverified"}
@@ -102,7 +103,7 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
         </div>
         <div className="home-inmet-alerts__copy">
           <div className="home-inmet-alerts__topline">
-            <span>Avisos oficiais</span>
+            <span>Aviso oficial</span>
             <b>{statusLabel}</b>
           </div>
           <h2 id="regional-inmet-title">{title}</h2>
@@ -119,11 +120,11 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
         </div>
       </div>
       <div className="home-inmet-alerts__aside">
-        <strong>Detalhes e orientações</strong>
+        <strong>{alert ? "Orientações oficiais" : "Fonte oficial"}</strong>
         <small>
           {alert
-            ? `Confira a íntegra do aviso que inclui ${data.city.name}`
-            : "O INMET é consultado separadamente da previsão do modelo"}
+            ? "Veja período, áreas atingidas e recomendações publicadas pelo INMET."
+            : "O INMET é consultado separadamente da previsão do modelo."}
         </small>
         <a
           href={officialUrl}
@@ -131,7 +132,7 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
           rel="noopener noreferrer"
           aria-label={`Consultar o aviso oficial do INMET para ${data.city.name} em nova aba`}
         >
-          Abrir INMET <span aria-hidden="true">→</span>
+          Ver no INMET <span aria-hidden="true">→</span>
         </a>
       </div>
     </section>
