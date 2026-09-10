@@ -9,11 +9,16 @@ const migration = readFileSync(
 const catalog = readFileSync("src/lib/auth/favorite-resources.ts", "utf8");
 const functions = readFileSync("src/lib/auth/favorites.functions.ts", "utf8");
 const panel = readFileSync("src/components/auth/AccountFavoritesPanel.tsx", "utf8");
+const accessOverview = readFileSync("src/components/auth/AccountAccessOverview.tsx", "utf8");
 const dashboardRoute = readFileSync("src/routes/painel.tsx", "utf8");
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
 const accountPage = readFileSync("src/components/auth/AccountPage.tsx", "utf8");
 const accountExport = readFileSync("src/routes/api/account/export.ts", "utf8");
 const dashboardCss = readFileSync("src/production/styles/account-dashboard.css", "utf8");
+const accessOverviewCss = readFileSync(
+  "src/production/styles/account-access-overview.css",
+  "utf8",
+);
 
 test("favoritos Free são privados por usuário no banco", () => {
   assert.match(migration, /create table public\.user_favorites/i);
@@ -25,7 +30,10 @@ test("favoritos Free são privados por usuário no banco", () => {
   assert.match(migration, /Users can delete own favorites/);
   assert.match(migration, /\(select auth\.uid\(\)\) = user_id/);
   assert.match(migration, /revoke all on table public\.user_favorites from anon/i);
-  assert.match(migration, /grant select, insert, delete on table public\.user_favorites to authenticated/i);
+  assert.match(
+    migration,
+    /grant select, insert, delete on table public\.user_favorites to authenticated/i,
+  );
   assert.doesNotMatch(migration, /grant .*user_favorites to anon/i);
 });
 
@@ -89,6 +97,25 @@ test("favoritos entram nos direitos LGPD da conta", () => {
   assert.match(accountExport, /\n\s*favorites,\n/);
 });
 
+test("visão de acesso Free deriva estados dos entitlements sem fingir recursos futuros", () => {
+  assert.match(accountPage, /AccountAccessOverview/);
+  assert.match(accountPage, /<AccountAccessOverview snapshot=\{snapshot\} \/>/);
+  assert.match(accessOverview, /aria-labelledby="account-access-title"/);
+  assert.match(accessOverview, /Plano \{access\.label\}/);
+  assert.match(accessOverview, /access\.entitlements/);
+  assert.match(accessOverview, /Favoritos pessoais/);
+  assert.match(accessOverview, /Preferências da conta/);
+  assert.match(accessOverview, /Gerador de widgets/);
+  assert.match(accessOverview, /Histórico pessoal/);
+  assert.match(accessOverview, /state:\s*"preparing"/);
+  assert.match(accessOverview, /Comparações e análises avançadas/);
+  assert.match(accessOverview, /state:\s*hasAdvancedAccess \? "preparing" : "not-included"/);
+  assert.match(accessOverview, /Não incluído/);
+  assert.match(accessOverview, /Sua conta Free não tem cobrança/);
+  assert.match(accessOverview, /não é necessário para consultar informação pública/);
+  assert.doesNotMatch(accessOverview, /assine agora|compre agora|desbloqueie para consultar/i);
+});
+
 test("workspace de favoritos mantém responsividade e acessibilidade visual", () => {
   assert.match(dashboardCss, /\.account-favorites/);
   assert.match(dashboardCss, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
@@ -97,4 +124,16 @@ test("workspace de favoritos mantém responsividade e acessibilidade visual", ()
   assert.match(dashboardCss, /prefers-reduced-motion: reduce/);
   assert.match(dashboardCss, /forced-colors: active/);
   assert.match(dashboardCss, /:focus-visible/);
+});
+
+test("visão de acesso mantém grade 4→2→1 e contratos de foco e alto contraste", () => {
+  assert.match(accessOverviewCss, /\.account-access-overview/);
+  assert.match(
+    accessOverviewCss,
+    /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/,
+  );
+  assert.match(accessOverviewCss, /@media \(max-width: 1180px\)[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(accessOverviewCss, /@media \(max-width: 560px\)[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(accessOverviewCss, /\.account-access-overview__footer a:focus-visible/);
+  assert.match(accessOverviewCss, /@media \(forced-colors: active\)/);
 });
