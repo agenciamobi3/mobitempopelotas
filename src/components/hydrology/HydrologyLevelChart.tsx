@@ -32,13 +32,18 @@ const WIDTH = 1040;
 const HEIGHT = 390;
 const PADDING = { top: 38, right: 38, bottom: 58, left: 72 } as const;
 
-function finitePoints(points: HydrologyLevelChartPoint[]) {
-  return points.filter(
-    (point) =>
-      Number.isFinite(point.level) &&
-      typeof point.timestamp === "string" &&
-      point.timestamp.trim().length > 0,
-  );
+function normalizePoints(points: HydrologyLevelChartPoint[]) {
+  const byTimestamp = new Map<number, HydrologyLevelChartPoint>();
+
+  for (const point of points) {
+    const timestamp = new Date(point.timestamp).getTime();
+    if (!Number.isFinite(point.level) || !Number.isFinite(timestamp)) continue;
+    byTimestamp.set(timestamp, point);
+  }
+
+  return [...byTimestamp.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([, point]) => point);
 }
 
 function formatLevel(value: number, unit: "m" | "cm") {
@@ -81,19 +86,22 @@ export function HydrologyLevelChart({
   eyebrow = "Série observada",
   windowLabel = "Evolução na janela disponível",
   latestLabel = "Leitura mais recente",
-  singlePointMessage = "A fonte forneceu apenas a leitura mais recente nesta consulta. O portal não inventa pontos intermediários para formar uma tendência.",
+  singlePointMessage =
+    "A fonte forneceu apenas a leitura mais recente nesta consulta. O portal não inventa pontos intermediários para formar uma tendência.",
   emptyMessage = "Não há medições suficientes para desenhar o gráfico nesta atualização.",
   references = [],
   className = "",
 }: HydrologyLevelChartProps) {
   const gradientId = `hydrology-level-area-${useId().replace(/:/g, "")}`;
-  const valid = finitePoints(points);
+  const valid = normalizePoints(points);
   const hasSeries = valid.length >= 2;
   const hasPoint = valid.length >= 1;
 
   if (!hasPoint) {
     return (
-      <div className={`hydrology-rich-chart is-empty${className ? ` ${className}` : ""}`}>
+      <div
+        className={`hydrology-rich-chart is-${status} is-empty${className ? ` ${className}` : ""}`}
+      >
         <div className="hydrology-rich-chart__empty" role="status">
           <Activity aria-hidden="true" />
           <div>
@@ -110,6 +118,7 @@ export function HydrologyLevelChart({
   const maximum = Math.max(...values);
   const first = valid[0]!;
   const latest = valid.at(-1)!;
+  const latestIndex = valid.length - 1;
   const minimumIndex = values.indexOf(minimum);
   const maximumIndex = values.indexOf(maximum);
   const rawRange = Math.max(maximum - minimum, unit === "m" ? 0.02 : 2);
@@ -156,16 +165,11 @@ export function HydrologyLevelChart({
     : [0];
   const firstEpoch = new Date(first.timestamp).getTime();
   const latestEpoch = new Date(latest.timestamp).getTime();
-  const withDate =
-    Number.isFinite(firstEpoch) && Number.isFinite(latestEpoch)
-      ? latestEpoch - firstEpoch > 36 * 60 * 60 * 1000
-      : false;
-  const visibleReferences = references.filter(
-    (reference) =>
-      Number.isFinite(reference.value) &&
-      reference.value >= domainMinimum &&
-      reference.value <= domainMaximum,
-  );
+  const withDate = latestEpoch - firstEpoch > 36 * 60 * 60 * 1000;
+  const validReferences = references.filter((reference) => Number.isFinite(reference.value));
+  const referenceIsVisible = (reference: HydrologyLevelChartReference) =>
+    reference.value >= domainMinimum && reference.value <= domainMaximum;
+  const visibleReferences = validReferences.filter(referenceIsVisible);
   const latestCoordinate = coordinates.at(-1)!;
   const minimumCoordinate = coordinates[minimumIndex]!;
   const maximumCoordinate = coordinates[maximumIndex]!;
@@ -187,7 +191,9 @@ export function HydrologyLevelChart({
       <div className="hydrology-rich-chart__summary" aria-label="Resumo do gráfico de nível">
         <article>
           <span>{latestLabel}</span>
-          <strong>{formatLevel(latest.level, unit)} {unit}</strong>
+          <strong>
+            {formatLevel(latest.level, unit)} {unit}
+          </strong>
           <small>{formatTime(latest.timestamp, true)}</small>
         </article>
         <article>
@@ -207,7 +213,11 @@ export function HydrologyLevelChart({
         </article>
       </div>
 
-      <div className="hydrology-rich-chart__plot">
+      <div
+        className="hydrology-rich-chart__plot"
+        tabIndex={0}
+        aria-label={`${ariaLabel}. Área rolável horizontalmente quando necessário.`}
+      >
         <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={ariaLabel}>
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -229,7 +239,10 @@ export function HydrologyLevelChart({
           {xTickIndexes.map((index) => {
             const coordinate = coordinates[index] ?? coordinates[0]!;
             return (
-              <g className="hydrology-rich-chart__grid hydrology-rich-chart__grid--vertical" key={`x-${index}`}>
+              <g
+                className="hydrology-rich-chart__grid hydrology-rich-chart__grid--vertical"
+                key={`x-${index}`}
+              >
                 <line
                   x1={coordinate.x}
                   x2={coordinate.x}
@@ -258,7 +271,9 @@ export function HydrologyLevelChart({
             );
           })}
 
-          {hasSeries ? <path className="hydrology-rich-chart__area" d={area} fill={`url(#${gradientId})`} /> : null}
+          {hasSeries ? (
+            <path className="hydrology-rich-chart__area" d={area} fill={`url(#${gradientId})`} />
+          ) : null}
 
           <line
             className="hydrology-rich-chart__latest-guide"
@@ -277,27 +292,55 @@ export function HydrologyLevelChart({
             />
           ) : null}
 
-          {hasSeries && minimumIndex !== maximumIndex ? (
-            <>
-              <g className="hydrology-rich-chart__marker is-minimum">
-                <circle cx={minimumCoordinate.x} cy={minimumCoordinate.y} r="6" />
-                <text x={minimumCoordinate.x} y={Math.min(HEIGHT - PADDING.bottom - 12, minimumCoordinate.y + 26)} textAnchor="middle">
-                  {markerLabel("mín", minimum, unit)}
-                </text>
-                <title>{`Mínimo: ${formatLevel(minimum, unit)} ${unit} em ${formatTime(valid[minimumIndex]!.timestamp, true)}`}</title>
-              </g>
-              <g className="hydrology-rich-chart__marker is-maximum">
-                <circle cx={maximumCoordinate.x} cy={maximumCoordinate.y} r="6" />
-                <text x={maximumCoordinate.x} y={Math.max(PADDING.top + 18, maximumCoordinate.y - 14)} textAnchor="middle">
-                  {markerLabel("máx", maximum, unit)}
-                </text>
-                <title>{`Máximo: ${formatLevel(maximum, unit)} ${unit} em ${formatTime(valid[maximumIndex]!.timestamp, true)}`}</title>
-              </g>
-            </>
+          {hasSeries
+            ? coordinates.map((point, index) => (
+                <circle
+                  className="hydrology-rich-chart__hit-point"
+                  cx={point.x}
+                  cy={point.y}
+                  r="10"
+                  key={`${point.timestamp}-${index}`}
+                >
+                  <title>{`${formatLevel(point.level, unit)} ${unit} em ${formatTime(point.timestamp, true)}`}</title>
+                </circle>
+              ))
+            : null}
+
+          {hasSeries && minimumIndex !== maximumIndex && minimumIndex !== latestIndex ? (
+            <g className="hydrology-rich-chart__marker is-minimum">
+              <circle cx={minimumCoordinate.x} cy={minimumCoordinate.y} r="6" />
+              <text
+                x={minimumCoordinate.x}
+                y={Math.min(HEIGHT - PADDING.bottom - 12, minimumCoordinate.y + 26)}
+                textAnchor="middle"
+              >
+                {markerLabel("mín", minimum, unit)}
+              </text>
+              <title>{`Mínimo: ${formatLevel(minimum, unit)} ${unit} em ${formatTime(valid[minimumIndex]!.timestamp, true)}`}</title>
+            </g>
+          ) : null}
+
+          {hasSeries && minimumIndex !== maximumIndex && maximumIndex !== latestIndex ? (
+            <g className="hydrology-rich-chart__marker is-maximum">
+              <circle cx={maximumCoordinate.x} cy={maximumCoordinate.y} r="6" />
+              <text
+                x={maximumCoordinate.x}
+                y={Math.max(PADDING.top + 18, maximumCoordinate.y - 14)}
+                textAnchor="middle"
+              >
+                {markerLabel("máx", maximum, unit)}
+              </text>
+              <title>{`Máximo: ${formatLevel(maximum, unit)} ${unit} em ${formatTime(valid[maximumIndex]!.timestamp, true)}`}</title>
+            </g>
           ) : null}
 
           <g className="hydrology-rich-chart__marker is-latest">
-            <circle className="hydrology-rich-chart__latest-halo" cx={latestCoordinate.x} cy={latestCoordinate.y} r="12" />
+            <circle
+              className="hydrology-rich-chart__latest-halo"
+              cx={latestCoordinate.x}
+              cy={latestCoordinate.y}
+              r="12"
+            />
             <circle cx={latestCoordinate.x} cy={latestCoordinate.y} r="6" />
             <text
               x={latestCoordinate.x - 10}
@@ -311,9 +354,36 @@ export function HydrologyLevelChart({
         </svg>
       </div>
 
+      {validReferences.length > 0 ? (
+        <div className="hydrology-rich-chart__references" aria-label="Referências desta régua">
+          <span>Referências desta régua</span>
+          <div>
+            {validReferences.map((reference) => {
+              const outsideScale = !referenceIsVisible(reference);
+              return (
+                <article
+                  className={`is-${reference.tone ?? "reference"}${outsideScale ? " is-outside" : ""}`}
+                  key={`${reference.label}-${reference.value}`}
+                >
+                  <strong>{reference.label}</strong>
+                  <b>
+                    {formatLevel(reference.value, unit)} {unit}
+                  </b>
+                  <small>{outsideScale ? "Fora da escala atual" : "Visível no gráfico"}</small>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <div className="hydrology-rich-chart__footer">
         <span>{hasSeries ? formatTime(first.timestamp, true) : "Histórico não disponível"}</span>
-        <strong>{hasSeries ? `${formatLevel(minimum, unit)} a ${formatLevel(maximum, unit)} ${unit}` : `${formatLevel(latest.level, unit)} ${unit}`}</strong>
+        <strong>
+          {hasSeries
+            ? `${formatLevel(minimum, unit)} a ${formatLevel(maximum, unit)} ${unit}`
+            : `${formatLevel(latest.level, unit)} ${unit}`}
+        </strong>
         <span>{formatTime(latest.timestamp, true)}</span>
       </div>
 
