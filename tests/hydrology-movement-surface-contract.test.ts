@@ -20,6 +20,12 @@ const defesaCivilRegional = readFileSync(
   "src/components/regional/RegionalCityDefesaCivil.tsx",
   "utf8",
 );
+const widgetApi = readFileSync("src/routes/api/widgets/nivel-laranjal.ts", "utf8");
+const publicPortal = readFileSync("src/lib/public-portal.server.ts", "utf8");
+const laranjalRoute = readFileSync("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx", "utf8");
+const guaibaRoute = readFileSync("src/routes/nivel-do-guaiba.tsx", "utf8");
+const saoGoncaloRoute = readFileSync("src/routes/nivel-do-canal-sao-goncalo.tsx", "utf8");
+const jaguaraoRoute = readFileSync("src/routes/nivel-do-rio-jaguarao.tsx", "utf8");
 const guaibaServer = readFileSync("src/lib/hydrology/guaiba.server.ts", "utf8");
 const laranjalServer = readFileSync("src/lib/hydrology/laranjal-level.server.ts", "utf8");
 const lagoonServer = readFileSync("src/lib/hydrology/lagoon-network.server.ts", "utf8");
@@ -98,6 +104,33 @@ test("tendência textual publicada pela Defesa Civil continua identificada como 
   assert.match(defesaCivilRegional, /Tendência informada pela fonte:/);
   assert.doesNotMatch(defesaCivilPage, /deriveRecentHydrologySeriesMovement/);
   assert.doesNotMatch(defesaCivilRegional, /deriveRecentHydrologySeriesMovement/);
+  assert.match(saoGoncaloRoute, /tendência informada pela fonte/i);
+  assert.match(saoGoncaloRoute, /não é recalculada pelo Tempo Pelotas/i);
+  assert.match(jaguaraoRoute, /tendência informada pela fonte/i);
+  assert.match(jaguaraoRoute, /não recalcula essa tendência/i);
+});
+
+test("SEO e copy pública distinguem movimento derivado de tendência oficial", () => {
+  assert.match(laranjalRoute, /movimento recente/i);
+  assert.doesNotMatch(laranjalRoute, /Tendência do nível da água no Laranjal/);
+  assert.match(guaibaRoute, /movimento recente/i);
+  assert.match(guaibaRoute, /não é uma tendência oficial publicada pela fonte/);
+  assert.doesNotMatch(guaibaRoute, /Tendência do nível do Guaíba/);
+});
+
+test("APIs públicas expõem movimento canônico e mantêm tendência antiga apenas por compatibilidade", () => {
+  assert.match(widgetApi, /deriveRecentHydrologySeriesMovement\(data\.series, "m"\)/);
+  assert.match(widgetApi, /movement:\s*\{/);
+  assert.match(widgetApi, /kind:\s*"derived-from-series"/);
+  assert.match(widgetApi, /trendCmPerHourSemantics:\s*"legacy-derived-field"/);
+  assert.match(widgetApi, /Não usar este campo como relógio visual novo/);
+
+  assert.match(publicPortal, /deriveRecentHydrologySeriesMovement\(level\.series, "m"\)/);
+  assert.match(publicPortal, /movement_recent:\s*\{/);
+  assert.match(publicPortal, /kind:\s*"derived-from-series"/);
+  assert.match(publicPortal, /trend_cm_per_hour_semantics:\s*"legacy-derived-field"/);
+  assert.match(publicPortal, /schema_version:\s*"2\.2"/);
+  assert.match(publicPortal, /movimento recente calculado a partir da própria série/);
 });
 
 test("camada de dados mantém trendCmPerHour apenas como campo derivado/backward-compatible", () => {
