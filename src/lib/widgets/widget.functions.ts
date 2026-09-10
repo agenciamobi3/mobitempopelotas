@@ -20,6 +20,14 @@ import {
   type WidgetAppearance,
 } from "./widget-appearance";
 import {
+  createDefaultWidgetContent,
+  getWidgetContentCatalog,
+  normalizeWidgetContent,
+  withWidgetContentConfig,
+  WIDGET_PRESENTATION_KEYS,
+  type WidgetContentDefinition,
+} from "./widget-content";
+import {
   canUseWidgetType,
   getWidgetDefinition,
   isWidgetType,
@@ -45,17 +53,23 @@ const widgetAppearanceSchema = z.object({
   radius: z.number().int().min(0).max(36),
   density: z.enum(WIDGET_DENSITY_KEYS),
 });
+const widgetContentSchema = z.object({
+  presentation: z.enum(WIDGET_PRESENTATION_KEYS),
+  visibleBlocks: z.array(z.string().trim().min(1).max(48)).min(1).max(8),
+});
 
 const createWidgetSchema = z.object({
   widgetType: widgetTypeSchema,
   title: z.string().trim().min(1).max(100),
   theme: widgetThemeSchema.optional(),
   appearance: widgetAppearanceSchema.optional(),
+  content: widgetContentSchema.optional(),
 });
 
 const updateWidgetAppearanceSchema = z.object({
   id: z.string().uuid(),
   appearance: widgetAppearanceSchema,
+  content: widgetContentSchema.optional(),
 });
 
 const setWidgetStatusSchema = z.object({
@@ -122,6 +136,7 @@ export type ManagedWidget = {
   title: string;
   theme: WidgetTheme;
   appearance: WidgetAppearance;
+  content: WidgetContentDefinition;
   status: "active" | "inactive";
   version: number;
   createdAt: string;
@@ -153,6 +168,7 @@ export type PublicWidgetDefinition = {
   title: string;
   theme: WidgetTheme;
   appearance: WidgetAppearance;
+  content: WidgetContentDefinition;
   config: Json;
   version: number;
   updatedAt: string;
@@ -188,10 +204,21 @@ function resolveRowAppearance(row: Pick<UserWidgetRow, "config" | "theme">): Wid
     : fallbackAppearanceFromLegacyTheme(row.theme);
 }
 
+function requestedContentIsAllowed(type: WidgetType, content: WidgetContentDefinition) {
+  const allowed = new Set(getWidgetContentCatalog(type).blocks.map((block) => block.key));
+  return content.visibleBlocks.length > 0 && content.visibleBlocks.every((block) => allowed.has(block));
+}
+
+function resolveRowContent(row: Pick<UserWidgetRow, "widget_type" | "config">) {
+  if (!isWidgetType(row.widget_type)) return null;
+  return normalizeWidgetContent(row.widget_type, row.config);
+}
+
 function mapManagedWidget(row: UserWidgetRow): ManagedWidget | null {
   if (!isWidgetType(row.widget_type)) return null;
   const publicToken = row.public_token;
   const appearance = resolveRowAppearance(row);
+  const content = resolveRowContent(row) ?? createDefaultWidgetContent(row.widget_type);
   return {
     id: row.id,
     publicToken,
@@ -199,6 +226,7 @@ function mapManagedWidget(row: UserWidgetRow): ManagedWidget | null {
     title: row.title,
     theme: mapTheme(row.theme),
     appearance,
+    content,
     status: row.status === "inactive" ? "inactive" : "active",
     version: row.version,
     createdAt: row.created_at,
@@ -321,10 +349,15 @@ export const createUserWidget = createServerFn({ method: "POST" })
       !definition ||
       !access.entitlements.widgetsCreate ||
       !canUseWidgetType(access.entitlements, data.widgetType) ||
-      (data.appearance && !access.entitlements.widgetsAdvancedThemes)
+      ((data.appearance || data.content) && !access.entitlements.widgetsAdvancedThemes)
     ) {
       applyPrivateHeaders(responseHeaders);
       return { ok: false as const, code: "not_entitled" as const };
+    }
+
+    if (data.content && !requestedContentIsAllowed(data.widgetType, data.content)) {
+      applyPrivateHeaders(responseHeaders);
+      return { ok: false as const, code: "invalid_config" as const };
     }
 
     const widgetClient = client as unknown as SupabaseClient<WidgetDatabase>;
@@ -343,9 +376,12 @@ export const createUserWidget = createServerFn({ method: "POST" })
       }
     }
 
-    const appearance =
-      data.appearance ?? fallbackAppearanceFromLegacyTheme(data.theme ?? "auto");
-    const widgetConfig = withWidgetAppearanceConfig({}, appearance);
+    const appearance = data.appearance ?? fallbackAppearanceFromLegacyTheme(data.theme ?? "auto");
+    const content = data.content
+      ? normalizeWidgetContent(data.widgetType, { content: data.content })
+      : createDefaultWidgetContent(data.widgetType);
+    const appearanceConfig = withWidgetAppearanceConfig({}, appearance);
+    const widgetConfig = withWidgetContentConfig(appearanceConfig, data.widgetType, content);
     const { data: created, error } = await widgetClient
       .from("user_widgets")
       .insert({
@@ -419,8 +455,17 @@ export const updateUserWidgetAppearance = createServerFn({ method: "POST" })
       return { ok: false as const, code: "not_entitled" as const };
     }
 
+    if (data.content && !requestedContentIsAllowed(current.widget_type, data.content)) {
+      applyPrivateHeaders(responseHeaders);
+      return { ok: false as const, code: "invalid_config" as const };
+    }
+
     const nextVersion = current.version + 1;
-    const nextConfig = withWidgetAppearanceConfig(current.config, data.appearance);
+    const content = data.content
+      ? normalizeWidgetContent(current.widget_type, { content: data.content })
+      : normalizeWidgetContent(current.widget_type, current.config);
+    const appearanceConfig = withWidgetAppearanceConfig(current.config, data.appearance);
+    const nextConfig = withWidgetContentConfig(appearanceConfig, current.widget_type, content);
     const { data: updated, error } = await widgetClient
       .from("user_widgets")
       .update({
@@ -521,6 +566,7 @@ export const getPublicWidgetDefinition = createServerFn({ method: "GET" })
       title: row.title,
       theme: mapTheme(row.theme),
       appearance: resolveRowAppearance({ config: row.config, theme: row.theme }),
+      content: normalizeWidgetContent(row.widget_type, row.config),
       config: row.config,
       version: row.version,
       updatedAt: row.updated_at,
