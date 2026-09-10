@@ -21,7 +21,15 @@ const publicRoutes = [
   "/historico-climatico-pelotas",
   "/clima-em-pelotas",
   "/cameras-ao-vivo-pelotas",
-  "/metodologia",
+  "/status-dos-dados",
+];
+
+const redirectRoutes = [
+  {
+    from: "/metodologia",
+    to: "/status-dos-dados",
+    status: 301,
+  },
 ];
 
 const redemetEndpoints = [
@@ -124,6 +132,27 @@ for (const route of publicRoutes) {
   });
 }
 
+for (const redirectRoute of redirectRoutes) {
+  await check(`Redirect ${redirectRoute.from}`, async () => {
+    const response = await request(redirectRoute.from, {
+      headers: { Accept: "text/html" },
+      redirect: "manual",
+    });
+    const location = response.headers.get("location");
+
+    assert(response.status === redirectRoute.status, `HTTP ${response.status}`);
+    assert(location, "Header Location ausente");
+
+    const resolvedLocation = new URL(location, `${baseUrl}/`).href;
+    assert(
+      resolvedLocation === absoluteUrl(redirectRoute.to),
+      `Destino incorreto: ${resolvedLocation}`,
+    );
+
+    return `HTTP ${response.status}; ${redirectRoute.from} → ${resolvedLocation}`;
+  });
+}
+
 await check("robots.txt", async () => {
   const response = await request("/robots.txt", {
     headers: { Accept: "text/plain" },
@@ -150,9 +179,15 @@ await check("sitemap.xml", async () => {
   for (const route of publicRoutes) {
     assert(content.includes(`<loc>${absoluteUrl(route)}</loc>`), `Rota ausente: ${route}`);
   }
+  for (const redirectRoute of redirectRoutes) {
+    assert(
+      !content.includes(`<loc>${absoluteUrl(redirectRoute.from)}</loc>`),
+      `Redirect legado presente no sitemap: ${redirectRoute.from}`,
+    );
+  }
   assertNoSensitiveMarkers(content, "sitemap.xml");
 
-  return `${publicRoutes.length} rotas públicas presentes`;
+  return `${publicRoutes.length} rotas canônicas presentes; redirects legados ausentes`;
 });
 
 await check("feed JSON 1.1", async () => {
