@@ -56,6 +56,10 @@ const visualCss = readFileSync(
   new URL("../src/components/regional/RegionalCityVisualRefresh.css", import.meta.url),
   "utf8",
 );
+const alertCss = readFileSync(
+  new URL("../src/components/regional/RegionalCityAlertLayout.css", import.meta.url),
+  "utf8",
+);
 
 test("páginas regionais usam o main semântico fornecido pelo layout global", () => {
   assert.doesNotMatch(pageSource, /<main\b/);
@@ -182,16 +186,24 @@ test("âncoras regionais permanecem disponíveis sem índice visual ou markup mo
   assert.doesNotMatch(pageSource, /InternalPageChapters|regionalSections|pageSections/);
 });
 
-test("aviso municipal segue o mesmo contrato visual do painel INMET interno", () => {
-  assert.match(pageSource, /home-inmet-alerts/);
-  assert.match(pageSource, /home-inmet-alerts__main/);
-  assert.match(pageSource, /home-inmet-alerts__mark/);
-  assert.match(pageSource, /home-inmet-alerts__meta/);
-  assert.match(pageSource, /home-inmet-alerts__aside/);
+test("aviso municipal usa barra INMET própria, compacta e sem chrome da Home", () => {
+  assert.match(pageSource, /regional-city-alert-bar/);
+  assert.match(pageSource, /regional-city-alert-bar__mark/);
+  assert.match(pageSource, /regional-city-alert-bar__content/);
+  assert.match(pageSource, /regional-city-alert-bar__summary/);
+  assert.match(pageSource, /regional-city-alert-bar__action/);
+  assert.doesNotMatch(pageSource, /home-inmet-alerts__/);
   assert.match(pageSource, /data-alert-active=\{alert \? "true" : "false"\}/);
-  assert.match(pageSource, /Sem aviso ativo do INMET para \$\{data\.city\.name\}/);
-  assert.match(pageSource, /Confira a classificação no INMET/);
+  assert.match(pageSource, /Sem aviso ativo para \$\{data\.city\.name\}/);
+  assert.match(pageSource, /Classificação no INMET/);
+  assert.match(pageSource, /Consulte início e término no aviso oficial/);
   assert.match(pageSource, /Ver no INMET/);
+  assert.match(alertCss, /grid-template-columns:\s*44px minmax\(0, 1fr\) auto/);
+  assert.match(alertCss, /min-height:\s*72px/);
+  assert.match(alertCss, /data-alert-active="true"/);
+  assert.match(alertCss, /severity-potential/);
+  assert.match(alertCss, /severity-danger/);
+  assert.match(alertCss, /severity-great-danger/);
 });
 
 test("previsão regional é adaptada sem duplicar a grade meteorológica", () => {
