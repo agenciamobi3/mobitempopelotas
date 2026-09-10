@@ -6,6 +6,10 @@ const header = readFileSync("src/production/components/home-editorial-header.tsx
 const statusPage = readFileSync("src/routes/status-dos-dados.tsx", "utf8");
 const editorial = readFileSync("src/lib/editorial-content.ts", "utf8");
 const localities = readFileSync("src/lib/hydrology/hydrology-localities.ts", "utf8");
+const localityRoute = readFileSync(
+  "src/routes/nivel-da-lagoa-dos-patos/$localitySlug.tsx",
+  "utf8",
+);
 const artGuide = readFileSync("docs/social/ART_GUIDE.md", "utf8");
 const cutoverSmoke = readFileSync("scripts/cutover-smoke.mjs", "utf8");
 const publicRoutesBlock = cutoverSmoke.match(/const publicRoutes = \[[\s\S]*?\];/)?.[0] ?? "";
@@ -43,6 +47,11 @@ test("metadados das localidades da Lagoa usam a mesma semântica derivada", () =
   }
 
   assert.doesNotMatch(localities, /description: "[^"]*tendência[^"]*"/i);
+  assert.match(
+    localityRoute,
+    /about:\s*\[[\s\S]*?"Movimento recente do nível da água"[\s\S]*?\]/,
+  );
+  assert.doesNotMatch(localityRoute, /"Tendência do nível da água"/);
 });
 
 test("tendência publicada pela fonte permanece explicitamente atribuída", () => {
