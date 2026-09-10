@@ -3,6 +3,10 @@ import {
   findHydrologyLocalityByStationId,
   hydrologyLocalityPath,
 } from "@/lib/hydrology/hydrology-localities";
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { GuaibaObservationData } from "@/production/lib/guaiba-monitor";
 import type {
   LagoonMonitoringNetworkData,
@@ -46,25 +50,34 @@ function formatUpdatedAt(value: string | null) {
   }).format(new Date(value));
 }
 
-function trendLabel(value: number | null) {
-  if (value === null) {
-    return { symbol: "·", label: "Tendência indisponível", direction: "unknown" };
+function movementLabel(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) {
+    return { symbol: "·", label: "Movimento recente indisponível", direction: "unknown" };
   }
-  if (Math.abs(value) < 0.1) {
+  if (movement.direction === "stable") {
     return { symbol: "→", label: "Praticamente estável", direction: "stable" };
   }
-  if (value > 0) {
+  if (movement.direction === "rising") {
     return {
       symbol: "↑",
-      label: `Subindo ${formatNumber(value)} cm por hora`,
+      label: `Subindo ${formatNumber(Math.abs(movement.rateCmPerHour))} cm por hora`,
       direction: "rising",
     };
   }
   return {
     symbol: "↓",
-    label: `Baixando ${formatNumber(Math.abs(value))} cm por hora`,
+    label: `Baixando ${formatNumber(Math.abs(movement.rateCmPerHour))} cm por hora`,
     direction: "falling",
   };
+}
+
+function lagoonMovement(station: LagoonMonitoringObservation) {
+  return movementLabel(
+    deriveRecentHydrologySeriesMovement(
+      station.series.map((point) => ({ timestamp: point.timestamp, level: point.levelCm })),
+      "cm",
+    ),
+  );
 }
 
 function readingStatus(status: LaranjalLevelData["status"]) {
@@ -144,12 +157,12 @@ function orderStations(
 }
 
 function LagoonStationRow({ station }: { station: LagoonMonitoringObservation }) {
-  const trend = trendLabel(station.trendCmPerHour);
+  const movement = lagoonMovement(station);
   const locality = findHydrologyLocalityByStationId(station.station.id);
   const localPath = locality ? hydrologyLocalityPath(locality) : null;
   const card = (
     <article
-      className={`tp-home-water__station is-risk-${station.risk} is-trend-${trend.direction}`}
+      className={`tp-home-water__station is-risk-${station.risk} is-trend-${movement.direction}`}
     >
       <div className="tp-home-water__station-place">
         <strong>{station.station.city}</strong>
@@ -165,12 +178,12 @@ function LagoonStationRow({ station }: { station: LagoonMonitoringObservation })
         </b>
       </div>
       <div className="tp-home-water__station-state-wrap">
-        <span className={`tp-home-water__trend-mark is-${trend.direction}`} aria-hidden="true">
-          {trend.symbol}
+        <span className={`tp-home-water__trend-mark is-${movement.direction}`} aria-hidden="true">
+          {movement.symbol}
         </span>
         <div className="tp-home-water__station-state">
           <strong>{stationState(station)}</strong>
-          <span className={`is-${trend.direction}`}>{trend.label}</span>
+          <span className={`is-${movement.direction}`}>{movement.label}</span>
           <small>{formatUpdatedAt(station.updatedAt)}</small>
         </div>
       </div>
@@ -180,7 +193,7 @@ function LagoonStationRow({ station }: { station: LagoonMonitoringObservation })
   return localPath ? (
     <a
       href={localPath}
-      aria-label={`Ver nível, tendência e detalhes de ${locality!.name}`}
+      aria-label={`Ver nível, movimento e detalhes de ${locality!.name}`}
       style={{ color: "inherit", display: "block", textDecoration: "none" }}
     >
       {card}
@@ -191,8 +204,8 @@ function LagoonStationRow({ station }: { station: LagoonMonitoringObservation })
 }
 
 function GuaibaReferenceRow({ reference }: { reference: GuaibaReference }) {
-  const trend = trendLabel(reference.trendCmPerHour);
   const isCaisMaua = reference.id === "cais-maua";
+  const variation = formatSignedCentimeters(reference.variation24hCm);
 
   return (
     <a
@@ -200,9 +213,7 @@ function GuaibaReferenceRow({ reference }: { reference: GuaibaReference }) {
       aria-label={`Ver nível e detalhes do Guaíba em ${guaibaReferenceTitle(reference)}`}
       style={{ color: "inherit", display: "block", textDecoration: "none" }}
     >
-      <article
-        className={`tp-home-water__station tp-home-water__guaiba-reference is-trend-${trend.direction}`}
-      >
+      <article className="tp-home-water__station tp-home-water__guaiba-reference is-trend-unknown">
         <div className="tp-home-water__station-place">
           <strong>{guaibaReferenceTitle(reference)}</strong>
           <span>{reference.station}</span>
@@ -221,12 +232,10 @@ function GuaibaReferenceRow({ reference }: { reference: GuaibaReference }) {
           </b>
         </div>
         <div className="tp-home-water__station-state-wrap">
-          <span className={`tp-home-water__trend-mark is-${trend.direction}`} aria-hidden="true">
-            {trend.symbol}
-          </span>
+          <span className="tp-home-water__trend-mark is-unknown" aria-hidden="true">24h</span>
           <div className="tp-home-water__station-state">
             <strong>{guaibaReferenceState(reference)}</strong>
-            <span className={`is-${trend.direction}`}>{trend.label}</span>
+            <span>Variação em 24 h: {variation}</span>
             <small>{formatUpdatedAt(reference.updatedAt)}</small>
           </div>
         </div>
@@ -254,7 +263,7 @@ export function HomeWaterEditorial({
     HOME_REGIONAL_STATION_PRIORITY,
   );
   const guaibaRows = guaibaReferences(guaiba);
-  const laranjalTrend = trendLabel(laranjal.trendCmPerHour);
+  const laranjalMovement = movementLabel(deriveRecentHydrologySeriesMovement(laranjal.series, "m"));
   const laranjalReading = readingStatus(laranjal.status);
   const laranjalAvailable = laranjal.status !== "unavailable" && laranjal.currentLevel !== null;
   const alternative = laranjal.source.role === "contingency";
@@ -288,7 +297,7 @@ export function HomeWaterEditorial({
       </header>
 
       <div className="tp-home-water__layout">
-        <article className={`tp-home-water__focus is-${laranjalTrend.direction}`}>
+        <article className={`tp-home-water__focus is-${laranjalMovement.direction}`}>
           <div className="tp-home-water__focus-topline">
             <div>
               <span>{localPlace}</span>
@@ -296,7 +305,7 @@ export function HomeWaterEditorial({
             </div>
           </div>
 
-          <div className={`tp-home-water__level-card is-${laranjalTrend.direction}`}>
+          <div className={`tp-home-water__level-card is-${laranjalMovement.direction}`}>
             <div
               className="tp-home-water__level"
               aria-label={`Nível atual da Lagoa ${alternative ? "em Pelotas" : "no Laranjal"}`}
@@ -307,8 +316,8 @@ export function HomeWaterEditorial({
               {laranjalAvailable ? <span>m</span> : null}
             </div>
             <p className="tp-home-water__trend">
-              <b aria-hidden="true">{laranjalTrend.symbol}</b>
-              <span>{laranjalTrend.label}</span>
+              <b aria-hidden="true">{laranjalMovement.symbol}</b>
+              <span>{laranjalMovement.label}</span>
             </p>
           </div>
 
@@ -366,8 +375,9 @@ export function HomeWaterEditorial({
           </div>
 
           <p className="tp-home-water__network-note">
-            As réguas possuem referências próprias. Use a tendência e a situação de cada ponto para
-            entender o movimento da água; os níveis absolutos não devem ser comparados diretamente.
+            As réguas possuem referências próprias. Nas estações com série recente, o movimento é
+            calculado pelo Tempo Pelotas apenas sobre o último trecho contínuo. Nas réguas do Guaíba
+            resumidas aqui, mostramos a variação explícita de 24 h em vez de uma segunda tendência.
           </p>
 
           <div className="tp-home-water__rows">
@@ -383,7 +393,7 @@ export function HomeWaterEditorial({
 
       <footer className="tp-home-water__footer">
         <div>
-          <div className="tp-home-water__legend" aria-label="Legenda de tendência">
+          <div className="tp-home-water__legend" aria-label="Legenda de movimento recente">
             <span className="is-falling">↓ Baixando</span>
             <span className="is-rising">↑ Subindo</span>
             <span className="is-stable">→ Estável</span>
