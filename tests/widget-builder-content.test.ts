@@ -14,6 +14,7 @@ const controls = readFileSync("src/components/widgets/WidgetContentControls.tsx"
 const controlCss = readFileSync("src/components/widgets/WidgetContentControls.css", "utf8");
 const renderer = readFileSync("src/routes/embed/widget.tsx", "utf8");
 const rendererCss = readFileSync("src/components/embed/ManagedWidgetAppearance.css", "utf8");
+const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
 const functions = readFileSync("src/lib/widgets/widget.functions.ts", "utf8");
 const laranjalAdapter = readFileSync("src/components/embed/ManagedLaranjalLevelEmbed.tsx", "utf8");
 const currentWeather = readFileSync("src/components/embed/ObsWeatherStatusWidget.tsx", "utf8");
@@ -119,6 +120,18 @@ test("renderer usa o mesmo caminho de dados para prévia e widget salvo", () => 
   assert.match(rendererCss, /data-widget-presentation="compact"/);
   assert.match(rendererCss, /data-widget-presentation="horizontal"/);
   assert.match(rendererCss, /@media \(max-width: 680px\)/);
+});
+
+test("script incorporável aplica largura máxima controlada pela apresentação", () => {
+  assert.match(renderer, /presentation,/);
+  assert.match(loaderScript, /const applyPresentation = \(presentation\) =>/);
+  assert.match(loaderScript, /presentation === "compact"/);
+  assert.match(loaderScript, /iframe\.style\.maxWidth = "420px"/);
+  assert.match(loaderScript, /presentation === "card"/);
+  assert.match(loaderScript, /iframe\.style\.maxWidth = "760px"/);
+  assert.match(loaderScript, /presentation === "horizontal"/);
+  assert.match(loaderScript, /iframe\.style\.maxWidth = "100%"/);
+  assert.doesNotMatch(loaderScript, /data\.maxWidth/);
 });
 
 test("os cinco módulos consomem apenas os blocos controlados do catálogo", () => {
