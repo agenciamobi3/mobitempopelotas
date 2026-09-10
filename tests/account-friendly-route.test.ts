@@ -27,12 +27,16 @@ test("friendly account route serves both visitor login and authenticated prefere
 test("authenticated dashboard is a separate noindex route shared by Free and PRO", () => {
   assert.match(dashboardRoute, /createFileRoute\("\/painel"\)/);
   assert.match(dashboardRoute, /getAccountSnapshot/);
+  assert.match(dashboardRoute, /getAccountFavorites/);
   assert.match(dashboardRoute, /to:\s*"\/conta"/);
   assert.match(
     dashboardRoute,
     /search:\s*\{\s*erro:\s*undefined,\s*next:\s*"\/painel"\s*\}/,
   );
-  assert.match(dashboardRoute, /<AccountDashboard snapshot=\{snapshot\}/);
+  assert.match(
+    dashboardRoute,
+    /<AccountDashboard[\s\S]*?snapshot=\{snapshot\}[\s\S]*?favorites=\{favorites\}/,
+  );
   assert.match(dashboardRoute, /noindex, nofollow/);
 });
 
