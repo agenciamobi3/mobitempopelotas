@@ -7,6 +7,7 @@ import "@/components/hydrology/HydrologyEditorialRefinements.css";
 import "@/components/hydrology/HydrologyEditorialRoute.css";
 import { LaranjalLevelPage } from "@/components/hydrology/HydrologyPages";
 import "@/components/hydrology/HydrologyDetailHomeContract.css";
+import "@/components/hydrology/LaranjalLevelVisualRefresh.css";
 import { LaranjalMonitoringHistory } from "@/components/hydrology/LaranjalMonitoringHistory";
 import { useLaranjalLevelRefresh } from "@/components/hydrology/useLaranjalLevelRefresh";
 import { loadLaranjalHydrologyPageData } from "@/lib/hydrology/public-hydrology-page-loader";
@@ -59,7 +60,7 @@ function NivelLagoaPage() {
   const level = useLaranjalLevelRefresh(data.level);
 
   return (
-    <div className="hydrology-editorial-route">
+    <div className="hydrology-editorial-route hydrology-editorial-route--laranjal">
       <HydrologyEditorialHero level={level} variant="detail" />
       <LaranjalLevelPage weather={data.weather} level={level} />
       <AnaRhnLaranjalStationProfile data={data.anaRhnProfile} />
