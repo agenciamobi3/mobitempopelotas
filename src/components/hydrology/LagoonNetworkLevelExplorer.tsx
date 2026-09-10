@@ -9,6 +9,10 @@ import type {
   LagoonMonitoringNetworkData,
   LagoonMonitoringObservation,
 } from "@/lib/hydrology/lagoon-network.server";
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 
 import {
   HydrologyLevelChart,
@@ -37,25 +41,33 @@ function formatDateTime(value: string | null) {
   }).format(date);
 }
 
-function trendState(value: number | null) {
-  if (value === null || !Number.isFinite(value)) {
-    return { label: "Tendência indisponível", className: "is-unknown", icon: Minus };
+function movementState(movement: HydrologyRecentMovement | null) {
+  if (!movement || movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", className: "is-unknown", icon: Minus };
   }
-  if (Math.abs(value) < 0.1) {
-    return { label: "Pouca mudança recente", className: "is-stable", icon: Minus };
+  if (movement.direction === "stable") {
+    return { label: "Praticamente estável", className: "is-stable", icon: Minus };
   }
-  if (value > 0) {
+  if (movement.direction === "rising") {
     return {
-      label: `Subindo ${formatNumber(value)} cm/h`,
+      label: `Subindo ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
       className: "is-rising",
       icon: TrendingUp,
     };
   }
   return {
-    label: `Baixando ${formatNumber(Math.abs(value))} cm/h`,
+    label: `Baixando ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
     className: "is-falling",
     icon: TrendingDown,
   };
+}
+
+function observationMovement(observation: LagoonMonitoringObservation | null) {
+  if (!observation) return null;
+  return deriveRecentHydrologySeriesMovement(
+    observation.series.map((point) => ({ timestamp: point.timestamp, level: point.levelCm })),
+    "cm",
+  );
 }
 
 function statusLabel(observation: LagoonMonitoringObservation | null) {
@@ -132,8 +144,8 @@ export function LagoonNetworkLevelExplorer({ network }: { network: LagoonMonitor
     stations.find((item) => item.locality.stationId === selectedStationId) ?? stations[0] ?? null;
   const observation = selected?.observation ?? null;
   const locality = selected?.locality ?? null;
-  const trend = trendState(observation?.trendCmPerHour ?? null);
-  const TrendIcon = trend.icon;
+  const movement = movementState(observationMovement(observation));
+  const MovementIcon = movement.icon;
   const points = chartPoints(observation);
   const references = chartReferences(observation);
 
@@ -191,11 +203,11 @@ export function LagoonNetworkLevelExplorer({ network }: { network: LagoonMonitor
                 <strong>{currentLevelLabel(observation)}</strong>
               </span>
             </div>
-            <div className={`lagoon-network-level-explorer__trend ${trend.className}`}>
-              <TrendIcon aria-hidden="true" />
+            <div className={`lagoon-network-level-explorer__trend ${movement.className}`}>
+              <MovementIcon aria-hidden="true" />
               <span>
-                <small>Mudança recente</small>
-                <strong>{trend.label}</strong>
+                <small>Movimento recente</small>
+                <strong>{movement.label}</strong>
               </span>
             </div>
             <div className="lagoon-network-level-explorer__updated">
@@ -227,8 +239,9 @@ export function LagoonNetworkLevelExplorer({ network }: { network: LagoonMonitor
       )}
 
       <p className="lagoon-network-level-explorer__note">
-        Cada estação possui localização, equipamento e referência próprios. Trocar de estação troca
-        também a régua interpretada pelo gráfico.
+        Cada estação possui localização, equipamento e referência próprios. O movimento recente usa
+        somente o último trecho contínuo da série selecionada; trocar de estação troca também a régua
+        interpretada pelo gráfico.
       </p>
     </section>
   );
