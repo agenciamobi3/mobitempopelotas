@@ -23,12 +23,13 @@ import {
   createDefaultWidgetContent,
   isWidgetPresentation,
   normalizeWidgetContent,
+  type WidgetPresentation,
 } from "@/lib/widgets/widget-content";
 import {
   getPublicWidgetDefinition,
   type PublicWidgetDefinition,
 } from "@/lib/widgets/widget.functions";
-import { isWidgetType, type WidgetType } from "@/lib/widgets/widget-registry";
+import { isWidgetType } from "@/lib/widgets/widget-registry";
 
 const ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
@@ -43,7 +44,10 @@ function validateSearch(search: Record<string, unknown>) {
     previewType: typeof search.previewType === "string" ? search.previewType : "",
     preset: typeof search.preset === "string" ? search.preset : "",
     accent: typeof search.accent === "string" ? search.accent : "",
-    radius: typeof search.radius === "string" || typeof search.radius === "number" ? String(search.radius) : "",
+    radius:
+      typeof search.radius === "string" || typeof search.radius === "number"
+        ? String(search.radius)
+        : "",
     density: typeof search.density === "string" ? search.density : "",
     presentation: typeof search.presentation === "string" ? search.presentation : "",
     blocks: typeof search.blocks === "string" ? search.blocks : "",
@@ -70,7 +74,10 @@ function createPreviewDefinition(deps: SearchDeps): PublicWidgetDefinition | nul
   };
   const defaultContent = createDefaultWidgetContent(deps.previewType);
   const requestedBlocks = deps.blocks
-    ? deps.blocks.split(",").map((block) => block.trim()).filter(Boolean)
+    ? deps.blocks
+        .split(",")
+        .map((block) => block.trim())
+        .filter(Boolean)
     : defaultContent.visibleBlocks;
   const content = normalizeWidgetContent(deps.previewType, {
     content: {
@@ -149,9 +156,14 @@ export const Route = createFileRoute("/embed/widget")({
   component: GeneratedWidgetRoute,
 });
 
-function useResponsiveEmbedHeight(token: string | null) {
+function useResponsiveEmbedMetrics(
+  token: string | null,
+  presentation: WidgetPresentation | null,
+) {
   useEffect(() => {
-    if (!token || typeof window === "undefined" || window.parent === window) return;
+    if (!token || !presentation || typeof window === "undefined" || window.parent === window) {
+      return;
+    }
 
     let frame = 0;
     const notify = () => {
@@ -167,6 +179,7 @@ function useResponsiveEmbedHeight(token: string | null) {
             token,
             type: "resize",
             height,
+            presentation,
           },
           "*",
         );
@@ -186,13 +199,14 @@ function useResponsiveEmbedHeight(token: string | null) {
       observer?.disconnect();
       window.removeEventListener("load", notify);
     };
-  }, [token]);
+  }, [presentation, token]);
 }
 
 function GeneratedWidgetRoute() {
   const snapshot = Route.useLoaderData();
   const token = snapshot.definition?.publicToken ?? null;
-  useResponsiveEmbedHeight(token);
+  const presentation = snapshot.definition?.content.presentation ?? null;
+  useResponsiveEmbedMetrics(token, presentation);
 
   if (!snapshot.definition || !snapshot.payload || !("kind" in snapshot)) {
     return (
