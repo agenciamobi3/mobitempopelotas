@@ -7,13 +7,13 @@ import {
   regionalCityMetaDescription,
   regionalCityPageTitle,
 } from "@/lib/regional-city-editorial";
+import { findHydrologyLocalityByWeatherCitySlug } from "@/lib/hydrology/hydrology-localities";
 import {
   isRegionalHomeCity,
   nearestRegionalCities,
   regionalCityPath,
   type RegionalCity,
 } from "@/lib/regional-cities";
-import { findHydrologyLocalityByWeatherCitySlug } from "@/lib/hydrology/hydrology-localities";
 import {
   createBreadcrumbListJsonLd,
   serializeJsonLd,
@@ -35,13 +35,29 @@ import styles from "./RegionalCityWeatherPage.module.css";
 import "./RegionalCityIdentity.css";
 import "./RegionalCityAccentContract.css";
 import "./RegionalCityAlertLayout.css";
+import "./RegionalCityVisualRefresh.css";
 
-function distanceLabel(distanceKm: number) { return `${Math.round(distanceKm)} km em linha reta`; }
+function distanceLabel(distanceKm: number) {
+  return `${Math.round(distanceKm)} km em linha reta`;
+}
 
 function CityLink({ city, distanceKm }: { city: RegionalCity; distanceKm: number }) {
-  const content = <><span>{city.name}</span><small>{city.descriptor} · {distanceLabel(distanceKm)}</small><ArrowRight aria-hidden="true" /></>;
+  const content = (
+    <>
+      <span>{city.name}</span>
+      <small>
+        {city.descriptor} · {distanceLabel(distanceKm)}
+      </small>
+      <ArrowRight aria-hidden="true" />
+    </>
+  );
+
   if (isRegionalHomeCity(city)) return <Link to="/">{content}</Link>;
-  return <Link to="/tempo-em/$citySlug" params={{ citySlug: city.slug }}>{content}</Link>;
+  return (
+    <Link to="/tempo-em/$citySlug" params={{ citySlug: city.slug }}>
+      {content}
+    </Link>
+  );
 }
 
 function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData }) {
@@ -49,15 +65,77 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
   const verified = alert ? hasVerifiedRegionalAlertSemantics(alert) : false;
   const period = alert ? regionalAlertPeriod(alert) : null;
   const severityClass = alert && verified ? `severity-${alert.severity}` : "advisory-normal";
-  const statusLabel = alert ? (verified ? alert.severityLabel : "Classificação em validação") : data.alerts.status === "unavailable" ? "Consulta indisponível" : "Atualizado";
-  const title = alert ? `Aviso meteorológico: ${alert.event}` : data.alerts.status === "unavailable" ? "Não foi possível consultar os avisos municipais agora" : `Nenhum aviso municipal ativo encontrado para ${data.city.name}`;
-  const validity = alert ? (verified ? `${formatRegionalDateTime(alert.startsAt)} até ${formatRegionalDateTime(alert.expiresAt)}` : "Período completo ainda não reconhecido; confirme no aviso original") : data.alerts.status === "unavailable" ? "A situação deve ser confirmada nos canais oficiais" : `Consulta atualizada em ${formatRegionalDateTime(data.source.fetchedAt)}`;
+  const statusLabel = alert
+    ? verified
+      ? alert.severityLabel
+      : "Classificação em validação"
+    : data.alerts.status === "unavailable"
+      ? "Consulta indisponível"
+      : "Sem aviso ativo";
+  const title = alert
+    ? `Aviso meteorológico: ${alert.event}`
+    : data.alerts.status === "unavailable"
+      ? "Avisos do INMET indisponíveis nesta consulta"
+      : `Sem aviso ativo do INMET para ${data.city.name}`;
+  const validity = alert
+    ? verified
+      ? `${formatRegionalDateTime(alert.startsAt)} até ${formatRegionalDateTime(alert.expiresAt)}`
+      : "Período completo ainda não reconhecido; confirme no aviso original"
+    : data.alerts.status === "unavailable"
+      ? "Confirme a situação nos canais oficiais"
+      : `Consulta feita em ${formatRegionalDateTime(data.source.fetchedAt)}`;
   const officialUrl = alert?.officialUrl ?? data.alerts.sourceUrl;
 
-  return <section id="avisos-municipais" className={`home-inmet-alerts ${severityClass}${verified ? " is-officially-classified" : " is-unverified"} regional-city-official-alert`} data-alert-period={period ?? "none"} data-alert-severity={alert?.severity ?? "unknown"} data-alert-official-semantics={verified ? "verified" : "unverified"} aria-labelledby="regional-inmet-title">
-    <div className="home-inmet-alerts__main"><div className="home-inmet-alerts__mark" aria-hidden="true"><small>INMET</small><strong>{alert ? "!" : "✓"}</strong></div><div className="home-inmet-alerts__copy"><div className="home-inmet-alerts__topline"><span>Aviso oficial do INMET</span><b>{statusLabel}</b></div><h2 id="regional-inmet-title">{title}</h2><div className="home-inmet-alerts__meta"><span><small>Abrangência</small><strong>Município de {data.city.name}</strong></span><span><small>Validade</small><strong>{validity}</strong></span></div></div></div>
-    <div className="home-inmet-alerts__aside"><strong>Áreas e orientações oficiais</strong><small>{alert ? `Aviso com abrangência informada para ${data.city.name}` : "A consulta automática é atualizada periodicamente"}</small><a href={officialUrl} target="_blank" rel="noopener noreferrer" aria-label={`Consultar o aviso oficial do INMET para ${data.city.name} em nova aba`}>Consultar avisos <span aria-hidden="true">→</span></a></div>
-  </section>;
+  return (
+    <section
+      id="avisos-municipais"
+      className={`home-inmet-alerts ${severityClass}${verified ? " is-officially-classified" : " is-unverified"} regional-city-official-alert`}
+      data-alert-period={period ?? "none"}
+      data-alert-severity={alert?.severity ?? "unknown"}
+      data-alert-official-semantics={verified ? "verified" : "unverified"}
+      aria-labelledby="regional-inmet-title"
+    >
+      <div className="home-inmet-alerts__main">
+        <div className="home-inmet-alerts__mark" aria-hidden="true">
+          <small>INMET</small>
+          <strong>{alert ? "!" : "✓"}</strong>
+        </div>
+        <div className="home-inmet-alerts__copy">
+          <div className="home-inmet-alerts__topline">
+            <span>Avisos oficiais</span>
+            <b>{statusLabel}</b>
+          </div>
+          <h2 id="regional-inmet-title">{title}</h2>
+          <div className="home-inmet-alerts__meta">
+            <span>
+              <small>Abrangência</small>
+              <strong>Município de {data.city.name}</strong>
+            </span>
+            <span>
+              <small>Período</small>
+              <strong>{validity}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="home-inmet-alerts__aside">
+        <strong>Detalhes e orientações</strong>
+        <small>
+          {alert
+            ? `Confira a íntegra do aviso que inclui ${data.city.name}`
+            : "O INMET é consultado separadamente da previsão do modelo"}
+        </small>
+        <a
+          href={officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Consultar os avisos oficiais do INMET para ${data.city.name} em nova aba`}
+        >
+          Abrir INMET <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+  );
 }
 
 export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherData }) {
@@ -76,8 +154,20 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
     description,
     url: `https://tempopelotas.com.br${path}`,
     dateModified: data.source.fetchedAt,
-    about: { "@type": "Place", name: `${city.name}, Rio Grande do Sul`, geo: { "@type": "GeoCoordinates", latitude: city.latitude, longitude: city.longitude } },
-    isPartOf: { "@type": "WebSite", name: "Tempo Pelotas", url: "https://tempopelotas.com.br" },
+    about: {
+      "@type": "Place",
+      name: `${city.name}, Rio Grande do Sul`,
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: city.latitude,
+        longitude: city.longitude,
+      },
+    },
+    isPartOf: {
+      "@type": "WebSite",
+      name: "Tempo Pelotas",
+      url: "https://tempopelotas.com.br",
+    },
   };
   const breadcrumbs = createBreadcrumbListJsonLd([
     { name: "Tempo Pelotas", path: "/" },
@@ -85,22 +175,88 @@ export function RegionalCityWeatherPage({ data }: { data: RegionalCityWeatherDat
     { name: `Tempo em ${city.name}`, path },
   ]);
   const contextFacts = editorial?.facts ?? [
-    "Agora: estimativa horária do modelo para as coordenadas municipais.",
-    "Previsão: tendência produzida por modelo numérico para o município.",
-    "Aviso oficial: comunicado emitido pelo INMET para o código municipal.",
-    "Emergência: siga Defesa Civil, INMET e autoridades locais.",
+    "A condição atual e a previsão horária usam as coordenadas cadastradas para o município.",
+    "Chuva, temperatura e vento podem variar entre bairros, zona rural, litoral e áreas mais elevadas.",
+    "A tendência de vários dias serve para planejamento e deve ser conferida novamente conforme a data se aproxima.",
+    "Em situação de risco, os avisos da Defesa Civil e do INMET têm prioridade sobre a previsão do modelo.",
   ];
 
-  return <div className={`${styles.page} regional-city-page`}>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs) }} />
-    <RegionalCityHero data={data} />
-    <RegionalOfficialAlertPanel data={data} />
-    <div className="internal-forecast-widget regional-city-shared-forecast"><HomeForecastStory data={forecastStory} context="regional-page" locationName={city.name} showLinks={false} /></div>
-    <RegionalCityDefesaCivil citySlug={city.slug} cityName={city.name} />
-    {hydrologyLocality ? <RegionalCityHydrologyLink citySlug={city.slug} /> : null}
-    <section id="como-interpretar-previsao-regional" className={`${styles.context} regional-city-context`}><div><span className={styles.eyebrow}>{editorial ? "Previsão local" : "Leitura local"}</span><h2>{editorial?.sectionTitle ?? `Como interpretar o tempo em ${city.name}`}</h2><p>{editorial?.introduction ?? `A previsão representa a grade meteorológica correspondente às coordenadas centrais de ${city.name}, ${city.descriptor}. Bairros, áreas rurais, litoral, serras e baixadas podem registrar condições diferentes, principalmente em chuva localizada, vento, nevoeiro e temperatura mínima.`}</p></div><ul>{contextFacts.map((fact) => <li key={fact}>{fact}</li>)}</ul></section>
-    <section id="cidades-proximas" className={`${styles.related} regional-city-related`} aria-labelledby="related-cities-title"><header><div><span className={styles.eyebrow}>Proximidade geográfica</span><h2 id="related-cities-title">Consulte cidades próximas</h2></div><Link to="/tempo-na-regiao-sul-rs">Ver todas as cidades <ArrowRight aria-hidden="true" /></Link></header><div>{related.map((item) => <CityLink city={item.city} distanceKm={item.distanceKm} key={item.city.slug} />)}</div></section>
-    <footer className={`${styles.sources} regional-city-sources`}><span>Fontes</span><p>Previsão por coordenadas: Open-Meteo. Avisos municipais: Instituto Nacional de Meteorologia. {hydrologyLocality ? "O módulo Águas consulta separadamente a Rede de Monitoramento do Nível da Lagoa dos Patos, sem alterar a previsão meteorológica." : ""} Distâncias entre cidades calculadas em linha reta a partir das coordenadas cadastradas. Atualizado em {formatRegionalDateTime(data.source.fetchedAt)}. Apresentação: Tempo Pelotas.</p></footer>
-  </div>;
+  return (
+    <div className={`${styles.page} regional-city-page`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbs) }}
+      />
+
+      <RegionalCityHero data={data} />
+      <RegionalOfficialAlertPanel data={data} />
+
+      <div className="internal-forecast-widget regional-city-shared-forecast">
+        <HomeForecastStory
+          data={forecastStory}
+          context="regional-page"
+          locationName={city.name}
+          showLinks={false}
+        />
+      </div>
+
+      <RegionalCityDefesaCivil citySlug={city.slug} cityName={city.name} />
+      {hydrologyLocality ? <RegionalCityHydrologyLink citySlug={city.slug} /> : null}
+
+      <section
+        id="como-interpretar-previsao-regional"
+        className={`${styles.context} regional-city-context`}
+      >
+        <div>
+          <span className={styles.eyebrow}>Contexto local</span>
+          <h2>O que vale observar em {city.name}</h2>
+          <p>
+            {editorial?.introduction ??
+              `A previsão usa as coordenadas centrais de ${city.name}, ${city.descriptor}. Dentro do município, chuva, vento, nevoeiro e temperatura podem variar de um ponto para outro.`}
+          </p>
+        </div>
+        <ul>
+          {contextFacts.map((fact) => (
+            <li key={fact}>{fact}</li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        id="cidades-proximas"
+        className={`${styles.related} regional-city-related`}
+        aria-labelledby="related-cities-title"
+      >
+        <header>
+          <div>
+            <span className={styles.eyebrow}>Na região</span>
+            <h2 id="related-cities-title">Tempo nas cidades perto de {city.name}</h2>
+          </div>
+          <Link to="/tempo-na-regiao-sul-rs">
+            Ver mapa regional <ArrowRight aria-hidden="true" />
+          </Link>
+        </header>
+        <div>
+          {related.map((item) => (
+            <CityLink city={item.city} distanceKm={item.distanceKm} key={item.city.slug} />
+          ))}
+        </div>
+      </section>
+
+      <footer className={`${styles.sources} regional-city-sources`}>
+        <span>Dados e atualização</span>
+        <p>
+          A previsão meteorológica usa o Open-Meteo nas coordenadas cadastradas de {city.name}. Os
+          avisos municipais são consultados separadamente no INMET. {hydrologyLocality
+            ? "O módulo Águas usa fontes hidrológicas próprias e não altera a previsão meteorológica. "
+            : ""}
+          Atualizado em {formatRegionalDateTime(data.source.fetchedAt)}. Tempo Pelotas.
+        </p>
+      </footer>
+    </div>
+  );
 }
