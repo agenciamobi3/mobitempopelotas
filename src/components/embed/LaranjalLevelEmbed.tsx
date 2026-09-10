@@ -1,6 +1,10 @@
 import { Activity, ArrowDownRight, ArrowUpRight, Clock3, ExternalLink, Waves } from "lucide-react";
 import { useEffect, useId, useRef } from "react";
 
+import {
+  deriveRecentHydrologyMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 
 import styles from "./LaranjalLevelEmbed.module.css";
@@ -48,6 +52,12 @@ function formatDelta(first: number, latest: number) {
   }).format(normalized)} cm`;
 }
 
+function formatMovementRate(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 1,
+  }).format(Math.abs(value));
+}
+
 function formatChartTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -93,13 +103,13 @@ function gapThreshold(points: NormalizedSeriesPoint[]) {
   return Math.max(typicalInterval * GAP_MULTIPLIER, 60 * 60 * 1_000);
 }
 
-function splitCoordinatesOnGaps(coordinates: ChartCoordinate[], threshold: number) {
-  if (coordinates.length === 0) return [];
-  const segments: ChartCoordinate[][] = [[coordinates[0]!]];
+function splitOnGaps<T extends { epoch: number }>(points: T[], threshold: number) {
+  if (points.length === 0) return [] as T[][];
+  const segments: T[][] = [[points[0]!]];
 
-  for (let index = 1; index < coordinates.length; index += 1) {
-    const point = coordinates[index]!;
-    const previous = coordinates[index - 1]!;
+  for (let index = 1; index < points.length; index += 1) {
+    const point = points[index]!;
+    const previous = points[index - 1]!;
     if (point.epoch - previous.epoch > threshold) {
       segments.push([point]);
     } else {
@@ -110,22 +120,37 @@ function splitCoordinatesOnGaps(coordinates: ChartCoordinate[], threshold: numbe
   return segments;
 }
 
-function trendPresentation(value: number | null) {
-  if (value === null)
-    return { label: "Tendência indisponível", className: styles.neutral, Icon: Activity };
-  if (value > 0.25)
+function movementFromSeries(points: LaranjalLevelData["series"]) {
+  const normalized = normalizeSeries(points);
+  const latestSegment = splitOnGaps(normalized, gapThreshold(normalized)).at(-1) ?? [];
+  return deriveRecentHydrologyMovement(latestSegment, "m");
+}
+
+function movementPresentation(movement: HydrologyRecentMovement) {
+  if (movement.direction === "unavailable" || movement.rateCmPerHour === null) {
+    return { label: "Tendência recente indisponível", className: styles.neutral, Icon: Activity };
+  }
+
+  const rate = formatMovementRate(movement.rateCmPerHour);
+  if (movement.direction === "rising") {
     return {
-      label: `Subindo ${value.toFixed(1).replace(".", ",")} cm/h`,
+      label: `Subindo ${rate} cm/h`,
       className: styles.rising,
       Icon: ArrowUpRight,
     };
-  if (value < -0.25)
+  }
+  if (movement.direction === "falling") {
     return {
-      label: `Baixando ${Math.abs(value).toFixed(1).replace(".", ",")} cm/h`,
+      label: `Baixando ${rate} cm/h`,
       className: styles.falling,
       Icon: ArrowDownRight,
     };
-  return { label: "Nível estável", className: styles.neutral, Icon: Activity };
+  }
+  return {
+    label: `Praticamente estável · ${rate} cm/h`,
+    className: styles.neutral,
+    Icon: Activity,
+  };
 }
 
 function MiniChart({ data }: { data: LaranjalLevelData }) {
@@ -170,7 +195,7 @@ function MiniChart({ data }: { data: LaranjalLevelData }) {
     x: xForEpoch(point.epoch),
     y: yForLevel(point.level),
   }));
-  const segments = splitCoordinatesOnGaps(coordinates, gapThreshold(points));
+  const segments = splitOnGaps(coordinates, gapThreshold(points));
   const hasGaps = segments.length > 1;
   const baseline = CHART_PADDING.top + plotHeight;
   const yTicks = Array.from({ length: 4 }, (_, index) => {
@@ -368,7 +393,8 @@ function parentMessageOrigin() {
 
 export function LaranjalLevelEmbed({ data }: { data: LaranjalLevelData }) {
   const rootRef = useRef<HTMLElement>(null);
-  const trend = trendPresentation(data.trendCmPerHour);
+  const movement = movementFromSeries(data.series);
+  const trend = movementPresentation(movement);
   const TrendIcon = trend.Icon;
   const live = data.status === "live";
   const contingency = data.source.role === "contingency";
