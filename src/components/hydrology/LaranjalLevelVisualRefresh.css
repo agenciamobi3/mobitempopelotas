@@ -1,0 +1,520 @@
+/*
+ * Refresh visual exclusivo de /nivel-da-lagoa-dos-patos-laranjal.
+ *
+ * Aproxima a página da linguagem editorial usada nas previsões e nas páginas
+ * históricas: hero full-bleed claro, resumo técnico aberto e capítulos com
+ * bordas discretas em vez de cardboxing pesado.
+ */
+
+.hydrology-editorial-route--laranjal {
+  display: grid;
+  min-width: 0;
+  gap: 0;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 0.92fr) minmax(430px, 0.78fr);
+  gap: clamp(44px, 5vw, 78px);
+  align-items: center;
+  overflow: visible;
+  padding: clamp(56px, 6vw, 86px) 0 clamp(50px, 5.5vw, 76px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-hero::before {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  z-index: -1;
+  width: 100vw;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(circle at 10% 36%, rgb(24 189 205 / 10%), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgb(94 44 237 / 8%), transparent 31%),
+    linear-gradient(105deg, #f2fbfc 0%, #f9fbfb 48%, #faf9ff 78%, #f5f2ff 100%);
+  box-shadow: inset 0 -1px 0 rgb(7 30 47 / 8%);
+  content: "";
+  pointer-events: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-copy {
+  display: grid;
+  min-width: 0;
+  gap: 17px;
+  padding: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-copy::before,
+.hydrology-editorial-route--laranjal .hydrology-editorial-media::before,
+.hydrology-editorial-route--laranjal .hydrology-editorial-media::after,
+.hydrology-editorial-route--laranjal .hydrology-editorial-watermark,
+.hydrology-editorial-route--laranjal .hydrology-editorial-card-line {
+  display: none;
+  content: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-back,
+.hydrology-editorial-route--laranjal .hydrology-editorial-points {
+  display: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-eyebrow {
+  width: fit-content;
+  color: #237286;
+  font-size: 0.68rem;
+  font-weight: 820;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-copy h1 {
+  max-width: 11ch;
+  margin: 0;
+  color: #071e2f;
+  font-size: clamp(2.85rem, 4.4vw, 4.45rem);
+  font-weight: 730;
+  letter-spacing: -0.06em;
+  line-height: 0.97;
+  text-wrap: balance;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-copy > p {
+  max-width: 42rem;
+  margin: 0;
+  color: #4c6672;
+  font-size: clamp(0.94rem, 1vw, 1.04rem);
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-actions {
+  margin-top: 3px;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-actions > a:first-child {
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 58%);
+  color: #173847;
+  box-shadow: none;
+  font-size: 0.64rem;
+  backdrop-filter: blur(5px);
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-actions > a:not(:first-child) {
+  display: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-media {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  gap: 0;
+  align-content: center;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 0 0 16px;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card > header > div {
+  gap: 3px;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card > header strong {
+  color: #667d87;
+  font-size: 0.6rem;
+  font-weight: 810;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card > header small {
+  display: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-status {
+  min-height: 30px;
+  border-color: rgb(7 30 47 / 9%);
+  background: rgb(255 255 255 / 54%);
+  box-shadow: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-value {
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 25px 0 20px;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-value svg {
+  width: 46px;
+  height: 46px;
+  color: #237286;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-value strong {
+  color: #173847;
+  font-size: clamp(3.8rem, 5.4vw, 5.4rem);
+  font-weight: 760;
+  letter-spacing: -0.075em;
+  line-height: 0.9;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-value span {
+  color: #667d87;
+  font-size: 0.72rem;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-trend {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 14px 0;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-trend span {
+  color: #667d87;
+  font-size: 0.58rem;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-trend strong {
+  color: #173847;
+  font-size: 0.86rem;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  overflow: visible;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card dl div {
+  display: grid;
+  gap: 6px;
+  padding: 15px 16px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card dl div:first-child {
+  padding-left: 0;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card dl div:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card dt {
+  color: #667d87;
+  font-size: 0.58rem;
+  font-weight: 810;
+  letter-spacing: 0.05em;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card dd {
+  color: #173847;
+  font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  font-weight: 820;
+  letter-spacing: -0.035em;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-card footer {
+  margin-top: 13px;
+  color: #667d87;
+  font-size: 0.62rem;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-editorial-caption {
+  position: static;
+  justify-content: flex-start;
+  margin-top: 12px;
+  color: #667d87;
+  font-size: 0.6rem;
+  text-align: left;
+}
+
+/* Corpo em rail largo e capítulos abertos. */
+.hydrology-editorial-route--laranjal .hydrology-page {
+  width: min(1440px, calc(100% - 48px));
+  margin-inline: auto;
+  gap: 0;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-page :is(
+  .hydrology-level-card,
+  .hydrology-weather-context,
+  .hydrology-flow,
+  .hydrology-sources
+) {
+  padding: clamp(3.4rem, 6vw, 5.5rem) 0;
+  border: 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-heading h2,
+.hydrology-editorial-route--laranjal .hydrology-section-heading h2 {
+  max-width: 16ch;
+  color: #071e2f;
+  font-size: clamp(2.35rem, 4vw, 4.15rem);
+  font-weight: 740;
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-source-status {
+  min-width: 0;
+  max-width: 320px;
+  padding: 11px 13px;
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-main {
+  padding: clamp(1.8rem, 3vw, 2.6rem) 0;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-value > svg {
+  color: #087f91;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-value strong,
+.hydrology-editorial-route--laranjal .hydrology-trend strong {
+  color: #071e2f;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-trend {
+  border: 0;
+  border-left: 1px solid rgb(7 30 47 / 10%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-chart {
+  margin-top: 1.5rem;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-metrics {
+  gap: 0;
+  overflow: hidden;
+  margin-top: 1rem;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-metrics article {
+  min-height: 92px;
+  padding: 16px 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-level-metrics article:last-child {
+  border-right: 0;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-weather-grid {
+  gap: 0;
+  overflow: hidden;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--laranjal .hydrology-weather-grid article {
+  min-height: 122px;
+  padding: 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-weather-grid article:last-child {
+  border-right: 0;
+}
+
+.hydrology-editorial-route--laranjal .hydrology-interpretation-warning {
+  margin-top: 1.5rem;
+  padding: 15px 0;
+  border: 0;
+  border-top: 1px solid rgb(190 116 0 / 18%);
+  border-bottom: 1px solid rgb(190 116 0 / 18%);
+  border-radius: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--laranjal .laranjal-embed-guide {
+  width: min(1440px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+@media (max-width: 1100px) {
+  .hydrology-editorial-route--laranjal .hydrology-editorial-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-copy h1 {
+    max-width: 13ch;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-media {
+    max-width: 780px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hydrology-editorial-route--laranjal .hydrology-editorial-hero {
+    padding: 40px 0 38px;
+    gap: 28px;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-copy h1 {
+    max-width: 12ch;
+    font-size: clamp(2.35rem, 11.5vw, 3.5rem);
+    line-height: 0.99;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-copy > p {
+    font-size: 0.94rem;
+    line-height: 1.58;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-card > header {
+    grid-template-columns: 1fr;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-status {
+    width: fit-content;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-card dl {
+    grid-template-columns: 1fr;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-card dl div,
+  .hydrology-editorial-route--laranjal .hydrology-editorial-card dl div:first-child,
+  .hydrology-editorial-route--laranjal .hydrology-editorial-card dl div:last-child {
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-editorial-card dl div:last-child {
+    border-bottom: 0;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-page,
+  .hydrology-editorial-route--laranjal .laranjal-embed-guide {
+    width: calc(100% - 20px);
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-page :is(
+    .hydrology-level-card,
+    .hydrology-weather-context,
+    .hydrology-flow,
+    .hydrology-sources
+  ) {
+    padding-block: 2.6rem;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-level-heading,
+  .hydrology-editorial-route--laranjal .hydrology-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-level-heading h2,
+  .hydrology-editorial-route--laranjal .hydrology-section-heading h2 {
+    font-size: clamp(2.2rem, 10vw, 3.25rem);
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-level-main {
+    grid-template-columns: 1fr;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-trend {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-level-metrics,
+  .hydrology-editorial-route--laranjal .hydrology-weather-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-level-metrics article,
+  .hydrology-editorial-route--laranjal .hydrology-weather-grid article {
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .hydrology-editorial-route--laranjal .hydrology-level-metrics article:last-child,
+  .hydrology-editorial-route--laranjal .hydrology-weather-grid article:last-child {
+    border-bottom: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .hydrology-editorial-route--laranjal .hydrology-editorial-hero::before {
+    background: Canvas;
+    box-shadow: inset 0 -1px 0 CanvasText;
+  }
+}
