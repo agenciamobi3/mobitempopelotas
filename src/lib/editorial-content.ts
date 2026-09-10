@@ -400,7 +400,7 @@ export const CAMERAS_EDITORIAL_CONTENT = {
     {
       label: "Nível da Lagoa no Laranjal",
       href: "/nivel-da-lagoa-dos-patos-laranjal",
-      description: "Consulte a telemetria pública e a tendência recente da água.",
+      description: "Consulte a telemetria pública e o movimento recente calculado a partir da série.",
     },
   ],
 } satisfies EditorialContentDefinition;
@@ -411,7 +411,7 @@ export const HYDROLOGY_EDITORIAL_CONTENT = {
   answer:
     "A página reúne leituras de estações e contexto meteorológico para acompanhar a Lagoa dos Patos e sistemas relacionados. Cada estação possui localização, referência e horário próprios.",
   facts: [
-    "A tendência recente ajuda a identificar subida, estabilidade ou descida, mas não é uma previsão garantida do nível futuro.",
+    "O movimento recente derivado da série ajuda a identificar subida, estabilidade ou descida, mas não é uma previsão garantida do nível futuro.",
     "Vento, chuva, descargas fluviais e circulação da Lagoa podem influenciar níveis em escalas e locais diferentes.",
     "Situações de inundação ou emergência devem ser avaliadas pelos órgãos responsáveis e comunicados oficiais.",
   ],
@@ -455,7 +455,7 @@ export const LARANJAL_LEVEL_EDITORIAL_CONTENT = {
   eyebrow: "Telemetria no Laranjal",
   title: "O que significa a leitura do nível da Lagoa no Laranjal",
   answer:
-    "A leitura representa o nível registrado pela Estação Laranjal no horário informado e segundo a referência publicada pela fonte. A evolução recente ajuda a identificar tendência local, mas não confirma alagamento ou inundação por si só.",
+    "A leitura representa o nível registrado pela Estação Laranjal no horário informado e segundo a referência publicada pela fonte. O movimento recente é calculado a partir da própria série e ajuda a identificar subida, estabilidade ou descida, mas não confirma alagamento ou inundação por si só.",
   facts: [
     "Telemetria pode sofrer atrasos, interrupções ou correções; a última atualização deve acompanhar qualquer leitura.",
     "Uma variação curta pode refletir vento, oscilação local ou ruído; a sequência de leituras é mais informativa do que um ponto isolado.",
@@ -475,7 +475,7 @@ export const LARANJAL_LEVEL_EDITORIAL_CONTENT = {
     {
       question: "Um valor alto confirma inundação no Laranjal?",
       answer:
-        "Não por si só. O impacto depende da referência local, tendência, vento, drenagem e condições em cada trecho.",
+        "Não por si só. O impacto depende da referência local, do movimento recente da água, do vento, da drenagem e das condições em cada trecho.",
     },
   ],
   relatedLinks: [
