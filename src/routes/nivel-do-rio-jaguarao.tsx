@@ -13,7 +13,7 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 
 const PAGE_TITLE = "Nível do Rio Jaguarão hoje: leitura da Defesa Civil RS";
 const PAGE_DESCRIPTION =
-  "Acompanhe o nível do Rio Jaguarão hoje pela estação da Defesa Civil RS em Jaguarão, com horário da leitura, tendência, chuva e referência da própria estação.";
+  "Acompanhe o nível do Rio Jaguarão hoje pela estação da Defesa Civil RS em Jaguarão, com horário da leitura, tendência informada pela fonte, chuva e referência da própria estação.";
 const PAGE_PATH = "/nivel-do-rio-jaguarao";
 const PAGE_LOCATION = {
   "@type": "Place",
@@ -31,7 +31,7 @@ const PAGE_CONFIG: DefesaCivilStationPageConfig = {
   eyebrow: "Rio Jaguarão · Defesa Civil RS",
   heading: "Nível do Rio Jaguarão hoje",
   introduction:
-    "Acompanhe a última leitura recebida da estação de Jaguarão. O horário, a tendência e a chuva aparecem junto do nível quando a fonte os informa. A régua representa este ponto do rio e deve ser acompanhada pela própria série.",
+    "Acompanhe a última leitura recebida da estação de Jaguarão. O horário, a tendência informada pela própria fonte e a chuva aparecem junto do nível quando disponíveis. A régua representa este ponto do rio e deve ser acompanhada pela própria série.",
   waterBodyLabel: "Rio Jaguarão",
   locationLabel: "Jaguarão",
   weatherPath: "/tempo-em/jaguarao-rs",
@@ -44,11 +44,11 @@ const PAGE_CONTENT = {
   eyebrow: "Entenda a leitura",
   title: "A evolução da própria régua é o que mais importa",
   answer:
-    "Esta página acompanha somente a estação DCRS-00115, em Jaguarão. O horário e a tendência ajudam a entender como a leitura mudou naquele ponto. O Tempo Pelotas não aplica automaticamente cotas de outras estações nem transforma uma única medição em alerta de cheia.",
+    "Esta página acompanha somente a estação DCRS-00115, em Jaguarão. O horário e a tendência informada pela fonte ajudam a entender a leitura naquele ponto. O Tempo Pelotas não recalcula essa tendência, não aplica automaticamente cotas de outras estações nem transforma uma única medição em alerta de cheia.",
   facts: [
     "A leitura vem da estação DCRS-00115, identificada como Jaguarão pela Defesa Civil RS.",
     "O nível é mostrado em metros, na unidade informada pela fonte.",
-    "A tendência descreve o comportamento informado para esta estação e não é, sozinha, um alerta.",
+    "Quando existe, a tendência é reproduzida como informação textual da própria fonte e não é recalculada pelo Tempo Pelotas nem tratada, sozinha, como alerta.",
     "Se a leitura não chega, o portal não troca a ausência por zero ou por uma estação vizinha.",
     "Previsão de chuva e nível do rio são dados diferentes e permanecem separados.",
   ],
@@ -61,7 +61,7 @@ const PAGE_CONTENT = {
     {
       question: "O que significa a tendência do Rio Jaguarão?",
       answer:
-        "É a direção de mudança informada pela fonte para esta estação. Ela ajuda a entender a leitura recente, mas não é automaticamente um alerta de risco.",
+        "É a direção de mudança informada pela própria fonte para esta estação. O Tempo Pelotas a reproduz como informação da fonte, sem recalculá-la e sem transformá-la automaticamente em alerta de risco.",
     },
     {
       question: "O nível mostrado já é a cota de inundação de Jaguarão?",
@@ -118,6 +118,7 @@ export const Route = createFileRoute("/nivel-do-rio-jaguarao")({
           "Defesa Civil RS",
           "Rede de Monitoramento Hidrometeorológico",
           "Estação DCRS-00115",
+          "Tendência informada pela Defesa Civil RS",
         ],
       }),
       createFaqPageJsonLd(PAGE_PATH, PAGE_CONTENT.faqs),
