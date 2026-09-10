@@ -1,7 +1,7 @@
 .section {
-  width: min(1180px, calc(100% - 2rem));
+  width: min(1440px, calc(100% - 48px));
   margin: 0 auto;
-  padding: clamp(2rem, 4vw, 3.5rem) 0;
+  padding: clamp(3.4rem, 6vw, 5.5rem) 0;
   border-top: 1px solid rgb(7 30 47 / 10%);
   border-bottom: 1px solid rgb(7 30 47 / 10%);
 }
@@ -16,30 +16,35 @@
 .header p {
   margin: 0 0 0.55rem;
   color: #087f91;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 820;
+  letter-spacing: 0.065em;
   text-transform: uppercase;
 }
 
 .header h2 {
-  max-width: 760px;
+  max-width: 16ch;
   margin: 0;
   color: #071e2f;
-  font-size: clamp(1.65rem, 3vw, 2.5rem);
-  line-height: 1.08;
-  letter-spacing: -0.035em;
+  font-size: clamp(2.35rem, 4vw, 4.15rem);
+  font-weight: 740;
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+  text-wrap: balance;
 }
 
 .header span {
   display: block;
-  margin-top: 0.65rem;
+  max-width: 760px;
+  margin-top: 0.8rem;
   color: #51646e;
   font-size: 1rem;
+  line-height: 1.6;
 }
 
 .header a {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: 0.45rem;
   color: #5e2ced;
@@ -61,14 +66,14 @@
 .facts {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin: 2rem 0 0;
+  margin: 2.2rem 0 0;
   border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
 }
 
 .facts > div {
   min-width: 0;
   padding: 1rem 1.2rem 1rem 0;
-  border-bottom: 1px solid rgb(7 30 47 / 9%);
 }
 
 .facts > div:not(:nth-child(4n + 1)) {
@@ -79,9 +84,9 @@
 .facts dt {
   margin-bottom: 0.35rem;
   color: #71808a;
-  font-size: 0.76rem;
-  font-weight: 750;
-  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  font-weight: 780;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
 
@@ -97,7 +102,7 @@
   display: grid;
   grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1fr);
   gap: 2rem;
-  padding: 1.5rem 0;
+  padding: 1.7rem 0;
   border-bottom: 1px solid rgb(7 30 47 / 9%);
 }
 
@@ -168,13 +173,18 @@
 
 @media (max-width: 640px) {
   .section {
-    width: min(100% - 1.25rem, 1180px);
+    width: calc(100% - 20px);
+    padding-block: 2.6rem;
   }
 
   .header {
     grid-template-columns: 1fr;
     gap: 1rem;
     align-items: start;
+  }
+
+  .header h2 {
+    font-size: clamp(2.2rem, 10vw, 3.25rem);
   }
 
   .facts {
@@ -186,6 +196,11 @@
   .facts > div:nth-child(odd) {
     padding: 0.9rem 0;
     border-left: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 8%);
+  }
+
+  .facts > div:last-child {
+    border-bottom: 0;
   }
 }
 
