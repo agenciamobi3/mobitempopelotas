@@ -115,10 +115,11 @@ test("previsão de 7 dias reutiliza a consolidação meteorológica e mantém at
   assert.match(sevenDayWidget, /https:\/\/tempopelotas\.com\.br\/previsao-7-dias-pelotas/);
 });
 
-test("chuva separa observação da Embrapa e previsão horária", () => {
+test("chuva separa observação de 24 h da Defesa Civil RS e previsão horária", () => {
   assert.match(renderer, /definition\.widgetType === "chuva-pelotas"/);
   assert.match(renderer, /RainWidget/);
-  assert.match(rainWidget, /observation\.accumulated\.rainDaily/);
+  assert.match(rainWidget, /data\.sources\["defesa-civil-rs"\]/);
+  assert.match(rainWidget, /data\.observation\.rain\.h24Mm/);
   assert.match(rainWidget, /data\.hourly\.slice\(0, 6\)/);
   assert.match(rainWidget, /precipitationProbability/);
   assert.match(rainWidget, /precipitationMm/);
