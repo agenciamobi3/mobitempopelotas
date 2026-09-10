@@ -172,23 +172,29 @@ await check("feed JSON 1.1", async () => {
   return `${payload.items.length} itens`;
 });
 
-await check("pelotas.json schema 2.0", async () => {
+await check("pelotas.json schema 2.2", async () => {
   const response = await request("/pelotas.json", {
     headers: { Accept: "application/json" },
   });
   const raw = await response.text();
   const payload = JSON.parse(raw);
   const cors = response.headers.get("access-control-allow-origin");
+  const laranjal = payload.hydrology?.local_level?.laranjal;
 
   assert(response.status === 200, `HTTP ${response.status}`);
-  assert(payload.schema_version === "2.0", "schema_version incorreta");
+  assert(payload.schema_version === "2.2", "schema_version incorreta");
   assert(payload.location?.city === "Pelotas", "Localização incorreta");
   assert(payload.links?.home === absoluteUrl("/"), "Link principal incorreto");
   assert(payload.links?.public_data === absoluteUrl("/pelotas.json"), "Link público incorreto");
+  assert(laranjal?.movement_recent?.kind === "derived-from-series", "Contrato de movimento hidrológico ausente");
+  assert(
+    laranjal?.trend_cm_per_hour_semantics === "legacy-derived-field",
+    "Semântica do campo legado de tendência não identificada",
+  );
   assert(cors === "*", `CORS inesperado: ${cors}`);
   assertNoSensitiveMarkers(raw, "pelotas.json");
 
-  return `status ${payload.status}; CORS público`;
+  return `status ${payload.status}; movimento canônico; CORS público`;
 });
 
 const redemetResults = [];
