@@ -1,0 +1,103 @@
+.widget-builder-live-preview {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 20px;
+  background:
+    linear-gradient(45deg, rgba(148, 163, 184, 0.08) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(148, 163, 184, 0.08) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(148, 163, 184, 0.08) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(148, 163, 184, 0.08) 75%),
+    #f8fafc;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-size: 16px 16px;
+}
+
+.widget-builder-live-preview__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.widget-builder-live-preview__heading span,
+.widget-builder-live-preview__heading strong {
+  display: block;
+}
+
+.widget-builder-live-preview__heading span {
+  color: #087c8a;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.widget-builder-live-preview__heading strong {
+  margin-top: 2px;
+  color: #172733;
+  font-size: 0.82rem;
+}
+
+.widget-builder-live-preview__heading small {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4c1d95;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.widget-builder-live-preview iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  transition: height 180ms ease;
+}
+
+.widget-builder-live-preview.is-compact iframe {
+  width: min(100%, 460px);
+  margin-inline: auto;
+}
+
+.widget-builder-live-preview > p {
+  margin: 0;
+  padding: 10px 16px 13px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: #667085;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .widget-builder-live-preview {
+    border-radius: 16px;
+  }
+
+  .widget-builder-live-preview__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .widget-builder-live-preview iframe {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .widget-builder-live-preview,
+  .widget-builder-live-preview__heading,
+  .widget-builder-live-preview > p {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
