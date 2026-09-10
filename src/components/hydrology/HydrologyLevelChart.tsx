@@ -6,6 +6,12 @@ import {
   toHydrologyCentimeters,
   type HydrologyRecentMovement,
 } from "@/lib/hydrology/level-movement";
+import {
+  hydrologyGapThresholdMs,
+  normalizeHydrologyLevelSeries,
+  splitHydrologySeriesOnGaps,
+  type HydrologyNormalizedLevelPoint,
+} from "@/lib/hydrology/level-series";
 
 import "./HydrologyLevelChart.css";
 
@@ -34,11 +40,7 @@ type HydrologyLevelChartProps = {
   className?: string;
 };
 
-type NormalizedPoint = HydrologyLevelChartPoint & {
-  epoch: number;
-};
-
-type ChartCoordinate = NormalizedPoint & {
+type ChartCoordinate = HydrologyNormalizedLevelPoint & {
   x: number;
   y: number;
 };
@@ -47,53 +49,6 @@ const WIDTH = 1040;
 const HEIGHT = 390;
 const PADDING = { top: 38, right: 38, bottom: 58, left: 72 } as const;
 const GAP_MULTIPLIER = 2.5;
-
-function normalizePoints(points: HydrologyLevelChartPoint[]): NormalizedPoint[] {
-  const byTimestamp = new Map<number, NormalizedPoint>();
-
-  for (const point of points) {
-    const epoch = new Date(point.timestamp).getTime();
-    if (!Number.isFinite(point.level) || !Number.isFinite(epoch)) continue;
-    byTimestamp.set(epoch, { ...point, epoch });
-  }
-
-  return [...byTimestamp.values()].sort((left, right) => left.epoch - right.epoch);
-}
-
-function median(values: number[]) {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((left, right) => left - right);
-  const middle = Math.floor(sorted.length / 2);
-  if (sorted.length % 2 === 1) return sorted[middle] ?? null;
-  const left = sorted[middle - 1];
-  const right = sorted[middle];
-  return left === undefined || right === undefined ? null : (left + right) / 2;
-}
-
-function gapThreshold(points: NormalizedPoint[]) {
-  const intervals = points
-    .slice(1)
-    .map((point, index) => point.epoch - points[index]!.epoch)
-    .filter((interval) => interval > 0);
-  const typicalInterval = median(intervals);
-  return typicalInterval === null ? Number.POSITIVE_INFINITY : typicalInterval * GAP_MULTIPLIER;
-}
-
-function splitCoordinatesOnGaps(coordinates: ChartCoordinate[], thresholdMs: number) {
-  if (coordinates.length === 0) return [] as ChartCoordinate[][];
-
-  const segments: ChartCoordinate[][] = [[coordinates[0]!]];
-  for (let index = 1; index < coordinates.length; index += 1) {
-    const point = coordinates[index]!;
-    const previous = coordinates[index - 1]!;
-    if (point.epoch - previous.epoch > thresholdMs) {
-      segments.push([point]);
-    } else {
-      segments.at(-1)!.push(point);
-    }
-  }
-  return segments;
-}
 
 function formatCentimeters(value: number, signed = false) {
   const normalized = Math.abs(value) < 0.05 ? 0 : value;
@@ -171,7 +126,7 @@ export function HydrologyLevelChart({
   className = "",
 }: HydrologyLevelChartProps) {
   const gradientId = `hydrology-level-area-${useId().replace(/:/g, "")}`;
-  const valid = normalizePoints(points);
+  const valid = normalizeHydrologyLevelSeries(points);
   const hasSeries = valid.length >= 2;
   const hasPoint = valid.length >= 1;
 
@@ -220,8 +175,8 @@ export function HydrologyLevelChart({
     x: xForEpoch(point.epoch),
     y: yForValue(point.level),
   }));
-  const thresholdMs = gapThreshold(valid);
-  const segments = splitCoordinatesOnGaps(coordinates, thresholdMs);
+  const thresholdMs = hydrologyGapThresholdMs(valid, { multiplier: GAP_MULTIPLIER });
+  const segments = splitHydrologySeriesOnGaps(coordinates, thresholdMs);
   const hasGaps = segments.length > 1;
   const latestSegment = segments.at(-1) ?? [];
   const movement = deriveRecentHydrologyMovement(latestSegment, unit);
