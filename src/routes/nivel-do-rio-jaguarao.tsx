@@ -5,7 +5,8 @@ import {
   DefesaCivilStationHydrologyPage,
   type DefesaCivilStationPageConfig,
 } from "@/components/hydrology/DefesaCivilStationHydrologyPage";
-import { ContentPageShell } from "@/components/layout/ContentPageShell";
+import "@/components/hydrology/DefesaCivilStationVisualRefresh.css";
+import "@/components/hydrology/HydrologyEditorialRoute.css";
 import { getDefesaCivilHydroData } from "@/lib/hydrology/defesa-civil-rs.functions";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
@@ -130,9 +131,9 @@ function NivelRioJaguaraoPage() {
   const data = Route.useLoaderData();
 
   return (
-    <ContentPageShell pageClassName="content-shell--defesa-civil-station">
+    <div className="hydrology-editorial-route hydrology-editorial-route--defesa-civil-station hydrology-editorial-route--jaguarao">
       <DefesaCivilStationHydrologyPage data={data} config={PAGE_CONFIG} />
       <EditorialContentSection id="como-interpretar-nivel-rio-jaguarao" content={PAGE_CONTENT} />
-    </ContentPageShell>
+    </div>
   );
 }
