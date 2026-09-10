@@ -25,15 +25,27 @@ test("o índice da Lagoa usa identidade visual própria sem afetar páginas loca
 });
 
 test("hero do índice segue o contrato editorial das páginas internas", () => {
-  assert.match(heroStyles, /grid-template-columns: minmax\(0, 0\.92fr\) minmax\(430px, 0\.78fr\)/);
+  assert.match(heroStyles, /grid-template-columns: minmax\(0, 1\.02fr\) minmax\(380px, 0\.88fr\)/);
+  assert.match(heroStyles, /grid-template-areas: none/);
   assert.match(heroStyles, /width: 100vw/);
   assert.match(heroStyles, /linear-gradient\(105deg, #f2fbfc/);
   assert.match(heroStyles, /border-radius: 0/);
-  assert.match(heroStyles, /font-size: clamp\(2\.85rem, 4\.4vw, 4\.45rem\)/);
+  assert.match(heroStyles, /font-size: clamp\(3rem, 4\.25vw, 4\.3rem\)/);
   assert.match(heroStyles, /\.lagoon-network-index-hero__facts/);
   assert.match(heroStyles, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
-  assert.match(heroStyles, /@media \(max-width: 1100px\)/);
+  assert.match(heroStyles, /@media \(max-width: 980px\)/);
   assert.match(heroStyles, /@media \(max-width: 720px\)/);
+});
+
+test("hero neutraliza o grid legado para impedir sobreposição entre título, texto e metadados", () => {
+  assert.match(heroStyles, /\.lagoon-network-index-hero__copy \{/);
+  assert.match(heroStyles, /flex-direction: column/);
+  assert.match(
+    heroStyles,
+    /\.lagoon-network-index-shell \.lagoon-network-index-hero__copy > \.lagoon-locality-eyebrow,[\s\S]*grid-area: auto/,
+  );
+  assert.match(heroStyles, /max-width: 720px/);
+  assert.match(heroStyles, /\.lagoon-network-index-hero__meta \{[\s\S]*margin-top: 24px/);
 });
 
 test("hero resume disponibilidade sem repetir provedor como eyebrow", () => {
