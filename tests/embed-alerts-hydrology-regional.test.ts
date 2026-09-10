@@ -8,6 +8,10 @@ const embedIsolation = readFileSync("src/components/embed/LaranjalEmbedIsolation
 const embedScript = readFileSync("src/routes/widgets/nivel-laranjal[.]js.ts", "utf8");
 const embedApi = readFileSync("src/routes/api/widgets/nivel-laranjal.ts", "utf8");
 const embedGuide = readFileSync("src/components/embed/LaranjalEmbedGuide.tsx", "utf8");
+const monitoringHistory = readFileSync(
+  "src/components/hydrology/LaranjalMonitoringHistory.tsx",
+  "utf8",
+);
 const obsRoute = readFileSync("src/routes/embed/status-tempo-agora.tsx", "utf8");
 const obsComponent = readFileSync("src/components/embed/ObsWeatherStatusWidget.tsx", "utf8");
 const obsStyles = readFileSync("src/components/embed/ObsWeatherStatusWidget.module.css", "utf8");
@@ -39,7 +43,7 @@ const regionalHero = readFileSync("src/components/regional/RegionalCityHero.tsx"
 const regionalPage = readFileSync("src/components/regional/RegionalCityWeatherPage.tsx", "utf8");
 const regionalIdentity = readFileSync("src/components/regional/RegionalCityIdentity.css", "utf8");
 
-test("Laranjal widget is standalone, responsive and publicly reusable", () => {
+test("Laranjal widget keeps its embed runtime while public onboarding uses the account builder", () => {
   assert.match(embedRoute, /createFileRoute\("\/embed\/nivel-laranjal"\)/);
   assert.match(embedRoute, /LaranjalEmbedIsolation\.css/);
   assert.match(siteLayout, /"\/embed\/nivel-laranjal"/);
@@ -64,11 +68,20 @@ test("Laranjal widget is standalone, responsive and publicly reusable", () => {
   assert.match(embedApi, /X-Robots-Tag/);
   assert.match(embedApi, /currentLevel/);
   assert.match(embedApi, /series/);
-  assert.match(embedGuide, /Código de incorporação/);
-  assert.match(embedGuide, /navigator\.clipboard\.writeText/);
+  assert.match(embedGuide, /Use o construtor no seu painel/);
+  assert.match(embedGuide, /to="\/widgets"/);
+  assert.match(embedGuide, /entrar ou criar uma conta gratuita/);
+  assert.doesNotMatch(embedGuide, /Código de incorporação/);
+  assert.doesNotMatch(embedGuide, /navigator\.clipboard\.writeText/);
+  assert.doesNotMatch(embedGuide, /\/api\/widgets\/nivel-laranjal/);
   assert.match(embedIsolation, /\.pwa-launcher/);
   assert.match(embedIsolation, /\.push-launcher/);
   assert.match(embedIsolation, /onesignal-bell-container/);
+});
+
+test("histórico do Laranjal não repete a nota técnica removida da página", () => {
+  assert.doesNotMatch(monitoringHistory, /Essa sequência documenta a evolução do monitoramento/);
+  assert.doesNotMatch(monitoringHistory, /compartilhem o mesmo hardware, zero de régua, RN ou datum vertical/);
 });
 
 test("OBS weather widget is private-by-discovery, noindex and Embrapa-led", () => {
