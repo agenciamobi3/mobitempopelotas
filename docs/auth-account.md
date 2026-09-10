@@ -1,6 +1,6 @@
-# Autenticação, conta, painel, preferências e direitos LGPD
+# Autenticação, conta, painel, favoritos, preferências e direitos LGPD
 
-Última atualização: 22/08/2026.
+Última atualização: 10/09/2026.
 
 ## Princípio de produto
 
@@ -11,7 +11,7 @@ A autenticação acrescenta uma camada pessoal ao portal:
 - identificação básica;
 - preferências opcionais;
 - painel autenticado;
-- favoritos e locais acompanhados, quando implementados;
+- favoritos persistentes para páginas, locais, estações e ferramentas canônicas;
 - históricos e ferramentas definidos para a camada Free;
 - futuros recursos PRO por entitlement;
 - exercício de direitos LGPD.
@@ -20,7 +20,7 @@ A política de separação Público / Free / PRO está em `docs/DATA_ACCESS_PUBL
 
 ## Arquitetura atual
 
-O login Google para Web passa a usar **Google Identity Services diretamente no Tempo Pelotas + Supabase `signInWithIdToken()`**.
+O login Google para Web usa **Google Identity Services diretamente no Tempo Pelotas + Supabase `signInWithIdToken()`**.
 
 Objetivo: manter o Supabase como provedor de sessão e identidade sem expor o domínio técnico `<project-ref>.supabase.co` na etapa em que o usuário escolhe a conta Google e sem depender do add-on pago de Custom Domain.
 
@@ -59,7 +59,7 @@ No Google Auth Platform, as origens JavaScript autorizadas devem incluir os host
 - `https://www.tempopelotas.com.br`;
 - ambientes adicionais somente quando realmente usados para teste.
 
-O novo fluxo por ID Token não depende de cadastrar `https://tempopelotas.com.br/auth/v1/callback` como callback do Google. Esse caminho não hospeda o serviço Auth do Supabase.
+O fluxo por ID Token não depende de cadastrar `https://tempopelotas.com.br/auth/v1/callback` como callback do Google. Esse caminho não hospeda o serviço Auth do Supabase.
 
 Branding do Google deve usar nome, domínio, logotipo, política de privacidade e demais informações oficiais do Tempo Pelotas. Isso é independente da autenticação Supabase e melhora a identificação do aplicativo pelo usuário.
 
@@ -87,18 +87,19 @@ Regras:
 
 `src/lib/auth/account-access.ts` centraliza os entitlements. Componentes não devem espalhar verificações como `plan === "pro"`.
 
-A camada Free começa preparada para:
+A camada Free inclui ou prepara:
 
 - acesso ao painel;
 - preferências;
-- favoritos;
-- histórico de até 60 dias nos recursos definidos como Free.
+- favoritos persistentes;
+- widgets permitidos pelos entitlements Free;
+- histórico de até 60 dias nos recursos que forem definidos e implementados como Free.
 
 A camada PRO pode liberar, quando implementado e permitido pelas fontes:
 
 - histórico completo;
 - comparações entre períodos, estações e variáveis;
-- exportações;
+- exportações avançadas de dados;
 - radar/satélite avançados;
 - métricas de acurácia;
 - gráficos e análises avançadas.
@@ -128,6 +129,30 @@ A função:
 
 A migration foi aplicada ao Supabase externo em 22/08/2026 e validada com `SECURITY DEFINER`, `search_path` vazio, execução negada a `anon` e liberada a `authenticated`.
 
+## Favoritos Free
+
+A migration live `20260910202606_create_user_favorites` cria `public.user_favorites` e está versionada com o mesmo número em `supabase/migrations/20260910202606_create_user_favorites.sql`.
+
+Cada favorito guarda somente:
+
+- `user_id`;
+- `resource_key` canônica;
+- `resource_type` (`page`, `location`, `station` ou `tool`);
+- data de criação.
+
+O browser **não envia URL nem título arbitrário** para persistência. `src/lib/auth/favorite-resources.ts` contém o catálogo canônico de recursos que podem ser salvos. `setAccountFavorite()` recebe somente uma `resourceKey` validada e o estado desejado.
+
+Segurança:
+
+- `user_favorites.user_id` referencia `auth.users(id)` com `ON DELETE CASCADE`;
+- RLS está habilitado;
+- `anon` não recebe acesso à tabela;
+- `authenticated` pode selecionar, inserir e remover somente linhas cuja `user_id` seja `auth.uid()`;
+- a mutação server-side também verifica `access.entitlements.favorites`;
+- a exclusão da conta remove automaticamente seus favoritos.
+
+O painel Free mostra favoritos salvos como atalhos e permite adicionar/remover recursos do catálogo. Favoritar uma página não altera sua disponibilidade pública e não cria paywall.
+
 ## `/conta` e `/painel`
 
 ### `/conta`
@@ -152,10 +177,11 @@ Responsabilidades:
 - permanecer `noindex, nofollow`;
 - apresentar a camada efetiva da conta;
 - funcionar como shell comum a Free e PRO;
-- receber progressivamente módulos pessoais e premium;
+- oferecer favoritos persistentes e widgets já disponíveis;
+- receber progressivamente históricos e módulos avançados;
 - nunca ser usado para esconder conteúdo governamental que já pertence ao portal público.
 
-No primeiro estágio, o painel é intencionalmente um shell: ele identifica a conta e mostra a estrutura dos módulos sem fingir que favoritos, históricos avançados, comparações ou exportações já estão concluídos.
+O painel deixou de ser apenas um shell. O primeiro valor pessoal efetivo da camada Free é o workspace de favoritos, acompanhado das preferências de conta e do gerador de widgets já existente. Histórico Free, comparações e análises só devem ser apresentados como disponíveis quando houver implementação real e contrato de dados correspondente.
 
 ## Variáveis
 
@@ -185,7 +211,7 @@ Isso evita reutilização de respostas privadas por cache compartilhado.
 
 ## RLS e proteção
 
-As tabelas `profiles`, `user_preferences`, `account_consent_events` e `account_access` possuem RLS.
+As tabelas `profiles`, `user_preferences`, `account_consent_events`, `account_access` e `user_favorites` possuem RLS.
 
 O browser autenticado não recebe:
 
@@ -215,7 +241,7 @@ GET /api/account/export
 
 A rota exige sessão e entrega JSON com os dados pessoais previstos pelo contrato atual. Tokens, chaves criptográficas e credenciais administrativas são omitidos.
 
-A exportação versão `1.1` inclui também a camada de acesso (`tier`, `status`, `source`, `valid_until` e timestamps), sem confundir entitlement com histórico financeiro/fiscal. Quando billing existir, dados financeiros sujeitos a retenção legal deverão ter política própria.
+A exportação versão `1.3` inclui identidade, perfil, preferências, camada de acesso, favoritos, histórico de consentimentos, aparelhos de notificação e contribuições históricas da conta. Quando billing existir, dados financeiros sujeitos a retenção legal deverão ter política própria.
 
 ## Exclusão da conta
 
@@ -228,41 +254,42 @@ Content-Type: application/json
 }
 ```
 
-A rota exige mesma origem, limita o corpo, valida sessão, exige frase exata, remove a identidade pelo cliente administrativo e encerra a sessão local. `account_access` usa `ON DELETE CASCADE` e acompanha a exclusão da identidade.
+A rota exige mesma origem, limita o corpo, valida sessão, exige frase exata, remove a identidade pelo cliente administrativo e encerra a sessão local. `account_access`, `user_favorites` e demais estruturas vinculadas por FK usam cascata compatível com a exclusão da identidade.
 
 ## Logout
 
 `POST /auth/signout` encerra somente a sessão local do dispositivo atual e redireciona para a Home.
 
-## Estado de validação em 22/08/2026
+## Estado de validação em 10/09/2026
 
 Confirmado tecnicamente:
 
+- existem 2 identidades em `auth.users` no projeto `tempopelotas`;
+- as 2 identidades possuem `profiles`, `user_preferences` e `account_access` correspondentes;
+- as 2 contas estão `free` e `active`;
+- não há conta autenticada sem perfil, preferências ou acesso;
 - migration `account_access` aplicada no Supabase externo;
 - RLS de `account_access` permite apenas leitura da própria linha ao autenticado;
-- escrita administrativa de `account_access` não está disponível ao browser autenticado;
-- triggers de criação de perfil, preferências e acesso existem em `auth.users`;
 - reparação segura da fundação foi aplicada e validada no banco;
-- `/conta` e `/painel` estão preparados como rotas privadas/noindex;
+- migration `create_user_favorites` aplicada ao Supabase externo;
+- `user_favorites` está com RLS habilitado;
+- `anon` não possui `SELECT` em `user_favorites`;
+- `authenticated` possui `SELECT`, `INSERT` e `DELETE`, sujeitos às políticas de dono da linha;
+- `/conta` e `/painel` permanecem rotas privadas/noindex;
 - `next` rejeita redirects externos por contrato;
-- exportação LGPD inclui a camada de acesso e continua omitindo secrets;
-- código do login foi migrado de `signInWithOAuth()` para Google Identity Services + `signInWithIdToken()`;
+- exportação LGPD versão 1.3 inclui favoritos e continua omitindo secrets;
+- código do login usa Google Identity Services + `signInWithIdToken()`;
 - nonce do Google é gerado com Web Crypto e validado pelo Supabase;
 - o botão principal não referencia `/auth/v1/callback` do Supabase.
 
-Ainda pendente e obrigatório antes de iniciar favoritos/históricos Free:
+Ainda pendente para fechamento E2E da conta Free:
 
-- configurar `VITE_GOOGLE_CLIENT_ID` no build de produção;
-- E2E real do Google Identity Services em navegador;
-- primeiro login criando `profiles`, `user_preferences` e `account_access`;
-- confirmação visual/funcional de que o primeiro usuário recebe Free;
-- retorno `/conta?next=/painel` → Google → ID Token → Supabase → `/painel`;
-- atualização de preferências/consentimentos com sessão real;
-- exportação, logout e exclusão com conta real de teste;
-- isolamento cruzado com duas contas descartáveis;
-- validação em mobile/navegador real.
-
-No momento da última inspeção técnica, `auth.users` ainda estava vazio. Portanto nenhum teste real do novo login Google foi declarado como concluído.
+- testar em navegador real a inclusão e remoção de favoritos com uma conta Free;
+- confirmar persistência após recarregar e entrar novamente;
+- confirmar isolamento cruzado dos favoritos entre as duas contas;
+- validar o novo workspace de favoritos em mobile real;
+- repetir exportação e exclusão com favoritos existentes para confirmar o fluxo completo;
+- validar visualmente estados degradados se a storage pessoal estiver indisponível.
 
 ## Checklist de validação final
 
@@ -271,19 +298,19 @@ No momento da última inspeção técnica, `auth.users` ainda estava vazio. Port
 3. [x] aplicar e validar a reparação segura da fundação da conta;
 4. [x] remover `signInWithOAuth()` da entrada principal do Google;
 5. [x] implementar Google Identity Services + `signInWithIdToken()` com nonce;
-6. [ ] configurar `VITE_GOOGLE_CLIENT_ID` em produção;
-7. [ ] testar login Google em produção;
-8. [ ] confirmar criação automática/reparação de `profiles`, `user_preferences` e `account_access` no primeiro login;
-9. [ ] confirmar que o primeiro login recebe `Free`;
-10. [ ] validar retorno `/conta?next=/painel` → Google → ID Token → Supabase → `/painel`;
-11. [x] proteger por contrato `next=https://exemplo.com` e `next=//exemplo.com`;
-12. [ ] confirmar em E2E que uma conta não consulta dados privados de outra;
-13. [x] manter `/conta` e `/painel` como `noindex` por contrato;
-14. [ ] testar atualização de preferências e consentimentos em navegador real;
-15. [x] incluir camada de acesso na exportação e manter secrets fora do payload por contrato;
-16. [ ] testar exportação em navegador real;
-17. [ ] testar exclusão e cascata, incluindo `account_access`;
-18. [ ] testar logout;
-19. [ ] repetir o E2E com duas contas descartáveis em navegador real;
-20. [ ] validar mobile;
-21. [ ] somente depois avançar para favoritos, históricos Free e billing PRO.
+6. [x] confirmar existência de contas reais com fundação completa no Supabase;
+7. [x] confirmar que as contas atuais recebem `Free` e `active`;
+8. [x] proteger por contrato `next=https://exemplo.com` e `next=//exemplo.com`;
+9. [x] manter `/conta` e `/painel` como `noindex` por contrato;
+10. [x] implementar favoritos persistentes para Free com catálogo canônico;
+11. [x] aplicar `user_favorites` no Supabase e validar RLS/privilégios;
+12. [x] incluir favoritos na exportação LGPD e manter secrets fora do payload por contrato;
+13. [ ] testar adicionar/remover favorito em navegador real;
+14. [ ] confirmar persistência após reload e nova sessão;
+15. [ ] confirmar em E2E que uma conta não consulta favoritos da outra;
+16. [ ] testar atualização de preferências e consentimentos em navegador real;
+17. [ ] testar exportação versão 1.3 em navegador real;
+18. [ ] testar exclusão e cascata com `account_access` e `user_favorites`;
+19. [ ] testar logout;
+20. [ ] validar mobile real;
+21. [ ] avançar histórico Free somente sobre datasets classificados e implementados para essa camada.
