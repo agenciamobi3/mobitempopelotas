@@ -120,7 +120,9 @@ jobs:
         run: node --test tests/hydrology-degraded-state-semantics.test.ts
 
       - name: Contrato visual dos gráficos de nível
-        run: node --test tests/hydrology-level-chart-contract.test.ts
+        run: |
+          node --test tests/hydrology-level-chart-contract.test.ts
+          node --test tests/hydrology-level-movement.test.ts
 
       - name: Snapshot estável da página hidrológica
         run: node --test tests/hydrology-loader-stable-weather.test.ts
