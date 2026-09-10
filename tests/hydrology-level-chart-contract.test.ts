@@ -6,6 +6,7 @@ const chart = readFileSync("src/components/hydrology/HydrologyLevelChart.tsx", "
 const chartCss = readFileSync("src/components/hydrology/HydrologyLevelChart.css", "utf8");
 const guaiba = readFileSync("src/components/hydrology/GuaibaLevelPage.tsx", "utf8");
 const laranjal = readFileSync("src/components/hydrology/HydrologyPages.tsx", "utf8");
+const overview = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx", "utf8");
 const lagoon = readFileSync("src/components/hydrology/LagoonHydrologyLocalityPage.tsx", "utf8");
 const defesaCivil = readFileSync(
   "src/components/hydrology/DefesaCivilStationHydrologyPage.tsx",
@@ -37,7 +38,7 @@ test("gráfico de nível permanece responsivo e legível em telas estreitas", ()
   assert.match(chartCss, /stroke-linejoin:\s*round/);
 });
 
-test("Guaíba e Laranjal usam o mesmo componente de gráfico", () => {
+test("Guaíba, Laranjal e visão integrada usam o mesmo componente de gráfico", () => {
   assert.match(guaiba, /import \{ HydrologyLevelChart \}/);
   assert.match(guaiba, /<HydrologyLevelChart/);
   assert.doesNotMatch(guaiba, /function GuaibaSparkline/);
@@ -46,6 +47,10 @@ test("Guaíba e Laranjal usam o mesmo componente de gráfico", () => {
   assert.match(laranjal, /import \{ HydrologyLevelChart \}/);
   assert.match(laranjal, /<HydrologyLevelChart/);
   assert.doesNotMatch(laranjal, /function Sparkline/);
+
+  assert.match(overview, /import \{ HydrologyLevelChart \}/);
+  assert.match(overview, /<HydrologyLevelChart/);
+  assert.doesNotMatch(overview, /function LevelSparkline/);
 });
 
 test("páginas locais da Lagoa abandonam o line chart isolado e usam o contrato compartilhado", () => {
