@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const migration = readFileSync(
-  "supabase/migrations/20260910203000_create_user_favorites.sql",
+  "supabase/migrations/20260910202606_create_user_favorites.sql",
   "utf8",
 );
 const catalog = readFileSync("src/lib/auth/favorite-resources.ts", "utf8");
