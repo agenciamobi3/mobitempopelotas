@@ -173,14 +173,19 @@ function fallbackAppearanceFromLegacyTheme(theme: string): WidgetAppearance {
   return createAppearanceFromPreset(theme === "light" ? "clean-light" : "tempo-dark");
 }
 
+function hasStoredAppearanceConfig(config: Json) {
+  return (
+    typeof config === "object" &&
+    config !== null &&
+    !Array.isArray(config) &&
+    "appearance" in config
+  );
+}
+
 function resolveRowAppearance(row: Pick<UserWidgetRow, "config" | "theme">): WidgetAppearance {
-  const appearance = normalizeWidgetAppearance(row.config);
-  const hasStoredAppearance =
-    Boolean(row.config) &&
-    typeof row.config === "object" &&
-    !Array.isArray(row.config) &&
-    "appearance" in row.config;
-  return hasStoredAppearance ? appearance : fallbackAppearanceFromLegacyTheme(row.theme);
+  return hasStoredAppearanceConfig(row.config)
+    ? normalizeWidgetAppearance(row.config)
+    : fallbackAppearanceFromLegacyTheme(row.theme);
 }
 
 function mapManagedWidget(row: UserWidgetRow): ManagedWidget | null {
@@ -315,7 +320,8 @@ export const createUserWidget = createServerFn({ method: "POST" })
     if (
       !definition ||
       !access.entitlements.widgetsCreate ||
-      !canUseWidgetType(access.entitlements, data.widgetType)
+      !canUseWidgetType(access.entitlements, data.widgetType) ||
+      (data.appearance && !access.entitlements.widgetsAdvancedThemes)
     ) {
       applyPrivateHeaders(responseHeaders);
       return { ok: false as const, code: "not_entitled" as const };
@@ -402,7 +408,10 @@ export const updateUserWidgetAppearance = createServerFn({ method: "POST" })
 
     if (currentError || !current || !isWidgetType(current.widget_type)) {
       applyPrivateHeaders(responseHeaders);
-      return { ok: false as const, code: currentError ? "storage" as const : "not_found" as const };
+      return {
+        ok: false as const,
+        code: currentError ? ("storage" as const) : ("not_found" as const),
+      };
     }
 
     if (!canUseWidgetType(access.entitlements, current.widget_type)) {
