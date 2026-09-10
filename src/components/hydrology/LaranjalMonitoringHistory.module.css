@@ -99,18 +99,6 @@
   flex: 0 0 auto;
 }
 
-.note {
-  max-width: 940px;
-  padding-top: 1.7rem;
-}
-
-.note p {
-  margin: 0;
-  color: #667880;
-  font-size: 0.94rem;
-  line-height: 1.72;
-}
-
 @media (max-width: 700px) {
   .section {
     width: calc(100% - 20px);
