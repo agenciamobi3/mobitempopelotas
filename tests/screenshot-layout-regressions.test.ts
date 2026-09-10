@@ -51,26 +51,20 @@ test("Home radar keeps an unavailable REDEMET layer compact and readable", () =>
   );
 });
 
-test("Regional INMET alert owns its layout outside the Home shell", () => {
+test("Regional INMET alert owns a compact bar outside the Home shell", () => {
   assert.match(regionalPage, /import "\.\/RegionalCityAlertLayout\.css"/);
+  assert.match(regionalPage, /regional-city-alert-bar/);
+  assert.doesNotMatch(regionalPage, /home-inmet-alerts__/);
   assert.match(
     regionalAlertLayout,
-    /\.regional-city-official-alert\s*\{[\s\S]*display:\s*grid/,
+    /\.regional-city-alert-bar\s*\{[\s\S]*grid-template-columns:\s*44px minmax\(0, 1fr\) auto/,
   );
   assert.match(
     regionalAlertLayout,
-    /\.home-inmet-alerts__main\s*\{[\s\S]*display:\s*grid/,
+    /\.regional-city-alert-bar\s*\{[\s\S]*min-height:\s*72px/,
   );
-  assert.match(
-    regionalAlertLayout,
-    /\.home-inmet-alerts__copy\s*\{[\s\S]*display:\s*grid[\s\S]*gap:/,
-  );
-  assert.match(
-    regionalAlertLayout,
-    /\.home-inmet-alerts__meta\s*\{[\s\S]*grid-template-columns:/,
-  );
-  assert.match(
-    regionalAlertLayout,
-    /\.home-inmet-alerts__aside\s*\{[\s\S]*display:\s*grid/,
-  );
+  assert.match(regionalAlertLayout, /\.regional-city-alert-bar__content\s*\{/);
+  assert.match(regionalAlertLayout, /\.regional-city-alert-bar__summary\s*\{/);
+  assert.match(regionalAlertLayout, /\.regional-city-alert-bar__action\s*\{/);
+  assert.match(regionalAlertLayout, /@media \(max-width: 640px\)/);
 });
