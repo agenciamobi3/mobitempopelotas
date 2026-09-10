@@ -18,6 +18,14 @@ function accessStateLabel(state: AccessItem["state"]) {
 }
 
 function buildAccessItems(entitlements: Entitlements): AccessItem[] {
+  const hasAdvancedAccess =
+    entitlements.historyCompare ||
+    entitlements.stationCompare ||
+    entitlements.variableCompare ||
+    entitlements.dataExport ||
+    entitlements.forecastAccuracy ||
+    entitlements.advancedCharts;
+
   return [
     {
       title: "Favoritos pessoais",
@@ -32,7 +40,8 @@ function buildAccessItems(entitlements: Entitlements): AccessItem[] {
     {
       title: "Gerador de widgets",
       description: "Crie widgets permitidos pela sua camada e gerencie-os pela conta.",
-      state: entitlements.widgetsAccess && entitlements.widgetsCreate ? "available" : "not-included",
+      state:
+        entitlements.widgetsAccess && entitlements.widgetsCreate ? "available" : "not-included",
     },
     {
       title: "Histórico pessoal",
@@ -41,6 +50,13 @@ function buildAccessItems(entitlements: Entitlements): AccessItem[] {
           ? "A camada prevê histórico completo, mas a superfície pessoal ainda está em construção."
           : `A camada prevê até ${entitlements.historyAccessDays} dias nos recursos que forem liberados para o painel.`,
       state: "preparing",
+    },
+    {
+      title: "Comparações e análises avançadas",
+      description: hasAdvancedAccess
+        ? "Sua camada prevê recursos avançados, mas cada módulo só aparece como disponível depois de implementado e validado para as fontes envolvidas."
+        : "Comparações, exportações e análises avançadas não fazem parte da camada Free atual.",
+      state: hasAdvancedAccess ? "preparing" : "not-included",
     },
   ];
 }
@@ -58,7 +74,11 @@ export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAcc
           <div className="account-access-overview__title-row">
             <h2 id="account-access-title">Plano {access.label}</h2>
             <span className={`account-access-overview__badge is-${access.tier}`}>
-              {access.status === "active" ? "Ativo" : access.status === "expired" ? "Expirado" : "Suspenso"}
+              {access.status === "active"
+                ? "Ativo"
+                : access.status === "expired"
+                  ? "Expirado"
+                  : "Suspenso"}
             </span>
           </div>
         </div>
