@@ -118,16 +118,20 @@ test("regional first fold keeps real data and the current editorial visual", () 
   assert.match(page, /<RegionalCityHero data=\{data\}/);
   assert.match(page, /import "\.\/RegionalCityVisualRefresh\.css"/);
   assert.match(hero, /<WeatherSplitHero/);
-  assert.match(hero, /title={`Tempo em \$\{city\.name\}`}/);
+  assert.match(hero, /title={`Tempo agora em \$\{city\.name\}`}/);
   assert.match(hero, /const currentCopy = current/);
+  assert.match(hero, /\$\{condition\} agora em \$\{city\.name\}/);
   assert.match(hero, /const rangeCopy = today/);
+  assert.match(hero, /Hoje varia de/);
   assert.match(hero, /const rainCopy =/);
-  assert.match(hero, /currentLabel=\{current \? `Agora em \$\{city\.name\}` : "Condição atual"\}/);
-  assert.match(hero, /highlightLabel="Chuva nas próximas 24 horas"/);
-  assert.match(hero, /label: "Sensação térmica"/);
-  assert.match(hero, /label: "Mínima \/ máxima hoje"/);
+  assert.match(hero, /currentLabel="Agora"/);
+  assert.match(hero, /highlightLabel="Maior chance de chuva · 24h"/);
+  assert.match(hero, /label: "Mínima hoje"/);
+  assert.match(hero, /label: "Máxima hoje"/);
   assert.match(hero, /label: "Vento agora"/);
-  assert.match(hero, /label: "Rajada mais forte"/);
+  assert.match(hero, /label: "Maior rajada · 24h"/);
+  assert.match(hero, /TriangleAlert/);
+  assert.match(hero, /badgeLabel=\{priorityAlert \? `INMET · aviso para \$\{city\.name\}` : condition\}/);
   assert.match(hero, /href="#previsao-hoje"/);
   assert.match(hero, /href="#avisos-municipais"/);
   assert.match(sharedHero, /weather-split-hero__copy/);
@@ -137,9 +141,11 @@ test("regional first fold keeps real data and the current editorial visual", () 
   assert.match(sharedHeroStyles, /linear-gradient\(145deg, #102437, #18334f 58%, #25375c\)/);
   assert.match(heroStyles, /\.regional-city-split-hero/);
   assert.match(visualStyles, /width:\s*100vw/);
-  assert.match(visualStyles, /linear-gradient\(105deg, #f2fbfc/);
-  assert.match(visualStyles, /grid-template-columns: minmax\(0, 0\.92fr\) minmax\(430px, 0\.78fr\)/);
-  assert.match(visualStyles, /font-size: clamp\(2\.85rem, 4\.4vw, 4\.45rem\)/);
+  assert.match(visualStyles, /linear-gradient\(106deg, #f0fbfc/);
+  assert.match(visualStyles, /grid-template-columns: minmax\(0, 1\.02fr\) minmax\(430px, 0\.98fr\)/);
+  assert.match(visualStyles, /font-size: clamp\(2\.75rem, 4\.05vw, 4\.05rem\)/);
+  assert.match(visualStyles, /\.weather-split-hero__card dl[\s\S]*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(visualStyles, /border-radius:\s*22px/);
 });
 
 test("regional pages reuse alert and forecast structures without hidden chapter markup", () => {
