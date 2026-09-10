@@ -4,6 +4,7 @@ import test from "node:test";
 
 const embedRoute = readFileSync("src/routes/embed/nivel-laranjal.tsx", "utf8");
 const embedComponent = readFileSync("src/components/embed/LaranjalLevelEmbed.tsx", "utf8");
+const embedStyles = readFileSync("src/components/embed/LaranjalLevelEmbed.module.css", "utf8");
 const embedIsolation = readFileSync("src/components/embed/LaranjalEmbedIsolation.css", "utf8");
 const embedScript = readFileSync("src/routes/widgets/nivel-laranjal[.]js.ts", "utf8");
 const embedApi = readFileSync("src/routes/api/widgets/nivel-laranjal.ts", "utf8");
@@ -77,6 +78,38 @@ test("Laranjal widget keeps its embed runtime while public onboarding uses the a
   assert.match(embedIsolation, /\.pwa-launcher/);
   assert.match(embedIsolation, /\.push-launcher/);
   assert.match(embedIsolation, /onesignal-bell-container/);
+});
+
+test("Laranjal level embed uses a rich time-aware compact chart", () => {
+  assert.match(embedComponent, /function normalizeSeries/);
+  assert.match(embedComponent, /new Map<number, NormalizedSeriesPoint>/);
+  assert.match(embedComponent, /new Date\(point\.timestamp\)\.getTime\(\)/);
+  assert.match(embedComponent, /const xForEpoch = \(epoch: number\) =>/);
+  assert.match(embedComponent, /function splitCoordinatesOnGaps/);
+  assert.match(embedComponent, /GAP_MULTIPLIER = 2\.5/);
+  assert.match(embedComponent, /styles\.chartSummary/);
+  assert.match(embedComponent, /Variação/);
+  assert.match(embedComponent, /Mínimo/);
+  assert.match(embedComponent, /Máximo/);
+  assert.match(embedComponent, /Medições/);
+  assert.match(embedComponent, /linearGradient/);
+  assert.match(embedComponent, /styles\.chartArea/);
+  assert.match(embedComponent, /styles\.chartMarkerLatest/);
+  assert.match(embedComponent, /role="region"/);
+  assert.match(embedComponent, /tabIndex=\{0\}/);
+  assert.match(embedComponent, /O gráfico não liga períodos sem observação/);
+  assert.doesNotMatch(embedComponent, /index \/ \(data\.series\.length - 1\)/);
+
+  assert.match(embedStyles, /\.chartSummary/);
+  assert.match(embedStyles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(embedStyles, /\.chartViewport/);
+  assert.match(embedStyles, /overflow-x:\s*auto/);
+  assert.match(embedStyles, /-webkit-overflow-scrolling:\s*touch/);
+  assert.match(embedStyles, /\.chartMarkerLatest/);
+  assert.match(embedStyles, /\.chartLatestHalo/);
+  assert.match(embedStyles, /@media \(max-width: 520px\)/);
+  assert.match(embedStyles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(embedStyles, /@media \(forced-colors: active\)/);
 });
 
 test("histórico do Laranjal não repete a nota técnica removida da página", () => {
