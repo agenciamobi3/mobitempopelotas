@@ -149,7 +149,10 @@ test("regional first fold keeps real data and the current editorial visual", () 
 });
 
 test("regional pages reuse alert and forecast structures without hidden chapter markup", () => {
-  assert.match(page, /home-inmet-alerts/);
+  assert.match(page, /regional-city-alert-bar/);
+  assert.match(page, /regional-city-alert-bar__content/);
+  assert.match(page, /regional-city-alert-bar__action/);
+  assert.doesNotMatch(page, /home-inmet-alerts__/);
   assert.match(page, /<HomeForecastStory/);
   assert.match(page, /internal-forecast-widget regional-city-shared-forecast/);
   assert.doesNotMatch(page, /InternalPageChapters|regionalSections|pageSections/);
