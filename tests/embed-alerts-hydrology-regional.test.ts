@@ -197,7 +197,9 @@ test("hydrology pages preserve their approved data-led heroes", () => {
   assert.match(hydrologyHero, /Acompanhe as águas que influenciam Pelotas/);
   assert.match(hydrologyHero, /Nível da Lagoa dos Patos hoje no Laranjal/);
   assert.match(hydrologyHero, /level\.currentLevel/);
-  assert.match(hydrologyHero, /level\.trendCmPerHour/);
+  assert.match(hydrologyHero, /deriveRecentHydrologySeriesMovement\(level\.series, "m"\)/);
+  assert.doesNotMatch(hydrologyHero, /level\.trendCmPerHour/);
+  assert.match(hydrologyHero, /Movimento recente/);
   assert.match(hydrologyRouteStyles, /\.hydrology-page-header/);
   assert.match(hydrologyRouteStyles, /\.hydrology-detail-header/);
   assert.match(hydrologyRouteStyles, /display:\s*none/);
