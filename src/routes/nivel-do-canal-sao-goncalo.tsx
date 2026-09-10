@@ -13,7 +13,7 @@ import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured
 
 const PAGE_TITLE = "Nível do Canal São Gonçalo hoje: Eclusa em Capão do Leão";
 const PAGE_DESCRIPTION =
-  "Veja o nível do Canal São Gonçalo hoje na estação da Eclusa em Capão do Leão, com horário da leitura, tendência, chuva e referência da Defesa Civil RS.";
+  "Veja o nível do Canal São Gonçalo hoje na estação da Eclusa em Capão do Leão, com horário da leitura, tendência informada pela fonte, chuva e referência da Defesa Civil RS.";
 const PAGE_PATH = "/nivel-do-canal-sao-goncalo";
 const PAGE_LOCATION = {
   "@type": "Place",
@@ -31,7 +31,7 @@ const PAGE_CONFIG: DefesaCivilStationPageConfig = {
   eyebrow: "Canal São Gonçalo · Defesa Civil RS",
   heading: "Nível do Canal São Gonçalo hoje",
   introduction:
-    "Acompanhe a última leitura recebida da estação da Eclusa, em Capão do Leão. O horário, a tendência e a chuva aparecem junto do nível quando a fonte os informa. Esta régua é própria desse ponto e não é a mesma do Porto de Pelotas.",
+    "Acompanhe a última leitura recebida da estação da Eclusa, em Capão do Leão. O horário, a tendência informada pela própria fonte e a chuva aparecem junto do nível quando disponíveis. Esta régua é própria desse ponto e não é a mesma do Porto de Pelotas.",
   waterBodyLabel: "Canal São Gonçalo",
   locationLabel: "Eclusa do Canal São Gonçalo, Capão do Leão",
   weatherPath: "/tempo-em/capao-do-leao-rs",
@@ -48,7 +48,7 @@ const PAGE_CONTENT = {
   facts: [
     "A leitura vem da estação DCRS-00063, na Eclusa do Canal São Gonçalo, em Capão do Leão.",
     "O nível é mostrado em metros, na unidade informada pela fonte.",
-    "A tendência descreve o comportamento informado para esta estação e não é, sozinha, um alerta de risco.",
+    "Quando existe, a tendência é reproduzida como informação textual da própria fonte e não é recalculada pelo Tempo Pelotas nem tratada, sozinha, como alerta de risco.",
     "Se a leitura não chega, o portal não troca a ausência por zero ou por uma estação vizinha.",
     "A régua da Eclusa e a régua do Porto de Pelotas só podem ser comparadas quando suas referências forem compatíveis.",
   ],
