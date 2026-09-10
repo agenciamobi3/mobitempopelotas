@@ -180,8 +180,9 @@ Quando houver uma página específica do portal, a legenda/link pode apontar par
 ### Lagoa dos Patos / hidrologia
 
 - foto real do Laranjal/Lagoa ou gráfico real;
-- destacar nível, tendência e horário quando válidos;
-- nível/tendência não equivalem a previsão de cheia;
+- destacar nível, **movimento recente derivado da série** e horário quando válidos para Laranjal/Guaíba;
+- quando a fonte publicar uma tendência própria, como ocorre em estações da Defesa Civil RS, rotular como **tendência informada pela fonte**;
+- movimento recente ou tendência informada pela fonte não equivalem a previsão de cheia;
 - não criar cores de risco ou faixas de perigo sem critérios oficiais/documentados.
 
 ### Radar e satélite
@@ -214,7 +215,7 @@ Artes meteorológicas e hidrológicas não podem inventar:
 
 - valores;
 - horários;
-- tendências;
+- movimentos recentes ou tendências informadas pela fonte;
 - avisos;
 - probabilidades;
 - fontes;
