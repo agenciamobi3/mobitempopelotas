@@ -6,6 +6,7 @@ import type {
   DefesaCivilReadingFreshness,
 } from "@/lib/hydrology/defesa-civil-rs.server";
 
+import { HydrologyLevelChart } from "./HydrologyLevelChart";
 import "./DefesaCivilStationHydrologyPage.css";
 
 export type DefesaCivilStationPageConfig = {
@@ -48,6 +49,12 @@ function freshnessCopy(value: DefesaCivilReadingFreshness) {
   if (value === "delayed") return { label: "Leitura atrasada", className: "is-delayed" };
   if (value === "old") return { label: "Leitura antiga", className: "is-old" };
   return { label: "Horário não informado", className: "is-unknown" };
+}
+
+function chartStatus(value: DefesaCivilReadingFreshness) {
+  if (value === "recent") return "live" as const;
+  if (value === "unknown") return "unavailable" as const;
+  return "stale" as const;
 }
 
 function StationMetrics({ station, waterBodyLabel }: { station: DefesaCivilHydroStation; waterBodyLabel: string }) {
@@ -146,7 +153,24 @@ export function DefesaCivilStationHydrologyPage({
         </header>
 
         {available && station ? (
-          <StationMetrics station={station} waterBodyLabel={config.waterBodyLabel} />
+          <>
+            <StationMetrics station={station} waterBodyLabel={config.waterBodyLabel} />
+            <HydrologyLevelChart
+              points={
+                station.river.levelM !== null
+                  ? [{ timestamp: station.observedAt ?? data.source.fetchedAt, level: station.river.levelM }]
+                  : []
+              }
+              unit="m"
+              status={chartStatus(station.freshness)}
+              ariaLabel={`Leitura de nível da estação ${station.code} em ${config.locationLabel}`}
+              eyebrow="Leitura da régua"
+              windowLabel="Histórico disponível nesta consulta"
+              latestLabel="Leitura recebida"
+              singlePointMessage="A Rede de Monitoramento Hidrometeorológico da Defesa Civil RS forneceu apenas a leitura mais recente desta estação nesta consulta. O Tempo Pelotas não cria pontos intermediários nem desenha uma tendência sem série histórica."
+              emptyMessage="A fonte não forneceu uma leitura de nível válida para esta estação nesta consulta."
+            />
+          </>
         ) : (
           <div className="defesa-civil-station-page__unavailable" role="status">
             <strong>Leitura não disponível agora</strong>
