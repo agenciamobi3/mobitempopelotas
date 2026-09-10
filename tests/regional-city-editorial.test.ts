@@ -136,7 +136,7 @@ test("hero regional não inventa pico de chuva, rajada ou leitura atual", () => 
   assert.match(heroSource, /function gustMetric/);
   assert.match(heroSource, /if \(value <= 0\) return "Sem rajadas"/);
   assert.match(heroSource, /A condição atual de \$\{city\.name\} está sendo atualizada/);
-  assert.match(heroSource, /Chance de chuva nas próximas horas ainda está sendo atualizada/);
+  assert.match(heroSource, /chance de chuva nas próximas horas ainda está sendo atualizada/);
 });
 
 test("hero regional escolhe CTA conforme a série realmente disponível", () => {
