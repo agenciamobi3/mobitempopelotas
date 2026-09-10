@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 import {
   createAppearanceFromPreset,
@@ -8,6 +8,8 @@ import {
   type WidgetDensity,
   type WidgetStylePreset,
 } from "@/lib/widgets/widget-appearance";
+
+const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
 
 function previewStyle(appearance: WidgetAppearance): CSSProperties {
   const preset = getWidgetStylePreset(appearance.preset);
@@ -46,6 +48,25 @@ export function WidgetAppearanceControls({
   compact?: boolean;
   controlName?: string;
 }) {
+  const [accentDraft, setAccentDraft] = useState(value.accentColor);
+  const accentValid = HEX_COLOR_PATTERN.test(accentDraft);
+
+  useEffect(() => {
+    setAccentDraft(value.accentColor);
+  }, [value.accentColor]);
+
+  function setAccentColor(nextColor: string) {
+    const normalized = nextColor.toUpperCase();
+    setAccentDraft(normalized);
+    if (HEX_COLOR_PATTERN.test(normalized)) {
+      onChange({ ...value, accentColor: normalized });
+    }
+  }
+
+  function restoreValidAccent() {
+    if (!HEX_COLOR_PATTERN.test(accentDraft)) setAccentDraft(value.accentColor);
+  }
+
   return (
     <fieldset className={`widget-style-controls${compact ? " is-compact" : ""}`}>
       <legend>{legend}</legend>
@@ -88,12 +109,21 @@ export function WidgetAppearanceControls({
             <input
               type="color"
               value={value.accentColor}
-              onChange={(event) =>
-                onChange({ ...value, accentColor: event.target.value.toUpperCase() })
-              }
-              aria-label="Cor de destaque do widget"
+              onChange={(event) => setAccentColor(event.target.value)}
+              aria-label="Escolher cor de destaque"
             />
-            <output>{value.accentColor}</output>
+            <input
+              className="widget-style-color-hex"
+              type="text"
+              inputMode="text"
+              value={accentDraft}
+              maxLength={7}
+              pattern="#[0-9A-Fa-f]{6}"
+              aria-label="Cor de destaque em hexadecimal"
+              aria-invalid={!accentValid}
+              onChange={(event) => setAccentColor(event.target.value)}
+              onBlur={restoreValidAccent}
+            />
           </div>
         </label>
 
