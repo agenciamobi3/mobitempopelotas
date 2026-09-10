@@ -150,9 +150,14 @@ test("visual parity workflow captures active internal routes on desktop and narr
     "/clima-em-pelotas",
     "/meteograma-pelotas",
     "/historico-climatico-pelotas",
+    "/historia-das-enchentes-pelotas",
+    "/enchente-1941-pelotas",
+    "/enchente-2001-pelotas",
+    "/enchente-2015-pelotas",
     "/enchente-2024-pelotas-laranjal",
     "/situacao-hidrologica-pelotas",
     "/nivel-do-canal-sao-goncalo",
+    "/blog",
     "/status-dos-dados",
   ]) {
     assert.ok(internalVisualSmoke.includes(route));
@@ -166,6 +171,7 @@ test("visual parity workflow captures active internal routes on desktop and narr
   assert.match(internalVisualSmoke, /page\.screenshot/);
   assert.match(internalVisualSmoke, /rain-hourly-volume-context/);
   assert.match(internalVisualSmoke, /wind-direction-context/);
+  assert.match(internalVisualSmoke, /cppmet-blog__hero/);
   assert.ok(visualParityWorkflow.includes("scripts/internal-route-visual-smoke.mjs"));
   assert.ok(visualParityWorkflow.includes("node scripts/internal-route-visual-smoke.mjs"));
 });
