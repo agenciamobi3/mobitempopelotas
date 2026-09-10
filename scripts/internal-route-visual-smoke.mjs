@@ -62,6 +62,26 @@ const routes = [
     marker: ".internal-weather-shell--history",
   },
   {
+    name: "arquivo-enchentes",
+    path: "/historia-das-enchentes-pelotas",
+    marker: ".internal-weather-shell--flood-history-index",
+  },
+  {
+    name: "enchente-1941",
+    path: "/enchente-1941-pelotas",
+    marker: ".internal-weather-shell--flood-1941",
+  },
+  {
+    name: "enchente-2001",
+    path: "/enchente-2001-pelotas",
+    marker: ".internal-weather-shell--flood-2001",
+  },
+  {
+    name: "enchente-2015",
+    path: "/enchente-2015-pelotas",
+    marker: ".internal-weather-shell--flood-2015",
+  },
+  {
     name: "enchente-2024",
     path: "/enchente-2024-pelotas-laranjal",
     marker: ".internal-weather-shell--flood-history",
@@ -103,6 +123,12 @@ const routes = [
     path: "/tempo-em/rio-grande-rs",
     marker: ".regional-city-page",
     neutralSelectors: [".regional-city-split-hero"],
+  },
+  {
+    name: "blog-cppmet",
+    path: "/blog",
+    marker: ".cppmet-blog",
+    neutralSelectors: [".cppmet-blog__hero"],
   },
   {
     name: "canal-sao-goncalo",
