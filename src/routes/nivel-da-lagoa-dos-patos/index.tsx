@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { LagoonHydrologyNetworkIndex } from "@/components/hydrology/LagoonHydrologyLocalityPage";
 import "@/components/hydrology/LagoonHydrologyNetworkIndex.css";
+import "@/components/hydrology/LagoonHydrologyNetworkHero.css";
 import { loadLagoonLocalityNetwork } from "@/lib/hydrology/lagoon-locality-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
