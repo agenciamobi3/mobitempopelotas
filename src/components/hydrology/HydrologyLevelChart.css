@@ -100,6 +100,69 @@
   line-height: 1.4;
 }
 
+.hydrology-rich-chart__motion {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1px solid var(--hydrology-chart-border);
+  background: linear-gradient(180deg, rgb(244 250 251 / 86%), rgb(255 255 255 / 96%));
+}
+
+.hydrology-rich-chart__motion article {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  padding: 13px 20px 12px;
+  border-right: 1px solid var(--hydrology-chart-border);
+}
+
+.hydrology-rich-chart__motion article:last-child {
+  border-right: 0;
+}
+
+.hydrology-rich-chart__motion span {
+  color: var(--hydrology-chart-muted);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.hydrology-rich-chart__motion strong {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: var(--hydrology-chart-ink);
+  font-size: clamp(0.92rem, 1.4vw, 1.08rem);
+  font-weight: 810;
+  letter-spacing: -0.02em;
+}
+
+.hydrology-rich-chart__motion strong b {
+  display: inline-grid;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hydrology-chart-accent) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hydrology-chart-accent) 8%, #fff);
+  color: var(--hydrology-chart-accent);
+  font-size: 0.88rem;
+  line-height: 1;
+}
+
+.hydrology-rich-chart__motion small {
+  overflow-wrap: anywhere;
+  color: #829198;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.hydrology-rich-chart__motion article.is-unavailable strong {
+  color: var(--hydrology-chart-muted);
+}
+
 .hydrology-rich-chart__plot {
   width: 100%;
   overflow-x: auto;
@@ -150,6 +213,20 @@
   stroke-width: 3.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.hydrology-rich-chart__recent-line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--hydrology-chart-accent) 78%, #071e2f);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hydrology-rich-chart__recent-line.is-stable {
+  stroke-dasharray: 3 6;
 }
 
 .hydrology-rich-chart__latest-guide {
@@ -430,6 +507,20 @@
     padding: 14px 14px 13px;
   }
 
+  .hydrology-rich-chart__motion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hydrology-rich-chart__motion article {
+    padding: 11px 14px;
+    border-right: 0;
+    border-bottom: 1px solid var(--hydrology-chart-border);
+  }
+
+  .hydrology-rich-chart__motion article:last-child {
+    border-bottom: 0;
+  }
+
   .hydrology-rich-chart__plot {
     padding-inline: 6px;
   }
@@ -482,6 +573,7 @@
   }
 
   .hydrology-rich-chart__line,
+  .hydrology-rich-chart__recent-line,
   .hydrology-rich-chart__latest-guide,
   .hydrology-rich-chart__reference line,
   .hydrology-rich-chart__marker circle {
@@ -493,6 +585,9 @@
     display: none;
   }
 
+  .hydrology-rich-chart__motion,
+  .hydrology-rich-chart__motion article,
+  .hydrology-rich-chart__motion strong b,
   .hydrology-rich-chart__gap-note,
   .hydrology-rich-chart__references article {
     border-color: CanvasText;
