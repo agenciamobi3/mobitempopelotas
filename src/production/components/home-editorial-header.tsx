@@ -264,7 +264,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             label: "Morro Redondo",
             to: "/tempo-em/$citySlug",
             params: { citySlug: "morro-redondo-rs" },
-            path: "/tempo-em/morro-redondo-rondo-rs",
+            path: "/tempo-em/morro-redondo-rs",
             description: "Previsão para o município serrano próximo a Pelotas.",
           },
         ],
