@@ -7,21 +7,27 @@ const styles = readFileSync(
   "src/components/hydrology/LagoonHydrologyNetworkIndex.css",
   "utf8",
 );
+const heroStyles = readFileSync(
+  "src/components/hydrology/LagoonHydrologyNetworkHero.css",
+  "utf8",
+);
 
 test("o índice da Lagoa usa identidade visual própria sem afetar páginas locais", () => {
   assert.match(route, /LagoonHydrologyNetworkIndex\.css/);
+  assert.match(route, /LagoonHydrologyNetworkHero\.css/);
   assert.match(route, /className="lagoon-network-index-shell"/);
   assert.match(styles, /\.lagoon-network-index-shell \.lagoon-locality-page/);
   assert.match(styles, /width: min\(1440px, calc\(100% - 96px\)\)/);
 });
 
-test("hero do índice ganha composição editorial ampla e responsiva", () => {
-  assert.match(styles, /grid-template-areas:/);
-  assert.match(styles, /"title copy"/);
-  assert.match(styles, /radial-gradient\(circle at 86% 22%/);
-  assert.match(styles, /linear-gradient\(130deg/);
-  assert.match(styles, /@media \(max-width: 880px\)/);
-  assert.match(styles, /"title"\s*\n\s*"copy"/);
+test("hero do índice segue a faixa editorial das páginas internas", () => {
+  assert.match(heroStyles, /grid-template-columns: minmax\(0, 0\.92fr\) minmax\(360px, 0\.78fr\)/);
+  assert.match(heroStyles, /width: 100vw/);
+  assert.match(heroStyles, /linear-gradient\(105deg, #f3fbfb/);
+  assert.match(heroStyles, /border-radius: 0/);
+  assert.match(heroStyles, /font-size: clamp\(2\.85rem, 4\.4vw, 4\.45rem\)/);
+  assert.match(heroStyles, /@media \(max-width: 1100px\)/);
+  assert.match(heroStyles, /@media \(max-width: 720px\)/);
 });
 
 test("cinco estações aparecem em uma faixa compacta no desktop", () => {
