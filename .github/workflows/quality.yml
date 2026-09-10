@@ -53,6 +53,11 @@ jobs:
           set -e
           exit "$status"
 
+      - name: Personalização visual dos widgets
+        run: >-
+          node --import ./scripts/test-node-resolver.mjs --test
+          tests/widget-builder-appearance.test.ts
+
       - name: Histórico documentado da cheia de 2001
         run: node --test tests/flood-2001-historical-page.test.ts
 
