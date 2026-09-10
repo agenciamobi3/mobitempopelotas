@@ -3,18 +3,23 @@
  *
  * Segue a mesma gramática visual das páginas internas recentes: faixa
  * editorial full-bleed, copy à esquerda e resumo objetivo à direita.
+ *
+ * Este arquivo também zera explicitamente o antigo grid-area herdado de
+ * LagoonHydrologyNetworkIndex.css. Sem esse reset, o H1, o parágrafo e os
+ * metadados podem cair em linhas implícitas e se sobrepor no desktop.
  */
 
 .lagoon-network-index-shell .lagoon-network-index-hero {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(430px, 0.78fr);
-  gap: clamp(44px, 5vw, 78px);
+  grid-template-columns: minmax(0, 1.02fr) minmax(380px, 0.88fr);
+  grid-template-areas: none;
+  gap: clamp(48px, 5.5vw, 88px);
   align-items: center;
   overflow: visible;
   margin-top: 0;
-  padding: clamp(52px, 5.5vw, 78px) 0 clamp(46px, 5vw, 70px);
+  padding: clamp(58px, 6vw, 88px) 0 clamp(52px, 5.5vw, 78px);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -41,10 +46,23 @@
 }
 
 .lagoon-network-index-hero__copy {
-  display: grid;
+  display: flex;
   min-width: 0;
-  gap: 17px;
-  align-content: center;
+  max-width: 720px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+/* Neutraliza o contrato antigo baseado em grid-template-areas. */
+.lagoon-network-index-shell .lagoon-network-index-hero__copy > .lagoon-locality-eyebrow,
+.lagoon-network-index-shell .lagoon-network-index-hero__copy > h1,
+.lagoon-network-index-shell .lagoon-network-index-hero__copy > p,
+.lagoon-network-index-shell .lagoon-network-index-hero__copy > .lagoon-network-index-hero__meta {
+  grid-area: auto;
+  position: relative;
+  z-index: 1;
+  align-self: auto;
 }
 
 .lagoon-network-index-shell .lagoon-network-index-hero .lagoon-locality-eyebrow {
@@ -58,22 +76,22 @@
 }
 
 .lagoon-network-index-shell .lagoon-network-index-hero h1 {
-  max-width: 11ch;
-  margin: 0;
+  max-width: 13.5ch;
+  margin: 13px 0 0;
   color: #071e2f;
-  font-size: clamp(2.85rem, 4.4vw, 4.45rem);
+  font-size: clamp(3rem, 4.25vw, 4.3rem);
   font-weight: 730;
   letter-spacing: -0.06em;
-  line-height: 0.97;
+  line-height: 0.96;
   text-wrap: balance;
 }
 
 .lagoon-network-index-shell .lagoon-network-index-hero p {
-  max-width: 42rem;
-  margin: 0;
+  max-width: 38rem;
+  margin: 21px 0 0;
   color: #4c6672;
-  font-size: clamp(0.94rem, 1vw, 1.04rem);
-  line-height: 1.62;
+  font-size: clamp(0.96rem, 1vw, 1.04rem);
+  line-height: 1.68;
   text-wrap: pretty;
 }
 
@@ -81,7 +99,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 3px;
+  margin-top: 24px;
 }
 
 .lagoon-network-index-hero__meta > span {
@@ -110,8 +128,10 @@
 .lagoon-network-index-hero__summary {
   display: grid;
   min-width: 0;
+  width: 100%;
   gap: 18px;
   align-content: center;
+  align-self: center;
 }
 
 .lagoon-network-index-hero__condition {
@@ -208,10 +228,27 @@
   line-height: 1.4;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1180px) {
+  .lagoon-network-index-shell .lagoon-network-index-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(350px, 0.82fr);
+    gap: 42px;
+  }
+
+  .lagoon-network-index-shell .lagoon-network-index-hero h1 {
+    max-width: 12.5ch;
+    font-size: clamp(2.9rem, 5vw, 4rem);
+  }
+}
+
+@media (max-width: 980px) {
   .lagoon-network-index-shell .lagoon-network-index-hero {
     grid-template-columns: 1fr;
-    gap: 32px;
+    grid-template-areas: none;
+    gap: 34px;
+  }
+
+  .lagoon-network-index-hero__copy {
+    max-width: 760px;
   }
 
   .lagoon-network-index-shell .lagoon-network-index-hero h1 {
@@ -225,24 +262,27 @@
 
 @media (max-width: 720px) {
   .lagoon-network-index-shell .lagoon-network-index-hero {
-    padding: 38px 0 36px;
-    gap: 26px;
+    grid-template-areas: none;
+    padding: 40px 0 38px;
+    gap: 28px;
   }
 
   .lagoon-network-index-shell .lagoon-network-index-hero h1 {
     max-width: 12ch;
+    margin-top: 11px;
     font-size: clamp(2.35rem, 11.5vw, 3.5rem);
     line-height: 0.99;
   }
 
   .lagoon-network-index-shell .lagoon-network-index-hero p {
+    margin-top: 17px;
     font-size: 0.94rem;
     line-height: 1.58;
   }
 
   .lagoon-network-index-hero__meta {
-    align-items: flex-start;
-    flex-direction: column;
+    gap: 7px;
+    margin-top: 20px;
   }
 
   .lagoon-network-index-hero__condition {
