@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, CloudRain } from "lucide-react";
 
 import { WeatherSplitHero, type WeatherSplitHeroTone } from "@/components/weather/WeatherSplitHero";
-import { regionalCityEditorialProfile } from "@/lib/regional-city-editorial";
 import { selectPriorityRegionalAlert } from "@/lib/weather/regional-alert-priority";
 import type { RegionalCityWeatherData } from "@/lib/weather/regional-city-weather.types";
 import { WeatherIcon } from "@/production/components/weather-icon";
@@ -27,9 +26,21 @@ function gustMetric(value: number | null) {
   return `${regionalNumberFormat.format(value)} km/h`;
 }
 
+function windMetric(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "Não informado";
+  if (value <= 0) return "Calmo";
+  return `${regionalNumberFormat.format(value)} km/h`;
+}
+
 function maximum(values: Array<number | null>) {
   const usable = values.filter((value): value is number => value !== null && Number.isFinite(value));
   return usable.length > 0 ? Math.max(...usable) : null;
+}
+
+function sentenceCondition(value: string) {
+  const normalized = value.trim();
+  if (!normalized) return "condição em atualização";
+  return normalized.charAt(0).toLocaleLowerCase("pt-BR") + normalized.slice(1);
 }
 
 function heroTone(data: RegionalCityWeatherData): WeatherSplitHeroTone {
@@ -47,7 +58,6 @@ function heroTone(data: RegionalCityWeatherData): WeatherSplitHeroTone {
 
 export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
   const city = data.city;
-  const editorial = regionalCityEditorialProfile(city);
   const current = data.current;
   const today = data.daily[0] ?? null;
   const hasHourlyForecast = Boolean(today && data.hourly.length > 0);
@@ -67,38 +77,52 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
   const peakRain = hasPositiveRainChance ? peakRainCandidate : null;
   const strongestGust = maximum(data.hourly.slice(0, 24).map((hour) => hour.windGust));
   const currentIcon = regionalWeatherIcon(condition, current?.observedAt ?? null);
+
+  const currentCopy = current
+    ? current.temperature === null
+      ? `Agora em ${city.name}, ${sentenceCondition(condition)}.`
+      : `Agora em ${city.name}, ${sentenceCondition(condition)}, com ${metric(current.temperature, "°")}.`
+    : `A condição atual de ${city.name} está sendo atualizada.`;
+  const rangeCopy = today
+    ? `Hoje, a previsão vai de ${metric(today.minimum, "°")} a ${metric(today.maximum, "°")}.`
+    : "A faixa de temperatura de hoje ainda está sendo atualizada.";
+  const rainCopy =
+    highestRainChance === null
+      ? "A chance de chuva nas próximas horas ainda está sendo atualizada."
+      : highestRainChance <= 0
+        ? "Não há destaque de chuva nas próximas 24 horas."
+        : `A maior chance de chuva nas próximas 24 horas chega a ${metric(highestRainChance, "%")}${
+            peakRain ? ` por volta de ${formatRegionalHour(peakRain.time)}` : ""
+          }.`;
+  const description = `${currentCopy} ${rangeCopy} ${rainCopy}`;
+
   const peakRainDetail =
     highestRainChance === null
-      ? "Chance horária em atualização"
+      ? "Janela horária em atualização"
       : hasPositiveRainChance && peakRain
-        ? `por volta de ${formatRegionalHour(peakRain.time)}${
+        ? `${formatRegionalHour(peakRain.time)}${
             peakRain.precipitationMm === null
               ? ""
               : ` · ${metric(peakRain.precipitationMm, " mm")}`
           }`
-        : "Sem horário de destaque";
+        : "Sem horário de chuva em destaque";
   const currentDetail = current
     ? current.feelsLike === null
-      ? `${condition} · sensação não informada`
+      ? condition
       : `${condition} · sensação de ${metric(current.feelsLike, "°")}`
     : "Estimativa atual em atualização";
-  const description = editorial?.heroDescription ?? (current && hasHourlyForecast
-    ? `Veja o tempo em ${city.name} agora, compare temperatura, chuva e vento nas próximas horas e acompanhe a tendência dos próximos dias.`
-    : hasHourlyForecast || hasDailyTrend
-      ? `A estimativa atual de ${city.name} pode estar em atualização. Consulte a previsão disponível para as próximas horas e dias.`
-      : `Os dados meteorológicos de ${city.name} estão em atualização. Nenhum valor foi preenchido manualmente.`);
 
   const primaryAction = hasHourlyForecast ? (
     <a href="#previsao-hoje">
-      Ver as próximas horas <ArrowRight aria-hidden="true" />
+      Próximas horas <ArrowRight aria-hidden="true" />
     </a>
   ) : hasDailyTrend ? (
     <a href="#tendencia">
-      Ver próximos dias <ArrowRight aria-hidden="true" />
+      Próximos dias <ArrowRight aria-hidden="true" />
     </a>
   ) : (
     <Link to="/tempo-na-regiao-sul-rs">
-      Ver central regional <ArrowRight aria-hidden="true" />
+      Central regional <ArrowRight aria-hidden="true" />
     </Link>
   );
 
@@ -108,11 +132,11 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
       titleId="regional-city-hero-title"
       back={
         <Link className="weather-split-hero__back" to="/tempo-na-regiao-sul-rs">
-          <ArrowLeft aria-hidden="true" /> Central regional
+          <ArrowLeft aria-hidden="true" /> Tempo na Região Sul
         </Link>
       }
-      eyebrow={`Previsão local · ${city.group}`}
-      title={`Tempo em ${city.name} hoje`}
+      eyebrow={`Agora e próximos dias · ${city.group}`}
+      title={`Tempo em ${city.name}`}
       description={description}
       actions={
         <>
@@ -124,34 +148,34 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
       badgeIcon={<WeatherIcon name={currentIcon} title={`Condição estimada: ${condition}`} />}
       badgeLabel={priorityAlert ? `Aviso oficial para ${city.name}` : condition}
       updatedLabel={formatRegionalDateTime(data.source.fetchedAt)}
-      currentLabel={current ? "Temperatura estimada agora" : "Estimativa atual"}
+      currentLabel={current ? `Agora em ${city.name}` : "Condição atual"}
       currentValue={metric(current?.temperature ?? null, "°")}
       currentDetail={currentDetail}
       highlightIcon={<CloudRain aria-hidden="true" />}
-      highlightLabel="Maior chance de chuva nas próximas 24h"
+      highlightLabel="Chuva nas próximas 24 horas"
       highlightValue={metric(highestRainChance, "%")}
       highlightDetail={peakRainDetail}
       facts={[
         {
-          label: "Umidade estimada",
-          value: metric(current?.humidity ?? null, "%"),
+          label: "Sensação térmica",
+          value: metric(current?.feelsLike ?? null, "°"),
         },
         {
-          label: "Pressão ao nível do mar",
-          value: metric(current?.pressure ?? null, " hPa"),
-        },
-        {
-          label: "Faixa prevista hoje",
+          label: "Mínima / máxima hoje",
           value: today
             ? `${metric(today.minimum, "°")} / ${metric(today.maximum, "°")}`
             : "Não informada",
+        },
+        {
+          label: "Vento agora",
+          value: windMetric(current?.windSpeed ?? null),
         },
         {
           label: "Rajada mais forte",
           value: gustMetric(strongestGust),
         },
       ]}
-      footer="Estimativa do modelo para as coordenadas centrais do município. Avisos oficiais têm prioridade."
+      footer="Previsão para as coordenadas centrais do município. Em situação de risco, siga os avisos oficiais."
     />
   );
 }
