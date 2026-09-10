@@ -5,6 +5,7 @@ import test from "node:test";
 const header = readFileSync("src/production/components/home-editorial-header.tsx", "utf8");
 const statusPage = readFileSync("src/routes/status-dos-dados.tsx", "utf8");
 const editorial = readFileSync("src/lib/editorial-content.ts", "utf8");
+const localities = readFileSync("src/lib/hydrology/hydrology-localities.ts", "utf8");
 const artGuide = readFileSync("docs/social/ART_GUIDE.md", "utf8");
 const cutoverSmoke = readFileSync("scripts/cutover-smoke.mjs", "utf8");
 const publicRoutesBlock = cutoverSmoke.match(/const publicRoutes = \[[\s\S]*?\];/)?.[0] ?? "";
@@ -28,6 +29,20 @@ test("copy editorial usa movimento recente para sinais derivados da série", () 
   assert.doesNotMatch(editorial, /tendência recente da água/);
 
   assert.match(artGuide, /movimento recente derivado da série/);
+});
+
+test("metadados das localidades da Lagoa usam a mesma semântica derivada", () => {
+  for (const slug of [
+    "rio-grande",
+    "sao-lourenco-do-sul",
+    "arambare",
+    "sao-jose-do-norte",
+    "itapua-viamao",
+  ]) {
+    assert.match(localities, new RegExp(`slug: "${slug}"[\\s\\S]*?movimento recente derivado da série`));
+  }
+
+  assert.doesNotMatch(localities, /description: "[^"]*tendência[^"]*"/i);
 });
 
 test("tendência publicada pela fonte permanece explicitamente atribuída", () => {
