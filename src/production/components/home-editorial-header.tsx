@@ -175,7 +175,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
           {
             label: "Nível no Laranjal",
             to: "/nivel-da-lagoa-dos-patos-laranjal",
-            description: "Leitura local, tendência e contexto da Lagoa dos Patos.",
+            description: "Leitura local, movimento recente da série e contexto da Lagoa dos Patos.",
           },
           {
             label: "Nível do Guaíba",
@@ -190,7 +190,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
           {
             label: "Nível do Rio Jaguarão",
             to: "/nivel-do-rio-jaguarao",
-            description: "Leitura oficial em Jaguarão, com horário, tendência e limites da régua.",
+            description: "Leitura oficial em Jaguarão, com horário, tendência informada pela fonte e limites da régua.",
           },
           {
             label: "Situação das águas",
@@ -264,7 +264,7 @@ const megaMenus: readonly HeaderMenuDefinition[] = [
             label: "Morro Redondo",
             to: "/tempo-em/$citySlug",
             params: { citySlug: "morro-redondo-rs" },
-            path: "/tempo-em/morro-redondo-rs",
+            path: "/tempo-em/morro-redondo-rondo-rs",
             description: "Previsão para o município serrano próximo a Pelotas.",
           },
         ],
