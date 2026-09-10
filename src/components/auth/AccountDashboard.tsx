@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 
+import { AccountFavoritesPanel } from "@/components/auth/AccountFavoritesPanel";
 import { HistoricalModerationPanel } from "@/components/history/HistoricalModerationPanel";
 import type { AccountSnapshot } from "@/lib/auth/account.functions";
+import type { AccountFavoritesSnapshot } from "@/lib/auth/favorites.functions";
 import type { HistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
@@ -18,6 +20,7 @@ const dashboardFooterSource = {
 } satisfies WeatherData["source"];
 
 type AuthenticatedAccount = Extract<AccountSnapshot, { status: "authenticated" }>;
+type AuthenticatedFavorites = Extract<AccountFavoritesSnapshot, { status: "authenticated" }>;
 type DashboardPath = "/situacao-hidrologica-pelotas" | "/radar-e-satelite-pelotas" | "/widgets";
 
 type DashboardModule = {
@@ -37,12 +40,15 @@ function moduleStateLabel(state: DashboardModule["state"]) {
 export function AccountDashboard({
   snapshot,
   moderation,
+  favorites,
 }: {
   snapshot: AuthenticatedAccount;
   moderation: HistoricalModerationSnapshot;
+  favorites: AuthenticatedFavorites;
 }) {
   const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
+  const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
   const modules: DashboardModule[] = [
     {
       title: "Gerador de widgets",
@@ -61,30 +67,29 @@ export function AccountDashboard({
       state: "preparing",
     },
     {
-      title: "Favoritos",
-      description: "Estações, locais e ferramentas que você acompanha ficarão organizados aqui.",
-      state: "preparing",
-    },
-    {
       title: "Situação das águas",
-      description: "Acompanhe a visão pública atual enquanto preparamos os atalhos personalizados do painel.",
+      description:
+        "A visão pública das águas continua aberta e pode ser adicionada aos seus favoritos do painel.",
       state: "available",
       href: "/situacao-hidrologica-pelotas",
     },
     {
       title: "Radar e satélite",
-      description: "A central pública segue aberta; recursos adicionais serão liberados conforme a camada da conta e as fontes permitirem.",
+      description:
+        "A central pública segue aberta; recursos adicionais serão liberados conforme a camada da conta e as fontes permitirem.",
       state: "available",
       href: "/radar-e-satelite-pelotas",
     },
     {
       title: "Comparações avançadas",
-      description: "Comparações entre períodos, estações e variáveis farão parte da evolução do Tempo Pelotas PRO.",
+      description:
+        "Comparações entre períodos, estações e variáveis farão parte da evolução do Tempo Pelotas PRO.",
       state: isPro ? "preparing" : "pro",
     },
     {
       title: "Exportações e análises",
-      description: "Ferramentas avançadas serão construídas sobre o acervo e os dados cuja utilização permita esse tipo de recurso.",
+      description:
+        "Ferramentas avançadas serão construídas sobre o acervo e os dados cuja utilização permita esse tipo de recurso.",
       state: isPro ? "preparing" : "pro",
     },
   ];
@@ -104,9 +109,8 @@ export function AccountDashboard({
               </span>
             </div>
             <p>
-              Esta é a base da sua área pessoal no Tempo Pelotas. Os dados oficiais que já são
-              públicos continuam no portal aberto; aqui entram personalização, históricos e
-              ferramentas liberadas para sua conta.
+              Organize o que você acompanha no Tempo Pelotas. Sua conta Free já reúne favoritos,
+              preferências e widgets sem retirar do portal nenhuma informação que já é pública.
             </p>
           </div>
 
@@ -131,9 +135,14 @@ export function AccountDashboard({
             <span>{isPro ? "Recursos PRO conforme entitlements" : "Conta gratuita autenticada"}</span>
           </div>
           <div>
+            <small>Favoritos</small>
+            <strong>{favorites.storageReady ? favoriteCount : "Indisponível"}</strong>
+            <span>Atalhos pessoais salvos somente na sua conta</span>
+          </div>
+          <div>
             <small>Histórico no painel Free</small>
             <strong>{historyLimit === null ? "Completo" : `Até ${historyLimit} dias`}</strong>
-            <span>Aplicado somente aos recursos definidos para esta camada</span>
+            <span>Será aplicado apenas aos recursos definidos para esta camada</span>
           </div>
           <div>
             <small>Portal público</small>
@@ -142,13 +151,16 @@ export function AccountDashboard({
           </div>
         </section>
 
+        <AccountFavoritesPanel snapshot={favorites} />
+
         <section className="account-dashboard__modules" aria-labelledby="dashboard-modules-title">
           <div className="account-dashboard__section-heading">
             <span className="eyebrow">Ferramentas</span>
-            <h2 id="dashboard-modules-title">Sua área vai crescer por módulos</h2>
+            <h2 id="dashboard-modules-title">Recursos disponíveis e próximas camadas</h2>
             <p>
-              O shell já separa identidade de acesso. Agora cada ferramenta poderá ser adicionada
-              sem espalhar regras de plano pela interface.
+              O painel usa capacidades da conta, não bloqueios espalhados pela interface. Recursos
+              públicos continuam públicos; Free adiciona organização pessoal e o PRO poderá adicionar
+              profundidade e ferramentas avançadas.
             </p>
           </div>
 
