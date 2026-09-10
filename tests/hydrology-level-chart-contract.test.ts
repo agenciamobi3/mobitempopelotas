@@ -5,6 +5,7 @@ import test from "node:test";
 const chart = readFileSync("src/components/hydrology/HydrologyLevelChart.tsx", "utf8");
 const chartCss = readFileSync("src/components/hydrology/HydrologyLevelChart.css", "utf8");
 const movementMath = readFileSync("src/lib/hydrology/level-movement.ts", "utf8");
+const levelSeries = readFileSync("src/lib/hydrology/level-series.ts", "utf8");
 const guaiba = readFileSync("src/components/hydrology/GuaibaLevelPage.tsx", "utf8");
 const laranjal = readFileSync("src/components/hydrology/HydrologyPages.tsx", "utf8");
 const overview = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx", "utf8");
@@ -49,26 +50,37 @@ test("gráfico de nível compartilhado é rico e não se resume a uma linha", ()
   assert.match(chart, /Fora da escala atual/);
 });
 
-test("série compartilhada normaliza ordem temporal e não aceita pontos inválidos", () => {
-  assert.match(chart, /function normalizePoints/);
-  assert.match(chart, /new Map<number, NormalizedPoint>/);
-  assert.match(chart, /new Date\(point\.timestamp\)\.getTime\(\)/);
-  assert.match(chart, /!Number\.isFinite\(point\.level\)/);
-  assert.match(chart, /!Number\.isFinite\(epoch\)/);
-  assert.match(chart, /\.sort\(\(left, right\) => left\.epoch - right\.epoch\)/);
+test("série compartilhada centraliza ordem temporal, deduplicação e descarte de inválidos", () => {
+  assert.match(chart, /normalizeHydrologyLevelSeries/);
+  assert.match(chart, /hydrologyGapThresholdMs/);
+  assert.match(chart, /splitHydrologySeriesOnGaps/);
+  assert.doesNotMatch(chart, /function normalizePoints/);
+  assert.doesNotMatch(chart, /function splitCoordinatesOnGaps/);
+
+  assert.match(levelSeries, /function normalizeHydrologyLevelSeries/);
+  assert.match(levelSeries, /new Map<number, T & \{ epoch: number \}>/);
+  assert.match(levelSeries, /new Date\(point\.timestamp\)\.getTime\(\)/);
+  assert.match(levelSeries, /!Number\.isFinite\(point\.level\)/);
+  assert.match(levelSeries, /!Number\.isFinite\(epoch\)/);
+  assert.match(levelSeries, /\.sort\(\(left, right\) => left\.epoch - right\.epoch\)/);
 });
 
-test("eixo horizontal respeita tempo real e lacunas não são ligadas artificialmente", () => {
+test("eixo horizontal respeita tempo real e lacunas usam a política compartilhada", () => {
   assert.match(chart, /const timeRange = Math\.max\(1, latestEpoch - firstEpoch\)/);
   assert.match(chart, /const xForEpoch = \(epoch: number\)/);
   assert.match(chart, /\(epoch - firstEpoch\) \/ timeRange/);
-  assert.match(chart, /function gapThreshold/);
   assert.match(chart, /GAP_MULTIPLIER = 2\.5/);
-  assert.match(chart, /function splitCoordinatesOnGaps/);
-  assert.match(chart, /const segments = splitCoordinatesOnGaps/);
+  assert.match(
+    chart,
+    /hydrologyGapThresholdMs\(valid, \{ multiplier: GAP_MULTIPLIER \}\)/,
+  );
+  assert.match(chart, /splitHydrologySeriesOnGaps\(coordinates, thresholdMs\)/);
   assert.match(chart, /segment\.length >= 2/);
   assert.match(chart, /série com lacunas/);
   assert.match(chart, /não liga\s+artificialmente períodos sem observação/);
+  assert.match(levelSeries, /DEFAULT_HYDROLOGY_GAP_MULTIPLIER = 2\.5/);
+  assert.match(levelSeries, /function hydrologyGapThresholdMs/);
+  assert.match(levelSeries, /function splitHydrologySeriesOnGaps/);
   assert.match(chartCss, /hydrology-rich-chart__gap-note/);
 });
 
@@ -204,8 +216,9 @@ test("rotas detalhadas de nível apontam para componentes cobertos pelo gráfico
   assert.match(overviewRoute, /<HydrologyOverviewV2/);
 });
 
-test("workflow de qualidade executa contratos visual e funcional dos gráficos de nível", () => {
+test("workflow de qualidade executa contratos visual, movimento e série dos gráficos de nível", () => {
   assert.match(qualityWorkflow, /Contrato visual dos gráficos de nível/);
   assert.match(qualityWorkflow, /hydrology-level-chart-contract\.test\.ts/);
   assert.match(qualityWorkflow, /hydrology-level-movement\.test\.ts/);
+  assert.match(qualityWorkflow, /hydrology-level-series\.test\.ts/);
 });
