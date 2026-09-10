@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
+import { AccountAccessOverview } from "@/components/auth/AccountAccessOverview";
 import { saveAccountPreferences, type AccountSnapshot } from "@/lib/auth/account.functions";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
@@ -170,7 +171,7 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
         <div className="account-dashboard-entry">
           <div>
             <span className="eyebrow">Área pessoal</span>
-            <strong>Seu painel Free já organiza o que você acompanha.</strong>
+            <strong>Seu painel {snapshot.access.label} já organiza o que você acompanha.</strong>
             <p>
               Favoritos e widgets já estão disponíveis no painel. Novos históricos e ferramentas
               entram somente quando o dataset e a camada de acesso estiverem prontos.
@@ -178,6 +179,8 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
           </div>
           <Link to="/painel">Abrir meu painel →</Link>
         </div>
+
+        <AccountAccessOverview snapshot={snapshot} />
 
         {feedback ? (
           <p
