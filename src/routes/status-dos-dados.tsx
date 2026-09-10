@@ -40,7 +40,7 @@ const SOURCE_USAGE: Record<string, string> = {
   "inmet-satellite":
     "Imagem meteorológica de satélite do INMET quando o acesso técnico está disponível.",
   "laranjal-level":
-    "Nível da Lagoa dos Patos no ponto monitorado no Laranjal, com horário e tendência quando disponíveis.",
+    "Nível da Lagoa dos Patos no ponto monitorado no Laranjal, com horário da leitura e movimento recente calculado a partir da própria série quando houver sequência contínua suficiente.",
   "guaiba-level":
     "Leitura do nível do Guaíba usada como referência regional, sem substituir medições da Lagoa dos Patos em Pelotas.",
   "lagoon-regional-network":
@@ -305,7 +305,7 @@ function DataStatusPage() {
             <p><strong>Previsão:</strong> Open-Meteo fornece a série horária e diária. MET Norway é contingência. Valores previstos nunca são apresentados como medição.</p>
             <p><strong>Previsão oficial e alertas:</strong> vêm do INMET. O Tempo Pelotas não cria alertas, níveis de risco ou áreas atingidas.</p>
             <p><strong>Radar e satélite:</strong> mostram os quadros recebidos das fontes identificadas, mantendo o horário disponível da coleta.</p>
-            <p><strong>Hidrologia:</strong> cada nível pertence à estação e à referência informada pela fonte. Cotas de referências diferentes não são convertidas ou comparadas como equivalentes.</p>
+            <p><strong>Hidrologia:</strong> cada nível pertence à estação e à referência informada pela fonte. Quando o portal calcula movimento recente, ele deriva a leitura da própria série contínua; quando a Defesa Civil publica tendência textual, ela é exibida como informação da fonte. Cotas de referências diferentes não são convertidas ou comparadas como equivalentes.</p>
           </div>
         </section>
       </main>
