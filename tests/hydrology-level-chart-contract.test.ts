@@ -4,6 +4,7 @@ import test from "node:test";
 
 const chart = readFileSync("src/components/hydrology/HydrologyLevelChart.tsx", "utf8");
 const chartCss = readFileSync("src/components/hydrology/HydrologyLevelChart.css", "utf8");
+const movementMath = readFileSync("src/lib/hydrology/level-movement.ts", "utf8");
 const guaiba = readFileSync("src/components/hydrology/GuaibaLevelPage.tsx", "utf8");
 const laranjal = readFileSync("src/components/hydrology/HydrologyPages.tsx", "utf8");
 const overview = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx", "utf8");
@@ -71,20 +72,34 @@ test("eixo horizontal respeita tempo real e lacunas não são ligadas artificial
   assert.match(chartCss, /hydrology-rich-chart__gap-note/);
 });
 
-test("movimento recente usa apenas o último trecho contínuo da série", () => {
-  assert.match(chart, /RECENT_MOVEMENT_WINDOW_MS = 3 \* 60 \* 60 \* 1_000/);
-  assert.match(chart, /MOVEMENT_RATE_EPSILON_CM_PER_HOUR = 0\.1/);
-  assert.match(chart, /function recentMovement/);
+test("movimento recente usa helper puro e apenas o último trecho contínuo da série", () => {
+  assert.match(chart, /deriveRecentHydrologyMovement/);
+  assert.match(chart, /toHydrologyCentimeters/);
   assert.match(chart, /const latestSegment = segments\.at\(-1\) \?\? \[\]/);
-  assert.match(chart, /const movement = recentMovement\(latestSegment, unit\)/);
-  assert.match(chart, /const changeCm = toCentimeters\(latest\.level - start\.level, unit\)/);
-  assert.match(chart, /rateCmPerHour = changeCm \/ \(durationMs \/ \(60 \* 60 \* 1_000\)\)/);
+  assert.match(chart, /const movement = deriveRecentHydrologyMovement\(latestSegment, unit\)/);
   assert.match(chart, /Movimento recente/);
   assert.match(chart, /Ritmo recente/);
   assert.match(chart, /Amplitude observada/);
   assert.match(chart, /Diferença entre o máximo e o mínimo da janela/);
   assert.match(chart, /hydrology-rich-chart__recent-line/);
   assert.match(chart, /formatRate\(movement\.rateCmPerHour\)/);
+
+  assert.match(movementMath, /RECENT_MOVEMENT_WINDOW_MS = 3 \* 60 \* 60 \* 1_000/);
+  assert.match(movementMath, /MOVEMENT_RATE_EPSILON_CM_PER_HOUR = 0\.1/);
+  assert.match(movementMath, /function normalizeMovementPoints/);
+  assert.match(movementMath, /new Map<number, HydrologyTimedLevelPoint>/);
+  assert.match(movementMath, /!Number\.isFinite\(point\.epoch\)/);
+  assert.match(movementMath, /!Number\.isFinite\(point\.level\)/);
+  assert.match(movementMath, /deriveRecentHydrologyMovement/);
+  assert.match(
+    movementMath,
+    /toHydrologyCentimeters\(latest\.level - start\.level, unit\)/,
+  );
+  assert.match(
+    movementMath,
+    /rateCmPerHour = changeCm \/ \(durationMs \/ \(60 \* 60 \* 1_000\)\)/,
+  );
+
   assert.match(chartCss, /hydrology-rich-chart__motion/);
   assert.match(chartCss, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
   assert.match(chartCss, /hydrology-rich-chart__recent-line/);
@@ -98,7 +113,10 @@ test("gráfico de nível permanece responsivo e legível em telas estreitas", ()
   assert.match(chartCss, /@media \(max-width: 840px\)/);
   assert.match(chartCss, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(chartCss, /@media \(max-width: 560px\)/);
-  assert.match(chartCss, /hydrology-rich-chart__motion[\s\S]{0,100}grid-template-columns:\s*minmax\(0, 1fr\)/);
+  assert.match(
+    chartCss,
+    /hydrology-rich-chart__motion[\s\S]{0,100}grid-template-columns:\s*minmax\(0, 1fr\)/,
+  );
   assert.match(chartCss, /stroke-linecap:\s*round/);
   assert.match(chartCss, /stroke-linejoin:\s*round/);
   assert.match(chartCss, /hydrology-rich-chart__plot:focus-visible/);
@@ -186,7 +204,8 @@ test("rotas detalhadas de nível apontam para componentes cobertos pelo gráfico
   assert.match(overviewRoute, /<HydrologyOverviewV2/);
 });
 
-test("workflow de qualidade executa o contrato dos gráficos de nível", () => {
+test("workflow de qualidade executa contratos visual e funcional dos gráficos de nível", () => {
   assert.match(qualityWorkflow, /Contrato visual dos gráficos de nível/);
-  assert.match(qualityWorkflow, /node --test tests\/hydrology-level-chart-contract\.test\.ts/);
+  assert.match(qualityWorkflow, /hydrology-level-chart-contract\.test\.ts/);
+  assert.match(qualityWorkflow, /hydrology-level-movement\.test\.ts/);
 });
