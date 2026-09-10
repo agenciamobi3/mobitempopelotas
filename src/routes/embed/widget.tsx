@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, type CSSProperties } from "react";
 
 import "@/components/embed/LaranjalEmbedIsolation.css";
+import "@/components/embed/ManagedWidgetAppearance.css";
 import { LaranjalLevelEmbed } from "@/components/embed/LaranjalLevelEmbed";
 import { ObsWeatherStatusWidget } from "@/components/embed/ObsWeatherStatusWidget";
 import { RainWidget } from "@/components/embed/RainWidget";
@@ -10,6 +11,10 @@ import { WindWidget } from "@/components/embed/WindWidget";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { getAggregatedPelotasWeather } from "@/lib/weather/aggregated-weather.functions";
 import { getObsWeatherStatus } from "@/lib/weather/obs-weather-status.functions";
+import {
+  getWidgetStylePreset,
+  widgetAppearanceCssVariables,
+} from "@/lib/widgets/widget-appearance";
 import { getPublicWidgetDefinition } from "@/lib/widgets/widget.functions";
 
 const ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
@@ -17,12 +22,16 @@ const ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
 function validateSearch(search: Record<string, unknown>) {
   return {
     token: typeof search.token === "string" ? search.token : "",
+    v:
+      typeof search.v === "string" || typeof search.v === "number"
+        ? String(search.v)
+        : "",
   };
 }
 
 export const Route = createFileRoute("/embed/widget")({
   validateSearch,
-  loaderDeps: ({ search }) => ({ token: search.token }),
+  loaderDeps: ({ search }) => ({ token: search.token, v: search.v }),
   head: () => ({
     meta: [
       { title: "Widget Tempo Pelotas" },
@@ -149,9 +158,19 @@ function GeneratedWidgetRoute() {
     ) : (
       <ObsWeatherStatusWidget data={snapshot.payload} />
     );
+  const appearance = snapshot.definition.appearance;
+  const preset = getWidgetStylePreset(appearance.preset);
+  const appearanceStyle = widgetAppearanceCssVariables(appearance) as CSSProperties;
 
   return (
-    <div data-widget-theme={snapshot.definition.theme} data-widget-token={snapshot.definition.publicToken}>
+    <div
+      data-widget-theme={snapshot.definition.theme}
+      data-widget-token={snapshot.definition.publicToken}
+      data-widget-preset={appearance.preset}
+      data-widget-scheme={preset.scheme}
+      data-widget-density={appearance.density}
+      style={appearanceStyle}
+    >
       <h1 className="visually-hidden">{snapshot.definition.title}</h1>
       {content}
     </div>
