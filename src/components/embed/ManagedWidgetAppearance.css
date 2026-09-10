@@ -32,7 +32,8 @@
   color: var(--tp-widget-text);
 }
 
-[data-widget-preset] > main > section :is(p, small, span) {
+[data-widget-preset] > main > section :is(p, small, span),
+[data-widget-scheme="light"] > main > section footer {
   color: var(--tp-widget-muted);
 }
 
@@ -47,6 +48,11 @@
 
 [data-widget-scheme="dark"] > main > article :is(p, small, span) {
   color: var(--tp-widget-muted);
+}
+
+[data-widget-scheme="dark"] > main > article section[aria-label="Resumo e evolução recente do nível"] > div {
+  border-color: var(--tp-widget-border);
+  background: var(--tp-widget-surface);
 }
 
 [data-widget-scheme="dark"] > main > article svg text {
