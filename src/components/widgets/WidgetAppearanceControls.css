@@ -1,0 +1,41 @@
+.widget-style-color-control .widget-style-color-hex {
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font: 0.76rem/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-transform: uppercase;
+}
+
+.widget-style-color-control .widget-style-color-hex[aria-invalid="true"] {
+  border-color: #e11d48;
+  background: #fff7f8;
+}
+
+.widget-style-color-control .widget-style-color-hex:focus-visible {
+  outline: 3px solid rgba(24, 189, 205, 0.36);
+  outline-offset: 2px;
+}
+
+@media (max-width: 360px) {
+  .widget-style-color-control {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .widget-style-color-control .widget-style-color-hex {
+    flex-basis: calc(100% - 54px);
+  }
+}
+
+@media (forced-colors: active) {
+  .widget-style-color-control .widget-style-color-hex {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
