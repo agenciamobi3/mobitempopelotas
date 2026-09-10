@@ -1,24 +1,20 @@
 /*
  * Hero do índice regional da Lagoa dos Patos.
  *
- * Mantém a semântica hidrológica existente, mas adota a mesma linguagem
- * visual das páginas internas de previsão: faixa editorial aberta, alinhada
- * ao rail principal e sem card isolado na primeira dobra.
+ * Segue a mesma gramática visual das páginas internas recentes: faixa
+ * editorial full-bleed, copy à esquerda e resumo objetivo à direita.
  */
 
 .lagoon-network-index-shell .lagoon-network-index-hero {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(360px, 0.78fr);
-  grid-template-areas:
-    "eyebrow copy"
-    "title copy";
-  gap: 14px clamp(44px, 5vw, 78px);
-  align-items: end;
+  grid-template-columns: minmax(0, 0.92fr) minmax(430px, 0.78fr);
+  gap: clamp(44px, 5vw, 78px);
+  align-items: center;
   overflow: visible;
   margin-top: 0;
-  padding: clamp(50px, 5vw, 72px) 0 clamp(44px, 4.5vw, 64px);
+  padding: clamp(52px, 5.5vw, 78px) 0 clamp(46px, 5vw, 70px);
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -32,24 +28,26 @@
   width: 100vw;
   transform: translateX(-50%);
   background:
-    radial-gradient(circle at 12% 38%, rgb(24 189 205 / 9%), transparent 30%),
-    radial-gradient(circle at 86% 24%, rgb(94 44 237 / 7%), transparent 31%),
-    linear-gradient(105deg, #f3fbfb 0%, #f9fbfb 48%, #faf9ff 78%, #f5f2ff 100%);
+    radial-gradient(circle at 10% 38%, rgb(24 189 205 / 10%), transparent 30%),
+    radial-gradient(circle at 88% 20%, rgb(94 44 237 / 8%), transparent 31%),
+    linear-gradient(105deg, #f2fbfc 0%, #f9fbfb 48%, #faf9ff 78%, #f5f2ff 100%);
   box-shadow: inset 0 -1px 0 rgb(7 30 47 / 8%);
   content: "";
   pointer-events: none;
 }
 
-/* Remove o ornamento circular do primeiro refresh para manter o padrão interno. */
 .lagoon-network-index-shell .lagoon-network-index-hero::after {
   display: none;
 }
 
+.lagoon-network-index-hero__copy {
+  display: grid;
+  min-width: 0;
+  gap: 17px;
+  align-content: center;
+}
+
 .lagoon-network-index-shell .lagoon-network-index-hero .lagoon-locality-eyebrow {
-  grid-area: eyebrow;
-  position: relative;
-  z-index: 1;
-  align-self: end;
   width: fit-content;
   color: #237286;
   font-size: 0.68rem;
@@ -60,9 +58,6 @@
 }
 
 .lagoon-network-index-shell .lagoon-network-index-hero h1 {
-  grid-area: title;
-  position: relative;
-  z-index: 1;
   max-width: 11ch;
   margin: 0;
   color: #071e2f;
@@ -74,10 +69,6 @@
 }
 
 .lagoon-network-index-shell .lagoon-network-index-hero p {
-  grid-area: copy;
-  position: relative;
-  z-index: 1;
-  align-self: end;
   max-width: 42rem;
   margin: 0;
   color: #4c6672;
@@ -86,31 +77,156 @@
   text-wrap: pretty;
 }
 
+.lagoon-network-index-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.lagoon-network-index-hero__meta > span {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 54%);
+  color: #4f6772;
+  font-size: 0.64rem;
+  font-weight: 760;
+  line-height: 1.3;
+  backdrop-filter: blur(5px);
+}
+
+.lagoon-network-index-hero__meta svg {
+  width: 14px;
+  height: 14px;
+  color: #237286;
+  stroke-width: 1.7;
+}
+
+.lagoon-network-index-hero__summary {
+  display: grid;
+  min-width: 0;
+  gap: 18px;
+  align-content: center;
+}
+
+.lagoon-network-index-hero__condition {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 13px;
+  align-items: center;
+}
+
+.lagoon-network-index-hero__icon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(35 114 134 / 14%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 54%);
+  color: #237286;
+  backdrop-filter: blur(5px);
+}
+
+.lagoon-network-index-hero__icon svg {
+  width: 27px;
+  height: 27px;
+  stroke-width: 1.7;
+}
+
+.lagoon-network-index-hero__condition > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.lagoon-network-index-hero__condition small,
+.lagoon-network-index-hero__facts small {
+  color: #667d87;
+  font-size: 0.6rem;
+  font-weight: 810;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.lagoon-network-index-hero__condition strong {
+  color: #173847;
+  font-size: clamp(1.32rem, 1.8vw, 1.62rem);
+  font-weight: 790;
+  letter-spacing: -0.03em;
+  line-height: 1.06;
+}
+
+.lagoon-network-index-hero__condition span {
+  color: #667d87;
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.lagoon-network-index-hero__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.lagoon-network-index-hero__facts article {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 15px 16px;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+}
+
+.lagoon-network-index-hero__facts article:first-child {
+  padding-left: 0;
+}
+
+.lagoon-network-index-hero__facts article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.lagoon-network-index-hero__facts strong {
+  color: #173847;
+  font-size: clamp(1.22rem, 1.6vw, 1.58rem);
+  font-weight: 820;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.lagoon-network-index-hero__facts span {
+  max-width: 18ch;
+  color: #667d87;
+  font-size: 0.61rem;
+  line-height: 1.4;
+}
+
 @media (max-width: 1100px) {
   .lagoon-network-index-shell .lagoon-network-index-hero {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "eyebrow"
-      "title"
-      "copy";
-    gap: 16px;
+    gap: 32px;
   }
 
   .lagoon-network-index-shell .lagoon-network-index-hero h1 {
     max-width: 13ch;
   }
 
-  .lagoon-network-index-shell .lagoon-network-index-hero p {
-    max-width: 46rem;
-    margin-top: 2px;
+  .lagoon-network-index-hero__summary {
+    max-width: 780px;
   }
 }
 
 @media (max-width: 720px) {
   .lagoon-network-index-shell .lagoon-network-index-hero {
-    margin-top: 0;
     padding: 38px 0 36px;
-    border-radius: 0;
+    gap: 26px;
   }
 
   .lagoon-network-index-shell .lagoon-network-index-hero h1 {
@@ -123,11 +239,54 @@
     font-size: 0.94rem;
     line-height: 1.58;
   }
+
+  .lagoon-network-index-hero__meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lagoon-network-index-hero__condition {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .lagoon-network-index-hero__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+  }
+
+  .lagoon-network-index-hero__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .lagoon-network-index-hero__facts article,
+  .lagoon-network-index-hero__facts article:first-child,
+  .lagoon-network-index-hero__facts article:last-child {
+    padding: 13px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .lagoon-network-index-hero__facts article:last-child {
+    border-bottom: 0;
+  }
+
+  .lagoon-network-index-hero__facts span {
+    max-width: none;
+  }
 }
 
 @media (forced-colors: active) {
   .lagoon-network-index-shell .lagoon-network-index-hero::before {
     background: Canvas;
     box-shadow: inset 0 -1px 0 CanvasText;
+  }
+
+  .lagoon-network-index-hero__meta > span,
+  .lagoon-network-index-hero__icon,
+  .lagoon-network-index-hero__facts {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
   }
 }
