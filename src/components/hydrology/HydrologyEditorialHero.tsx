@@ -1,6 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { Activity, ArrowLeft, ArrowRight, Clock3, ExternalLink, Gauge, Waves } from "lucide-react";
 
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 
 import "./HydrologyEditorialHero.css";
@@ -18,11 +22,14 @@ function formatDateTime(value: string | null) {
   }).format(date);
 }
 
-function trendLabel(value: number | null) {
-  if (value === null) return "Tendência não informada";
-  if (value > 0.25) return `Subindo ${value.toFixed(1).replace(".", ",")} cm/h`;
-  if (value < -0.25) return `Baixando ${Math.abs(value).toFixed(1).replace(".", ",")} cm/h`;
-  return "Pouca mudança recente";
+function movementLabel(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) return "Movimento recente indisponível";
+  const rate = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(
+    Math.abs(movement.rateCmPerHour),
+  );
+  return movement.direction === "stable"
+    ? `Praticamente estável · ${rate} cm/h`
+    : `${movement.label} ${rate} cm/h`;
 }
 
 function changeLabel(value: number | null) {
@@ -41,6 +48,7 @@ export function HydrologyEditorialHero({
   const overview = variant === "overview";
   const stale = level.status === "stale";
   const contingency = level.source.role === "contingency";
+  const movement = deriveRecentHydrologySeriesMovement(level.series, "m");
   const statusLabel =
     level.status === "live"
       ? contingency
@@ -75,12 +83,12 @@ export function HydrologyEditorialHero({
             ? "Comece pela leitura local disponível, observe a mudança recente e compare o contexto com outros pontos da Lagoa e do Guaíba sem misturar referências verticais."
             : contingency
               ? "A Estação Laranjal não está entregando uma leitura atualizada neste momento. O portal usa temporariamente o sensor Pelotas da rede CIEX/FURG, mantendo fonte, horário e referência vertical identificados."
-              : "Veja a última leitura disponível da Estação Laranjal, o horário da medição, a tendência recente e a variação do nível nas últimas 24 horas."}
+              : "Veja a última leitura disponível da Estação Laranjal, o horário da medição, o movimento recente calculado a partir da série e a variação do nível nas últimas 24 horas."}
         </p>
 
         <div className="hydrology-editorial-points" aria-label="Informações principais">
           <span>Última leitura com horário e estado de atualização</span>
-          <span>Tendência e variações de 1 h, 6 h e 24 h</span>
+          <span>Movimento recente e variações de 1 h, 6 h e 24 h</span>
         </div>
 
         <div className="hydrology-editorial-actions">
@@ -125,8 +133,8 @@ export function HydrologyEditorialHero({
           <div className="hydrology-editorial-trend">
             <Activity aria-hidden="true" />
             <div>
-              <span>{stale ? "Até a última medição" : "Mudança recente"}</span>
-              <strong>{trendLabel(level.trendCmPerHour)}</strong>
+              <span>{stale ? "Até a última medição" : "Movimento recente"}</span>
+              <strong>{movementLabel(movement)}</strong>
             </div>
           </div>
 
