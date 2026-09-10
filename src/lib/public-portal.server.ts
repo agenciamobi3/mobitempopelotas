@@ -1,3 +1,4 @@
+import { deriveRecentHydrologySeriesMovement } from "./hydrology/level-movement.ts";
 import { fetchSelectedLaranjalLevelData } from "./hydrology/laranjal-level-source.server";
 import { absoluteUrl, SITE_DESCRIPTION, SITE_NAME } from "./site-config";
 import { fetchWeatherIntelligence } from "./weather/weather-intelligence.server";
@@ -13,6 +14,12 @@ const LOCATION = {
 
 function formatMetric(value: number | null, unit: string) {
   return value === null ? "indisponível" : `${value}${unit}`;
+}
+
+function round(value: number | null, digits = 1) {
+  if (value === null || !Number.isFinite(value)) return null;
+  const factor = 10 ** digits;
+  return Math.round(value * factor) / factor;
 }
 
 function latestTimestamp(values: Array<string | null>) {
@@ -33,12 +40,26 @@ function publicCurrentObservation(
 }
 
 function publicLaranjalLevel(level: Awaited<ReturnType<typeof fetchSelectedLaranjalLevelData>>) {
+  const movement = deriveRecentHydrologySeriesMovement(level.series, "m");
+
   return {
     status: level.status,
     current_level_m: level.currentLevel,
     updated_at: level.updatedAt,
     age_minutes: level.ageMinutes,
+    movement_recent: {
+      kind: "derived-from-series" as const,
+      direction: movement.direction,
+      label: movement.label,
+      rate_cm_per_hour: round(movement.rateCmPerHour),
+      change_cm: round(movement.changeCm),
+      duration_minutes:
+        movement.durationMs === null ? null : Math.round(movement.durationMs / 60_000),
+      start_at: movement.startEpoch === null ? null : new Date(movement.startEpoch).toISOString(),
+    },
+    // Campo legado mantido para consumidores existentes. Novas interfaces devem usar movement_recent.
     trend_cm_per_hour: level.trendCmPerHour,
+    trend_cm_per_hour_semantics: "legacy-derived-field" as const,
     change_1h_cm: level.change1hCm,
     change_6h_cm: level.change6hCm,
     change_24h_cm: level.change24hCm,
@@ -68,7 +89,7 @@ export async function fetchPublicPortalSnapshot() {
   const { weather, brief, intelligence } = weatherIntelligence;
 
   return {
-    schema_version: "2.1",
+    schema_version: "2.2",
     generated_at: new Date().toISOString(),
     location: LOCATION,
     status: weather.status,
@@ -193,7 +214,7 @@ export function createPublicJsonFeed(snapshot: PublicPortalSnapshot) {
         id: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
         url: absoluteUrl("/nivel-da-lagoa-dos-patos-laranjal"),
         title: laranjalTitle,
-        content_text: `${laranjalText} Acompanhe a tendência local junto com o contexto meteorológico e as orientações oficiais.`,
+        content_text: `${laranjalText} Acompanhe o movimento recente calculado a partir da própria série junto com o contexto meteorológico e as orientações oficiais.`,
         ...(laranjal.updated_at ? { date_modified: laranjal.updated_at } : {}),
         tags: ["hidrologia", "Lagoa dos Patos", "Laranjal", "Pelotas"],
       },
