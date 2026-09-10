@@ -20,6 +20,10 @@ import {
 
 import type { GuaibaObservationData } from "@/lib/hydrology/guaiba.server";
 import type { LagoonMonitoringNetworkData } from "@/lib/hydrology/lagoon-network.server";
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { SaceGuaibaData } from "@/lib/hydrology/sace-guaiba.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
@@ -79,21 +83,25 @@ function saceAvailabilityDetail(sace: SaceGuaibaData) {
   return `${sace.counts.aboveNormal} em categoria diferente de Normal`;
 }
 
-function trendState(value: number | null) {
-  if (value === null) {
-    return { label: "Tendência não informada", className: "is-unknown", icon: Activity };
+function movementState(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", className: "is-unknown", icon: Activity };
   }
-  if (value > 0.25) {
-    return { label: `Subindo ${formatNumber(value)} cm/h`, className: "is-rising", icon: TrendingUp };
-  }
-  if (value < -0.25) {
+  if (movement.direction === "rising") {
     return {
-      label: `Baixando ${formatNumber(Math.abs(value))} cm/h`,
+      label: `Subindo ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
+      className: "is-rising",
+      icon: TrendingUp,
+    };
+  }
+  if (movement.direction === "falling") {
+    return {
+      label: `Baixando ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
       className: "is-falling",
       icon: TrendingDown,
     };
   }
-  return { label: "Pouca mudança recente", className: "is-stable", icon: Activity };
+  return { label: "Praticamente estável", className: "is-stable", icon: Activity };
 }
 
 function statusCopy(level: LaranjalLevelData) {
@@ -171,8 +179,8 @@ export function HydrologyOverviewHero({
 }: Pick<HydrologyOverviewProps, "level" | "lagoon" | "sace">) {
   const status = statusCopy(level);
   const StatusIcon = status.icon;
-  const trend = trendState(level.trendCmPerHour);
-  const TrendIcon = trend.icon;
+  const movement = movementState(deriveRecentHydrologySeriesMovement(level.series, "m"));
+  const TrendIcon = movement.icon;
 
   return (
     <section className="hydrology-v2-hero" aria-labelledby="hydrology-v2-hero-title">
@@ -209,11 +217,11 @@ export function HydrologyOverviewHero({
           <strong>{level.currentLevel === null ? "—" : formatNumber(level.currentLevel, 2)}</strong>
           <small>m na referência da estação</small>
         </div>
-        <div className={`hydrology-v2-hero__trend ${trend.className}`}>
+        <div className={`hydrology-v2-hero__trend ${movement.className}`}>
           <TrendIcon aria-hidden="true" />
           <span>
-            <small>Mudança recente</small>
-            <strong>{trend.label}</strong>
+            <small>Movimento recente</small>
+            <strong>{movement.label}</strong>
           </span>
         </div>
         <dl>
@@ -239,8 +247,8 @@ export function HydrologyOverviewV2({
   lagoon,
   sace,
 }: HydrologyOverviewProps) {
-  const trend = trendState(level.trendCmPerHour);
-  const TrendIcon = trend.icon;
+  const movement = movementState(deriveRecentHydrologySeriesMovement(level.series, "m"));
+  const TrendIcon = movement.icon;
   const forecast = forecastHydrologyContext(weather);
   const observed = observedHydrologyContext(weather);
 
@@ -277,7 +285,7 @@ export function HydrologyOverviewV2({
         <a href="#leitura-local">
           <span>01</span>
           <strong>Laranjal</strong>
-          <small>Nível e mudança recente</small>
+          <small>Nível e movimento recente</small>
         </a>
         <a href="#rede-regional">
           <span>02</span>
@@ -321,11 +329,11 @@ export function HydrologyOverviewV2({
                 <strong>{formatNumber(level.currentLevel, 2)} m</strong>
                 <small>Na referência da Estação Laranjal</small>
               </article>
-              <article className={trend.className}>
+              <article className={movement.className}>
                 <TrendIcon aria-hidden="true" />
-                <span>Mudança recente</span>
-                <strong>{trend.label}</strong>
-                <small>Calculada com as medições válidas disponíveis</small>
+                <span>Movimento recente</span>
+                <strong>{movement.label}</strong>
+                <small>Calculado com o último trecho contínuo das medições válidas</small>
               </article>
             </div>
 
@@ -392,7 +400,7 @@ export function HydrologyOverviewV2({
           <div>
             <p>
               <strong>Este valor não é uma classificação de risco.</strong> A Estação Laranjal não usa
-              as cotas de Atenção, Alerta ou Inundação de outras estações. Confira o horário e a mudança
+              as cotas de Atenção, Alerta ou Inundação de outras estações. Confira o horário e o movimento
               recente.
             </p>
             <a href={level.source.url} target="_blank" rel="noopener noreferrer">
@@ -538,7 +546,7 @@ export function HydrologyOverviewV2({
           <span className="hydrology-v2-eyebrow">Antes de tomar decisões</span>
           <h2 id="hydrology-v2-safety-title">Uma leitura isolada não define segurança</h2>
           <p>
-            Confira horário, mudança recente e alertas oficiais. Em emergência, siga a Defesa Civil e
+            Confira horário, movimento recente e alertas oficiais. Em emergência, siga a Defesa Civil e
             as autoridades locais. Uma estação sem transmissão não deve ser interpretada como nível
             normal.
           </p>
