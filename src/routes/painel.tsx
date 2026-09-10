@@ -2,6 +2,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 
 import { AccountDashboard } from "@/components/auth/AccountDashboard";
 import { getAccountSnapshot } from "@/lib/auth/account.functions";
+import { getAccountFavorites } from "@/lib/auth/favorites.functions";
 import { getHistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import { absoluteUrl, SITE_NAME } from "@/lib/site-config";
 
@@ -27,17 +28,26 @@ export const Route = createFileRoute("/painel")({
       });
     }
 
-    const moderation = snapshot.status === "authenticated"
-      ? await getHistoricalModerationSnapshot()
-      : { status: "unavailable" as const };
+    if (snapshot.status !== "authenticated") {
+      return {
+        snapshot,
+        moderation: { status: "unavailable" as const },
+        favorites: { status: "unavailable" as const },
+      };
+    }
 
-    return { snapshot, moderation };
+    const [moderation, favorites] = await Promise.all([
+      getHistoricalModerationSnapshot(),
+      getAccountFavorites(),
+    ]);
+
+    return { snapshot, moderation, favorites };
   },
   component: PainelPage,
 });
 
 function PainelPage() {
-  const { snapshot, moderation } = Route.useLoaderData();
+  const { snapshot, moderation, favorites } = Route.useLoaderData();
 
   if (snapshot.status === "unavailable") {
     return (
@@ -65,6 +75,14 @@ function PainelPage() {
     );
   }
 
-  if (snapshot.status !== "authenticated") return null;
-  return <AccountDashboard snapshot={snapshot} moderation={moderation} />;
+  if (
+    snapshot.status !== "authenticated" ||
+    favorites.status !== "authenticated"
+  ) {
+    return null;
+  }
+
+  return (
+    <AccountDashboard snapshot={snapshot} moderation={moderation} favorites={favorites} />
+  );
 }
