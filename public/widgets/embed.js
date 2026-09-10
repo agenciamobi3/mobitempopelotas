@@ -20,6 +20,20 @@
   iframe.style.overflow = "hidden";
   iframe.style.background = "transparent";
 
+  const applyPresentation = (presentation) => {
+    if (presentation === "compact") {
+      iframe.style.maxWidth = "420px";
+      return;
+    }
+    if (presentation === "card") {
+      iframe.style.maxWidth = "760px";
+      return;
+    }
+    if (presentation === "horizontal") {
+      iframe.style.maxWidth = "100%";
+    }
+  };
+
   const onMessage = (event) => {
     if (event.origin !== ORIGIN || event.source !== iframe.contentWindow) return;
     const data = event.data;
@@ -28,6 +42,7 @@
 
     const height = Math.max(120, Math.min(Math.ceil(data.height), 2000));
     iframe.style.height = `${height}px`;
+    applyPresentation(data.presentation);
   };
 
   window.addEventListener("message", onMessage);
