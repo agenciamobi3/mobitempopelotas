@@ -3,6 +3,7 @@ import { useEffect } from "react";
 
 import type { AggregatedWeatherData } from "@/lib/weather/aggregated-weather.types";
 import type { DailyForecast } from "@/lib/weather/types";
+import { isWidgetBlockVisible, type WidgetContentDefinition } from "@/lib/widgets/widget-content";
 import { WeatherIcon } from "@/production/components/weather-icon";
 
 import styles from "./SevenDayForecastWidget.module.css";
@@ -34,9 +35,18 @@ function formatUpdatedAt(value: string) {
   }).format(parsed);
 }
 
-export function SevenDayForecastWidget({ data }: { data: AggregatedWeatherData }) {
+export function SevenDayForecastWidget({
+  data,
+  content,
+}: {
+  data: AggregatedWeatherData;
+  content?: WidgetContentDefinition;
+}) {
   const router = useRouter();
   const days = data.daily.slice(0, 7);
+  const showRain = content ? isWidgetBlockVisible(content, "rain") : true;
+  const showGusts = content ? isWidgetBlockVisible(content, "gusts") : true;
+  const showUpdatedAt = content ? isWidgetBlockVisible(content, "updated-at") : true;
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -71,7 +81,7 @@ export function SevenDayForecastWidget({ data }: { data: AggregatedWeatherData }
             <span>Tempo Pelotas</span>
             <strong>Próximos 7 dias</strong>
           </div>
-          <small>Atualizado {formatUpdatedAt(data.source.fetchedAt)}</small>
+          {showUpdatedAt ? <small>Atualizado {formatUpdatedAt(data.source.fetchedAt)}</small> : null}
         </header>
 
         <div className={styles.grid}>
@@ -89,10 +99,12 @@ export function SevenDayForecastWidget({ data }: { data: AggregatedWeatherData }
                 </strong>
               </div>
 
-              <div className={styles.metrics}>
-                <span>Chuva {formatRain(day)}</span>
-                <span>{formatGust(day)}</span>
-              </div>
+              {showRain || showGusts ? (
+                <div className={styles.metrics}>
+                  {showRain ? <span>Chuva {formatRain(day)}</span> : null}
+                  {showGusts ? <span>{formatGust(day)}</span> : null}
+                </div>
+              ) : null}
             </article>
           ))}
         </div>
