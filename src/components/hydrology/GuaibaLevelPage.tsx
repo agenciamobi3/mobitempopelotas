@@ -16,6 +16,7 @@ import type {
   GuaibaReferenceObservation,
 } from "@/lib/hydrology/guaiba.server";
 
+import { HydrologyLevelChart } from "./HydrologyLevelChart";
 import "./GuaibaLevelPage.css";
 
 function formatDateTime(value: string | null) {
@@ -98,47 +99,6 @@ function ReferenceCard({ reference }: { reference: GuaibaReferenceObservation })
   );
 }
 
-function GuaibaSparkline({ data }: { data: GuaibaObservationData }) {
-  if (data.series.length < 2) {
-    return (
-      <div className="guaiba-chart-empty">
-        <Activity aria-hidden="true" />
-        <span>Não há pontos suficientes para desenhar a evolução recente.</span>
-      </div>
-    );
-  }
-
-  const width = 900;
-  const height = 240;
-  const padding = 20;
-  const values = data.series.map((point) => point.level);
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
-  const range = Math.max(0.02, maximum - minimum);
-  const points = data.series
-    .map((point, index) => {
-      const x = padding + (index / (data.series.length - 1)) * (width - padding * 2);
-      const y = padding + ((maximum - point.level) / range) * (height - padding * 2);
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <div className="guaiba-chart">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Evolução recente do nível do Guaíba na referência selecionada">
-        <polyline points={points} fill="none" stroke="currentColor" strokeWidth="5" />
-      </svg>
-      <div className="guaiba-chart__labels">
-        <span>Início da janela</span>
-        <strong>
-          {minimum.toFixed(2)} m a {maximum.toFixed(2)} m
-        </strong>
-        <span>Leitura mais recente</span>
-      </div>
-    </div>
-  );
-}
-
 export function GuaibaLevelPage({ data }: { data: GuaibaObservationData }) {
   const TrendIcon =
     data.trendCmPerHour !== null && data.trendCmPerHour > 0.25
@@ -217,9 +177,25 @@ export function GuaibaLevelPage({ data }: { data: GuaibaObservationData }) {
           </div>
           <Gauge aria-hidden="true" />
         </div>
-        <GuaibaSparkline data={data} />
+        <HydrologyLevelChart
+          points={data.series}
+          unit="m"
+          status={data.status}
+          ariaLabel="Evolução recente do nível do Guaíba na referência selecionada"
+          eyebrow="Série recente"
+          windowLabel="Nível observado na referência selecionada"
+          latestLabel={data.status === "stale" ? "Última leitura conhecida" : "Leitura mais recente"}
+          emptyMessage="A fonte não devolveu pontos suficientes para desenhar a evolução recente do Guaíba."
+          references={[
+            {
+              label: "Referência local publicada",
+              value: data.floodReference,
+              tone: "reference",
+            },
+          ]}
+        />
         <p className="guaiba-note">
-          A linha usa apenas os pontos devolvidos pela fonte para a estação selecionada. Uma leitura
+          O gráfico usa apenas os pontos devolvidos pela fonte para a estação selecionada. Uma leitura
           isolada não deve ser convertida em diagnóstico de risco para Pelotas ou para outra régua.
         </p>
       </section>
