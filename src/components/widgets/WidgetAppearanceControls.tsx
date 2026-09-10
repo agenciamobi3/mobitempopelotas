@@ -38,11 +38,13 @@ export function WidgetAppearanceControls({
   onChange,
   legend = "Estilo do widget",
   compact = false,
+  controlName = "widget-style",
 }: {
   value: WidgetAppearance;
   onChange: (appearance: WidgetAppearance) => void;
   legend?: string;
   compact?: boolean;
+  controlName?: string;
 }) {
   return (
     <fieldset className={`widget-style-controls${compact ? " is-compact" : ""}`}>
@@ -61,7 +63,7 @@ export function WidgetAppearanceControls({
             >
               <input
                 type="radio"
-                name={compact ? "widget-existing-style" : "widget-new-style"}
+                name={controlName}
                 value={preset.key}
                 checked={selected}
                 onChange={() => onChange(createAppearanceFromPreset(preset.key))}
