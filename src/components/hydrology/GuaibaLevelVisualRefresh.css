@@ -1,0 +1,386 @@
+/*
+ * Refresh visual exclusivo de /nivel-do-guaiba.
+ *
+ * Mantém o contrato de dados e a semântica próprios do Guaíba, mas aproxima a
+ * página da linguagem editorial atual do Tempo Pelotas: hero full-bleed claro,
+ * leitura técnica aberta e seções com divisórias discretas em vez de cardboxing.
+ */
+
+.hydrology-editorial-route--guaiba {
+  display: grid;
+  min-width: 0;
+  gap: 0;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-page {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 clamp(3.5rem, 6vw, 5.5rem);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 0;
+  grid-template-columns: minmax(0, 0.92fr) minmax(390px, 0.72fr);
+  gap: clamp(44px, 5vw, 78px);
+  align-items: center;
+  overflow: visible;
+  padding: clamp(56px, 6vw, 86px) 0 clamp(50px, 5.5vw, 76px);
+  border: 0;
+  background: transparent;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero::before {
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  z-index: -1;
+  width: 100vw;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(circle at 10% 36%, rgb(24 189 205 / 10%), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgb(94 44 237 / 8%), transparent 31%),
+    linear-gradient(105deg, #f2fbfc 0%, #f9fbfb 48%, #faf9ff 78%, #f5f2ff 100%);
+  box-shadow: inset 0 -1px 0 rgb(7 30 47 / 8%);
+  content: "";
+  pointer-events: none;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-kicker {
+  color: #237286;
+  font-size: 0.68rem;
+  font-weight: 820;
+  letter-spacing: 0.055em;
+  line-height: 1.35;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero h1 {
+  max-width: 11ch;
+  margin-top: 15px;
+  color: #071e2f;
+  font-size: clamp(2.85rem, 4.4vw, 4.45rem);
+  font-weight: 730;
+  letter-spacing: -0.06em;
+  line-height: 0.97;
+  text-wrap: balance;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero__copy > p:not(.guaiba-kicker) {
+  max-width: 42rem;
+  margin-top: 18px;
+  color: #4c6672;
+  font-size: clamp(0.94rem, 1vw, 1.04rem);
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-status {
+  max-width: 520px;
+  margin-top: 23px;
+  padding-top: 14px;
+  border-top-color: rgb(7 30 47 / 10%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-status strong {
+  color: #173847;
+  font-size: 0.72rem;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-status span {
+  color: #667d87;
+  font-size: 0.64rem;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero__reading {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding: 24px 0 21px;
+  border: 0;
+  border-top: 1px solid rgb(7 30 47 / 10%);
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-level {
+  gap: 12px;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-level svg {
+  width: 46px;
+  height: 46px;
+  color: #237286;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-level strong {
+  color: #173847;
+  font-size: clamp(3.8rem, 5.4vw, 5.4rem);
+  font-weight: 760;
+  letter-spacing: -0.075em;
+  line-height: 0.9;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-level span {
+  color: #667d87;
+  font-size: 0.72rem;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero__reading > p {
+  margin: 15px 0 3px;
+  color: #173847;
+  font-size: 0.82rem;
+  font-weight: 820;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-hero__reading > small {
+  color: #667d87;
+  font-size: 0.64rem;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-trend {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-trend svg {
+  width: 20px;
+  height: 20px;
+  color: #168fa3;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-trend span {
+  color: #667d87;
+  font-size: 0.58rem;
+  font-weight: 780;
+  letter-spacing: 0.04em;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-trend strong {
+  color: #173847;
+  font-size: 0.86rem;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-metrics {
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid rgb(7 30 47 / 9%);
+  border-bottom: 1px solid rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-metrics article {
+  min-height: 94px;
+  align-content: center;
+  padding: 16px 18px;
+  border: 0;
+  border-right: 1px solid rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-metrics article:first-child {
+  padding-left: 0;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-metrics article:last-child {
+  padding-right: 0;
+  border-right: 0;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-metrics span {
+  color: #667d87;
+  font-size: 0.61rem;
+  font-weight: 760;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-metrics strong {
+  color: #173847;
+  font-size: clamp(1.12rem, 1.5vw, 1.42rem);
+  font-weight: 820;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-panel {
+  padding: clamp(3.4rem, 6vw, 5.5rem) 0;
+  border-bottom: 1px solid rgb(7 30 47 / 10%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-section-heading {
+  align-items: start;
+  margin-bottom: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-section-heading h2,
+.hydrology-editorial-route--guaiba .guaiba-source h2 {
+  max-width: 16ch;
+  margin-top: 8px;
+  color: #071e2f;
+  font-size: clamp(2.35rem, 4vw, 4.15rem);
+  font-weight: 740;
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-section-heading > svg {
+  width: 22px;
+  height: 22px;
+  color: #237286;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-chart {
+  padding: 20px 0 12px;
+  border-color: rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-chart svg {
+  color: #168fa3;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-chart__labels,
+.hydrology-editorial-route--guaiba .guaiba-note {
+  color: #667d87;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-chart__labels strong {
+  color: #173847;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-grid {
+  gap: 0;
+  border-color: rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-card {
+  padding: clamp(1.5rem, 3vw, 2.2rem) clamp(1.5rem, 3vw, 2.4rem);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-card:first-child {
+  padding-left: 0;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-card:last-child {
+  padding-right: 0;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-card + .guaiba-reference-card {
+  border-left-color: rgb(7 30 47 / 9%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-card__heading span,
+.hydrology-editorial-route--guaiba .guaiba-reference-card dt,
+.hydrology-editorial-route--guaiba .guaiba-reference-card > p {
+  color: #667d87;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-reference-card__heading strong,
+.hydrology-editorial-route--guaiba .guaiba-reference-card dd,
+.hydrology-editorial-route--guaiba .guaiba-reference-card__value {
+  color: #173847;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-source {
+  gap: clamp(2rem, 5vw, 5rem);
+  padding: clamp(3.4rem, 6vw, 5.5rem) 0;
+  border-bottom-color: rgb(7 30 47 / 10%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-source p {
+  color: #667d87;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-source__links a {
+  min-height: 38px;
+  padding: 7px 11px;
+  border-color: rgb(7 30 47 / 10%);
+  border-radius: 999px;
+  background: transparent;
+  color: #173847;
+  box-shadow: none;
+  font-size: 0.64rem;
+}
+
+.hydrology-editorial-route--guaiba .guaiba-related {
+  gap: 0;
+  border-bottom-color: rgb(7 30 47 / 10%);
+}
+
+.hydrology-editorial-route--guaiba .guaiba-related a {
+  min-height: 64px;
+  padding-block: 1rem;
+  border-color: rgb(7 30 47 / 9%);
+  background: transparent;
+  color: #315462;
+  font-size: 0.68rem;
+}
+
+@media (max-width: 1100px) {
+  .hydrology-editorial-route--guaiba .guaiba-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-hero h1 {
+    max-width: 13ch;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-hero__reading {
+    max-width: 780px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hydrology-editorial-route--guaiba .guaiba-page {
+    width: 100%;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-hero {
+    gap: 28px;
+    padding: 42px 0 44px;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-hero h1 {
+    font-size: clamp(2.65rem, 13vw, 4rem);
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-metrics,
+  .hydrology-editorial-route--guaiba .guaiba-reference-grid,
+  .hydrology-editorial-route--guaiba .guaiba-related {
+    grid-template-columns: 1fr;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-metrics article,
+  .hydrology-editorial-route--guaiba .guaiba-metrics article:first-child,
+  .hydrology-editorial-route--guaiba .guaiba-metrics article:last-child {
+    min-height: 76px;
+    padding: 14px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgb(7 30 47 / 9%);
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-metrics article:last-child {
+    border-bottom: 0;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-reference-card,
+  .hydrology-editorial-route--guaiba .guaiba-reference-card:first-child,
+  .hydrology-editorial-route--guaiba .guaiba-reference-card:last-child {
+    padding: 22px 0;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-reference-card + .guaiba-reference-card {
+    border-top: 1px solid rgb(7 30 47 / 9%);
+    border-left: 0;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-source {
+    grid-template-columns: 1fr;
+  }
+
+  .hydrology-editorial-route--guaiba .guaiba-related a + a {
+    padding-left: 0;
+    border-top: 1px solid rgb(7 30 47 / 9%);
+    border-left: 0;
+  }
+}
