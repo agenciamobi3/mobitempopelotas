@@ -3,12 +3,14 @@ import test from "node:test";
 
 import {
   deriveRecentHydrologyMovement,
+  deriveRecentHydrologySeriesMovement,
   MOVEMENT_RATE_EPSILON_CM_PER_HOUR,
   RECENT_MOVEMENT_WINDOW_MS,
   toHydrologyCentimeters,
 } from "../src/lib/hydrology/level-movement.ts";
 
 const HOUR_MS = 60 * 60 * 1_000;
+const BASE = Date.parse("2026-09-10T00:00:00Z");
 
 function closeTo(actual: number | null, expected: number, tolerance = 1e-9) {
   assert.notEqual(actual, null);
@@ -108,4 +110,37 @@ test("invalid or duplicate-only input cannot manufacture recent movement", () =>
     durationMs: null,
     startEpoch: null,
   });
+});
+
+test("series movement ignores an old disconnected segment and follows only the latest continuous readings", () => {
+  const result = deriveRecentHydrologySeriesMovement(
+    [
+      { timestamp: new Date(BASE).toISOString(), level: 90 },
+      { timestamp: new Date(BASE + HOUR_MS).toISOString(), level: 110 },
+      { timestamp: new Date(BASE + 10 * HOUR_MS).toISOString(), level: 100 },
+      { timestamp: new Date(BASE + 11 * HOUR_MS).toISOString(), level: 99 },
+      { timestamp: new Date(BASE + 12 * HOUR_MS).toISOString(), level: 98 },
+    ],
+    "cm",
+  );
+
+  assert.equal(result.direction, "falling");
+  closeTo(result.changeCm, -2);
+  closeTo(result.rateCmPerHour, -1);
+  assert.equal(result.startEpoch, BASE + 10 * HOUR_MS);
+});
+
+test("series movement returns unavailable when the latest segment contains only one real point", () => {
+  const result = deriveRecentHydrologySeriesMovement(
+    [
+      { timestamp: new Date(BASE).toISOString(), level: 100 },
+      { timestamp: new Date(BASE + HOUR_MS).toISOString(), level: 101 },
+      { timestamp: new Date(BASE + 10 * HOUR_MS).toISOString(), level: 105 },
+    ],
+    "cm",
+  );
+
+  assert.equal(result.direction, "unavailable");
+  assert.equal(result.rateCmPerHour, null);
+  assert.equal(result.changeCm, null);
 });
