@@ -25,6 +25,10 @@ import type {
   LagoonMonitoringNetworkData,
   LagoonMonitoringObservation,
 } from "@/lib/hydrology/lagoon-network.server";
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 
 import { HydrologyLevelChart } from "./HydrologyLevelChart";
 import { LagoonNetworkLevelExplorer } from "./LagoonNetworkLevelExplorer";
@@ -63,11 +67,33 @@ function latestObservationTime(network: LagoonMonitoringNetworkData) {
   }, null);
 }
 
-function trendState(value: number | null) {
-  if (value === null || !Number.isFinite(value)) return { label: "Tendência indisponível", className: "is-unknown", icon: Minus };
-  if (Math.abs(value) < 0.1) return { label: "Estável", className: "is-stable", icon: Minus };
-  if (value > 0) return { label: `Subindo ${formatNumber(value)} cm/h`, className: "is-rising", icon: ArrowUp };
-  return { label: `Baixando ${formatNumber(Math.abs(value))} cm/h`, className: "is-falling", icon: ArrowDown };
+function movementState(movement: HydrologyRecentMovement | null) {
+  if (!movement || movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", className: "is-unknown", icon: Minus };
+  }
+  if (movement.direction === "stable") {
+    return { label: "Praticamente estável", className: "is-stable", icon: Minus };
+  }
+  if (movement.direction === "rising") {
+    return {
+      label: `Subindo ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
+      className: "is-rising",
+      icon: ArrowUp,
+    };
+  }
+  return {
+    label: `Baixando ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
+    className: "is-falling",
+    icon: ArrowDown,
+  };
+}
+
+function observationMovement(observation: LagoonMonitoringObservation | null) {
+  if (!observation) return null;
+  return deriveRecentHydrologySeriesMovement(
+    observation.series.map((point) => ({ timestamp: point.timestamp, level: point.levelCm })),
+    "cm",
+  );
 }
 
 function statusLabel(observation: LagoonMonitoringObservation | null) {
@@ -154,17 +180,17 @@ export function LagoonHydrologyNetworkIndex({ network }: { network: LagoonMonito
         <div className="lagoon-network-locality-grid">
           {HYDROLOGY_LOCALITIES.map((locality) => {
             const observation = network.observations.find((item) => item.station.id === locality.stationId) ?? null;
-            const trend = trendState(observation?.trendCmPerHour ?? null);
-            const TrendIcon = trend.icon;
+            const movement = movementState(observationMovement(observation));
+            const MovementIcon = movement.icon;
             return (
               <a className={`lagoon-network-locality-card ${statusLabel(observation).className}`} href={hydrologyLocalityPath(locality)} key={locality.slug}>
                 <div className="lagoon-network-locality-card__top"><div><small>{locality.cityLabel}</small><h3>{locality.name}</h3></div><Waves aria-hidden="true" /></div>
                 {observation?.currentLevelCm !== null && observation?.currentLevelCm !== undefined ? (
                   <div className="lagoon-network-locality-card__reading"><strong>{formatNumber(observation.currentLevelCm)}</strong><span>cm</span></div>
                 ) : <strong className="lagoon-network-locality-card__unavailable">Sem leitura disponível</strong>}
-                <div className={`lagoon-locality-trend ${trend.className}`}><TrendIcon aria-hidden="true" /><span>{trend.label}</span></div>
+                <div className={`lagoon-locality-trend ${movement.className}`}><MovementIcon aria-hidden="true" /><span>{movement.label}</span></div>
                 <small>Atualizado: {formatDateTime(observation?.updatedAt ?? null)}</small>
-                <span className="lagoon-network-locality-card__action">Ver nível, tendência e histórico <ArrowRight aria-hidden="true" /></span>
+                <span className="lagoon-network-locality-card__action">Ver nível, movimento e histórico <ArrowRight aria-hidden="true" /></span>
               </a>
             );
           })}
@@ -215,8 +241,8 @@ export function LagoonHydrologyNetworkIndex({ network }: { network: LagoonMonito
 
 export function LagoonHydrologyLocalityPage({ locality, network, observation }: { locality: HydrologyLocality; network: LagoonMonitoringNetworkData; observation: LagoonMonitoringObservation | null }) {
   const status = statusLabel(observation);
-  const trend = trendState(observation?.trendCmPerHour ?? null);
-  const TrendIcon = trend.icon;
+  const movement = movementState(observationMovement(observation));
+  const MovementIcon = movement.icon;
   const weatherPath = hydrologyLocalityWeatherPath(locality);
   const chartPoints = (observation?.series ?? []).map((point) => ({
     timestamp: point.timestamp,
@@ -244,7 +270,7 @@ export function LagoonHydrologyLocalityPage({ locality, network, observation }: 
         {observation && observation.currentLevelCm !== null ? (
           <div className="lagoon-locality-reading__layout">
             <div className="lagoon-locality-reading__value"><strong>{formatNumber(observation.currentLevelCm)}</strong><span>cm</span><small><Clock3 aria-hidden="true" /> {formatDateTime(observation.updatedAt)}</small></div>
-            <div className={`lagoon-locality-trend lagoon-locality-reading__trend ${trend.className}`}><TrendIcon aria-hidden="true" /><strong>{trend.label}</strong><span>{distanceLabel(observation)}</span></div>
+            <div className={`lagoon-locality-trend lagoon-locality-reading__trend ${movement.className}`}><MovementIcon aria-hidden="true" /><strong>{movement.label}</strong><span>{distanceLabel(observation)}</span></div>
           </div>
         ) : (
           <div className="lagoon-locality-unavailable"><AlertTriangle aria-hidden="true" /><div><strong>Leitura temporariamente indisponível</strong><p>{observation?.error ?? network.error ?? "A rede não forneceu uma leitura válida para esta estação nesta atualização."}</p></div></div>
@@ -266,7 +292,7 @@ export function LagoonHydrologyLocalityPage({ locality, network, observation }: 
       </section>
 
       <section className="lagoon-locality-series" aria-labelledby="lagoon-locality-series-title">
-        <header><div><span className="lagoon-locality-eyebrow">Série recente</span><h2 id="lagoon-locality-series-title">Evolução das leituras disponíveis</h2></div><p>A série mostra medições recentes recebidas da mesma estação. Lacunas da fonte não são interpoladas pelo portal.</p></header>
+        <header><div><span className="lagoon-locality-eyebrow">Série recente</span><h2 id="lagoon-locality-series-title">Evolução das leituras disponíveis</h2></div><p>A série mostra medições recentes recebidas da mesma estação. Lacunas da fonte não são interpoladas pelo portal. O movimento recente exibido acima usa somente o último trecho contínuo dessa série.</p></header>
         <HydrologyLevelChart
           points={chartPoints}
           unit="cm"
