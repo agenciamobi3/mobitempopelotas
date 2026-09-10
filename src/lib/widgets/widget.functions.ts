@@ -11,6 +11,15 @@ import {
   getSupabaseServerConfig,
 } from "@/lib/supabase/server-client.server";
 import {
+  createAppearanceFromPreset,
+  normalizeWidgetAppearance,
+  widgetThemeForAppearance,
+  withWidgetAppearanceConfig,
+  WIDGET_DENSITY_KEYS,
+  WIDGET_STYLE_PRESET_KEYS,
+  type WidgetAppearance,
+} from "./widget-appearance";
+import {
   canUseWidgetType,
   getWidgetDefinition,
   isWidgetType,
@@ -27,11 +36,26 @@ const widgetTypeSchema = z
   .refine(isWidgetType, "Módulo de widget inválido")
   .transform((value) => value as WidgetType);
 const widgetThemeSchema = z.enum(["auto", "light", "dark"]);
+const widgetAppearanceSchema = z.object({
+  preset: z.enum(WIDGET_STYLE_PRESET_KEYS),
+  accentColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, "Cor de destaque inválida")
+    .transform((value) => value.toUpperCase()),
+  radius: z.number().int().min(0).max(36),
+  density: z.enum(WIDGET_DENSITY_KEYS),
+});
 
 const createWidgetSchema = z.object({
   widgetType: widgetTypeSchema,
   title: z.string().trim().min(1).max(100),
-  theme: widgetThemeSchema.default("auto"),
+  theme: widgetThemeSchema.optional(),
+  appearance: widgetAppearanceSchema.optional(),
+});
+
+const updateWidgetAppearanceSchema = z.object({
+  id: z.string().uuid(),
+  appearance: widgetAppearanceSchema,
 });
 
 const setWidgetStatusSchema = z.object({
@@ -97,6 +121,7 @@ export type ManagedWidget = {
   widgetType: WidgetType;
   title: string;
   theme: WidgetTheme;
+  appearance: WidgetAppearance;
   status: "active" | "inactive";
   version: number;
   createdAt: string;
@@ -127,6 +152,7 @@ export type PublicWidgetDefinition = {
   widgetType: WidgetType;
   title: string;
   theme: WidgetTheme;
+  appearance: WidgetAppearance;
   config: Json;
   version: number;
   updatedAt: string;
@@ -143,20 +169,36 @@ function mapTheme(value: string): WidgetTheme {
   return value === "light" || value === "dark" ? value : "auto";
 }
 
+function fallbackAppearanceFromLegacyTheme(theme: string): WidgetAppearance {
+  return createAppearanceFromPreset(theme === "light" ? "clean-light" : "tempo-dark");
+}
+
+function resolveRowAppearance(row: Pick<UserWidgetRow, "config" | "theme">): WidgetAppearance {
+  const appearance = normalizeWidgetAppearance(row.config);
+  const hasStoredAppearance =
+    Boolean(row.config) &&
+    typeof row.config === "object" &&
+    !Array.isArray(row.config) &&
+    "appearance" in row.config;
+  return hasStoredAppearance ? appearance : fallbackAppearanceFromLegacyTheme(row.theme);
+}
+
 function mapManagedWidget(row: UserWidgetRow): ManagedWidget | null {
   if (!isWidgetType(row.widget_type)) return null;
   const publicToken = row.public_token;
+  const appearance = resolveRowAppearance(row);
   return {
     id: row.id,
     publicToken,
     widgetType: row.widget_type,
     title: row.title,
     theme: mapTheme(row.theme),
+    appearance,
     status: row.status === "inactive" ? "inactive" : "active",
     version: row.version,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    embedUrl: `${SITE_ORIGIN}/embed/widget?token=${encodeURIComponent(publicToken)}`,
+    embedUrl: `${SITE_ORIGIN}/embed/widget?token=${encodeURIComponent(publicToken)}&v=${row.version}`,
     embedCode: `<script src="${EMBED_SCRIPT_URL}" data-widget="${publicToken}" async></script>`,
   };
 }
@@ -295,14 +337,17 @@ export const createUserWidget = createServerFn({ method: "POST" })
       }
     }
 
+    const appearance =
+      data.appearance ?? fallbackAppearanceFromLegacyTheme(data.theme ?? "auto");
+    const widgetConfig = withWidgetAppearanceConfig({}, appearance);
     const { data: created, error } = await widgetClient
       .from("user_widgets")
       .insert({
         user_id: user.id,
         widget_type: data.widgetType,
         title: data.title,
-        theme: data.theme,
-        config: {},
+        theme: widgetThemeForAppearance(appearance),
+        config: widgetConfig,
       })
       .select("id,user_id,public_token,widget_type,title,theme,config,status,version,created_at,updated_at")
       .single();
@@ -318,6 +363,80 @@ export const createUserWidget = createServerFn({ method: "POST" })
     }
 
     const widget = mapManagedWidget(created);
+    if (!widget) return { ok: false as const, code: "unsupported" as const };
+    return { ok: true as const, widget };
+  });
+
+export const updateUserWidgetAppearance = createServerFn({ method: "POST" })
+  .validator(updateWidgetAppearanceSchema)
+  .handler(async ({ data }) => {
+    const config = getSupabaseServerConfig();
+    if (!config.isPublicConfigured) {
+      applyPrivateHeaders(new Headers());
+      return { ok: false as const, code: "unavailable" as const };
+    }
+
+    const { client, responseHeaders } = createSupabaseRequestClient(getRequest());
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+
+    if (!user) {
+      applyPrivateHeaders(responseHeaders);
+      return { ok: false as const, code: "unauthenticated" as const };
+    }
+
+    const access = await loadAccess(client, user.id);
+    if (!access.entitlements.widgetsAccess || !access.entitlements.widgetsAdvancedThemes) {
+      applyPrivateHeaders(responseHeaders);
+      return { ok: false as const, code: "not_entitled" as const };
+    }
+
+    const widgetClient = client as unknown as SupabaseClient<WidgetDatabase>;
+    const { data: current, error: currentError } = await widgetClient
+      .from("user_widgets")
+      .select("id,user_id,public_token,widget_type,title,theme,config,status,version,created_at,updated_at")
+      .eq("id", data.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (currentError || !current || !isWidgetType(current.widget_type)) {
+      applyPrivateHeaders(responseHeaders);
+      return { ok: false as const, code: currentError ? "storage" as const : "not_found" as const };
+    }
+
+    if (!canUseWidgetType(access.entitlements, current.widget_type)) {
+      applyPrivateHeaders(responseHeaders);
+      return { ok: false as const, code: "not_entitled" as const };
+    }
+
+    const nextVersion = current.version + 1;
+    const nextConfig = withWidgetAppearanceConfig(current.config, data.appearance);
+    const { data: updated, error } = await widgetClient
+      .from("user_widgets")
+      .update({
+        config: nextConfig,
+        theme: widgetThemeForAppearance(data.appearance),
+        version: nextVersion,
+      })
+      .eq("id", data.id)
+      .eq("user_id", user.id)
+      .eq("version", current.version)
+      .select("id,user_id,public_token,widget_type,title,theme,config,status,version,created_at,updated_at")
+      .maybeSingle();
+
+    applyPrivateHeaders(responseHeaders);
+
+    if (error) {
+      console.error("[widgets] Falha ao atualizar estilo do widget", {
+        code: error.code,
+        message: error.message,
+      });
+      return { ok: false as const, code: "storage" as const };
+    }
+
+    if (!updated) return { ok: false as const, code: "conflict" as const };
+    const widget = mapManagedWidget(updated);
     if (!widget) return { ok: false as const, code: "unsupported" as const };
     return { ok: true as const, widget };
   });
@@ -392,6 +511,7 @@ export const getPublicWidgetDefinition = createServerFn({ method: "GET" })
       widgetType: row.widget_type,
       title: row.title,
       theme: mapTheme(row.theme),
+      appearance: resolveRowAppearance({ config: row.config, theme: row.theme }),
       config: row.config,
       version: row.version,
       updatedAt: row.updated_at,
