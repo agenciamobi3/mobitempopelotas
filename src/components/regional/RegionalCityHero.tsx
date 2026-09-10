@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, CloudRain } from "lucide-react";
+import { ArrowLeft, ArrowRight, CloudRain, TriangleAlert } from "lucide-react";
 
 import { WeatherSplitHero, type WeatherSplitHeroTone } from "@/components/weather/WeatherSplitHero";
 import { selectPriorityRegionalAlert } from "@/lib/weather/regional-alert-priority";
@@ -35,12 +35,6 @@ function windMetric(value: number | null) {
 function maximum(values: Array<number | null>) {
   const usable = values.filter((value): value is number => value !== null && Number.isFinite(value));
   return usable.length > 0 ? Math.max(...usable) : null;
-}
-
-function sentenceCondition(value: string) {
-  const normalized = value.trim();
-  if (!normalized) return "condição em atualização";
-  return normalized.charAt(0).toLocaleLowerCase("pt-BR") + normalized.slice(1);
 }
 
 function heroTone(data: RegionalCityWeatherData): WeatherSplitHeroTone {
@@ -80,18 +74,18 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
 
   const currentCopy = current
     ? current.temperature === null
-      ? `Agora em ${city.name}, ${sentenceCondition(condition)}.`
-      : `Agora em ${city.name}, ${sentenceCondition(condition)}, com ${metric(current.temperature, "°")}.`
-    : `A condição atual de ${city.name} está sendo atualizada.`;
+      ? `${condition} agora em ${city.name}.`
+      : `${condition}, ${metric(current.temperature, "°")} agora.`
+    : `Condição atual de ${city.name} em atualização.`;
   const rangeCopy = today
-    ? `Hoje, a previsão vai de ${metric(today.minimum, "°")} a ${metric(today.maximum, "°")}.`
+    ? `Hoje varia de ${metric(today.minimum, "°")} a ${metric(today.maximum, "°")}.`
     : "A faixa de temperatura de hoje ainda está sendo atualizada.";
   const rainCopy =
     highestRainChance === null
-      ? "A chance de chuva nas próximas horas ainda está sendo atualizada."
+      ? "Chance de chuva em atualização."
       : highestRainChance <= 0
-        ? "Não há destaque de chuva nas próximas 24 horas."
-        : `A maior chance de chuva nas próximas 24 horas chega a ${metric(highestRainChance, "%")}${
+        ? "Sem destaque de chuva nas próximas 24 horas."
+        : `Maior chance de chuva: ${metric(highestRainChance, "%")}${
             peakRain ? ` por volta de ${formatRegionalHour(peakRain.time)}` : ""
           }.`;
   const description = `${currentCopy} ${rangeCopy} ${rainCopy}`;
@@ -114,15 +108,15 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
 
   const primaryAction = hasHourlyForecast ? (
     <a href="#previsao-hoje">
-      Próximas horas <ArrowRight aria-hidden="true" />
+      Ver próximas horas <ArrowRight aria-hidden="true" />
     </a>
   ) : hasDailyTrend ? (
     <a href="#tendencia">
-      Próximos dias <ArrowRight aria-hidden="true" />
+      Ver próximos dias <ArrowRight aria-hidden="true" />
     </a>
   ) : (
     <Link to="/tempo-na-regiao-sul-rs">
-      Central regional <ArrowRight aria-hidden="true" />
+      Ver região <ArrowRight aria-hidden="true" />
     </Link>
   );
 
@@ -135,47 +129,53 @@ export function RegionalCityHero({ data }: { data: RegionalCityWeatherData }) {
           <ArrowLeft aria-hidden="true" /> Tempo na Região Sul
         </Link>
       }
-      eyebrow={`Agora e próximos dias · ${city.group}`}
-      title={`Tempo em ${city.name}`}
+      eyebrow={`Previsão local · ${city.group}`}
+      title={`Tempo agora em ${city.name}`}
       description={description}
       actions={
         <>
           {primaryAction}
-          <a href="#avisos-municipais">Avisos oficiais</a>
+          <a href="#avisos-municipais">
+            {priorityAlert ? "Ver aviso oficial" : "Avisos oficiais"}
+          </a>
         </>
       }
       tone={heroTone(data)}
-      badgeIcon={<WeatherIcon name={currentIcon} title={`Condição estimada: ${condition}`} />}
-      badgeLabel={priorityAlert ? `Aviso oficial para ${city.name}` : condition}
-      updatedLabel={formatRegionalDateTime(data.source.fetchedAt)}
-      currentLabel={current ? `Agora em ${city.name}` : "Condição atual"}
+      badgeIcon={
+        priorityAlert ? (
+          <TriangleAlert aria-hidden="true" />
+        ) : (
+          <WeatherIcon name={currentIcon} title={`Condição estimada: ${condition}`} />
+        )
+      }
+      badgeLabel={priorityAlert ? `INMET · aviso para ${city.name}` : condition}
+      updatedLabel={`Atualizado ${formatRegionalDateTime(data.source.fetchedAt)}`}
+      currentLabel="Agora"
       currentValue={metric(current?.temperature ?? null, "°")}
       currentDetail={currentDetail}
       highlightIcon={<CloudRain aria-hidden="true" />}
-      highlightLabel="Chuva nas próximas 24 horas"
+      highlightLabel="Maior chance de chuva · 24h"
       highlightValue={metric(highestRainChance, "%")}
       highlightDetail={peakRainDetail}
       facts={[
         {
-          label: "Sensação térmica",
-          value: metric(current?.feelsLike ?? null, "°"),
+          label: "Mínima hoje",
+          value: metric(today?.minimum ?? null, "°"),
         },
         {
-          label: "Mínima / máxima hoje",
-          value: today
-            ? `${metric(today.minimum, "°")} / ${metric(today.maximum, "°")}`
-            : "Não informada",
+          label: "Máxima hoje",
+          value: metric(today?.maximum ?? null, "°"),
         },
         {
           label: "Vento agora",
           value: windMetric(current?.windSpeed ?? null),
         },
         {
-          label: "Rajada mais forte",
+          label: "Maior rajada · 24h",
           value: gustMetric(strongestGust),
         },
       ]}
-      footer="Previsão para as coordenadas centrais do município. Em situação de risco, siga os avisos oficiais."
+      footer="Previsão para o centro do município. Em situação de risco, siga INMET e Defesa Civil."
     />
   );
 }
