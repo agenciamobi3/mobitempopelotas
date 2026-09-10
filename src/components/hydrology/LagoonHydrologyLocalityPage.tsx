@@ -27,6 +27,7 @@ import type {
 } from "@/lib/hydrology/lagoon-network.server";
 
 import { HydrologyLevelChart } from "./HydrologyLevelChart";
+import { LagoonNetworkLevelExplorer } from "./LagoonNetworkLevelExplorer";
 import "./LagoonHydrologyLocalityPage.css";
 
 function formatNumber(value: number | null, maximumFractionDigits = 1) {
@@ -142,6 +143,8 @@ export function LagoonHydrologyNetworkIndex({ network }: { network: LagoonMonito
           </div>
         </div>
       </section>
+
+      <LagoonNetworkLevelExplorer network={network} />
 
       <section className="lagoon-network-localities" aria-labelledby="lagoon-network-localities-title">
         <header>
