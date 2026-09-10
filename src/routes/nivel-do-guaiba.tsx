@@ -8,9 +8,9 @@ import { loadGuaibaPageData } from "@/lib/hydrology/public-hydrology-page-loader
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
 
-const PAGE_TITLE = "Nível do Guaíba hoje: Cais Mauá, Gasômetro e tendência";
+const PAGE_TITLE = "Nível do Guaíba hoje: Cais Mauá, Gasômetro e movimento recente";
 const PAGE_DESCRIPTION =
-  "Veja o nível do Guaíba hoje, horário da última leitura, tendência, variação em 24 horas e as referências próprias do Cais Mauá e da Usina do Gasômetro.";
+  "Veja o nível do Guaíba hoje, horário da última leitura, movimento recente, variação em 24 horas e as referências próprias do Cais Mauá e da Usina do Gasômetro.";
 const PAGE_PATH = "/nivel-do-guaiba";
 
 const GUAIBA_PAGE_CONTENT = {
@@ -22,7 +22,7 @@ const GUAIBA_PAGE_CONTENT = {
     "O Guaíba é acompanhado aqui como parte do sistema hidrológico que se conecta à Lagoa dos Patos e ajuda a contextualizar a situação regional de Pelotas.",
     "A leitura preferencial usa a série pública do Cais Mauá quando está utilizável; a Usina do Gasômetro permanece como referência independente e contingência conforme o contrato atual.",
     "A página preserva o horário da leitura e avisa quando o dado está atrasado ou indisponível.",
-    "Tendência em centímetros por hora e variação em 24 horas são calculadas a partir da série da própria estação selecionada.",
+    "O movimento recente é derivado pelo Tempo Pelotas somente do último trecho contínuo da série da estação selecionada; a variação em 24 horas permanece uma janela separada e explicitamente identificada.",
     "A cota de referência mostrada pertence à respectiva régua. Ela não deve ser aplicada ao Laranjal, a outra estação da Lagoa dos Patos ou a outro ponto de Porto Alegre.",
     "Um nível isolado do Guaíba não confirma risco de enchente em Pelotas. Para decisões de segurança, devem prevalecer comunicados da Defesa Civil e das autoridades competentes.",
   ],
@@ -30,7 +30,7 @@ const GUAIBA_PAGE_CONTENT = {
     {
       question: "Qual é o nível do Guaíba hoje?",
       answer:
-        "A leitura mais recente disponível aparece no topo desta página, junto com o horário, o estado de atualização, a tendência e a variação nas últimas 24 horas. A estação usada também é identificada explicitamente.",
+        "A leitura mais recente disponível aparece no topo desta página, junto com o horário, o estado de atualização, o movimento recente e a variação nas últimas 24 horas. A estação usada também é identificada explicitamente.",
     },
     {
       question: "Cais Mauá e Gasômetro têm a mesma cota de referência?",
@@ -45,7 +45,7 @@ const GUAIBA_PAGE_CONTENT = {
     {
       question: "O que significa o nível estar subindo ou baixando?",
       answer:
-        "A tendência compara pontos recentes da mesma série e estima a variação por hora. Ela descreve a direção recente da régua selecionada e pode mudar conforme novas leituras entram.",
+        "É uma leitura matemática do movimento recente calculada a partir do último trecho contínuo da mesma série. Ela descreve a direção recente da régua selecionada e pode mudar quando novas medições chegam; não é uma tendência oficial publicada pela fonte.",
     },
     {
       question: "Uma leitura atrasada ainda aparece?",
@@ -99,7 +99,7 @@ export const Route = createFileRoute("/nivel-do-guaiba")({
           "Nível do Guaíba em Porto Alegre",
           "Cais Mauá",
           "Usina do Gasômetro",
-          "Tendência do nível do Guaíba",
+          "Movimento recente do nível do Guaíba",
           "Variação do nível do Guaíba em 24 horas",
           "Sistema Guaíba e Lagoa dos Patos",
           "Cheias históricas de 1941 e 2024 em Pelotas",
