@@ -16,7 +16,7 @@ import { createEditorialPageJsonLd } from "@/lib/structured-data";
 
 const PAGE_TITLE = "Nível da Lagoa dos Patos hoje no Laranjal, Pelotas";
 const PAGE_DESCRIPTION =
-  "Veja o nível da Lagoa dos Patos hoje em Pelotas com fonte identificada, horário da última leitura, tendência e variação nas últimas 24 horas.";
+  "Veja o nível da Lagoa dos Patos hoje em Pelotas com fonte identificada, horário da última leitura, movimento recente e variação nas últimas 24 horas.";
 const PAGE_PATH = "/nivel-da-lagoa-dos-patos-laranjal";
 
 export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos-laranjal")({
           "Rede Hidrometeorológica Nacional",
           "Agência Nacional de Águas e Saneamento Básico",
           "Medição automática do nível em Pelotas",
-          "Tendência do nível da água no Laranjal",
+          "Movimento recente do nível da água no Laranjal",
           "Contexto regional do Guaíba e Lagoa dos Patos",
           "Histórico das cheias de 1941 e 2024 em Pelotas",
         ],
