@@ -62,8 +62,8 @@ export function AccountDashboard({
       title: "Histórico",
       description:
         historyLimit === null
-          ? "Acesso ao acervo histórico completo liberado para esta conta."
-          : `Sua camada Free está preparada para históricos de até ${historyLimit} dias nos recursos definidos para o painel.`,
+          ? "O entitlement desta conta prevê acesso ao acervo completo quando o módulo histórico pessoal estiver disponível."
+          : `Sua camada prevê históricos de até ${historyLimit} dias nos recursos que forem liberados no painel.`,
       state: "preparing",
     },
     {
@@ -109,7 +109,7 @@ export function AccountDashboard({
               </span>
             </div>
             <p>
-              Organize o que você acompanha no Tempo Pelotas. Sua conta Free já reúne favoritos,
+              Organize o que você acompanha no Tempo Pelotas. Sua conta reúne favoritos,
               preferências e widgets sem retirar do portal nenhuma informação que já é pública.
             </p>
           </div>
@@ -140,9 +140,9 @@ export function AccountDashboard({
             <span>Atalhos pessoais salvos somente na sua conta</span>
           </div>
           <div>
-            <small>Histórico no painel Free</small>
+            <small>Histórico pessoal</small>
             <strong>{historyLimit === null ? "Completo" : `Até ${historyLimit} dias`}</strong>
-            <span>Será aplicado apenas aos recursos definidos para esta camada</span>
+            <span>Limite previsto para o módulo histórico ainda em preparação</span>
           </div>
           <div>
             <small>Portal público</small>
