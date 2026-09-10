@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import "./widget-builder-content.test.ts";
 import { resolveAccountAccess } from "../src/lib/auth/account-access.ts";
 import {
   createAppearanceFromPreset,
@@ -111,10 +112,9 @@ test("tokens do renderer derivam apenas da aparência normalizada", () => {
 test("builder permite escolher preset e refinar cor, cantos e densidade", () => {
   assert.match(builder, /WidgetAppearanceControls/);
   assert.match(builder, /createAppearanceFromPreset\("tempo-dark"\)/);
-  assert.match(builder, /appearance \} : \{\}\)/);
+  assert.match(builder, /canCustomizeAppearance \? \{ appearance, content \} : \{\}/);
   assert.match(builder, /updateUserWidgetAppearance/);
-  assert.match(builder, /Personalizar estilo/);
-  assert.match(builder, /key=\{`\$\{widget\.id\}-\$\{widget\.version\}`\}/);
+  assert.match(builder, /Personalizar widget/);
   assert.match(controls, /WIDGET_STYLE_PRESETS\.map/);
   assert.match(controls, /type="radio"/);
   assert.match(controls, /type="color"/);
@@ -134,7 +134,7 @@ test("servidor valida, persiste e versiona personalização por owner", () => {
   assert.match(functions, /widgetAppearanceSchema/);
   assert.match(functions, /regex\(\/\^#\[0-9A-F\]\{6\}\$\/i/);
   assert.match(functions, /radius: z\.number\(\)\.int\(\)\.min\(0\)\.max\(36\)/);
-  assert.match(functions, /data\.appearance && !access\.entitlements\.widgetsAdvancedThemes/);
+  assert.match(functions, /\(data\.appearance \|\| data\.content\) && !access\.entitlements\.widgetsAdvancedThemes/);
   assert.match(functions, /updateUserWidgetAppearance/);
   assert.match(functions, /widgetsAdvancedThemes/);
   assert.match(functions, /withWidgetAppearanceConfig\(current\.config, data\.appearance\)/);
@@ -152,7 +152,7 @@ test("renderer aplica preset dentro do iframe sem contaminar o site hospedeiro",
   assert.match(renderer, /data-widget-preset=\{appearance\.preset\}/);
   assert.match(renderer, /data-widget-scheme=\{preset\.scheme\}/);
   assert.match(renderer, /data-widget-density=\{appearance\.density\}/);
-  assert.match(renderer, /loaderDeps: \(\{ search \}\) => \(\{ token: search\.token, v: search\.v \}\)/);
+  assert.match(renderer, /loaderDeps: \(\{ search \}\) => \(\{ \.\.\.search \}\)/);
   assert.match(rendererCss, /--tp-widget-background/);
   assert.match(rendererCss, /--tp-widget-accent/);
   assert.match(rendererCss, /data-widget-preset="soft-glass"/);
