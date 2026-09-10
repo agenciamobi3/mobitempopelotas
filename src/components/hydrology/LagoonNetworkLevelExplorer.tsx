@@ -64,6 +64,19 @@ function statusLabel(observation: LagoonMonitoringObservation | null) {
   return "Atualizada";
 }
 
+function currentLevelLabel(observation: LagoonMonitoringObservation | null) {
+  return observation?.currentLevelCm === null || observation?.currentLevelCm === undefined
+    ? "—"
+    : `${formatNumber(observation.currentLevelCm)} cm`;
+}
+
+function selectorReadingLabel(observation: LagoonMonitoringObservation | null) {
+  if (observation?.currentLevelCm === null || observation?.currentLevelCm === undefined) {
+    return "Sem leitura";
+  }
+  return `${formatNumber(observation.currentLevelCm)} cm · ${statusLabel(observation)}`;
+}
+
 function chartReferences(observation: LagoonMonitoringObservation | null) {
   if (!observation) return [];
 
@@ -107,7 +120,11 @@ export function LagoonNetworkLevelExplorer({ network }: { network: LagoonMonitor
   }));
   const initialStationId =
     stations.find((item) => (item.observation?.series.length ?? 0) >= 2)?.locality.stationId ??
-    stations.find((item) => item.observation?.currentLevelCm !== null)?.locality.stationId ??
+    stations.find(
+      (item) =>
+        item.observation?.currentLevelCm !== null &&
+        item.observation?.currentLevelCm !== undefined,
+    )?.locality.stationId ??
     stations[0]?.locality.stationId ??
     "";
   const [selectedStationId, setSelectedStationId] = useState(initialStationId);
@@ -153,11 +170,7 @@ export function LagoonNetworkLevelExplorer({ network }: { network: LagoonMonitor
             >
               <span>{itemLocality.cityLabel}</span>
               <strong>{itemLocality.name}</strong>
-              <small>
-                {itemObservation?.currentLevelCm === null || itemObservation?.currentLevelCm === undefined
-                  ? "Sem leitura"
-                  : `${formatNumber(itemObservation.currentLevelCm)} cm · ${statusLabel(itemObservation)}`}
-              </small>
+              <small>{selectorReadingLabel(itemObservation)}</small>
             </button>
           );
         })}
@@ -175,11 +188,7 @@ export function LagoonNetworkLevelExplorer({ network }: { network: LagoonMonitor
               <Waves aria-hidden="true" />
               <span>
                 <small>{statusLabel(observation)}</small>
-                <strong>
-                  {observation?.currentLevelCm === null || observation?.currentLevelCm === undefined
-                    ? "—"
-                    : `${formatNumber(observation.currentLevelCm)} cm`}
-                </strong>
+                <strong>{currentLevelLabel(observation)}</strong>
               </span>
             </div>
             <div className={`lagoon-network-level-explorer__trend ${trend.className}`}>
