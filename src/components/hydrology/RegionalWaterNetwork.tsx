@@ -14,6 +14,10 @@ import {
   findHydrologyLocalityByStationId,
   hydrologyLocalityPath,
 } from "@/lib/hydrology/hydrology-localities";
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { GuaibaObservationData } from "@/lib/hydrology/guaiba.server";
 import type {
   LagoonMonitoringNetworkData,
@@ -53,28 +57,35 @@ function formatDateTime(value: string | null) {
   }).format(date);
 }
 
-function trendState(value: number | null) {
-  if (value === null) {
-    return { label: "Sem tendência", className: "is-unknown", icon: Minus };
+function movementState(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", className: "is-unknown", icon: Minus };
   }
 
-  if (Math.abs(value) < 0.1) {
-    return { label: "Estável", className: "is-stable", icon: Minus };
+  if (movement.direction === "stable") {
+    return { label: "Praticamente estável", className: "is-stable", icon: Minus };
   }
 
-  if (value > 0) {
+  if (movement.direction === "rising") {
     return {
-      label: `Subindo ${formatNumber(value)} cm/h`,
+      label: `Subindo ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
       className: "is-rising",
       icon: ArrowUp,
     };
   }
 
   return {
-    label: `Baixando ${formatNumber(Math.abs(value))} cm/h`,
+    label: `Baixando ${formatNumber(Math.abs(movement.rateCmPerHour))} cm/h`,
     className: "is-falling",
     icon: ArrowDown,
   };
+}
+
+function stationMovement(observation: LagoonMonitoringObservation) {
+  return deriveRecentHydrologySeriesMovement(
+    observation.series.map((point) => ({ timestamp: point.timestamp, level: point.levelCm })),
+    "cm",
+  );
 }
 
 function stationStatus(observation: LagoonMonitoringObservation) {
@@ -110,8 +121,8 @@ function distanceLabel(observation: LagoonMonitoringObservation) {
 
 function GuaibaPanel({ data, full }: { data: GuaibaObservationData; full: boolean }) {
   const available = data.status !== "unavailable" && data.currentLevel !== null;
-  const trend = trendState(data.trendCmPerHour);
-  const TrendIcon = trend.icon;
+  const movement = movementState(deriveRecentHydrologySeriesMovement(data.series, "m"));
+  const TrendIcon = movement.icon;
 
   return (
     <article className={`regional-water-guaiba is-${data.status}`}>
@@ -140,9 +151,9 @@ function GuaibaPanel({ data, full }: { data: GuaibaObservationData; full: boolea
               <strong>{formatNumber(data.currentLevel, 2)}</strong>
               <span>m</span>
             </div>
-            <div className={`regional-water-trend ${trend.className}`}>
+            <div className={`regional-water-trend ${movement.className}`}>
               <TrendIcon aria-hidden="true" />
-              <span>{trend.label}</span>
+              <span>{movement.label}</span>
             </div>
           </div>
 
@@ -253,8 +264,8 @@ export function RegionalWaterNetwork({
               {lagoon.observations.map((observation) => {
                 const available = observation.currentLevelCm !== null;
                 const status = stationStatus(observation);
-                const trend = trendState(observation.trendCmPerHour);
-                const TrendIcon = trend.icon;
+                const movement = movementState(stationMovement(observation));
+                const TrendIcon = movement.icon;
                 const progress =
                   observation.floodThresholdPercentage === null
                     ? null
@@ -277,9 +288,9 @@ export function RegionalWaterNetwork({
                           <strong>{formatNumber(observation.currentLevelCm)}</strong>
                           <span>cm</span>
                         </div>
-                        <div className={`regional-water-trend ${trend.className}`}>
+                        <div className={`regional-water-trend ${movement.className}`}>
                           <TrendIcon aria-hidden="true" />
-                          <span>{trend.label}</span>
+                          <span>{movement.label}</span>
                         </div>
                         <p>{distanceLabel(observation)}</p>
                         {progress !== null ? (
@@ -344,7 +355,7 @@ export function RegionalWaterNetwork({
                   <a
                     className={cardClassName}
                     href={localPath}
-                    aria-label={`Ver nível, tendência e histórico da água em ${locality!.name}`}
+                    aria-label={`Ver nível, movimento e histórico da água em ${locality!.name}`}
                     key={observation.station.id}
                     style={{ color: "inherit", textDecoration: "none" }}
                   >
