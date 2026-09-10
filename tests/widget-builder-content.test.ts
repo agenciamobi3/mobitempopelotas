@@ -71,9 +71,18 @@ test("builder oferece blocos, formatos e prévia real antes de criar", () => {
   assert.match(builder, /Dados atuais do Tempo Pelotas/);
   assert.match(builder, /message\.source !== "tempo-pelotas-widget"/);
   assert.match(builder, /event\.source !== frameRef\.current\?\.contentWindow/);
+  assert.match(builder, /message\.token !== resizeToken/);
+  assert.match(builder, /resizeToken="preview"/);
   assert.match(builder, /content\.visibleBlocks\.join\(","\)/);
   assert.match(builder, /appearance, content/);
   assert.doesNotMatch(builder, /iframe[\s\S]*srcDoc=/);
+});
+
+test("prévia de widgets salvos também cresce conforme o conteúdo real", () => {
+  assert.match(builder, /function ResponsiveWidgetFrame/);
+  assert.match(builder, /resizeToken=\{widget\.publicToken\}/);
+  assert.match(builder, /initialHeight=\{previewInitialHeight\(widget\.content\.presentation\)\}/);
+  assert.match(builder, /Math\.max\(180, Math\.min\(900/);
 });
 
 test("controle impede desligar o último bloco e permite restaurar padrão", () => {
@@ -82,6 +91,7 @@ test("controle impede desligar o último bloco e permite restaurar padrão", () 
   assert.match(controls, /Mostrar padrão/);
   assert.match(controls, /createDefaultWidgetContent/);
   assert.match(controlCss, /focus-visible/);
+  assert.match(controlCss, /padding: 0/);
   assert.match(controlCss, /forced-colors: active/);
 });
 
