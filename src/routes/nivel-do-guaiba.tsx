@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { GuaibaLevelPage } from "@/components/hydrology/GuaibaLevelPage";
-import { ContentPageShell } from "@/components/layout/ContentPageShell";
+import "@/components/hydrology/GuaibaLevelVisualRefresh.css";
+import "@/components/hydrology/HydrologyEditorialRoute.css";
 import { loadGuaibaPageData } from "@/lib/hydrology/public-hydrology-page-loader";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd, createFaqPageJsonLd } from "@/lib/structured-data";
@@ -115,9 +116,9 @@ function NivelGuaibaPage() {
   const { guaiba } = Route.useLoaderData();
 
   return (
-    <ContentPageShell pageClassName="content-shell--guaiba">
+    <div className="hydrology-editorial-route hydrology-editorial-route--guaiba">
       <GuaibaLevelPage data={guaiba} />
       <EditorialContentSection id="como-interpretar-nivel-guaiba" content={GUAIBA_PAGE_CONTENT} />
-    </ContentPageShell>
+    </div>
   );
 }
