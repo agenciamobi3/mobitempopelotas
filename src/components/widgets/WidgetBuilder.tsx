@@ -39,6 +39,10 @@ function presentationLabel(presentation: WidgetPresentation) {
   return "Cartão";
 }
 
+function previewInitialHeight(presentation: WidgetPresentation) {
+  return presentation === "compact" ? 380 : presentation === "horizontal" ? 460 : 520;
+}
+
 function buildLivePreviewUrl(
   widgetType: WidgetType,
   appearance: WidgetAppearance,
@@ -56,21 +60,25 @@ function buildLivePreviewUrl(
   return `/embed/widget?${params.toString()}`;
 }
 
-function WidgetLivePreview({
+function ResponsiveWidgetFrame({
   src,
   title,
-  presentation,
+  resizeToken,
+  initialHeight,
+  loading = "lazy",
 }: {
   src: string;
   title: string;
-  presentation: WidgetPresentation;
+  resizeToken: string;
+  initialHeight: number;
+  loading?: "eager" | "lazy";
 }) {
   const frameRef = useRef<HTMLIFrameElement>(null);
-  const [height, setHeight] = useState(presentation === "compact" ? 420 : 520);
+  const [height, setHeight] = useState(initialHeight);
 
   useEffect(() => {
-    setHeight(presentation === "compact" ? 420 : 520);
-  }, [presentation, src]);
+    setHeight(initialHeight);
+  }, [initialHeight, src]);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -79,7 +87,7 @@ function WidgetLivePreview({
       const message = event.data as { source?: string; token?: string; type?: string; height?: number };
       if (
         message.source !== "tempo-pelotas-widget" ||
-        message.token !== "preview" ||
+        message.token !== resizeToken ||
         message.type !== "resize" ||
         typeof message.height !== "number"
       ) {
@@ -90,8 +98,29 @@ function WidgetLivePreview({
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [resizeToken]);
 
+  return (
+    <iframe
+      ref={frameRef}
+      src={src}
+      title={title}
+      height={height}
+      loading={loading}
+      scrolling="no"
+    />
+  );
+}
+
+function WidgetLivePreview({
+  src,
+  title,
+  presentation,
+}: {
+  src: string;
+  title: string;
+  presentation: WidgetPresentation;
+}) {
   return (
     <div className={`widget-builder-live-preview is-${presentation}`}>
       <div className="widget-builder-live-preview__heading">
@@ -101,14 +130,12 @@ function WidgetLivePreview({
         </div>
         <small>{presentationLabel(presentation)}</small>
       </div>
-      <iframe
-        ref={frameRef}
-        key={src}
+      <ResponsiveWidgetFrame
         src={src}
         title={title}
-        height={height}
+        resizeToken="preview"
+        initialHeight={previewInitialHeight(presentation)}
         loading="eager"
-        scrolling="no"
       />
       <p>
         Esta prévia usa o mesmo renderer do código incorporado. Alterações visuais não modificam
@@ -480,12 +507,12 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
 
                   {widget.status === "active" ? (
                     <div className="widget-builder-preview">
-                      <iframe
+                      <ResponsiveWidgetFrame
                         key={`${widget.id}-${widget.version}`}
                         src={widget.embedUrl}
                         title={`Prévia: ${widget.title}`}
-                        loading="lazy"
-                        scrolling="no"
+                        resizeToken={widget.publicToken}
+                        initialHeight={previewInitialHeight(widget.content.presentation)}
                       />
                     </div>
                   ) : null}
