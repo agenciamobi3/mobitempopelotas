@@ -85,8 +85,9 @@ test("Laranjal level embed uses a rich time-aware compact chart", () => {
   assert.match(embedComponent, /new Map<number, NormalizedSeriesPoint>/);
   assert.match(embedComponent, /new Date\(point\.timestamp\)\.getTime\(\)/);
   assert.match(embedComponent, /const xForEpoch = \(epoch: number\) =>/);
-  assert.match(embedComponent, /function splitCoordinatesOnGaps/);
+  assert.match(embedComponent, /function splitOnGaps/);
   assert.match(embedComponent, /GAP_MULTIPLIER = 2\.5/);
+  assert.match(embedComponent, /Math\.max\(typicalInterval \* GAP_MULTIPLIER, 60 \* 60 \* 1_000\)/);
   assert.match(embedComponent, /styles\.chartSummary/);
   assert.match(embedComponent, /Variação/);
   assert.match(embedComponent, /Mínimo/);
@@ -110,6 +111,23 @@ test("Laranjal level embed uses a rich time-aware compact chart", () => {
   assert.match(embedStyles, /@media \(max-width: 520px\)/);
   assert.match(embedStyles, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(embedStyles, /@media \(forced-colors: active\)/);
+});
+
+test("Laranjal embed shares recent movement semantics with the hydrology chart", () => {
+  assert.match(embedComponent, /deriveRecentHydrologyMovement/);
+  assert.match(embedComponent, /type HydrologyRecentMovement/);
+  assert.match(embedComponent, /function movementFromSeries/);
+  assert.match(
+    embedComponent,
+    /const latestSegment = splitOnGaps\(normalized, gapThreshold\(normalized\)\)\.at\(-1\) \?\? \[\]/,
+  );
+  assert.match(embedComponent, /deriveRecentHydrologyMovement\(latestSegment, "m"\)/);
+  assert.match(embedComponent, /function movementPresentation/);
+  assert.match(embedComponent, /Praticamente estável/);
+  assert.match(embedComponent, /const movement = movementFromSeries\(data\.series\)/);
+  assert.doesNotMatch(embedComponent, /trendPresentation/);
+  assert.doesNotMatch(embedComponent, /trendPresentation\(data\.trendCmPerHour\)/);
+  assert.doesNotMatch(embedComponent, /value > 0\.25|value < -0\.25/);
 });
 
 test("histórico do Laranjal não repete a nota técnica removida da página", () => {
