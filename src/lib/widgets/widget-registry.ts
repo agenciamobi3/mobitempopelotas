@@ -23,7 +23,7 @@ export const WIDGET_REGISTRY: readonly WidgetDefinition[] = [
   {
     type: "nivel-laranjal",
     label: "Nível do Laranjal",
-    description: "Nível atual, tendência e variações recentes da Lagoa dos Patos no Laranjal.",
+    description: "Nível atual, movimento recente e variações da Lagoa dos Patos no Laranjal.",
     category: "Hidrologia",
     requiredEntitlement: "widgetsLaranjal",
     defaultTitle: "Nível da Lagoa dos Patos — Laranjal",
