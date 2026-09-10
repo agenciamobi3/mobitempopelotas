@@ -22,6 +22,10 @@ import {
 
 import type { GuaibaObservationData } from "@/lib/hydrology/guaiba.server";
 import type { LagoonMonitoringNetworkData } from "@/lib/hydrology/lagoon-network.server";
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
@@ -109,11 +113,14 @@ function formatSigned(value: number | null, suffix: string) {
   return `${prefix}${value}${suffix}`;
 }
 
-function trendText(value: number | null) {
-  if (value === null) return "Tendência não informada";
-  if (value > 0.25) return "Subindo";
-  if (value < -0.25) return "Baixando";
-  return "Pouca mudança";
+function movementState(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", rate: "—", icon: Activity };
+  }
+  const rate = `${Math.abs(movement.rateCmPerHour).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} cm/h`;
+  if (movement.direction === "rising") return { label: "Subindo", rate, icon: TrendingUp };
+  if (movement.direction === "falling") return { label: "Baixando", rate, icon: TrendingDown };
+  return { label: "Praticamente estável", rate, icon: Activity };
 }
 
 function SourceStatus({ level }: { level: LaranjalLevelData }) {
@@ -157,12 +164,8 @@ function LevelReading({ level }: { level: LaranjalLevelData }) {
     (alternative
       ? "Referencial vertical brasileiro — Marégrafo de Imbituba/SC"
       : "Referência própria da Estação Laranjal");
-  const TrendIcon =
-    level.trendCmPerHour !== null && level.trendCmPerHour > 0.25
-      ? TrendingUp
-      : level.trendCmPerHour !== null && level.trendCmPerHour < -0.25
-        ? TrendingDown
-        : Activity;
+  const movement = movementState(deriveRecentHydrologySeriesMovement(level.series, "m"));
+  const TrendIcon = movement.icon;
 
   return (
     <section className="hydrology-level-card" aria-labelledby="hydrology-level-title">
@@ -197,8 +200,8 @@ function LevelReading({ level }: { level: LaranjalLevelData }) {
         <div className="hydrology-trend">
           <TrendIcon aria-hidden="true" />
           <div>
-            <span>{trendText(level.trendCmPerHour)}</span>
-            <strong>{formatSigned(level.trendCmPerHour, " cm/h")}</strong>
+            <span>{movement.label}</span>
+            <strong>{movement.rate}</strong>
           </div>
         </div>
       </div>
@@ -419,7 +422,7 @@ export function HydrologyOverviewPage({
         <div>
           <h2>Antes de tomar qualquer decisão</h2>
           <p>
-            Não use uma única medição como garantia de segurança. Confira o horário, a mudança recente,
+            Não use uma única medição como garantia de segurança. Confira o horário, o movimento recente,
             os alertas oficiais e as orientações da Defesa Civil e das autoridades locais.
           </p>
         </div>
