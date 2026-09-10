@@ -25,6 +25,7 @@ import type { LagoonMonitoringNetworkData } from "@/lib/hydrology/lagoon-network
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
+import { HydrologyLevelChart } from "./HydrologyLevelChart";
 import { RegionalWaterNetwork } from "./RegionalWaterNetwork";
 import "./HydrologyPages.css";
 
@@ -115,74 +116,6 @@ function trendText(value: number | null) {
   return "Pouca mudança";
 }
 
-function Sparkline({ data }: { data: LaranjalLevelData }) {
-  if (data.series.length < 2) {
-    return (
-      <div className="hydrology-chart-empty">
-        <Activity aria-hidden="true" />
-        <span>Não há medições suficientes para mostrar o histórico recente</span>
-      </div>
-    );
-  }
-
-  const width = 900;
-  const height = 260;
-  const paddingX = 18;
-  const paddingY = 24;
-  const values = data.series.map((point) => point.level);
-  const minimum = Math.min(...values);
-  const maximum = Math.max(...values);
-  const range = Math.max(0.02, maximum - minimum);
-  const plotWidth = width - paddingX * 2;
-  const plotHeight = height - paddingY * 2;
-  const coordinates = data.series.map((point, index) => {
-    const x = paddingX + (index / (data.series.length - 1)) * plotWidth;
-    const y = paddingY + ((maximum - point.level) / range) * plotHeight;
-    return { x, y };
-  });
-  const points = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
-  const area = [
-    `M ${coordinates[0]?.x ?? paddingX} ${height - paddingY}`,
-    ...coordinates.map((point) => `L ${point.x} ${point.y}`),
-    `L ${coordinates.at(-1)?.x ?? width - paddingX} ${height - paddingY}`,
-    "Z",
-  ].join(" ");
-
-  return (
-    <div className="hydrology-chart">
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label={
-          data.status === "stale"
-            ? "Variação do nível nas 24 horas anteriores à última leitura"
-            : "Variação do nível nas últimas 24 horas"
-        }
-      >
-        <defs>
-          <linearGradient id="hydrology-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0.02" />
-          </linearGradient>
-        </defs>
-        <line x1={paddingX} y1={paddingY} x2={width - paddingX} y2={paddingY} />
-        <line x1={paddingX} y1={height / 2} x2={width - paddingX} y2={height / 2} />
-        <line x1={paddingX} y1={height - paddingY} x2={width - paddingX} y2={height - paddingY} />
-        <path d={area} fill="url(#hydrology-area)" stroke="none" />
-        <polyline points={points} fill="none" stroke="currentColor" strokeWidth="4" />
-        <circle cx={coordinates.at(-1)?.x} cy={coordinates.at(-1)?.y} r="7" fill="currentColor" />
-      </svg>
-      <div className="hydrology-chart-labels">
-        <span>{data.status === "stale" ? "24 h antes da leitura" : "Há 24 horas"}</span>
-        <strong>
-          {minimum.toFixed(2)} m a {maximum.toFixed(2)} m
-        </strong>
-        <span>{data.status === "stale" ? "Última leitura" : "Leitura mais recente"}</span>
-      </div>
-    </div>
-  );
-}
-
 function SourceStatus({ level }: { level: LaranjalLevelData }) {
   const live = level.status === "live";
   const stale = level.status === "stale";
@@ -270,7 +203,20 @@ function LevelReading({ level }: { level: LaranjalLevelData }) {
         </div>
       </div>
 
-      <Sparkline data={level} />
+      <HydrologyLevelChart
+        points={level.series}
+        unit="m"
+        status={level.status}
+        ariaLabel={
+          level.status === "stale"
+            ? "Variação do nível nas 24 horas anteriores à última leitura"
+            : "Variação do nível nas últimas 24 horas"
+        }
+        eyebrow="Série recente"
+        windowLabel={level.status === "stale" ? "24 horas anteriores à última leitura" : "Últimas 24 horas"}
+        latestLabel={level.status === "stale" ? "Última leitura conhecida" : "Leitura mais recente"}
+        emptyMessage="A fonte não disponibilizou medições suficientes para mostrar o histórico recente."
+      />
 
       <div className="hydrology-level-metrics">
         <article>
