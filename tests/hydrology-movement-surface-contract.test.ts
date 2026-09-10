@@ -8,6 +8,7 @@ const overview = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx"
 const guaibaPage = readFileSync("src/components/hydrology/GuaibaLevelPage.tsx", "utf8");
 const regionalNetwork = readFileSync("src/components/hydrology/RegionalWaterNetwork.tsx", "utf8");
 const lagoonLocalities = readFileSync("src/components/hydrology/LagoonHydrologyLocalityPage.tsx", "utf8");
+const lagoonExplorer = readFileSync("src/components/hydrology/LagoonNetworkLevelExplorer.tsx", "utf8");
 const localMonitoring = readFileSync("src/components/weather/HomeLocalMonitoring.tsx", "utf8");
 const regionalCity = readFileSync("src/components/regional/RegionalCityHydrologyLink.tsx", "utf8");
 const homeWater = readFileSync("src/production/components/home-water-editorial.tsx", "utf8");
@@ -30,6 +31,7 @@ const seriesDerivedSurfaces = [
   ["página do Guaíba", guaibaPage],
   ["rede regional", regionalNetwork],
   ["índice e páginas locais da Lagoa", lagoonLocalities],
+  ["seletor de séries da Lagoa", lagoonExplorer],
   ["monitoramento local", localMonitoring],
   ["bloco hidrológico das páginas regionais", regionalCity],
   ["águas da Home", homeWater],
@@ -53,6 +55,8 @@ test("superfícies com série usam o contrato compartilhado de movimento recente
   assert.match(regionalCity, /observation\.series\.map/);
   assert.match(lagoonLocalities, /function observationMovement/);
   assert.match(lagoonLocalities, /observation\.series\.map/);
+  assert.match(lagoonExplorer, /function observationMovement/);
+  assert.match(lagoonExplorer, /observation\.series\.map/);
   assert.match(homeWater, /station\.series\.map/);
 });
 
@@ -63,17 +67,21 @@ test("superfícies ativas não apresentam trendCmPerHour como relógio visual co
   assert.doesNotMatch(guaibaPage, /data\.trendCmPerHour|reference\.trendCmPerHour/);
   assert.doesNotMatch(regionalNetwork, /data\.trendCmPerHour|observation\.trendCmPerHour/);
   assert.doesNotMatch(lagoonLocalities, /observation\?\.trendCmPerHour|observation\.trendCmPerHour/);
+  assert.doesNotMatch(lagoonExplorer, /observation\?\.trendCmPerHour|observation\.trendCmPerHour/);
   assert.doesNotMatch(localMonitoring, /laranjal\.trendCmPerHour/);
   assert.doesNotMatch(regionalCity, /observation!?\.trendCmPerHour/);
   assert.doesNotMatch(homeWater, /trendLabel\([^)]*trendCmPerHour/);
   assert.doesNotMatch(homeWater, /movementLabel\([^)]*trendCmPerHour/);
 });
 
-test("páginas locais da Lagoa rotulam a leitura derivada como movimento", () => {
+test("páginas e seletor da Lagoa rotulam a leitura derivada como movimento", () => {
   assert.match(lagoonLocalities, /Movimento recente indisponível/);
   assert.match(lagoonLocalities, /Ver nível, movimento e histórico/);
   assert.match(lagoonLocalities, /último trecho contínuo dessa série/);
   assert.doesNotMatch(lagoonLocalities, /function trendState/);
+  assert.match(lagoonExplorer, /<small>Movimento recente<\/small>/);
+  assert.match(lagoonExplorer, /último trecho contínuo da série selecionada/);
+  assert.doesNotMatch(lagoonExplorer, /function trendState/);
 });
 
 test("cards do Guaíba sem série própria mostram janela explícita em vez de tendência derivada incompatível", () => {
