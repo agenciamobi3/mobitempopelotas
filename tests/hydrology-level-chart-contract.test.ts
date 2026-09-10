@@ -71,6 +71,26 @@ test("eixo horizontal respeita tempo real e lacunas não são ligadas artificial
   assert.match(chartCss, /hydrology-rich-chart__gap-note/);
 });
 
+test("movimento recente usa apenas o último trecho contínuo da série", () => {
+  assert.match(chart, /RECENT_MOVEMENT_WINDOW_MS = 3 \* 60 \* 60 \* 1_000/);
+  assert.match(chart, /MOVEMENT_RATE_EPSILON_CM_PER_HOUR = 0\.1/);
+  assert.match(chart, /function recentMovement/);
+  assert.match(chart, /const latestSegment = segments\.at\(-1\) \?\? \[\]/);
+  assert.match(chart, /const movement = recentMovement\(latestSegment, unit\)/);
+  assert.match(chart, /const changeCm = toCentimeters\(latest\.level - start\.level, unit\)/);
+  assert.match(chart, /rateCmPerHour = changeCm \/ \(durationMs \/ \(60 \* 60 \* 1_000\)\)/);
+  assert.match(chart, /Movimento recente/);
+  assert.match(chart, /Ritmo recente/);
+  assert.match(chart, /Amplitude observada/);
+  assert.match(chart, /Diferença entre o máximo e o mínimo da janela/);
+  assert.match(chart, /hydrology-rich-chart__recent-line/);
+  assert.match(chart, /formatRate\(movement\.rateCmPerHour\)/);
+  assert.match(chartCss, /hydrology-rich-chart__motion/);
+  assert.match(chartCss, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(chartCss, /hydrology-rich-chart__recent-line/);
+  assert.match(chartCss, /stroke-width:\s*6/);
+});
+
 test("gráfico de nível permanece responsivo e legível em telas estreitas", () => {
   assert.match(chartCss, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(chartCss, /overflow-x:\s*auto/);
@@ -78,6 +98,7 @@ test("gráfico de nível permanece responsivo e legível em telas estreitas", ()
   assert.match(chartCss, /@media \(max-width: 840px\)/);
   assert.match(chartCss, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(chartCss, /@media \(max-width: 560px\)/);
+  assert.match(chartCss, /hydrology-rich-chart__motion[\s\S]{0,100}grid-template-columns:\s*minmax\(0, 1fr\)/);
   assert.match(chartCss, /stroke-linecap:\s*round/);
   assert.match(chartCss, /stroke-linejoin:\s*round/);
   assert.match(chartCss, /hydrology-rich-chart__plot:focus-visible/);
