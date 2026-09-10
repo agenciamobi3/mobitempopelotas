@@ -44,10 +44,23 @@ test("hub is indexable and discoverable from water navigation", () => {
   assert.match(page, /href="\/contribuir"/);
 });
 
-test("hub layout remains responsive without hidden desktop-only content", () => {
+test("hub uses the current home-editorial rail and a full-bleed historical hero", () => {
+  assert.match(styles, /width: min\(1440px, calc\(100% - 96px\)\)/);
+  assert.match(styles, /\.tp-flood-index-hero::before/);
+  assert.match(styles, /width: 100vw/);
+  assert.match(styles, /linear-gradient\(105deg, #f1fbfc 0%, #f8fbfb 47%, #faf8ff 78%, #f3f0ff 100%\)/);
+  assert.match(styles, /\.tp-flood-index-card::before/);
+  assert.match(styles, /linear-gradient\(90deg, #18bdcd, #5e2ced 72%, transparent\)/);
+});
+
+test("hub layout remains responsive and accessible without hidden desktop-only content", () => {
   assert.match(styles, /\.tp-flood-index-grid/);
   assert.match(styles, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(styles, /@media \(max-width: 820px\)/);
+  assert.match(styles, /@media \(max-width: 560px\)/);
   assert.match(styles, /grid-template-columns: 1fr/);
+  assert.match(styles, /min-height: 44px/);
+  assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
+  assert.match(styles, /@media \(forced-colors: active\)/);
   assert.doesNotMatch(styles, /!important/);
 });
