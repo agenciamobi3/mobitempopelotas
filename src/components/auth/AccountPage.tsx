@@ -170,10 +170,10 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
         <div className="account-dashboard-entry">
           <div>
             <span className="eyebrow">Área pessoal</span>
-            <strong>Seu painel já está separado das configurações da conta.</strong>
+            <strong>Seu painel Free já organiza o que você acompanha.</strong>
             <p>
-              Favoritos, históricos e novas ferramentas serão adicionados ao painel conforme os
-              recursos da camada Free e, futuramente, do PRO.
+              Favoritos e widgets já estão disponíveis no painel. Novos históricos e ferramentas
+              entram somente quando o dataset e a camada de acesso estiverem prontos.
             </p>
           </div>
           <Link to="/painel">Abrir meu painel →</Link>
@@ -252,7 +252,7 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
                     setPreferences((current) => ({ ...current, waterAlerts: checked }))
                   }
                   title="Informações sobre as águas"
-                  description="Atualizações importantes sobre níveis, tendências e fontes hidrológicas."
+                  description="Atualizações importantes sobre níveis, movimentos recentes e informações das fontes hidrológicas."
                 />
                 <PreferenceField
                   checked={preferences.dailySummary}
@@ -289,8 +289,8 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
               <span className="eyebrow">Seus dados</span>
               <h2>Consulte ou leve uma cópia</h2>
               <p>
-                A exportação reúne perfil, preferências, histórico de consentimentos e aparelhos de
-                notificação vinculados à conta.
+                A exportação reúne perfil, preferências, favoritos, histórico de consentimentos e
+                aparelhos de notificação vinculados à conta.
               </p>
               <div className="account-data-actions">
                 <a className="account-data-button" href="/api/account/export" download>
@@ -320,8 +320,8 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
               <span className="eyebrow">Exclusão definitiva</span>
               <h2>Remover conta e preferências</h2>
               <p id="delete-account-help">
-                Esta ação remove perfil, preferências, consentimentos e inscrições push vinculadas.
-                Os conteúdos públicos do portal continuam acessíveis sem conta.
+                Esta ação remove perfil, preferências, favoritos, consentimentos e inscrições push
+                vinculadas. Os conteúdos públicos do portal continuam acessíveis sem conta.
               </p>
               <form onSubmit={handleDeleteAccount}>
                 <label className="account-delete-confirmation">
