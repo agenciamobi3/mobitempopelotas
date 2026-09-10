@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
@@ -13,10 +13,18 @@ import {
   getWidgetStylePreset,
   type WidgetAppearance,
 } from "@/lib/widgets/widget-appearance";
+import {
+  createDefaultWidgetContent,
+  type WidgetContentDefinition,
+  type WidgetPresentation,
+} from "@/lib/widgets/widget-content";
+import type { WidgetType } from "@/lib/widgets/widget-registry";
 
 import { WidgetAppearanceControls } from "./WidgetAppearanceControls";
+import { WidgetContentControls } from "./WidgetContentControls";
 import "./WidgetBuilder.css";
 import "./WidgetBuilderAppearance.css";
+import "./WidgetBuilderLivePreview.css";
 
 type AuthenticatedSnapshot = Extract<WidgetManagerSnapshot, { status: "authenticated" }>;
 
@@ -25,7 +33,92 @@ type Feedback = {
   text: string;
 } | null;
 
-function WidgetAppearanceEditor({
+function presentationLabel(presentation: WidgetPresentation) {
+  if (presentation === "compact") return "Compacto";
+  if (presentation === "horizontal") return "Horizontal";
+  return "Cartão";
+}
+
+function buildLivePreviewUrl(
+  widgetType: WidgetType,
+  appearance: WidgetAppearance,
+  content: WidgetContentDefinition,
+) {
+  const params = new URLSearchParams({
+    previewType: widgetType,
+    preset: appearance.preset,
+    accent: appearance.accentColor,
+    radius: String(appearance.radius),
+    density: appearance.density,
+    presentation: content.presentation,
+    blocks: content.visibleBlocks.join(","),
+  });
+  return `/embed/widget?${params.toString()}`;
+}
+
+function WidgetLivePreview({
+  src,
+  title,
+  presentation,
+}: {
+  src: string;
+  title: string;
+  presentation: WidgetPresentation;
+}) {
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const [height, setHeight] = useState(presentation === "compact" ? 420 : 520);
+
+  useEffect(() => {
+    setHeight(presentation === "compact" ? 420 : 520);
+  }, [presentation, src]);
+
+  useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      if (event.origin !== window.location.origin) return;
+      if (event.source !== frameRef.current?.contentWindow) return;
+      const message = event.data as { source?: string; token?: string; type?: string; height?: number };
+      if (
+        message.source !== "tempo-pelotas-widget" ||
+        message.token !== "preview" ||
+        message.type !== "resize" ||
+        typeof message.height !== "number"
+      ) {
+        return;
+      }
+      setHeight(Math.max(180, Math.min(900, Math.ceil(message.height + 4))));
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  return (
+    <div className={`widget-builder-live-preview is-${presentation}`}>
+      <div className="widget-builder-live-preview__heading">
+        <div>
+          <span>Prévia real</span>
+          <strong>Dados atuais do Tempo Pelotas</strong>
+        </div>
+        <small>{presentationLabel(presentation)}</small>
+      </div>
+      <iframe
+        ref={frameRef}
+        key={src}
+        src={src}
+        title={title}
+        height={height}
+        loading="eager"
+        scrolling="no"
+      />
+      <p>
+        Esta prévia usa o mesmo renderer do código incorporado. Alterações visuais não modificam
+        fonte, unidade, horário ou significado dos dados.
+      </p>
+    </div>
+  );
+}
+
+function WidgetCustomizationEditor({
   widget,
   onSaved,
 }: {
@@ -33,16 +126,21 @@ function WidgetAppearanceEditor({
   onSaved: (widget: ManagedWidget) => void;
 }) {
   const updateAppearance = useServerFn(updateUserWidgetAppearance);
-  const [draft, setDraft] = useState<WidgetAppearance>(widget.appearance);
+  const [appearanceDraft, setAppearanceDraft] = useState<WidgetAppearance>(widget.appearance);
+  const [contentDraft, setContentDraft] = useState<WidgetContentDefinition>(widget.content);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
-  async function saveAppearance() {
+  async function saveCustomization() {
     setPending(true);
     setFeedback(null);
     try {
       const result = await updateAppearance({
-        data: { id: widget.id, appearance: draft },
+        data: {
+          id: widget.id,
+          appearance: appearanceDraft,
+          content: contentDraft,
+        },
       });
       if (!result.ok) {
         if (result.code === "unauthenticated") {
@@ -55,17 +153,20 @@ function WidgetAppearanceEditor({
             result.code === "conflict"
               ? "Este widget mudou em outra sessão. Recarregue a página antes de salvar novamente."
               : result.code === "not_entitled"
-                ? "A personalização visual não está habilitada para esta conta."
-                : "Não foi possível salvar o estilo agora.",
+                ? "A personalização não está habilitada para esta conta."
+                : result.code === "invalid_config"
+                  ? "Um dos blocos selecionados não pertence a este módulo."
+                  : "Não foi possível salvar a personalização agora.",
         });
         return;
       }
 
-      setDraft(result.widget.appearance);
+      setAppearanceDraft(result.widget.appearance);
+      setContentDraft(result.widget.content);
       onSaved(result.widget);
-      setFeedback({ tone: "success", text: "Estilo salvo e aplicado ao widget." });
+      setFeedback({ tone: "success", text: "Aparência e conteúdo salvos no widget." });
     } catch {
-      setFeedback({ tone: "error", text: "Não foi possível salvar o estilo agora." });
+      setFeedback({ tone: "error", text: "Não foi possível salvar a personalização agora." });
     } finally {
       setPending(false);
     }
@@ -73,13 +174,20 @@ function WidgetAppearanceEditor({
 
   return (
     <details className="widget-builder-style-editor">
-      <summary>Personalizar estilo</summary>
+      <summary>Personalizar widget</summary>
       <WidgetAppearanceControls
-        value={draft}
-        onChange={setDraft}
+        value={appearanceDraft}
+        onChange={setAppearanceDraft}
         legend="Editar aparência"
         compact
         controlName={`widget-style-${widget.id}`}
+      />
+      <WidgetContentControls
+        widgetType={widget.widgetType}
+        value={contentDraft}
+        onChange={setContentDraft}
+        compact
+        controlName={`widget-content-${widget.id}`}
       />
       <div className="widget-builder-style-editor__actions">
         <p>
@@ -88,10 +196,10 @@ function WidgetAppearanceEditor({
         <button
           className="widget-builder-button is-secondary"
           type="button"
-          onClick={saveAppearance}
+          onClick={saveCustomization}
           disabled={pending}
         >
-          {pending ? "Salvando..." : "Salvar estilo"}
+          {pending ? "Salvando..." : "Salvar personalização"}
         </button>
       </div>
       {feedback ? (
@@ -112,21 +220,31 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
   );
   const canCustomizeAppearance = snapshot.access.entitlements.widgetsAdvancedThemes;
   const [widgets, setWidgets] = useState(snapshot.widgets);
-  const [selectedType, setSelectedType] = useState(enabledModules[0]?.type ?? "nivel-laranjal");
+  const [selectedType, setSelectedType] = useState<WidgetType>(
+    enabledModules[0]?.type ?? "nivel-laranjal",
+  );
   const selectedModule =
     enabledModules.find((module) => module.type === selectedType) ?? enabledModules[0] ?? null;
   const [title, setTitle] = useState(selectedModule?.defaultTitle ?? "Widget Tempo Pelotas");
   const [appearance, setAppearance] = useState<WidgetAppearance>(() =>
     createAppearanceFromPreset("tempo-dark"),
   );
+  const [content, setContent] = useState<WidgetContentDefinition>(() =>
+    createDefaultWidgetContent(selectedType),
+  );
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const livePreviewUrl = useMemo(
+    () => buildLivePreviewUrl(selectedType, appearance, content),
+    [appearance, content, selectedType],
+  );
 
-  function changeModule(nextType: typeof selectedType) {
+  function changeModule(nextType: WidgetType) {
     setSelectedType(nextType);
     const module = enabledModules.find((item) => item.type === nextType);
     if (module) setTitle(module.defaultTitle);
+    setContent(createDefaultWidgetContent(nextType));
   }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
@@ -140,7 +258,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
         data: {
           widgetType: selectedModule.type,
           title,
-          ...(canCustomizeAppearance ? { appearance } : {}),
+          ...(canCustomizeAppearance ? { appearance, content } : {}),
         },
       });
 
@@ -155,8 +273,10 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
             result.code === "limit"
               ? "Você atingiu o limite atual de widgets da sua conta."
               : result.code === "not_entitled"
-                ? "Este módulo ou estilo não está habilitado para sua conta."
-                : "Não foi possível criar o widget agora.",
+                ? "Este módulo ou personalização não está habilitado para sua conta."
+                : result.code === "invalid_config"
+                  ? "Um dos blocos selecionados não pertence a este módulo."
+                  : "Não foi possível criar o widget agora.",
         });
         return;
       }
@@ -164,7 +284,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
       setWidgets((current) => [result.widget, ...current]);
       setFeedback({
         tone: "success",
-        text: "Widget criado. O estilo escolhido já está aplicado e o código pode ser usado em outro site.",
+        text: "Widget criado. A apresentação vista na prévia já está aplicada ao código incorporável.",
       });
     } catch {
       setFeedback({ tone: "error", text: "Não foi possível criar o widget agora." });
@@ -217,8 +337,8 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
           <span className="eyebrow">Widgets Tempo Pelotas</span>
           <h1>Leve os dados do Tempo Pelotas para o seu site</h1>
           <p>
-            Escolha um módulo, parta de um estilo pronto e ajuste a aparência para combinar com o
-            seu site. O widget continua responsivo e isolado do CSS da página onde for incorporado.
+            Escolha um módulo, parta de um estilo pronto, defina o formato e mantenha somente os
+            blocos úteis. A prévia usa dados reais e o widget continua isolado do CSS do seu site.
           </p>
         </div>
         <aside className="widget-builder-plan-card">
@@ -231,8 +351,8 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
           </span>
           <span>
             {canCustomizeAppearance
-              ? "Estilos predefinidos e ajustes visuais liberados."
-              : "Aparência padrão aplicada aos novos widgets."}
+              ? "Presets, formatos e blocos configuráveis liberados."
+              : "Apresentação padrão aplicada aos novos widgets."}
           </span>
         </aside>
       </section>
@@ -241,7 +361,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
         <div className="widget-builder-create__heading">
           <div>
             <span className="eyebrow">Novo widget</span>
-            <h2 id="widget-create-title">Monte uma base que combine com o seu site</h2>
+            <h2 id="widget-create-title">Monte o widget no espaço onde ele vai viver</h2>
           </div>
           <p>{selectedModule?.description ?? "Nenhum módulo disponível para esta conta."}</p>
         </div>
@@ -253,7 +373,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                 <span>Módulo</span>
                 <select
                   value={selectedType}
-                  onChange={(event) => changeModule(event.target.value as typeof selectedType)}
+                  onChange={(event) => changeModule(event.target.value as WidgetType)}
                 >
                   {enabledModules.map((module) => (
                     <option value={module.type} key={module.type}>
@@ -275,20 +395,34 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
             </div>
 
             {canCustomizeAppearance ? (
-              <WidgetAppearanceControls
-                value={appearance}
-                onChange={setAppearance}
-                controlName="widget-new-style"
-              />
+              <>
+                <WidgetAppearanceControls
+                  value={appearance}
+                  onChange={setAppearance}
+                  controlName="widget-new-style"
+                />
+                <WidgetContentControls
+                  widgetType={selectedType}
+                  value={content}
+                  onChange={setContent}
+                  controlName="widget-new-content"
+                />
+              </>
             ) : null}
+
+            <WidgetLivePreview
+              src={livePreviewUrl}
+              title={`Prévia real: ${title}`}
+              presentation={content.presentation}
+            />
 
             <div className="widget-builder-form__footer">
               <p>
-                A personalização altera somente a apresentação. Fonte, horários, unidades e dados do
-                módulo continuam controlados pelo Tempo Pelotas.
+                A personalização altera apenas a apresentação e a quantidade de blocos visíveis.
+                Fonte, horários, unidades e dados do módulo continuam controlados pelo Tempo Pelotas.
               </p>
               <button className="widget-builder-button" type="submit" disabled={pending}>
-                {pending ? "Criando..." : "Criar widget"}
+                {pending ? "Criando..." : "Criar este widget"}
               </button>
             </div>
           </form>
@@ -335,6 +469,9 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                     </div>
                     <div className="widget-builder-card__meta">
                       <span className="widget-builder-badge">{preset.label}</span>
+                      <span className="widget-builder-badge">
+                        {presentationLabel(widget.content.presentation)}
+                      </span>
                       <span className="widget-builder-badge">Responsivo</span>
                       <span className="widget-builder-badge">v{widget.version}</span>
                       <span className="widget-builder-badge">Marca Tempo Pelotas</span>
@@ -355,7 +492,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
 
                   <div className="widget-builder-card__content">
                     {canCustomizeAppearance ? (
-                      <WidgetAppearanceEditor widget={widget} onSaved={replaceWidget} />
+                      <WidgetCustomizationEditor widget={widget} onSaved={replaceWidget} />
                     ) : null}
                     <code className="widget-builder-code">{widget.embedCode}</code>
                     <div className="widget-builder-card__actions">
