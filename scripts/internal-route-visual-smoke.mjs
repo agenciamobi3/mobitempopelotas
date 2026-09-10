@@ -92,6 +92,36 @@ const routes = [
     marker: ".internal-weather-shell--hydrology",
   },
   {
+    name: "nivel-lagoa-indice",
+    path: "/nivel-da-lagoa-dos-patos",
+    marker: ".lagoon-network-index-shell",
+  },
+  {
+    name: "nivel-lagoa-rio-grande",
+    path: "/nivel-da-lagoa-dos-patos/rio-grande",
+    marker: ".lagoon-locality-page",
+  },
+  {
+    name: "nivel-laranjal",
+    path: "/nivel-da-lagoa-dos-patos-laranjal",
+    marker: ".hydrology-editorial-route--laranjal",
+  },
+  {
+    name: "nivel-guaiba",
+    path: "/nivel-do-guaiba",
+    marker: ".hydrology-editorial-route--guaiba",
+  },
+  {
+    name: "canal-sao-goncalo",
+    path: "/nivel-do-canal-sao-goncalo",
+    marker: ".hydrology-editorial-route--sao-goncalo",
+  },
+  {
+    name: "rio-jaguarao",
+    path: "/nivel-do-rio-jaguarao",
+    marker: ".hydrology-editorial-route--jaguarao",
+  },
+  {
     name: "cameras",
     path: "/cameras-ao-vivo-pelotas",
     marker: ".internal-weather-shell--cameras",
@@ -129,12 +159,6 @@ const routes = [
     path: "/blog",
     marker: ".cppmet-blog",
     neutralSelectors: [".cppmet-blog__hero"],
-  },
-  {
-    name: "canal-sao-goncalo",
-    path: "/nivel-do-canal-sao-goncalo",
-    marker: ".hydrology-editorial-route",
-    neutralSelectors: [".hydrology-editorial-hero"],
   },
   {
     name: "status-dados",
