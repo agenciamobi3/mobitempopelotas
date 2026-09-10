@@ -119,7 +119,7 @@ jobs:
       - name: Semântica dos estados degradados da hidrologia
         run: node --test tests/hydrology-degraded-state-semantics.test.ts
 
-      - name: Contrato visual e semântico dos gráficos de nível
+      - name: Contrato visual dos gráficos de nível
         run: |
           node --test tests/hydrology-level-chart-contract.test.ts
           node --test tests/hydrology-level-movement.test.ts
