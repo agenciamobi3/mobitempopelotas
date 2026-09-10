@@ -59,6 +59,17 @@ function formatDateTime(value: string | null) {
   }).format(date);
 }
 
+function latestObservationTime(network: LagoonMonitoringNetworkData) {
+  return network.observations.reduce<string | null>((latest, observation) => {
+    if (!observation.updatedAt) return latest;
+    const candidate = new Date(observation.updatedAt).getTime();
+    if (!Number.isFinite(candidate)) return latest;
+    if (!latest) return observation.updatedAt;
+    const current = new Date(latest).getTime();
+    return !Number.isFinite(current) || candidate > current ? observation.updatedAt : latest;
+  }, null);
+}
+
 function formatChartTime(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -99,15 +110,55 @@ function LocalityMetric({ label, value, suffix = "cm" }: { label: string; value:
 
 export function LagoonHydrologyNetworkIndex({ network }: { network: LagoonMonitoringNetworkData }) {
   const costaDoce = costaDoceCoverage();
+  const latestUpdatedAt = latestObservationTime(network);
 
   return (
     <div className="lagoon-locality-page">
       <section className="lagoon-locality-hero lagoon-network-index-hero">
-        <span className="lagoon-locality-eyebrow">FURG & Portos RS · rede regional</span>
-        <h1>Nível da Lagoa dos Patos hoje</h1>
-        <p>
-          A Lagoa dos Patos não possui um único número válido para toda a sua extensão. O Tempo Pelotas acompanha cinco pontos de monitoramento e preserva a referência própria de cada estação.
-        </p>
+        <div className="lagoon-network-index-hero__copy">
+          <span className="lagoon-locality-eyebrow">Níveis da água · Lagoa dos Patos</span>
+          <h1>Nível da Lagoa dos Patos hoje</h1>
+          <p>
+            A Lagoa dos Patos não possui um único número válido para toda a sua extensão. Compare cada ponto pela sua própria referência e acompanhe a mudança ao longo do tempo.
+          </p>
+          <div className="lagoon-network-index-hero__meta" aria-label="Cobertura do monitoramento">
+            <span><Waves aria-hidden="true" /> {network.total} pontos monitorados</span>
+            <span>{COSTA_DOCE_CITIES.length} cidades da Costa Doce</span>
+          </div>
+        </div>
+
+        <div className="lagoon-network-index-hero__summary" aria-label="Resumo da rede da Lagoa dos Patos">
+          <div className="lagoon-network-index-hero__condition">
+            <span className="lagoon-network-index-hero__icon"><Waves aria-hidden="true" /></span>
+            <div>
+              <small>Situação da rede</small>
+              <strong>
+                {network.status === "unavailable"
+                  ? "Consulta em atualização"
+                  : `${network.available} de ${network.total} com leitura`}
+              </strong>
+              <span>{latestUpdatedAt ? `Atualizado ${formatDateTime(latestUpdatedAt)}` : "Horário em atualização"}</span>
+            </div>
+          </div>
+
+          <div className="lagoon-network-index-hero__facts">
+            <article>
+              <small>Leituras</small>
+              <strong>{network.available}/{network.total}</strong>
+              <span>Pontos disponíveis agora</span>
+            </article>
+            <article>
+              <small>Costa Doce</small>
+              <strong>{COSTA_DOCE_CITIES.length}</strong>
+              <span>Cidades conectadas</span>
+            </article>
+            <article>
+              <small>Referência</small>
+              <strong>Local</strong>
+              <span>Cada estação mantém sua régua</span>
+            </article>
+          </div>
+        </div>
       </section>
 
       <section className="lagoon-network-localities" aria-labelledby="lagoon-network-localities-title">
