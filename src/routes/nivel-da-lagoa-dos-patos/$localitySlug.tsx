@@ -46,7 +46,7 @@ export const Route = createFileRoute("/nivel-da-lagoa-dos-patos/$localitySlug")(
           locality.stationName,
           locality.cityLabel,
           "Leitura hidrológica local",
-          "Tendência do nível da água",
+          "Movimento recente do nível da água",
           "Rede de Monitoramento do Nível da Lagoa dos Patos",
         ],
       }),
