@@ -129,7 +129,7 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
           href={officialUrl}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Consultar os avisos oficiais do INMET para ${data.city.name} em nova aba`}
+          aria-label={`Consultar o aviso oficial do INMET para ${data.city.name} em nova aba`}
         >
           Abrir INMET <span aria-hidden="true">→</span>
         </a>
