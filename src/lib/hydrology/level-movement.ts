@@ -4,7 +4,7 @@ import {
   splitHydrologySeriesOnGaps,
   type HydrologyGapPolicy,
   type HydrologyLevelSeriesInputPoint,
-} from "./level-series";
+} from "./level-series.ts";
 
 export type HydrologyLevelUnit = "m" | "cm";
 
