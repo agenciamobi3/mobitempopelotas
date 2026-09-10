@@ -1,3 +1,11 @@
+import {
+  hydrologyGapThresholdMs,
+  normalizeHydrologyLevelSeries,
+  splitHydrologySeriesOnGaps,
+  type HydrologyGapPolicy,
+  type HydrologyLevelSeriesInputPoint,
+} from "./level-series";
+
 export type HydrologyLevelUnit = "m" | "cm";
 
 export type HydrologyTimedLevelPoint = {
@@ -84,4 +92,21 @@ export function deriveRecentHydrologyMovement(
     durationMs,
     startEpoch: start.epoch,
   };
+}
+
+/**
+ * Deriva o movimento recente diretamente de uma série pública, usando somente
+ * o último trecho contínuo. Esse é o contrato de apresentação do Tempo Pelotas
+ * para superfícies que exibem "movimento recente". Tendências textuais
+ * publicadas pela própria fonte devem continuar sendo apresentadas como fonte.
+ */
+export function deriveRecentHydrologySeriesMovement(
+  points: HydrologyLevelSeriesInputPoint[],
+  unit: HydrologyLevelUnit,
+  gapPolicy: HydrologyGapPolicy = {},
+): HydrologyRecentMovement {
+  const normalized = normalizeHydrologyLevelSeries(points);
+  const thresholdMs = hydrologyGapThresholdMs(normalized, gapPolicy);
+  const latestSegment = splitHydrologySeriesOnGaps(normalized, thresholdMs).at(-1) ?? [];
+  return deriveRecentHydrologyMovement(latestSegment, unit);
 }
