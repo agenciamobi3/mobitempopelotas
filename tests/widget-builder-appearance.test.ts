@@ -82,7 +82,7 @@ test("salvar aparência preserva outras configurações do widget", () => {
       radius: 18,
       density: "compact",
     },
-  ) as Record<string, unknown>;
+  ) as unknown as Record<string, unknown>;
 
   assert.equal(merged.horizon, 7);
   assert.equal(merged.sourceLabel, "preservar");
@@ -111,13 +111,16 @@ test("tokens do renderer derivam apenas da aparência normalizada", () => {
 test("builder permite escolher preset e refinar cor, cantos e densidade", () => {
   assert.match(builder, /WidgetAppearanceControls/);
   assert.match(builder, /createAppearanceFromPreset\("tempo-dark"\)/);
-  assert.match(builder, /appearance \} : \{\}\)/);
+  assert.match(builder, /canCustomizeAppearance \? \{ appearance \} : \{\}/);
   assert.match(builder, /updateUserWidgetAppearance/);
   assert.match(builder, /Personalizar estilo/);
   assert.match(builder, /key=\{`\$\{widget\.id\}-\$\{widget\.version\}`\}/);
   assert.match(controls, /WIDGET_STYLE_PRESETS\.map/);
   assert.match(controls, /type="radio"/);
   assert.match(controls, /type="color"/);
+  assert.match(controls, /type="text"/);
+  assert.match(controls, /pattern="#\[0-9A-Fa-f\]\{6\}"/);
+  assert.match(controls, /aria-invalid=\{!accentValid\}/);
   assert.match(controls, /type="range"/);
   assert.match(controls, /Densidade/);
   assert.match(controls, /Amostra do estilo/);
@@ -129,13 +132,15 @@ test("servidor valida, persiste e versiona personalização por owner", () => {
   assert.match(functions, /widgetAppearanceSchema/);
   assert.match(functions, /regex\(\/\^#\[0-9A-F\]\{6\}\$\/i/);
   assert.match(functions, /radius: z\.number\(\)\.int\(\)\.min\(0\)\.max\(36\)/);
+  assert.match(functions, /data\.appearance && !access\.entitlements\.widgetsAdvancedThemes/);
   assert.match(functions, /updateUserWidgetAppearance/);
-  assert.match(functions, /widgetsAdvancedThemes/);
+  assert.match(functions, /!access\.entitlements\.widgetsAdvancedThemes/);
   assert.match(functions, /withWidgetAppearanceConfig\(current\.config, data\.appearance\)/);
   assert.match(functions, /version: nextVersion/);
   assert.match(functions, /\.eq\("user_id", user\.id\)/);
   assert.match(functions, /\.eq\("version", current\.version\)/);
   assert.match(functions, /appearance: resolveRowAppearance/);
+  assert.match(functions, /config !== null/);
   assert.doesNotMatch(functions, /cssText/);
   assert.doesNotMatch(functions, /html:/);
 });
