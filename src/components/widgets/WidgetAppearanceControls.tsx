@@ -156,8 +156,8 @@ export function WidgetAppearanceControls({
       <div className="widget-style-sample" style={previewStyle(value)} aria-label="Amostra do estilo">
         <span>Tempo Pelotas</span>
         <div>
-          <strong>18°C</strong>
-          <small>Parcialmente nublado</small>
+          <strong>Prévia visual</strong>
+          <small>Exemplo de tipografia e superfícies</small>
         </div>
         <i aria-hidden="true" />
       </div>
