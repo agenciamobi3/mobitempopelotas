@@ -11,6 +11,10 @@ import {
   Waves,
 } from "lucide-react";
 
+import {
+  deriveRecentHydrologySeriesMovement,
+  type HydrologyRecentMovement,
+} from "@/lib/hydrology/level-movement";
 import type {
   GuaibaObservationData,
   GuaibaReferenceObservation,
@@ -46,11 +50,14 @@ function formatSigned(value: number | null, suffix: string) {
   return `${prefix}${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}${suffix}`;
 }
 
-function trendLabel(value: number | null) {
-  if (value === null) return "Tendência indisponível";
-  if (value > 0.25) return "Subindo";
-  if (value < -0.25) return "Baixando";
-  return "Pouca mudança";
+function movementPresentation(movement: HydrologyRecentMovement) {
+  if (movement.rateCmPerHour === null) {
+    return { label: "Movimento recente indisponível", rate: "—", icon: Activity };
+  }
+  const rate = `${Math.abs(movement.rateCmPerHour).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} cm/h`;
+  if (movement.direction === "rising") return { label: "Subindo", rate, icon: ArrowUpRight };
+  if (movement.direction === "falling") return { label: "Baixando", rate, icon: ArrowDownRight };
+  return { label: "Praticamente estável", rate, icon: Activity };
 }
 
 function statusLabel(status: GuaibaObservationData["status"]) {
@@ -75,10 +82,6 @@ function ReferenceCard({ reference }: { reference: GuaibaReferenceObservation })
       </div>
       <dl>
         <div>
-          <dt>Tendência</dt>
-          <dd>{trendLabel(reference.trendCmPerHour)}</dd>
-        </div>
-        <div>
           <dt>Variação 24 h</dt>
           <dd>{formatSigned(reference.variation24hCm, " cm")}</dd>
         </div>
@@ -90,22 +93,23 @@ function ReferenceCard({ reference }: { reference: GuaibaReferenceObservation })
           <dt>Última leitura</dt>
           <dd>{formatDateTime(reference.updatedAt)}</dd>
         </div>
+        <div>
+          <dt>Estado da leitura</dt>
+          <dd>{statusLabel(reference.status)}</dd>
+        </div>
       </dl>
       <p>
         Fonte: {reference.source.name}. A referência pertence a esta régua e não deve ser transferida
-        para outra estação.
+        para outra estação. O movimento recente é mostrado apenas quando existe uma série contínua
+        disponível para a referência selecionada.
       </p>
     </article>
   );
 }
 
 export function GuaibaLevelPage({ data }: { data: GuaibaObservationData }) {
-  const TrendIcon =
-    data.trendCmPerHour !== null && data.trendCmPerHour > 0.25
-      ? ArrowUpRight
-      : data.trendCmPerHour !== null && data.trendCmPerHour < -0.25
-        ? ArrowDownRight
-        : Activity;
+  const movement = movementPresentation(deriveRecentHydrologySeriesMovement(data.series, "m"));
+  const TrendIcon = movement.icon;
   const references = data.references ?? [];
 
   return (
@@ -115,9 +119,9 @@ export function GuaibaLevelPage({ data }: { data: GuaibaObservationData }) {
           <p className="guaiba-kicker">Guaíba · monitoramento regional</p>
           <h1 id="guaiba-page-title">Nível do Guaíba hoje</h1>
           <p>
-            Acompanhe a leitura mais recente disponível, o horário, a tendência e a variação nas
-            últimas 24 horas. O Guaíba é apresentado aqui como parte do sistema hidrológico regional
-            que se conecta à Lagoa dos Patos.
+            Acompanhe a leitura mais recente disponível, o horário, o movimento recente calculado a
+            partir da série contínua e a variação nas últimas 24 horas. O Guaíba é apresentado aqui
+            como parte do sistema hidrológico regional que se conecta à Lagoa dos Patos.
           </p>
           <div className={`guaiba-status is-${data.status}`}>
             <Clock3 aria-hidden="true" />
@@ -143,8 +147,8 @@ export function GuaibaLevelPage({ data }: { data: GuaibaObservationData }) {
           <div className="guaiba-trend">
             <TrendIcon aria-hidden="true" />
             <div>
-              <span>{trendLabel(data.trendCmPerHour)}</span>
-              <strong>{formatSigned(data.trendCmPerHour, " cm/h")}</strong>
+              <span>{movement.label}</span>
+              <strong>{movement.rate}</strong>
             </div>
           </div>
         </div>
