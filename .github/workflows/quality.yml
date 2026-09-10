@@ -125,6 +125,7 @@ jobs:
           node --test tests/hydrology-level-movement.test.ts
           node --test tests/hydrology-level-series.test.ts
           node --test tests/hydrology-movement-surface-contract.test.ts
+          node --test tests/hydrology-editorial-terminology.test.ts
 
       - name: Snapshot estável da página hidrológica
         run: node --test tests/hydrology-loader-stable-weather.test.ts
