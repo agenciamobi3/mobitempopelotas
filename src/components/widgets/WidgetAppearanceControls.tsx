@@ -9,6 +9,8 @@ import {
   type WidgetStylePreset,
 } from "@/lib/widgets/widget-appearance";
 
+import "./WidgetAppearanceControls.css";
+
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
 
 function previewStyle(appearance: WidgetAppearance): CSSProperties {
