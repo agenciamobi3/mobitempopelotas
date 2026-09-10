@@ -8,6 +8,14 @@ const guaiba = readFileSync("src/components/hydrology/GuaibaLevelPage.tsx", "utf
 const laranjal = readFileSync("src/components/hydrology/HydrologyPages.tsx", "utf8");
 const overview = readFileSync("src/components/hydrology/HydrologyOverviewV2.tsx", "utf8");
 const lagoon = readFileSync("src/components/hydrology/LagoonHydrologyLocalityPage.tsx", "utf8");
+const lagoonExplorer = readFileSync(
+  "src/components/hydrology/LagoonNetworkLevelExplorer.tsx",
+  "utf8",
+);
+const lagoonExplorerCss = readFileSync(
+  "src/components/hydrology/LagoonNetworkLevelExplorer.css",
+  "utf8",
+);
 const defesaCivil = readFileSync(
   "src/components/hydrology/DefesaCivilStationHydrologyPage.tsx",
   "utf8",
@@ -108,6 +116,33 @@ test("páginas locais da Lagoa abandonam o line chart isolado e usam o contrato 
   assert.doesNotMatch(lagoon, /<LineChart/);
   assert.match(lagoon, /Cota local publicada/);
   assert.match(lagoon, /Máxima de maio de 2024/);
+});
+
+test("índice da Lagoa oferece uma única área gráfica com seletor de estação", () => {
+  assert.match(lagoon, /import \{ LagoonNetworkLevelExplorer \}/);
+  assert.match(lagoon, /<LagoonNetworkLevelExplorer network=\{network\} \/>/);
+  assert.match(lagoonExplorer, /useState\(initialStationId\)/);
+  assert.match(lagoonExplorer, /role="group"/);
+  assert.match(lagoonExplorer, /aria-pressed=\{selectedNow\}/);
+  assert.match(lagoonExplorer, /setSelectedStationId\(itemLocality\.stationId\)/);
+  assert.match(lagoonExplorer, /<HydrologyLevelChart/);
+  assert.match(lagoonExplorer, /references=\{references\}/);
+  assert.match(lagoonExplorer, /hydrologyLocalityPath\(locality\)/);
+  assert.match(lagoonExplorer, /não são convertidos nem somados entre si/);
+  assert.match(lagoonExplorer, /não cria uma curva sem histórico real/);
+  assert.doesNotMatch(lagoonExplorer, /<HydrologyLevelChart[\s\S]*\.map\(/);
+});
+
+test("seletor de estações da Lagoa é adaptável sem empilhar cinco gráficos", () => {
+  assert.match(lagoonExplorerCss, /grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(lagoonExplorerCss, /@media \(max-width: 1180px\)/);
+  assert.match(lagoonExplorerCss, /grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(lagoonExplorerCss, /@media \(max-width: 880px\)/);
+  assert.match(lagoonExplorerCss, /grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(lagoonExplorerCss, /@media \(max-width: 620px\)/);
+  assert.match(lagoonExplorerCss, /overflow-x:\s*auto/);
+  assert.match(lagoonExplorerCss, /scroll-snap-type:\s*x proximity/);
+  assert.match(lagoonExplorerCss, /@media \(forced-colors: active\)/);
 });
 
 test("estações da Defesa Civil não fabricam série quando só existe a leitura atual", () => {
