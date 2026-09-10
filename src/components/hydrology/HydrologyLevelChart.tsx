@@ -37,10 +37,21 @@ type ChartCoordinate = NormalizedPoint & {
   y: number;
 };
 
+type RecentMovement = {
+  direction: "rising" | "falling" | "stable" | "unavailable";
+  label: string;
+  rateCmPerHour: number | null;
+  changeCm: number | null;
+  durationMs: number | null;
+  startEpoch: number | null;
+};
+
 const WIDTH = 1040;
 const HEIGHT = 390;
 const PADDING = { top: 38, right: 38, bottom: 58, left: 72 } as const;
 const GAP_MULTIPLIER = 2.5;
+const RECENT_MOVEMENT_WINDOW_MS = 3 * 60 * 60 * 1_000;
+const MOVEMENT_RATE_EPSILON_CM_PER_HOUR = 0.1;
 
 function normalizePoints(points: HydrologyLevelChartPoint[]): NormalizedPoint[] {
   const byTimestamp = new Map<number, NormalizedPoint>();
@@ -89,6 +100,101 @@ function splitCoordinatesOnGaps(coordinates: ChartCoordinate[], thresholdMs: num
   return segments;
 }
 
+function toCentimeters(value: number, unit: "m" | "cm") {
+  return unit === "m" ? value * 100 : value;
+}
+
+function formatCentimeters(value: number, signed = false) {
+  const normalized = Math.abs(value) < 0.05 ? 0 : value;
+  const prefix = signed && normalized > 0 ? "+" : "";
+  return `${prefix}${new Intl.NumberFormat("pt-BR", {
+    maximumFractionDigits: 1,
+  }).format(normalized)} cm`;
+}
+
+function formatRate(value: number) {
+  return `${formatCentimeters(value, true)}/h`;
+}
+
+function formatDuration(durationMs: number) {
+  const minutes = Math.max(1, Math.round(durationMs / 60_000));
+  if (minutes < 60) return `${minutes} min`;
+  return `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 }).format(minutes / 60)} h`;
+}
+
+function movementSymbol(direction: RecentMovement["direction"]) {
+  if (direction === "rising") return "↑";
+  if (direction === "falling") return "↓";
+  if (direction === "stable") return "→";
+  return "·";
+}
+
+function recentMovement(points: NormalizedPoint[], unit: "m" | "cm"): RecentMovement {
+  if (points.length < 2) {
+    return {
+      direction: "unavailable",
+      label: "Sem base suficiente",
+      rateCmPerHour: null,
+      changeCm: null,
+      durationMs: null,
+      startEpoch: null,
+    };
+  }
+
+  const latest = points.at(-1)!;
+  const cutoff = latest.epoch - RECENT_MOVEMENT_WINDOW_MS;
+  let startIndex = points.findIndex((point) => point.epoch >= cutoff);
+  if (startIndex < 0) startIndex = 0;
+  if (startIndex === points.length - 1) startIndex = Math.max(0, points.length - 2);
+
+  const start = points[startIndex]!;
+  const durationMs = latest.epoch - start.epoch;
+  if (durationMs <= 0) {
+    return {
+      direction: "unavailable",
+      label: "Sem base suficiente",
+      rateCmPerHour: null,
+      changeCm: null,
+      durationMs: null,
+      startEpoch: null,
+    };
+  }
+
+  const changeCm = toCentimeters(latest.level - start.level, unit);
+  const rateCmPerHour = changeCm / (durationMs / (60 * 60 * 1_000));
+  if (!Number.isFinite(rateCmPerHour)) {
+    return {
+      direction: "unavailable",
+      label: "Sem base suficiente",
+      rateCmPerHour: null,
+      changeCm: null,
+      durationMs: null,
+      startEpoch: null,
+    };
+  }
+
+  const direction =
+    rateCmPerHour > MOVEMENT_RATE_EPSILON_CM_PER_HOUR
+      ? "rising"
+      : rateCmPerHour < -MOVEMENT_RATE_EPSILON_CM_PER_HOUR
+        ? "falling"
+        : "stable";
+
+  return {
+    direction,
+    label:
+      direction === "rising"
+        ? "Subindo"
+        : direction === "falling"
+          ? "Baixando"
+          : "Praticamente estável",
+    rateCmPerHour,
+    changeCm,
+    durationMs,
+    startEpoch: start.epoch,
+  };
+}
+
 function formatLevel(value: number, unit: "m" | "cm") {
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: unit === "m" ? 2 : value % 1 === 0 ? 0 : 1,
@@ -97,13 +203,7 @@ function formatLevel(value: number, unit: "m" | "cm") {
 }
 
 function formatDelta(first: number, last: number, unit: "m" | "cm") {
-  const delta = last - first;
-  const normalized = unit === "m" ? delta * 100 : delta;
-  const rounded = Math.abs(normalized) < 0.05 ? 0 : normalized;
-  const prefix = rounded > 0 ? "+" : "";
-  return `${prefix}${new Intl.NumberFormat("pt-BR", {
-    maximumFractionDigits: 1,
-  }).format(rounded)} cm`;
+  return formatCentimeters(toCentimeters(last - first, unit), true);
 }
 
 function formatTime(value: string | number, withDate: boolean) {
@@ -198,6 +298,14 @@ export function HydrologyLevelChart({
   const thresholdMs = gapThreshold(valid);
   const segments = splitCoordinatesOnGaps(coordinates, thresholdMs);
   const hasGaps = segments.length > 1;
+  const latestSegment = segments.at(-1) ?? [];
+  const movement = recentMovement(latestSegment, unit);
+  const movementStartEpoch = movement.startEpoch;
+  const recentCoordinates =
+    movementStartEpoch === null
+      ? []
+      : latestSegment.filter((point) => point.epoch >= movementStartEpoch);
+  const amplitudeCm = hasSeries ? toCentimeters(maximum - minimum, unit) : null;
   const yTicks = Array.from({ length: 5 }, (_, index) => {
     const ratio = index / 4;
     const value = domainMaximum - ratio * domainRange;
@@ -235,7 +343,9 @@ export function HydrologyLevelChart({
           <strong>{windowLabel}</strong>
         </div>
         <small>
-          {hasSeries ? `${valid.length} medições válidas${hasGaps ? " · série com lacunas" : ""}` : "1 leitura disponível"}
+          {hasSeries
+            ? `${valid.length} medições válidas${hasGaps ? " · série com lacunas" : ""}`
+            : "1 leitura disponível"}
         </small>
       </figcaption>
 
@@ -263,6 +373,42 @@ export function HydrologyLevelChart({
           <small>{hasSeries ? formatTime(valid[maximumIndex]!.timestamp, true) : "Sem série"}</small>
         </article>
       </div>
+
+      {hasSeries ? (
+        <div
+          className="hydrology-rich-chart__motion"
+          aria-label="Leituras matemáticas derivadas da série observada"
+        >
+          <article className={`is-${movement.direction}`}>
+            <span>Movimento recente</span>
+            <strong>
+              <b aria-hidden="true">{movementSymbol(movement.direction)}</b>
+              {movement.label}
+            </strong>
+            <small>
+              {movement.durationMs === null
+                ? "Sem dois pontos contínuos suficientes"
+                : `Últimas ${formatDuration(movement.durationMs)} do trecho contínuo`}
+            </small>
+          </article>
+          <article className={`is-${movement.direction}`}>
+            <span>Ritmo recente</span>
+            <strong>
+              {movement.rateCmPerHour === null ? "—" : formatRate(movement.rateCmPerHour)}
+            </strong>
+            <small>
+              {movement.changeCm === null
+                ? "Não calculado"
+                : `${formatCentimeters(movement.changeCm, true)} no período usado`}
+            </small>
+          </article>
+          <article>
+            <span>Amplitude observada</span>
+            <strong>{amplitudeCm === null ? "—" : formatCentimeters(amplitudeCm)}</strong>
+            <small>Diferença entre o máximo e o mínimo da janela</small>
+          </article>
+        </div>
+      ) : null}
 
       <div
         className="hydrology-rich-chart__plot"
@@ -350,6 +496,17 @@ export function HydrologyLevelChart({
                 ) : null,
               )
             : null}
+
+          {recentCoordinates.length >= 2 && movement.rateCmPerHour !== null ? (
+            <polyline
+              className={`hydrology-rich-chart__recent-line is-${movement.direction}`}
+              points={recentCoordinates.map((point) => `${point.x},${point.y}`).join(" ")}
+              fill="none"
+              vectorEffect="non-scaling-stroke"
+            >
+              <title>{`${movement.label}: ${formatRate(movement.rateCmPerHour)} nas últimas ${formatDuration(movement.durationMs!)}`}</title>
+            </polyline>
+          ) : null}
 
           {hasSeries
             ? coordinates.map((point, index) => (
