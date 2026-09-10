@@ -198,10 +198,13 @@ test("local warning keeps its copy and external station link aligned in one cont
   assert.match(homeContract, /hydrology-v2-reference-warning a[\s\S]*width:\s*fit-content/);
 });
 
-test("local series exposes trend and changes without inventing missing data", () => {
+test("local series exposes shared recent movement and changes without inventing missing data", () => {
   assert.match(page, /<HydrologyLevelChart/);
   assert.match(page, /points=\{level\.series\}/);
-  assert.match(page, /level\.trendCmPerHour/);
+  assert.match(page, /deriveRecentHydrologySeriesMovement\(level\.series, "m"\)/);
+  assert.doesNotMatch(page, /level\.trendCmPerHour/);
+  assert.match(page, /Movimento recente/);
+  assert.match(page, /último trecho contínuo das medições válidas/);
   assert.match(page, /level\.change1hCm/);
   assert.match(page, /level\.change6hCm/);
   assert.match(page, /level\.change24hCm/);
