@@ -14,6 +14,10 @@ const clientSource = readFileSync(
   "src/components/weather/LaranjalWeatherPageClient.tsx",
   "utf8",
 );
+const clientStyles = readFileSync(
+  "src/components/weather/LaranjalWeatherPageClient.module.css",
+  "utf8",
+);
 const levelRouteSource = readFileSync(
   "src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx",
   "utf8",
@@ -62,6 +66,20 @@ test("a página conecta editorialmente o Tempo Pelotas ao Portal Praia do Laranj
   assert.match(clientSource, /Acompanhe também o nível da Lagoa no Portal Praia do Laranjal/);
   assert.match(clientSource, /Ver nível no Portal Praia do Laranjal/);
   assert.doesNotMatch(clientSource, /nofollow/);
+});
+
+test("a previsão do Laranjal usa hero full-bleed e o rail responsivo da Home", () => {
+  assert.match(clientStyles, /--laranjal-frame-max:\s*var\(--tp-home-container-max, 1440px\)/);
+  assert.match(clientStyles, /--laranjal-frame-gutter:\s*var\(--tp-home-container-gutter, 48px\)/);
+  assert.match(clientStyles, /--laranjal-frame-compact-max:\s*var\(--tp-home-container-compact-max, 1180px\)/);
+  assert.match(clientStyles, /--laranjal-frame-mobile-gutter:\s*var\(--tp-home-container-mobile-gutter, 20px\)/);
+  assert.match(clientStyles, /\.page\s*\{[\s\S]*width:\s*100%/);
+  assert.match(clientStyles, /\.hero\s*\{[\s\S]*width:\s*100%/);
+  assert.match(clientStyles, /linear-gradient\(106deg, #f0fbfc 0%, #f8fbfb 47%, #fbfaff 77%, #f4f1ff 100%\)/);
+  assert.match(clientStyles, /\.currentCard\s*\{[\s\S]*border-radius:\s*22px/);
+  assert.match(clientStyles, /@media \(max-width: 1240px\)/);
+  assert.match(clientStyles, /@media \(max-width: 720px\)/);
+  assert.match(clientStyles, /@media \(forced-colors: active\)/);
 });
 
 test("a previsão do Laranjal continua descoberta sem depender do bloco técnico da página de nível", () => {
