@@ -51,7 +51,14 @@ test("mantém a entrada CSS global idêntica ao manifesto de produção sem prot
   );
   assert.ok(cssImports.includes("globals.css"));
   assert.ok(cssImports.includes("map.css"));
-  assert.ok(cssImports.includes("account-dashboard.css"), "o painel autenticado precisa carregar seu contrato visual global");
+  assert.ok(
+    cssImports.includes("account-dashboard.css"),
+    "o painel autenticado precisa carregar seu contrato visual global",
+  );
+  assert.ok(
+    cssImports.includes("account-access-overview.css"),
+    "a visão de acesso Free precisa carregar seu contrato visual global",
+  );
   assert.ok(cssImports.includes("document-scroll.css"));
   assert.ok(cssImports.includes("home-editorial-shell.css"));
   assert.ok(
