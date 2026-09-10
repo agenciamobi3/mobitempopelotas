@@ -1,0 +1,11 @@
+.managed-laranjal-level[data-show-movement="false"] > main > article > section:first-of-type > div:nth-child(2) {
+  display: none;
+}
+
+.managed-laranjal-level[data-show-chart="false"] > main > article > section:first-of-type + * {
+  display: none;
+}
+
+.managed-laranjal-level[data-show-updated-at="false"] > main > article > footer > div:first-child {
+  display: none;
+}
