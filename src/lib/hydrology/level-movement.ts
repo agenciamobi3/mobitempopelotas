@@ -21,6 +21,17 @@ export function toHydrologyCentimeters(value: number, unit: HydrologyLevelUnit) 
   return unit === "m" ? value * 100 : value;
 }
 
+function normalizeMovementPoints(points: HydrologyTimedLevelPoint[]) {
+  const byEpoch = new Map<number, HydrologyTimedLevelPoint>();
+
+  for (const point of points) {
+    if (!Number.isFinite(point.epoch) || !Number.isFinite(point.level)) continue;
+    byEpoch.set(point.epoch, point);
+  }
+
+  return [...byEpoch.values()].sort((left, right) => left.epoch - right.epoch);
+}
+
 function unavailableMovement(): HydrologyRecentMovement {
   return {
     direction: "unavailable",
@@ -36,15 +47,16 @@ export function deriveRecentHydrologyMovement(
   points: HydrologyTimedLevelPoint[],
   unit: HydrologyLevelUnit,
 ): HydrologyRecentMovement {
-  if (points.length < 2) return unavailableMovement();
+  const valid = normalizeMovementPoints(points);
+  if (valid.length < 2) return unavailableMovement();
 
-  const latest = points.at(-1)!;
+  const latest = valid.at(-1)!;
   const cutoff = latest.epoch - RECENT_MOVEMENT_WINDOW_MS;
-  let startIndex = points.findIndex((point) => point.epoch >= cutoff);
+  let startIndex = valid.findIndex((point) => point.epoch >= cutoff);
   if (startIndex < 0) startIndex = 0;
-  if (startIndex === points.length - 1) startIndex = Math.max(0, points.length - 2);
+  if (startIndex === valid.length - 1) startIndex = Math.max(0, valid.length - 2);
 
-  const start = points[startIndex]!;
+  const start = valid[startIndex]!;
   const durationMs = latest.epoch - start.epoch;
   if (durationMs <= 0) return unavailableMovement();
 
