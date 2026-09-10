@@ -13,6 +13,15 @@ const defesaCivil = readFileSync(
   "utf8",
 );
 const qualityWorkflow = readFileSync(".github/workflows/quality.yml", "utf8");
+const laranjalRoute = readFileSync("src/routes/nivel-da-lagoa-dos-patos-laranjal.tsx", "utf8");
+const lagoonLocalityRoute = readFileSync(
+  "src/routes/nivel-da-lagoa-dos-patos/$localitySlug.tsx",
+  "utf8",
+);
+const guaibaRoute = readFileSync("src/routes/nivel-do-guaiba.tsx", "utf8");
+const saoGoncaloRoute = readFileSync("src/routes/nivel-do-canal-sao-goncalo.tsx", "utf8");
+const jaguaraoRoute = readFileSync("src/routes/nivel-do-rio-jaguarao.tsx", "utf8");
+const overviewRoute = readFileSync("src/routes/situacao-hidrologica-pelotas.tsx", "utf8");
 
 test("gráfico de nível compartilhado é rico e não se resume a uma linha", () => {
   assert.match(chart, /hydrology-rich-chart__summary/);
@@ -110,6 +119,15 @@ test("estações da Defesa Civil não fabricam série quando só existe a leitur
   );
   assert.match(chart, /hasSeries \?/);
   assert.match(chart, /hydrology-rich-chart__single-note/);
+});
+
+test("rotas detalhadas de nível apontam para componentes cobertos pelo gráfico compartilhado", () => {
+  assert.match(laranjalRoute, /<LaranjalLevelPage/);
+  assert.match(lagoonLocalityRoute, /<LagoonHydrologyLocalityPage/);
+  assert.match(guaibaRoute, /<GuaibaLevelPage/);
+  assert.match(saoGoncaloRoute, /<DefesaCivilStationHydrologyPage/);
+  assert.match(jaguaraoRoute, /<DefesaCivilStationHydrologyPage/);
+  assert.match(overviewRoute, /<HydrologyOverviewV2/);
 });
 
 test("workflow de qualidade executa o contrato dos gráficos de nível", () => {
