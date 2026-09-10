@@ -117,17 +117,6 @@ export function LaranjalMonitoringHistory({
           </li>
         ))}
       </ol>
-
-      <footer className={styles.note}>
-        <p>
-          Essa sequência documenta a evolução do monitoramento no Trapiche, mas não comprova que o
-          medidor HidroSens de 2024, o sensor anunciado como equipamento da ANA em 2025 e a estação
-          telemétrica 87955001 compartilhem o mesmo hardware, zero de régua, RN ou datum vertical.
-          O cadastro da 87955001 é posterior ao anúncio municipal de 2025 e, sozinho, também não
-          estabelece essa identidade. Por isso, o Tempo Pelotas mantém as referências separadas até
-          existir documentação técnica suficiente.
-        </p>
-      </footer>
     </section>
   );
 }
