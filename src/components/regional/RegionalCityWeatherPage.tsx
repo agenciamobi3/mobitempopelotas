@@ -68,73 +68,67 @@ function RegionalOfficialAlertPanel({ data }: { data: RegionalCityWeatherData })
   const statusLabel = alert
     ? verified
       ? alert.severityLabel
-      : "Confira a classificação no INMET"
+      : "Classificação no INMET"
     : data.alerts.status === "unavailable"
       ? "Consulta indisponível"
       : "Sem aviso ativo";
   const title = alert
-    ? `${alert.event}: aviso do INMET para ${data.city.name}`
+    ? alert.event
     : data.alerts.status === "unavailable"
       ? "Avisos do INMET indisponíveis nesta consulta"
-      : `Sem aviso ativo do INMET para ${data.city.name}`;
+      : `Sem aviso ativo para ${data.city.name}`;
   const validity = alert
     ? verified
       ? `${formatRegionalDateTime(alert.startsAt)} até ${formatRegionalDateTime(alert.expiresAt)}`
-      : "Consulte início e término no aviso oficial do INMET"
+      : "Consulte início e término no aviso oficial"
     : data.alerts.status === "unavailable"
       ? "Confirme a situação nos canais oficiais"
-      : `Consulta feita em ${formatRegionalDateTime(data.source.fetchedAt)}`;
+      : `Consulta atualizada em ${formatRegionalDateTime(data.source.fetchedAt)}`;
   const officialUrl = alert?.officialUrl ?? data.alerts.sourceUrl;
 
   return (
     <section
       id="avisos-municipais"
-      className={`home-inmet-alerts ${severityClass}${verified ? " is-officially-classified" : " is-unverified"} regional-city-official-alert`}
+      className={`regional-city-official-alert regional-city-alert-bar ${severityClass}${verified ? " is-officially-classified" : " is-unverified"}`}
       data-alert-active={alert ? "true" : "false"}
       data-alert-period={period ?? "none"}
       data-alert-severity={alert?.severity ?? "unknown"}
       data-alert-official-semantics={verified ? "verified" : "unverified"}
       aria-labelledby="regional-inmet-title"
     >
-      <div className="home-inmet-alerts__main">
-        <div className="home-inmet-alerts__mark" aria-hidden="true">
-          <small>INMET</small>
-          <strong>{alert ? "!" : "✓"}</strong>
+      <div className="regional-city-alert-bar__mark" aria-hidden="true">
+        <small>INMET</small>
+        <strong>{alert ? "!" : "✓"}</strong>
+      </div>
+
+      <div className="regional-city-alert-bar__content">
+        <div className="regional-city-alert-bar__topline">
+          <span>Aviso oficial</span>
+          <b>{statusLabel}</b>
         </div>
-        <div className="home-inmet-alerts__copy">
-          <div className="home-inmet-alerts__topline">
-            <span>Aviso oficial</span>
-            <b>{statusLabel}</b>
-          </div>
+        <div className="regional-city-alert-bar__summary">
           <h2 id="regional-inmet-title">{title}</h2>
-          <div className="home-inmet-alerts__meta">
-            <span>
-              <small>Abrangência</small>
-              <strong>Município de {data.city.name}</strong>
-            </span>
-            <span>
-              <small>Período</small>
-              <strong>{validity}</strong>
-            </span>
-          </div>
+          <p>
+            {alert ? (
+              <>
+                Município de {data.city.name} <span aria-hidden="true">·</span> {validity}
+              </>
+            ) : (
+              validity
+            )}
+          </p>
         </div>
       </div>
-      <div className="home-inmet-alerts__aside">
-        <strong>{alert ? "Orientações oficiais" : "Fonte oficial"}</strong>
-        <small>
-          {alert
-            ? "Veja período, áreas atingidas e recomendações publicadas pelo INMET."
-            : "O INMET é consultado separadamente da previsão do modelo."}
-        </small>
-        <a
-          href={officialUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`Consultar o aviso oficial do INMET para ${data.city.name} em nova aba`}
-        >
-          Ver no INMET <span aria-hidden="true">→</span>
-        </a>
-      </div>
+
+      <a
+        className="regional-city-alert-bar__action"
+        href={officialUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Consultar o INMET para ${data.city.name} em nova aba`}
+      >
+        Ver no INMET <span aria-hidden="true">→</span>
+      </a>
     </section>
   );
 }
