@@ -52,6 +52,10 @@ const accentCss = readFileSync(
   new URL("../src/components/regional/RegionalCityAccentContract.css", import.meta.url),
   "utf8",
 );
+const visualCss = readFileSync(
+  new URL("../src/components/regional/RegionalCityVisualRefresh.css", import.meta.url),
+  "utf8",
+);
 
 test("páginas regionais usam o main semântico fornecido pelo layout global", () => {
   assert.doesNotMatch(pageSource, /<main\b/);
@@ -69,13 +73,19 @@ test("páginas regionais reutilizam os componentes meteorológicos sem duplicar 
   assert.doesNotMatch(pageSource, /className="regional-city-forecast"/);
 });
 
-test("primeira dobra regional mantém dados reais do WeatherSplitHero", () => {
-  assert.match(heroSource, /title={`Tempo em \$\{city\.name\} hoje`}/);
-  assert.match(heroSource, /currentLabel=\{current \? "Temperatura estimada agora" : "Estimativa atual"\}/);
-  assert.match(heroSource, /highlightLabel="Maior chance de chuva nas próximas 24h"/);
-  assert.match(heroSource, /label: "Umidade estimada"/);
-  assert.match(heroSource, /label: "Pressão ao nível do mar"/);
-  assert.match(heroSource, /label: "Faixa prevista hoje"/);
+test("primeira dobra regional responde com dados reais antes da copy institucional", () => {
+  assert.match(heroSource, /title={`Tempo em \$\{city\.name\}`}/);
+  assert.match(heroSource, /const currentCopy = current/);
+  assert.match(heroSource, /Agora em \$\{city\.name\}/);
+  assert.match(heroSource, /const rangeCopy = today/);
+  assert.match(heroSource, /Hoje, a previsão vai de/);
+  assert.match(heroSource, /const rainCopy =/);
+  assert.match(heroSource, /Não há destaque de chuva nas próximas 24 horas/);
+  assert.match(heroSource, /currentLabel=\{current \? `Agora em \$\{city\.name\}` : "Condição atual"\}/);
+  assert.match(heroSource, /highlightLabel="Chuva nas próximas 24 horas"/);
+  assert.match(heroSource, /label: "Sensação térmica"/);
+  assert.match(heroSource, /label: "Mínima \/ máxima hoje"/);
+  assert.match(heroSource, /label: "Vento agora"/);
   assert.match(heroSource, /label: "Rajada mais forte"/);
   assert.match(heroSource, /href="#previsao-hoje"/);
   assert.match(heroSource, /href="#tendencia"/);
@@ -89,7 +99,7 @@ test("primeira dobra regional mantém dados reais do WeatherSplitHero", () => {
   assert.match(heroCss, /\.regional-city-split-hero/);
 });
 
-test("SEO regional usa intenção direta e contexto próprio nas cidades prioritárias", () => {
+test("SEO regional mantém intenção direta e contexto próprio nas cidades prioritárias", () => {
   assert.match(editorialSource, /Tempo em \$\{city\.name\} hoje: previsão, chuva e vento/);
   for (const slug of [
     "rio-grande-rs",
@@ -107,7 +117,7 @@ test("SEO regional usa intenção direta e contexto próprio nas cidades priorit
     assert.match(editorialSource, new RegExp(`"${slug}"`));
   }
   assert.match(pageSource, /regionalCityMetaDescription\(city\)/);
-  assert.match(pageSource, /editorial\?\.sectionTitle/);
+  assert.match(pageSource, /O que vale observar em \{city\.name\}/);
   assert.match(pageSource, /editorial\?\.introduction/);
   assert.match(pageSource, /editorial\?\.facts/);
 });
@@ -122,39 +132,39 @@ test("hero regional não inventa pico de chuva, rajada ou leitura atual", () => 
   assert.match(heroSource, /const highestRainChance = peakRainCandidate\?\.rainChance \?\? null/);
   assert.match(heroSource, /const hasPositiveRainChance = \(highestRainChance \?\? 0\) > 0/);
   assert.match(heroSource, /const peakRain = hasPositiveRainChance \? peakRainCandidate : null/);
-  assert.match(heroSource, /Sem horário de destaque/);
+  assert.match(heroSource, /Sem horário de chuva em destaque/);
   assert.match(heroSource, /function gustMetric/);
   assert.match(heroSource, /if \(value <= 0\) return "Sem rajadas"/);
-  assert.match(heroSource, /Estimativa atual em atualização/);
-  assert.match(heroSource, /Nenhum valor foi preenchido manualmente/);
+  assert.match(heroSource, /A condição atual de \$\{city\.name\} está sendo atualizada/);
+  assert.match(heroSource, /Chance de chuva nas próximas horas ainda está sendo atualizada/);
 });
 
 test("hero regional escolhe CTA conforme a série realmente disponível", () => {
   assert.match(heroSource, /const hasHourlyForecast = Boolean\(today && data\.hourly\.length > 0\)/);
   assert.match(heroSource, /const hasDailyTrend = data\.daily\.length > 1/);
   assert.match(heroSource, /hasHourlyForecast \? \(/);
-  assert.match(heroSource, /Ver as próximas horas/);
+  assert.match(heroSource, /Próximas horas/);
   assert.match(heroSource, /hasDailyTrend \? \(/);
-  assert.match(heroSource, /Ver próximos dias/);
+  assert.match(heroSource, /Próximos dias/);
   assert.match(heroSource, /to="\/tempo-na-regiao-sul-rs"/);
-  assert.match(heroSource, /Ver central regional/);
+  assert.match(heroSource, /Central regional/);
 });
 
-test("camada local transforma o hero compartilhado em abertura editorial limpa", () => {
+test("camada regional atual usa abertura clara full-bleed e rail de 1440", () => {
   const identityIndex = pageSource.indexOf("RegionalCityIdentity.css");
   const accentIndex = pageSource.indexOf("RegionalCityAccentContract.css");
+  const visualIndex = pageSource.indexOf("RegionalCityVisualRefresh.css");
   assert.ok(identityIndex >= 0);
   assert.ok(accentIndex > identityIndex);
+  assert.ok(visualIndex > accentIndex);
   assert.match(accentCss, /\.regional-city-page \.regional-city-split-hero/);
-  assert.match(accentCss, /background:\s*#f5f8f8/);
-  assert.match(accentCss, /\.weather-split-hero__copy[\s\S]*background:\s*transparent/);
-  assert.match(accentCss, /\.weather-split-hero__copy h1[\s\S]*color:\s*#071e2f/);
-  assert.match(accentCss, /\.weather-split-hero__card\.is-elevated/);
-  assert.match(accentCss, /\.weather-split-hero__card\.is-strong/);
-  assert.match(accentCss, /\.weather-split-hero__card\.is-unknown/);
-  assert.match(accentCss, /min-height:\s*44px/);
-  assert.doesNotMatch(accentCss, /radial-gradient|linear-gradient/);
-  assert.doesNotMatch(accentCss, /!important/);
+  assert.match(visualCss, /width:\s*100vw/);
+  assert.match(visualCss, /linear-gradient\(105deg, #f2fbfc/);
+  assert.match(visualCss, /var\(--tp-home-container-max, 1440px\)/);
+  assert.match(visualCss, /grid-template-columns: minmax\(0, 0\.92fr\) minmax\(430px, 0\.78fr\)/);
+  assert.match(visualCss, /\.weather-split-hero__copy h1[\s\S]*font-size: clamp\(2\.85rem, 4\.4vw, 4\.45rem\)/);
+  assert.match(visualCss, /\.weather-split-hero__card dl[\s\S]*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.doesNotMatch(visualCss, /!important/);
 });
 
 test("âncoras regionais permanecem disponíveis sem índice visual ou markup morto", () => {
@@ -176,6 +186,8 @@ test("aviso municipal segue o mesmo contrato visual do painel INMET interno", ()
   assert.match(pageSource, /home-inmet-alerts__mark/);
   assert.match(pageSource, /home-inmet-alerts__meta/);
   assert.match(pageSource, /home-inmet-alerts__aside/);
+  assert.match(pageSource, /Sem aviso ativo do INMET para \$\{data\.city\.name\}/);
+  assert.match(pageSource, /Abrir INMET/);
 });
 
 test("previsão regional é adaptada sem duplicar a grade meteorológica", () => {
@@ -202,7 +214,7 @@ test("tema regional usa capítulos abertos e mantém links de cidades como unida
   assert.doesNotMatch(pageCss, /radial-gradient|linear-gradient/);
   assert.doesNotMatch(pageCss, /\.forecastGrid/);
   assert.doesNotMatch(pageCss, /\.nowCard/);
-  assert.match(heroCss, /width: min\(calc\(100% - var\(--regional-frame-gap\)\), var\(--regional-frame-max\)\)/);
+  assert.match(heroCss, /\.regional-city-split-hero/);
   assert.match(identityCss, /--regional-frame-max:\s*var\(--tp-home-container-max, 1440px\)/);
   assert.match(identityCss, /--regional-frame-gap:\s*var\(--tp-home-container-gutter, 48px\)/);
   assert.match(identityCss, /section\.regional-city-official-alert/);
