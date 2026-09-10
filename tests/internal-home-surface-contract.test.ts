@@ -110,6 +110,18 @@ test("dedicated regional, blog and support surfaces follow the Home visual langu
   assert.match(forecastAccuracyCss, /width:\s*100%/);
 });
 
+test("CPPMet feed follows the Home rail on desktop, compact and mobile layouts", () => {
+  assert.match(cppmetNewsCss, /--cppmet-frame-max:\s*var\(--tp-home-container-max, 1440px\)/);
+  assert.match(cppmetNewsCss, /--cppmet-frame-gutter:\s*var\(--tp-home-container-gutter, 48px\)/);
+  assert.match(cppmetNewsCss, /--cppmet-frame-compact-max:\s*var\(--tp-home-container-compact-max, 1180px\)/);
+  assert.match(cppmetNewsCss, /--cppmet-frame-compact-gutter:\s*var\(--tp-home-container-compact-gutter, 32px\)/);
+  assert.match(cppmetNewsCss, /--cppmet-frame-mobile-gutter:\s*var\(--tp-home-container-mobile-gutter, 20px\)/);
+  assert.match(cppmetNewsCss, /\.cppmet-blog__source-bar,\s*\.cppmet-blog__grid,\s*\.cppmet-blog__empty/);
+  assert.match(cppmetNewsCss, /@media \(max-width: 1240px\)/);
+  assert.match(cppmetNewsCss, /@media \(max-width: 760px\)/);
+  assert.match(cppmetNewsCss, /min-height:\s*44px/);
+});
+
 test("canonical PNG icon is served by the app and reused by favicon, PWA, offline and push", () => {
   assert.match(iconRoute, /createFileRoute\("\/brand\/tempo-pelotas-icon\.png"\)/);
   assert.match(iconRoute, /"Content-Type":\s*"image\/png"/);
