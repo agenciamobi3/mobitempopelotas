@@ -21,7 +21,10 @@ function assertPrivateResponseContract(source: string) {
 test("retorno pós-login aceita somente caminhos internos normalizados", () => {
   assert.equal(safeNextPath("/conta", "/"), "/conta");
   assert.equal(safeNextPath("/painel", "/"), "/painel");
-  assert.equal(safeNextPath("/conta?aba=privacidade#consentimentos", "/"), "/conta?aba=privacidade#consentimentos");
+  assert.equal(
+    safeNextPath("/conta?aba=privacidade#consentimentos", "/"),
+    "/conta?aba=privacidade#consentimentos",
+  );
   assert.equal(safeNextPath("https://exemplo.com/roubo", "/conta"), "/conta");
   assert.equal(safeNextPath("//exemplo.com/roubo", "/conta"), "/conta");
   assert.equal(safeNextPath("/\\exemplo.com/roubo", "/conta"), "/conta");
@@ -47,7 +50,10 @@ test("login Google usa Identity Services direto no portal e valida ID token no S
 });
 
 test("callback PKCE legado permanece seguro durante a transição", () => {
-  assert.match(callbackRoute, /safeNextPath\(url\.searchParams\.get\(["']next["']\), ["']\/conta["']\)/);
+  assert.match(
+    callbackRoute,
+    /safeNextPath\(url\.searchParams\.get\(["']next["']\), ["']\/conta["']\)/,
+  );
   assert.match(callbackRoute, /client\.auth\.exchangeCodeForSession\(code\)/);
   assert.match(callbackRoute, /new URL\(next, url\.origin\)/);
   assertPrivateResponseContract(callbackRoute);
@@ -68,10 +74,13 @@ test("painel exige autenticação server-side e permanece fora do índice", () =
   assert.match(dashboardRoute, /name:\s*["']robots["'], content:\s*["']noindex, nofollow["']/);
   assert.match(dashboardRoute, /const snapshot = await getAccountSnapshot\(\)/);
   assert.match(dashboardRoute, /snapshot\.status === ["']unauthenticated["']/);
-  assert.match(dashboardRoute, /redirect\(\{ to: ["']\/conta["'], search: \{ next: ["']\/painel["'] \} \}\)/);
+  assert.match(
+    dashboardRoute,
+    /throw redirect\(\{[\s\S]*?to:\s*["']\/conta["'][\s\S]*?next:\s*["']\/painel["'][\s\S]*?\}\);/,
+  );
 });
 
-test("exportação exige sessão, inclui camada de acesso e omite secrets", () => {
+test("exportação exige sessão, inclui acesso e dados pessoais Free sem secrets", () => {
   assert.match(exportRoute, /getVerifiedRequestUser\(request\)/);
   assert.match(exportRoute, /status:\s*401/);
   assert.match(exportRoute, /Content-Disposition/);
@@ -80,10 +89,21 @@ test("exportação exige sessão, inclui camada de acesso e omite secrets", () =
   assert.match(exportRoute, /\.from\("account_access"\)/);
   assert.match(exportRoute, /\.select\("tier,status,source,valid_until,created_at,updated_at"\)/);
   assert.match(exportRoute, /access:\s*accessResult\.data/);
-  assert.match(exportRoute, /export_version:\s*["']1\.1["']/);
-  assert.match(exportRoute, /\.select\(["']endpoint,user_agent,topics,created_at,updated_at,last_seen_at["']\)/);
-  assert.doesNotMatch(exportRoute, /\.select\(["'][^"']*(?:p256dh|auth|access_token|refresh_token|service_role)[^"']*["']\)/);
-  assert.match(exportRoute, /Chaves criptográficas de entrega e credenciais de sessão não fazem parte da exportação/);
+  assert.match(exportRoute, /export_version:\s*["']1\.3["']/);
+  assert.match(exportRoute, /\.from\("user_favorites"\)/);
+  assert.match(exportRoute, /\n\s*favorites,\n/);
+  assert.match(
+    exportRoute,
+    /\.select\(["']endpoint,user_agent,topics,created_at,updated_at,last_seen_at["']\)/,
+  );
+  assert.doesNotMatch(
+    exportRoute,
+    /\.select\(["'][^"']*(?:p256dh|auth|access_token|refresh_token|service_role)[^"']*["']\)/,
+  );
+  assert.match(
+    exportRoute,
+    /Chaves criptográficas de entrega, credenciais de sessão e o conteúdo binário dos anexos privados não fazem parte desta exportação/,
+  );
 });
 
 test("exclusão exige origem, frase exata, sessão revalidada e cascata administrativa", () => {
