@@ -28,22 +28,65 @@ type HydrologyLevelChartProps = {
   className?: string;
 };
 
+type NormalizedPoint = HydrologyLevelChartPoint & {
+  epoch: number;
+};
+
+type ChartCoordinate = NormalizedPoint & {
+  x: number;
+  y: number;
+};
+
 const WIDTH = 1040;
 const HEIGHT = 390;
 const PADDING = { top: 38, right: 38, bottom: 58, left: 72 } as const;
+const GAP_MULTIPLIER = 2.5;
 
-function normalizePoints(points: HydrologyLevelChartPoint[]) {
-  const byTimestamp = new Map<number, HydrologyLevelChartPoint>();
+function normalizePoints(points: HydrologyLevelChartPoint[]): NormalizedPoint[] {
+  const byTimestamp = new Map<number, NormalizedPoint>();
 
   for (const point of points) {
-    const timestamp = new Date(point.timestamp).getTime();
-    if (!Number.isFinite(point.level) || !Number.isFinite(timestamp)) continue;
-    byTimestamp.set(timestamp, point);
+    const epoch = new Date(point.timestamp).getTime();
+    if (!Number.isFinite(point.level) || !Number.isFinite(epoch)) continue;
+    byTimestamp.set(epoch, { ...point, epoch });
   }
 
-  return [...byTimestamp.entries()]
-    .sort(([left], [right]) => left - right)
-    .map(([, point]) => point);
+  return [...byTimestamp.values()].sort((left, right) => left.epoch - right.epoch);
+}
+
+function median(values: number[]) {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[middle] ?? null;
+  const left = sorted[middle - 1];
+  const right = sorted[middle];
+  return left === undefined || right === undefined ? null : (left + right) / 2;
+}
+
+function gapThreshold(points: NormalizedPoint[]) {
+  const intervals = points
+    .slice(1)
+    .map((point, index) => point.epoch - points[index]!.epoch)
+    .filter((interval) => interval > 0);
+  const typicalInterval = median(intervals);
+  return typicalInterval === null ? Number.POSITIVE_INFINITY : typicalInterval * GAP_MULTIPLIER;
+}
+
+function splitCoordinatesOnGaps(coordinates: ChartCoordinate[], thresholdMs: number) {
+  if (coordinates.length === 0) return [] as ChartCoordinate[][];
+
+  const segments: ChartCoordinate[][] = [[coordinates[0]!]];
+  for (let index = 1; index < coordinates.length; index += 1) {
+    const point = coordinates[index]!;
+    const previous = coordinates[index - 1]!;
+    if (point.epoch - previous.epoch > thresholdMs) {
+      segments.push([point]);
+    } else {
+      segments.at(-1)!.push(point);
+    }
+  }
+  return segments;
 }
 
 function formatLevel(value: number, unit: "m" | "cm") {
@@ -63,7 +106,7 @@ function formatDelta(first: number, last: number, unit: "m" | "cm") {
   }).format(rounded)} cm`;
 }
 
-function formatTime(value: string, withDate: boolean) {
+function formatTime(value: string | number, withDate: boolean) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat("pt-BR", {
@@ -76,6 +119,16 @@ function formatTime(value: string, withDate: boolean) {
 
 function markerLabel(prefix: string, value: number, unit: "m" | "cm") {
   return `${prefix} ${formatLevel(value, unit)} ${unit}`;
+}
+
+function areaPath(segment: ChartCoordinate[], baselineY: number) {
+  if (segment.length < 2) return null;
+  return [
+    `M ${segment[0]!.x} ${baselineY}`,
+    ...segment.map((point) => `L ${point.x} ${point.y}`),
+    `L ${segment.at(-1)!.x} ${baselineY}`,
+    "Z",
+  ].join(" ");
 }
 
 export function HydrologyLevelChart({
@@ -128,43 +181,38 @@ export function HydrologyLevelChart({
   const domainRange = domainMaximum - domainMinimum;
   const plotWidth = WIDTH - PADDING.left - PADDING.right;
   const plotHeight = HEIGHT - PADDING.top - PADDING.bottom;
-  const xForIndex = (index: number) =>
+  const firstEpoch = first.epoch;
+  const latestEpoch = latest.epoch;
+  const timeRange = Math.max(1, latestEpoch - firstEpoch);
+  const xForEpoch = (epoch: number) =>
     hasSeries
-      ? PADDING.left + (index / (valid.length - 1)) * plotWidth
+      ? PADDING.left + ((epoch - firstEpoch) / timeRange) * plotWidth
       : PADDING.left + plotWidth * 0.72;
   const yForValue = (value: number) =>
     PADDING.top + ((domainMaximum - value) / domainRange) * plotHeight;
-  const coordinates = valid.map((point, index) => ({
+  const coordinates: ChartCoordinate[] = valid.map((point) => ({
     ...point,
-    x: xForIndex(index),
+    x: xForEpoch(point.epoch),
     y: yForValue(point.level),
   }));
-  const line = coordinates.map((point) => `${point.x},${point.y}`).join(" ");
-  const area = hasSeries
-    ? [
-        `M ${coordinates[0]!.x} ${PADDING.top + plotHeight}`,
-        ...coordinates.map((point) => `L ${point.x} ${point.y}`),
-        `L ${coordinates.at(-1)!.x} ${PADDING.top + plotHeight}`,
-        "Z",
-      ].join(" ")
-    : "";
+  const thresholdMs = gapThreshold(valid);
+  const segments = splitCoordinatesOnGaps(coordinates, thresholdMs);
+  const hasGaps = segments.length > 1;
   const yTicks = Array.from({ length: 5 }, (_, index) => {
     const ratio = index / 4;
     const value = domainMaximum - ratio * domainRange;
     return { value, y: PADDING.top + ratio * plotHeight };
   });
-  const xTickIndexes = hasSeries
-    ? Array.from(
-        new Set([
-          0,
-          Math.round((valid.length - 1) / 3),
-          Math.round(((valid.length - 1) * 2) / 3),
-          valid.length - 1,
-        ]),
-      )
-    : [0];
-  const firstEpoch = new Date(first.timestamp).getTime();
-  const latestEpoch = new Date(latest.timestamp).getTime();
+  const xTicks = hasSeries
+    ? Array.from({ length: 4 }, (_, index) => {
+        const ratio = index / 3;
+        const epoch = firstEpoch + ratio * timeRange;
+        return {
+          epoch,
+          x: PADDING.left + ratio * plotWidth,
+        };
+      })
+    : [{ epoch: firstEpoch, x: xForEpoch(firstEpoch) }];
   const withDate = latestEpoch - firstEpoch > 36 * 60 * 60 * 1000;
   const validReferences = references.filter((reference) => Number.isFinite(reference.value));
   const referenceIsVisible = (reference: HydrologyLevelChartReference) =>
@@ -173,19 +221,22 @@ export function HydrologyLevelChart({
   const latestCoordinate = coordinates.at(-1)!;
   const minimumCoordinate = coordinates[minimumIndex]!;
   const maximumCoordinate = coordinates[maximumIndex]!;
+  const baselineY = PADDING.top + plotHeight;
 
   return (
     <figure
       className={`hydrology-rich-chart is-${status}${hasSeries ? " has-series" : " is-single"}${
-        className ? ` ${className}` : ""
-      }`}
+        hasGaps ? " has-gaps" : ""
+      }${className ? ` ${className}` : ""}`}
     >
       <figcaption className="hydrology-rich-chart__header">
         <div>
           <span>{eyebrow}</span>
           <strong>{windowLabel}</strong>
         </div>
-        <small>{hasSeries ? `${valid.length} medições válidas` : "1 leitura disponível"}</small>
+        <small>
+          {hasSeries ? `${valid.length} medições válidas${hasGaps ? " · série com lacunas" : ""}` : "1 leitura disponível"}
+        </small>
       </figcaption>
 
       <div className="hydrology-rich-chart__summary" aria-label="Resumo do gráfico de nível">
@@ -215,6 +266,7 @@ export function HydrologyLevelChart({
 
       <div
         className="hydrology-rich-chart__plot"
+        role="region"
         tabIndex={0}
         aria-label={`${ariaLabel}. Área rolável horizontalmente quando necessário.`}
       >
@@ -236,25 +288,17 @@ export function HydrologyLevelChart({
             </g>
           ))}
 
-          {xTickIndexes.map((index) => {
-            const coordinate = coordinates[index] ?? coordinates[0]!;
-            return (
-              <g
-                className="hydrology-rich-chart__grid hydrology-rich-chart__grid--vertical"
-                key={`x-${index}`}
-              >
-                <line
-                  x1={coordinate.x}
-                  x2={coordinate.x}
-                  y1={PADDING.top}
-                  y2={PADDING.top + plotHeight}
-                />
-                <text x={coordinate.x} y={HEIGHT - 22} textAnchor="middle">
-                  {formatTime(coordinate.timestamp, withDate)}
-                </text>
-              </g>
-            );
-          })}
+          {xTicks.map((tick, index) => (
+            <g
+              className="hydrology-rich-chart__grid hydrology-rich-chart__grid--vertical"
+              key={`x-${index}`}
+            >
+              <line x1={tick.x} x2={tick.x} y1={PADDING.top} y2={baselineY} />
+              <text x={tick.x} y={HEIGHT - 22} textAnchor="middle">
+                {formatTime(tick.epoch, withDate)}
+              </text>
+            </g>
+          ))}
 
           {visibleReferences.map((reference) => {
             const y = yForValue(reference.value);
@@ -271,9 +315,19 @@ export function HydrologyLevelChart({
             );
           })}
 
-          {hasSeries ? (
-            <path className="hydrology-rich-chart__area" d={area} fill={`url(#${gradientId})`} />
-          ) : null}
+          {hasSeries
+            ? segments.map((segment, index) => {
+                const path = areaPath(segment, baselineY);
+                return path ? (
+                  <path
+                    className="hydrology-rich-chart__area"
+                    d={path}
+                    fill={`url(#${gradientId})`}
+                    key={`area-${index}`}
+                  />
+                ) : null;
+              })
+            : null}
 
           <line
             className="hydrology-rich-chart__latest-guide"
@@ -283,14 +337,19 @@ export function HydrologyLevelChart({
             y2={latestCoordinate.y}
           />
 
-          {hasSeries ? (
-            <polyline
-              className="hydrology-rich-chart__line"
-              points={line}
-              fill="none"
-              vectorEffect="non-scaling-stroke"
-            />
-          ) : null}
+          {hasSeries
+            ? segments.map((segment, index) =>
+                segment.length >= 2 ? (
+                  <polyline
+                    className="hydrology-rich-chart__line"
+                    points={segment.map((point) => `${point.x},${point.y}`).join(" ")}
+                    fill="none"
+                    vectorEffect="non-scaling-stroke"
+                    key={`line-${index}`}
+                  />
+                ) : null,
+              )
+            : null}
 
           {hasSeries
             ? coordinates.map((point, index) => (
@@ -353,6 +412,13 @@ export function HydrologyLevelChart({
           </g>
         </svg>
       </div>
+
+      {hasGaps ? (
+        <p className="hydrology-rich-chart__gap-note">
+          A linha é interrompida onde existe uma lacuna relevante entre medições. O portal não liga
+          artificialmente períodos sem observação.
+        </p>
+      ) : null}
 
       {validReferences.length > 0 ? (
         <div className="hydrology-rich-chart__references" aria-label="Referências desta régua">
