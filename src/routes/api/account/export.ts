@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 
+import type { FavoriteDatabase, UserFavoriteRow } from "@/lib/auth/favorites.functions";
 import { getVerifiedRequestUser } from "@/lib/auth/request-user.server";
 import type { ContributionDatabase } from "@/lib/history/contribution-database";
 import {
@@ -12,6 +13,7 @@ const QUERY_TIMEOUT_MS = 3_500;
 const EXPORT_PAGE_SIZE = 500;
 
 type AccountAdminClient = ReturnType<typeof createSupabaseAdminClient>;
+type FavoriteExportRow = Pick<UserFavoriteRow, "resource_key" | "resource_type" | "created_at">;
 
 type ConsentExportRow = {
   channel: string;
@@ -115,6 +117,19 @@ async function loadNotificationDevices(admin: AccountAdminClient, userId: string
   }
 }
 
+async function loadFavorites(admin: AccountAdminClient, userId: string) {
+  const client = admin as unknown as SupabaseClient<FavoriteDatabase>;
+  const { data, error } = await client
+    .from("user_favorites")
+    .select("resource_key,resource_type,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true })
+    .abortSignal(timeoutSignal());
+
+  if (error) throw new Error(`Falha ao consultar favoritos: ${error.message}`);
+  return (data ?? []) as FavoriteExportRow[];
+}
+
 async function loadHistoricalContributions(admin: AccountAdminClient, userId: string) {
   const client = admin as unknown as SupabaseClient<ContributionDatabase>;
   const records: ContributionDatabase["public"]["Tables"]["historical_contributions"]["Row"][] = [];
@@ -178,6 +193,7 @@ async function exportAccountData(request: Request) {
       accessResult,
       consentHistory,
       notificationDevices,
+      favorites,
       historicalContributions,
     ] = await Promise.all([
       admin
@@ -202,6 +218,7 @@ async function exportAccountData(request: Request) {
         .maybeSingle(),
       loadConsentHistory(admin, account.user.id),
       loadNotificationDevices(admin, account.user.id),
+      loadFavorites(admin, account.user.id),
       loadHistoricalContributions(admin, account.user.id),
     ]);
 
@@ -219,7 +236,7 @@ async function exportAccountData(request: Request) {
 
     const exportedAt = new Date();
     const document = {
-      export_version: "1.2",
+      export_version: "1.3",
       exported_at: exportedAt.toISOString(),
       portal: "Tempo Pelotas",
       account: {
@@ -231,6 +248,7 @@ async function exportAccountData(request: Request) {
         preferences: preferencesResult.data,
         access: accessResult.data,
       },
+      favorites,
       consent_history: consentHistory,
       notification_devices: notificationDevices,
       historical_contributions: historicalContributions,
