@@ -9,15 +9,6 @@ import {
   Minus,
   Waves,
 } from "lucide-react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 import {
   COSTA_DOCE_CITIES,
@@ -35,6 +26,7 @@ import type {
   LagoonMonitoringObservation,
 } from "@/lib/hydrology/lagoon-network.server";
 
+import { HydrologyLevelChart } from "./HydrologyLevelChart";
 import "./LagoonHydrologyLocalityPage.css";
 
 function formatNumber(value: number | null, maximumFractionDigits = 1) {
@@ -68,16 +60,6 @@ function latestObservationTime(network: LagoonMonitoringNetworkData) {
     const current = new Date(latest).getTime();
     return !Number.isFinite(current) || candidate > current ? observation.updatedAt : latest;
   }, null);
-}
-
-function formatChartTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }
 
 function trendState(value: number | null) {
@@ -233,7 +215,18 @@ export function LagoonHydrologyLocalityPage({ locality, network, observation }: 
   const trend = trendState(observation?.trendCmPerHour ?? null);
   const TrendIcon = trend.icon;
   const weatherPath = hydrologyLocalityWeatherPath(locality);
-  const chartData = observation?.series.map((point) => ({ ...point, label: formatChartTime(point.timestamp) })) ?? [];
+  const chartPoints = (observation?.series ?? []).map((point) => ({
+    timestamp: point.timestamp,
+    level: point.levelCm,
+  }));
+  const chartReferences = [
+    ...(observation?.floodLevelCm !== null && observation?.floodLevelCm !== undefined
+      ? [{ label: "Cota local publicada", value: observation.floodLevelCm, tone: "attention" as const }]
+      : []),
+    ...(observation?.may2024MaximumCm !== null && observation?.may2024MaximumCm !== undefined
+      ? [{ label: "Máxima de maio de 2024", value: observation.may2024MaximumCm, tone: "reference" as const }]
+      : []),
+  ];
 
   return (
     <div className="lagoon-locality-page">
@@ -271,21 +264,17 @@ export function LagoonHydrologyLocalityPage({ locality, network, observation }: 
 
       <section className="lagoon-locality-series" aria-labelledby="lagoon-locality-series-title">
         <header><div><span className="lagoon-locality-eyebrow">Série recente</span><h2 id="lagoon-locality-series-title">Evolução das leituras disponíveis</h2></div><p>A série mostra medições recentes recebidas da mesma estação. Lacunas da fonte não são interpoladas pelo portal.</p></header>
-        {chartData.length > 1 ? (
-          <div className="lagoon-locality-chart">
-            <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" minTickGap={48} />
-                <YAxis dataKey="levelCm" width={54} />
-                <Tooltip labelFormatter={(value) => `Horário: ${String(value)}`} formatter={(value) => [`${formatNumber(Number(value))} cm`, "Nível"]} />
-                <Line type="monotone" dataKey="levelCm" strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="lagoon-locality-empty-series"><Activity aria-hidden="true" /><p>A fonte não disponibilizou pontos suficientes para desenhar a série nesta atualização.</p></div>
-        )}
+        <HydrologyLevelChart
+          points={chartPoints}
+          unit="cm"
+          status={observation?.status ?? "unavailable"}
+          ariaLabel={`Evolução recente do nível em ${locality.name}`}
+          eyebrow="Série recente"
+          windowLabel={`Evolução em ${locality.stationName}`}
+          latestLabel={observation?.status === "stale" ? "Última leitura conhecida" : "Leitura mais recente"}
+          emptyMessage="A fonte não disponibilizou pontos suficientes para desenhar a série nesta atualização."
+          references={chartReferences}
+        />
       </section>
 
       <section className="lagoon-locality-explainer">
