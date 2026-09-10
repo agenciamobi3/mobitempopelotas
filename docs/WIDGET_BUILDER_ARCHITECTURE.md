@@ -1,150 +1,151 @@
 # Tempo Pelotas — arquitetura do gerador de widgets
 
 Última atualização: 10/09/2026  
-Estado: fundação publicada; 5 módulos; V2 de aparência predefinida e editável versionada
+Estado: fundação publicada; 5 módulos; aparência, apresentação, blocos controlados e prévia real versionados
 
 ## Objetivo
 
-Permitir que uma pessoa autenticada no Tempo Pelotas crie widgets responsivos para incorporar em sites externos sem copiar lógica de fontes, expor credenciais ou depender do CSS/JavaScript do site hospedeiro.
+Permitir que uma pessoa autenticada crie widgets responsivos para incorporar em sites externos sem copiar lógica de fontes, expor credenciais ou depender do CSS/JavaScript do site hospedeiro.
 
-A personalização visual deve ajudar o widget a se integrar ao site do usuário sem abrir uma superfície de HTML/CSS arbitrário. Billing comercial não faz parte deste workset.
+A personalização existe para encaixar o widget visualmente no site do usuário, mas continua sendo uma superfície controlada pelo Tempo Pelotas. Não há editor de CSS, HTML ou JavaScript arbitrário.
 
-## Política de produto da fase atual
+## Política Free desta fase
 
-A camada Free permanece propositalmente generosa para estimular cadastro, uso real e aprendizado de produto:
+A conta Free permanece propositalmente generosa:
 
-- acesso ao gerador: habilitado;
-- criação: habilitada;
-- quantidade de widgets: sem limite nesta fase (`widgetsMax=null`);
-- Nível do Laranjal: habilitado;
-- Tempo agora em Pelotas: habilitado;
-- Previsão de 7 dias: habilitada;
-- Chuva em Pelotas: habilitada;
-- Vento e rajadas: habilitado;
-- estilos predefinidos e ajustes visuais controlados: habilitados;
-- marca Tempo Pelotas: mantida;
-- billing: inexistente;
-- bloqueio por plano: somente infraestrutura, ainda sem venda comercial.
+- acesso e criação de widgets: habilitados;
+- quantidade: sem limite nesta fase (`widgetsMax=null`);
+- cinco módulos atuais habilitados;
+- quatro estilos predefinidos habilitados;
+- ajustes de cor, cantos e densidade habilitados;
+- apresentações Cartão, Compacto e Horizontal habilitadas;
+- escolha de blocos visíveis habilitada;
+- prévia real antes da criação habilitada;
+- marca Tempo Pelotas mantida;
+- billing comercial inexistente nesta frente.
 
-Uma futura mudança para PRO deve ocorrer pelos entitlements centrais, módulo por módulo, sem alterar o caráter público dos dados que já são públicos no portal.
+Uma futura segmentação PRO deve ocorrer por entitlement e nunca transformar dado público do portal em dado privado.
 
 ## Módulos
 
-O `Widget Registry` em `src/lib/widgets/widget-registry.ts` é a fonte de verdade para módulos gerenciáveis.
+O `Widget Registry` em `src/lib/widgets/widget-registry.ts` permanece a fonte de verdade dos módulos gerenciáveis:
 
-1. `nivel-laranjal`
-   - reutiliza o componente responsivo já existente do nível da Lagoa dos Patos no Laranjal;
-   - entitlement: `widgetsLaranjal`.
+1. `nivel-laranjal` — nível da Lagoa dos Patos no Laranjal;
+2. `status-tempo-agora` — temperatura observada e condição atual;
+3. `previsao-7-dias` — sete dias consolidados;
+4. `chuva-pelotas` — observação e previsão de chuva mantidas separadas;
+5. `vento-pelotas` — vento e rajadas atuais e previstos.
 
-2. `status-tempo-agora`
-   - reutiliza o widget compacto já existente de temperatura observada + condição;
-   - entitlement: `widgetsCurrentWeather`.
+As fontes e regras meteorológicas/hidrológicas continuam nos serviços originais. O builder controla apresentação, não a verdade do dado.
 
-3. `previsao-7-dias`
-   - usa `getAggregatedPelotasWeather`;
-   - exibe sete dias com mínima, máxima, chuva e rajadas;
-   - renderer compacto: `SevenDayForecastWidget`;
-   - entitlement: `widgetsSevenDayForecast`.
+## Aparência controlada
 
-4. `chuva-pelotas`
-   - usa a mesma consolidação meteorológica do portal;
-   - mantém chuva observada da Embrapa separada da chuva prevista;
-   - exibe chance e volume das próximas horas sem somar janelas incompatíveis;
-   - renderer compacto: `RainWidget`;
-   - entitlement: `widgetsRain`.
+`src/lib/widgets/widget-appearance.ts` centraliza os presets e tokens seguros.
 
-5. `vento-pelotas`
-   - usa a consolidação meteorológica existente;
-   - exibe vento e rajada atuais mais tendência horária de velocidade e rajadas;
-   - renderer compacto: `WindWidget`;
-   - entitlement: `widgetsWind`.
+Presets atuais:
 
-Não há HTML/JavaScript arbitrário definido pelo usuário.
-
-A validação de criação não repete uma enumeração manual dos módulos: `widget.functions.ts` valida o valor contra `isWidgetType`, derivado do próprio registry. Isso evita desalinhamento entre gerador e endpoint.
-
-## V2 de aparência
-
-`src/lib/widgets/widget-appearance.ts` centraliza a aparência permitida. O usuário começa por um preset e pode ajustar somente tokens seguros.
-
-Presets Free atuais:
-
-1. `tempo-dark` — Tempo Dark, escuro e editorial;
-2. `clean-light` — Claro Editorial, adequado a sites institucionais claros;
-3. `soft-glass` — Glass Suave, translúcido para páginas com fotografia/gradientes;
-4. `minimal-neutral` — Minimal, mais compacto e com pouco ornamento.
+- `tempo-dark` — Tempo Dark;
+- `clean-light` — Claro Editorial;
+- `soft-glass` — Glass Suave;
+- `minimal-neutral` — Minimal.
 
 Ajustes permitidos:
 
-- `accentColor`: HEX de 6 dígitos;
+- `accentColor`: HEX de seis dígitos;
 - `radius`: inteiro entre 0 e 36 px;
 - `density`: `comfortable|compact`.
 
-Não são aceitos:
+Não são aceitos CSS livre, HTML customizado, JavaScript do usuário, URL arbitrária de fonte/imagem ou remoção da marca no Free.
 
-- CSS livre;
-- `style` arbitrário vindo do browser;
-- HTML customizado;
-- JavaScript do usuário;
-- URL de fonte/imagem arbitrária;
-- remoção de marca no Free.
+## Apresentação e blocos
 
-Selecionar outro preset restaura os defaults coerentes daquela base. Depois disso, cor, cantos e densidade podem ser refinados.
+`src/lib/widgets/widget-content.ts` centraliza a segunda camada de configuração.
 
-O builder apresenta uma amostra imediata. Em widgets existentes, o usuário abre **Personalizar estilo**, altera os tokens e salva; a versão do widget é incrementada e a prévia real é recarregada com `?v=<version>` sem mudar o snippet público.
+Apresentações permitidas:
 
-## Persistência e segurança
+- `card` — Cartão: largura equilibrada para páginas e colunas;
+- `compact` — Compacto: até aproximadamente 420 px, adequado a sidebar, rodapé e grids estreitos;
+- `horizontal` — Horizontal: ocupa a largura disponível e reorganiza os blocos em faixas/colunas quando há espaço.
 
-A migration `20260829061000_create_user_widgets.sql` cria `public.user_widgets`.
+Em telas estreitas o modo Horizontal volta a uma coluna para não criar overflow.
 
-Cada registro possui:
+Os blocos configuráveis são fechados por módulo:
 
-- `user_id` privado;
-- `public_token` UUID aleatório e único;
-- `widget_type`;
-- título interno/de acessibilidade;
-- `theme` legado/compatibilidade (`auto|light|dark`);
-- `config` JSON controlado pelo produto;
-- estado `active|inactive`;
-- versão;
-- timestamps.
+- `nivel-laranjal`: movimento recente, gráfico recente, horário da leitura;
+- `status-tempo-agora`: ícone e descrição da condição; temperatura permanece como núcleo do módulo;
+- `previsao-7-dias`: chuva, rajadas e horário de atualização; dias e mínima/máxima permanecem como núcleo;
+- `chuva-pelotas`: chuva observada, previsão de hoje e próximas horas;
+- `vento-pelotas`: vento atual, rajada atual e próximas horas.
 
-A V2 não exige migration nova. A aparência é armazenada em `config.appearance`, preservando futuras configurações de conteúdo no mesmo objeto. `theme` continua preenchido como compatibilidade e é derivado do esquema do preset.
+O editor impede desligar o último bloco configurável. O servidor também valida cada chave contra o catálogo do módulo, portanto um cliente adulterado não consegue persistir um bloco inventado.
 
-Regras:
+## Prévia real antes de criar
 
-- RLS ligada;
-- usuário autenticado só lê/cria/altera/exclui os próprios widgets;
+O builder não usa uma maquete com temperatura ou previsão fictícia. A prévia aponta para o mesmo renderer `/embed/widget` e utiliza as mesmas funções de dados do widget definitivo.
+
+Uma definição efêmera é formada apenas com parâmetros enumerados e validados:
+
+- módulo;
+- preset;
+- cor;
+- raio;
+- densidade;
+- apresentação;
+- blocos permitidos.
+
+A definição recebe `publicToken=preview`, não cria registro no banco e não aceita código arbitrário. O payload é carregado pelas mesmas funções reais:
+
+- `getLaranjalLevelData`;
+- `getObsWeatherStatus`;
+- `getAggregatedPelotasWeather`.
+
+O iframe devolve sua altura pelo mesmo protocolo `tempo-pelotas-widget`. O builder valida origem, `contentWindow`, token e tipo da mensagem antes de ajustar a altura. Widgets já salvos usam o mesmo mecanismo na prévia do painel.
+
+## Persistência e compatibilidade
+
+A migration `20260829061000_create_user_widgets.sql` continua suficiente. Nenhuma migration adicional é necessária para aparência/apresentação porque `user_widgets.config` já é JSON controlado pelo produto.
+
+Estrutura relevante:
+
+- `config.appearance`: preset, cor, raio e densidade;
+- `config.content`: apresentação e lista de blocos visíveis.
+
+Criação e edição fazem merge no JSON para não destruir futuras configurações. Atualização de widget existente usa owner + versão atual como condição, evitando sobrescrita silenciosa concorrente.
+
+Widgets antigos sem `config.content` recebem `card` + todos os blocos do módulo. Widgets sem `config.appearance` continuam usando o fallback legado de tema. Assim não há migração destrutiva dos registros existentes.
+
+## Segurança
+
+Permanece válido:
+
+- RLS em `user_widgets`;
+- usuário autenticado só altera os próprios widgets;
 - `anon` não recebe `SELECT` na tabela;
-- o público resolve somente widgets ativos pela RPC `get_public_widget(uuid)`;
+- o público resolve apenas widget ativo pela RPC `get_public_widget(uuid)`;
 - a RPC não retorna `user_id`;
-- token inválido, inexistente ou widget pausado não revela metadados da conta;
-- atualização de aparência exige `widgetsAdvancedThemes` e owner;
-- update visual usa a versão atual como condição, evitando sobrescrita silenciosa concorrente;
-- atualização visual faz merge em `config`, não apaga chaves de conteúdo futuras.
-
-Widgets antigos sem `config.appearance` permanecem válidos: `theme=light` é interpretado como `clean-light`; os demais temas legados usam `tempo-dark` como fallback seguro.
+- token inválido ou widget pausado não revela metadados privados;
+- aparência e conteúdo exigem entitlement de personalização;
+- `visibleBlocks` é validado contra o catálogo do tipo do widget;
+- nenhum campo aceita CSS/HTML/JavaScript fornecido pelo usuário.
 
 ## Fluxo do usuário
 
-A área autenticada está em `/widgets` e é descoberta pelo módulo “Gerador de widgets” em `/painel`.
+Em `/widgets`:
 
-Fluxo de criação:
+1. escolhe o módulo;
+2. define um nome;
+3. escolhe um preset visual;
+4. refina cor, cantos e densidade;
+5. escolhe Cartão, Compacto ou Horizontal;
+6. liga/desliga apenas os blocos permitidos para aquele módulo;
+7. vê a prévia real antes de gravar;
+8. cria o widget;
+9. copia o snippet;
+10. posteriormente reabre **Personalizar widget**, salva nova versão, pausa ou reativa.
 
-1. usuário escolhe um módulo habilitado;
-2. define o nome do widget;
-3. escolhe um dos quatro estilos predefinidos;
-4. refina cor de destaque, arredondamento e densidade;
-5. cria o registro vinculado à própria conta;
-6. recebe a prévia real;
-7. copia o snippet;
-8. pode reabrir o editor visual, salvar nova versão, pausar ou reativar o widget.
-
-Se a sessão expirar durante criação/edição, o login retorna para `/widgets`.
+O snippet público não muda quando a pessoa edita aparência ou conteúdo.
 
 ## Contrato de incorporação
-
-Snippet canônico:
 
 ```html
 <script
@@ -154,92 +155,44 @@ Snippet canônico:
 ></script>
 ```
 
-O domínio público do embed é sempre `https://tempopelotas.com.br`.
+`public/widgets/embed.js` cria iframe isolado, usa largura 100%, valida mensagens pela origem/token/frame e ajusta a altura. O CSS do site hospedeiro não é injetado dentro do widget e o CSS do widget não escapa para o site.
 
-`public/widgets/embed.js`:
+O renderer marca sua raiz com:
 
-- cria um iframe isolado;
-- usa largura `100%`;
-- valida `postMessage` pela origem canônica, pelo `contentWindow` do iframe e pelo token;
-- ajusta a altura automaticamente;
-- não injeta estilos do Tempo Pelotas no documento hospedeiro.
+- `data-widget-preset`;
+- `data-widget-scheme`;
+- `data-widget-density`;
+- `data-widget-presentation`.
 
-O renderer `/embed/widget?token=...`:
-
-- é `noindex`;
-- resolve apenas token ativo;
-- seleciona o módulo pelo registry;
-- normaliza `config.appearance` no servidor;
-- converte o preset em design tokens/CSS variables controladas;
-- marca o wrapper com `data-widget-preset`, `data-widget-scheme` e `data-widget-density`;
-- aplica `ManagedWidgetAppearance.css` somente dentro do iframe;
-- reutiliza componentes controlados pelo Tempo Pelotas;
-- envia a altura com `ResizeObserver`;
-- recebe `frame-ancestors *` somente porque é uma superfície dedicada de embed;
-- força `Cache-Control: no-store` e `CDN-Cache-Control: no-store` no wrapper de resposta para que pausa/reativação e mudanças visuais não fiquem presas em cache intermediário.
-
-As páginas normais do portal não têm sua política de frame relaxada por causa desta feature. Os embeds públicos fixos continuam com a política de cache anterior.
+`ManagedWidgetAppearance.css` transforma esses atributos em layout responsivo. A personalização nunca altera fonte, unidade, horário, proveniência ou semântica dos dados.
 
 ## Entitlements
 
-`AccountEntitlements` contém:
-
-- `widgetsAccess`;
-- `widgetsCreate`;
-- `widgetsMax`;
-- `widgetsLaranjal`;
-- `widgetsCurrentWeather`;
-- `widgetsSevenDayForecast`;
-- `widgetsRain`;
-- `widgetsWind`;
-- `widgetsAdvancedThemes`;
-- `widgetsRemoveBranding`.
-
-Nesta fase, `widgetsAdvancedThemes=true` no Free. Isso libera presets e tokens de aparência controlados. `widgetsRemoveBranding=false` permanece separado e a marca Tempo Pelotas continua presente.
-
-## Evolução planejada
-
-Depois da V2 visual, os próximos candidatos naturais são:
-
-- opções controladas de conteúdo por módulo, como densidade informacional e métricas exibidas;
-- nível do Guaíba;
-- rede regional da Lagoa dos Patos;
-- alertas oficiais;
-- radar;
-- widgets compostos.
-
-A próxima camada de configuração deve continuar obedecendo à mesma regra: opções enumeradas pelo produto, sem código arbitrário fornecido pelo usuário.
-
-Antes de restringir qualquer módulo Free, observar uso real e definir proposta de valor do futuro plano pago.
-
-## Gates de validação
-
-1. `/widgets`, `/widgets/embed.js` e `/embed/widget` estão versionados e já tiveram publicação funcional observada em rodadas anteriores;
-2. a V2 visual precisa passar pelos contratos, build, typecheck e navegador quando o runner do GitHub Actions voltar a receber jobs normalmente;
-3. o E2E autenticado de criação + edição deve usar conta descartável apropriada; contas reais não serão modificadas silenciosamente;
-4. Previsão de 7 dias, Chuva e Vento continuam reutilizando a consolidação meteorológica existente, sem novas credenciais e sem escrita extra de dados meteorológicos;
-5. a personalização não altera fonte, unidade, horário, proveniência ou semântica do dado.
-
-Em 10/09/2026 o workflow `Qualidade` continuava apresentando falha de infraestrutura antes do primeiro step (`runner_id=0`, `steps=[]`) em runs anteriores. Enquanto esse estado persistir, uma conclusão vermelha sem steps não deve ser interpretada como reprovação do código.
+`AccountEntitlements` continua contendo os gates de acesso, criação, módulos, temas avançados e remoção de marca. Nesta fase `widgetsAdvancedThemes=true` no Free e também governa apresentação/blocos controlados. `widgetsRemoveBranding=false` permanece separado.
 
 ## Testes
 
-`tests/widget-builder-foundation.test.ts` continua protegendo a fundação V1.
+`tests/widget-builder-foundation.test.ts` protege a fundação V1.
 
-`tests/widget-builder-appearance.test.ts` protege a V2:
+`tests/widget-builder-appearance.test.ts` protege presets, tokens, HEX, radius, density, owner, versionamento, isolamento e acessibilidade visual. Esse arquivo também importa o contrato da camada de conteúdo para que o step dedicado do workflow cubra a experiência completa do builder.
 
-- quatro presets atuais;
-- entitlement de temas avançados no Free;
-- defaults dos presets;
-- normalização de HEX, radius e density;
-- rejeição/fallback de configuração inválida;
-- merge que preserva outras chaves do `config`;
-- design tokens do renderer;
-- presença dos controles radio/color/range/density;
-- edição de widgets existentes;
-- versionamento otimista por owner;
-- ausência de HTML/CSS arbitrário;
-- aplicação isolada no renderer;
-- responsividade 4 → 2 → 1, foco, reduced motion e forced colors.
+`tests/widget-builder-content.test.ts` protege:
 
-O workflow `Qualidade` executa o contrato de aparência em step dedicado além dos contratos rápidos da fundação.
+- as três apresentações permitidas;
+- defaults e normalização por módulo;
+- rejeição de blocos inventados;
+- preservação de outras chaves em `config`;
+- impossibilidade de desligar o último bloco no editor;
+- persistência por owner e versão;
+- prévia real antes de criar;
+- validação das mensagens do iframe;
+- autoaltura de previews salvos;
+- uso das mesmas funções de dados no preview e no widget definitivo;
+- aplicação dos blocos nos cinco módulos;
+- responsividade do modo Horizontal.
+
+## Gate atual
+
+O workflow `Qualidade` continua configurado para executar o contrato de personalização em step dedicado, seguido de build, rotas, TypeScript, lint e navegador. Em 10/09/2026 os runs observados ainda encerravam antes do primeiro step (`runner_id=0`, `steps=[]`). Enquanto isso persistir, vermelho sem steps significa indisponibilidade do runner, não reprovação do código.
+
+Antes de restringir qualquer recurso do Free, deve-se observar uso real e definir a proposta do futuro plano pago.
