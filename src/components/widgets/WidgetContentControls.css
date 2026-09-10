@@ -199,6 +199,8 @@
   height: 18px;
   min-height: 0;
   margin: 1px 0 0;
+  padding: 0;
+  border: 0;
   accent-color: #087c8a;
 }
 
