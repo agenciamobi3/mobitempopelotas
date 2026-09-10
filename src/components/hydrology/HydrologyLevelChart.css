@@ -246,6 +246,16 @@
   fill: #a83737;
 }
 
+.hydrology-rich-chart__gap-note {
+  margin: 0;
+  padding: 10px 24px 12px;
+  border-top: 1px solid var(--hydrology-chart-border);
+  background: rgb(245 249 250 / 72%);
+  color: var(--hydrology-chart-muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
 .hydrology-rich-chart__references {
   display: grid;
   gap: 9px;
@@ -428,6 +438,7 @@
     min-width: 560px;
   }
 
+  .hydrology-rich-chart__gap-note,
   .hydrology-rich-chart__references {
     padding-inline: 14px;
   }
@@ -482,6 +493,7 @@
     display: none;
   }
 
+  .hydrology-rich-chart__gap-note,
   .hydrology-rich-chart__references article {
     border-color: CanvasText;
     background: Canvas;
