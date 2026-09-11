@@ -37,6 +37,22 @@ function applyPrivateHeaders(headers = new Headers()) {
   setResponseHeaders(headers);
 }
 
+function persistLayout(
+  client: SupabaseClient<DashboardPreferencesDatabase>,
+  userId: string,
+  layout: DashboardLayout,
+) {
+  return client
+    .from("user_preferences")
+    .update({
+      dashboard_layout: layout as unknown as Json,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("user_id", userId)
+    .select("dashboard_layout")
+    .maybeSingle();
+}
+
 export const saveAccountDashboardLayout = createServerFn({ method: "POST" })
   .validator(dashboardLayoutSchema)
   .handler(async ({ data }) => {
@@ -58,23 +74,29 @@ export const saveAccountDashboardLayout = createServerFn({ method: "POST" })
 
     const dashboardClient = client as unknown as SupabaseClient<DashboardPreferencesDatabase>;
     const layout = normalizeDashboardLayout(data) satisfies DashboardLayout;
-    const { error } = await dashboardClient
-      .from("user_preferences")
-      .update({
-        dashboard_layout: layout as unknown as Json,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id);
+    let result = await persistLayout(dashboardClient, user.id, layout);
+
+    if (!result.error && !result.data) {
+      const repair = await client.rpc("ensure_current_user_account_foundation");
+      if (!repair.error) {
+        result = await persistLayout(dashboardClient, user.id, layout);
+      } else {
+        console.error("[account/layout] Falha ao reparar preferências antes de salvar layout", {
+          code: repair.error.code,
+          message: repair.error.message,
+        });
+      }
+    }
 
     applyPrivateHeaders(responseHeaders);
 
-    if (error) {
+    if (result.error || !result.data) {
       console.error("[account/layout] Falha ao salvar layout do painel", {
-        code: error.code,
-        message: error.message,
+        code: result.error?.code,
+        message: result.error?.message ?? "Nenhuma linha de preferências foi atualizada.",
       });
       return { ok: false as const, code: "storage" as const };
     }
 
-    return { ok: true as const, layout };
+    return { ok: true as const, layout: normalizeDashboardLayout(result.data.dashboard_layout) };
   });
