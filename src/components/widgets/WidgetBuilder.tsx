@@ -33,6 +33,34 @@ type Feedback = {
   text: string;
 } | null;
 
+type PreviewFit = "sidebar" | "content" | "full";
+
+const PREVIEW_FIT_OPTIONS: ReadonlyArray<{
+  key: PreviewFit;
+  label: string;
+  widthLabel: string;
+  description: string;
+}> = [
+  {
+    key: "sidebar",
+    label: "Sidebar",
+    widthLabel: "360 px",
+    description: "Coluna lateral, cards estreitos e áreas auxiliares.",
+  },
+  {
+    key: "content",
+    label: "Conteúdo",
+    widthLabel: "720 px",
+    description: "Coluna principal de artigo, notícia ou página institucional.",
+  },
+  {
+    key: "full",
+    label: "Largura total",
+    widthLabel: "100%",
+    description: "Seção ampla, landing page ou faixa horizontal.",
+  },
+];
+
 function presentationLabel(presentation: WidgetPresentation) {
   if (presentation === "compact") return "Compacto";
   if (presentation === "horizontal") return "Horizontal";
@@ -41,6 +69,12 @@ function presentationLabel(presentation: WidgetPresentation) {
 
 function previewInitialHeight(presentation: WidgetPresentation) {
   return presentation === "compact" ? 380 : presentation === "horizontal" ? 460 : 520;
+}
+
+function defaultPreviewFit(presentation: WidgetPresentation): PreviewFit {
+  if (presentation === "compact") return "sidebar";
+  if (presentation === "horizontal") return "full";
+  return "content";
 }
 
 function buildLivePreviewUrl(
@@ -58,6 +92,17 @@ function buildLivePreviewUrl(
     blocks: content.visibleBlocks.join(","),
   });
   return `/embed/widget?${params.toString()}`;
+}
+
+function useDebouncedValue<T>(value: T, delayMs: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedValue(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [delayMs, value]);
+
+  return debouncedValue;
 }
 
 function ResponsiveWidgetFrame({
@@ -84,7 +129,12 @@ function ResponsiveWidgetFrame({
     function handleMessage(event: MessageEvent) {
       if (event.origin !== window.location.origin) return;
       if (event.source !== frameRef.current?.contentWindow) return;
-      const message = event.data as { source?: string; token?: string; type?: string; height?: number };
+      const message = event.data as {
+        source?: string;
+        token?: string;
+        type?: string;
+        height?: number;
+      };
       if (
         message.source !== "tempo-pelotas-widget" ||
         message.token !== resizeToken ||
@@ -116,11 +166,20 @@ function WidgetLivePreview({
   src,
   title,
   presentation,
+  refreshing,
 }: {
   src: string;
   title: string;
   presentation: WidgetPresentation;
+  refreshing: boolean;
 }) {
+  const [fit, setFit] = useState<PreviewFit>(() => defaultPreviewFit(presentation));
+  const selectedFit = PREVIEW_FIT_OPTIONS.find((option) => option.key === fit)!;
+
+  useEffect(() => {
+    setFit(defaultPreviewFit(presentation));
+  }, [presentation]);
+
   return (
     <div className={`widget-builder-live-preview is-${presentation}`}>
       <div className="widget-builder-live-preview__heading">
@@ -128,18 +187,50 @@ function WidgetLivePreview({
           <span>Prévia real</span>
           <strong>Dados atuais do Tempo Pelotas</strong>
         </div>
-        <small>{presentationLabel(presentation)}</small>
+        <div className="widget-builder-live-preview__badges">
+          <small>{presentationLabel(presentation)}</small>
+          <span
+            className={`widget-builder-live-preview__status${refreshing ? " is-refreshing" : ""}`}
+            role="status"
+            aria-live="polite"
+          >
+            {refreshing ? "Atualizando…" : "Atualizada"}
+          </span>
+        </div>
       </div>
-      <ResponsiveWidgetFrame
-        src={src}
-        title={title}
-        resizeToken="preview"
-        initialHeight={previewInitialHeight(presentation)}
-        loading="eager"
-      />
+
+      <div
+        className="widget-builder-live-preview__fit"
+        role="group"
+        aria-label="Testar largura da prévia"
+      >
+        {PREVIEW_FIT_OPTIONS.map((option) => (
+          <button
+            type="button"
+            className={option.key === fit ? "is-selected" : undefined}
+            aria-pressed={option.key === fit}
+            onClick={() => setFit(option.key)}
+            key={option.key}
+          >
+            <strong>{option.label}</strong>
+            <span>{option.widthLabel}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className={`widget-builder-live-preview__stage is-fit-${fit}`}>
+        <ResponsiveWidgetFrame
+          src={src}
+          title={title}
+          resizeToken="preview"
+          initialHeight={previewInitialHeight(presentation)}
+          loading="eager"
+        />
+      </div>
+
       <p>
-        Esta prévia usa o mesmo renderer do código incorporado. Alterações visuais não modificam
-        fonte, unidade, horário ou significado dos dados.
+        Teste atual: <strong>{selectedFit.label}</strong> · {selectedFit.description} A largura de
+        teste não é salva; no site o widget continua responsivo ao espaço disponível.
       </p>
     </div>
   );
@@ -155,8 +246,15 @@ function WidgetCustomizationEditor({
   const updateAppearance = useServerFn(updateUserWidgetAppearance);
   const [appearanceDraft, setAppearanceDraft] = useState<WidgetAppearance>(widget.appearance);
   const [contentDraft, setContentDraft] = useState<WidgetContentDefinition>(widget.content);
+  const [editorOpen, setEditorOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
+  const draftPreviewUrl = useMemo(
+    () => buildLivePreviewUrl(widget.widgetType, appearanceDraft, contentDraft),
+    [appearanceDraft, contentDraft, widget.widgetType],
+  );
+  const debouncedDraftPreviewUrl = useDebouncedValue(draftPreviewUrl, 280);
+  const previewRefreshing = debouncedDraftPreviewUrl !== draftPreviewUrl;
 
   async function saveCustomization() {
     setPending(true);
@@ -200,7 +298,10 @@ function WidgetCustomizationEditor({
   }
 
   return (
-    <details className="widget-builder-style-editor">
+    <details
+      className="widget-builder-style-editor"
+      onToggle={(event) => setEditorOpen(event.currentTarget.open)}
+    >
       <summary>Personalizar widget</summary>
       <WidgetAppearanceControls
         value={appearanceDraft}
@@ -216,9 +317,18 @@ function WidgetCustomizationEditor({
         compact
         controlName={`widget-content-${widget.id}`}
       />
+      {editorOpen ? (
+        <WidgetLivePreview
+          src={debouncedDraftPreviewUrl}
+          title={`Prévia da edição: ${widget.title}`}
+          presentation={contentDraft.presentation}
+          refreshing={previewRefreshing}
+        />
+      ) : null}
       <div className="widget-builder-style-editor__actions">
         <p>
-          A prévia real é atualizada depois de salvar. O código de incorporação continua o mesmo.
+          A prévia acima é temporária. Salvar atualiza o widget público, mas o código de incorporação
+          continua o mesmo.
         </p>
         <button
           className="widget-builder-button is-secondary"
@@ -266,6 +376,8 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
     () => buildLivePreviewUrl(selectedType, appearance, content),
     [appearance, content, selectedType],
   );
+  const debouncedLivePreviewUrl = useDebouncedValue(livePreviewUrl, 280);
+  const previewRefreshing = debouncedLivePreviewUrl !== livePreviewUrl;
 
   function changeModule(nextType: WidgetType) {
     setSelectedType(nextType);
@@ -438,9 +550,10 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
             ) : null}
 
             <WidgetLivePreview
-              src={livePreviewUrl}
+              src={debouncedLivePreviewUrl}
               title={`Prévia real: ${title}`}
               presentation={content.presentation}
+              refreshing={previewRefreshing}
             />
 
             <div className="widget-builder-form__footer">
