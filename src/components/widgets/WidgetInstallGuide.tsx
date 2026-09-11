@@ -54,7 +54,7 @@ function installationSteps(target: InstallationTarget) {
     return [
       "No Elementor, arraste o widget HTML para o ponto da página onde o Tempo Pelotas deve aparecer. No editor de blocos, use um bloco HTML personalizado.",
       "Cole o código exatamente como foi gerado, sem separar a tag <script> e sem colar em um bloco de texto comum.",
-      "Atualize ou publique a página e confira o resultado. Se o espaço ficar apertado, troque a apresentação no Tempo Pelotas ou escolha uma coluna mais larga no editor.",
+      "Atualize ou publique a página e abra a URL publicada. Quando o widget carregar, o domínio poderá ser reconhecido no Widget Insights.",
     ];
   }
 
@@ -62,14 +62,14 @@ function installationSteps(target: InstallationTarget) {
     return [
       "Abra o arquivo, template ou componente responsável pela região da página onde o widget deve aparecer.",
       "Cole o snippet dentro do conteúdo da página, exatamente na posição desejada. Não coloque o código em um arquivo CSS nem no <head> apenas para exibir o widget.",
-      "Publique a alteração e abra a página em desktop e celular. O iframe ajusta a altura e respeita a largura disponível.",
+      "Publique a alteração e abra a página em desktop e celular. O iframe ajusta a altura, respeita a largura disponível e registra somente o domínio para métricas agregadas.",
     ];
   }
 
   return [
     "Procure no construtor um bloco chamado HTML, Embed, Código, Custom HTML ou equivalente e posicione-o onde o widget deve aparecer.",
     "Cole o snippet completo nesse bloco. Evite campos de texto rico, CSS personalizado ou cabeçalho global, porque eles podem remover a tag <script> ou exibir o widget no lugar errado.",
-    "Salve e visualize a página publicada. Se a plataforma bloquear scripts, use um bloco de incorporação que aceite JavaScript ou peça ao administrador do site para liberar esse tipo de conteúdo.",
+    "Salve e abra a página publicada. Se a plataforma aceitar o script e o widget carregar, o domínio poderá aparecer automaticamente no Widget Insights.",
   ];
 }
 
@@ -163,6 +163,15 @@ export function WidgetInstallGuide({
               os dados continuam sendo atualizados pelo Tempo Pelotas sem trocar esse código.
             </p>
           </div>
+        </div>
+
+        <div className="widget-install-guide__aftercare">
+          <strong>Depois de publicar</strong>
+          <p>
+            Abra a página uma vez e volte ao Widget Insights. Quando o widget renderizar em um site
+            externo, o Tempo Pelotas passa a mostrar carregamentos agregados, última atividade e o
+            domínio detectado. Não usamos cookie de analytics nem identificamos visitantes individuais.
+          </p>
         </div>
       </div>
     </details>
