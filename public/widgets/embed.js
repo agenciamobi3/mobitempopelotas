@@ -6,12 +6,8 @@
   const token = script.dataset.widget?.trim();
   if (!token) return;
 
-  const siteHost = window.location.hostname.trim().toLowerCase();
-  const params = new URLSearchParams({ token });
-  if (siteHost) params.set("site", siteHost);
-
   const iframe = document.createElement("iframe");
-  iframe.src = `${ORIGIN}/embed/widget?${params.toString()}`;
+  iframe.src = `${ORIGIN}/embed/widget?token=${encodeURIComponent(token)}`;
   iframe.title = script.dataset.title?.trim() || "Widget Tempo Pelotas";
   iframe.loading = "lazy";
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
@@ -38,6 +34,22 @@
     }
   };
 
+  const reportLoad = () => {
+    if (iframe.dataset.insightReported === "true") return;
+    iframe.dataset.insightReported = "true";
+
+    void fetch(`${ORIGIN}/api/widgets/load`, {
+      method: "POST",
+      mode: "cors",
+      credentials: "omit",
+      headers: { "Content-Type": "text/plain;charset=UTF-8" },
+      body: token,
+      keepalive: true,
+    }).catch(() => {
+      // Insights são auxiliares e nunca devem bloquear o widget.
+    });
+  };
+
   const onMessage = (event) => {
     if (event.origin !== ORIGIN || event.source !== iframe.contentWindow) return;
     const data = event.data;
@@ -52,6 +64,7 @@
   window.addEventListener("message", onMessage);
   iframe.addEventListener("load", () => {
     iframe.dataset.loaded = "true";
+    reportLoad();
   });
 
   script.insertAdjacentElement("afterend", iframe);
