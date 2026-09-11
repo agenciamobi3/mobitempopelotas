@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredWeatherEnrichment } from "@/components/auth/RegisteredWeatherEnrichment";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { WindDirectionContext } from "@/components/weather/WindDirectionContext";
 import { WindForecastPageV3 } from "@/components/weather/WindForecastPageV3";
@@ -67,6 +68,7 @@ function VentoPage() {
       {(recoveredWeather) => (
         <>
           <WindForecastPageV3 data={recoveredWeather} />
+          <RegisteredWeatherEnrichment data={recoveredWeather} variant="wind" pagePath={PAGE_PATH} />
           <WindDirectionContext
             hourly={recoveredWeather.weather.hourly}
             forecastProvider={recoveredWeather.weather.quality.forecastProvider}
