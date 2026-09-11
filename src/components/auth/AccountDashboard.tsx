@@ -1,8 +1,14 @@
 import { Link } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 
 import { AccountFavoritesPanel } from "@/components/auth/AccountFavoritesPanel";
 import { AccountLiveOverview } from "@/components/auth/AccountLiveOverview";
 import { HistoricalModerationPanel } from "@/components/history/HistoricalModerationPanel";
+import {
+  getAccountDashboardLiveSnapshot,
+  type AccountDashboardLiveSnapshot,
+} from "@/lib/auth/account-dashboard-live.functions";
 import type { AccountSnapshot } from "@/lib/auth/account.functions";
 import type { AccountFavoritesSnapshot } from "@/lib/auth/favorites.functions";
 import type { HistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
@@ -47,9 +53,33 @@ export function AccountDashboard({
   moderation: HistoricalModerationSnapshot;
   favorites: AuthenticatedFavorites;
 }) {
+  const loadLiveSnapshot = useServerFn(getAccountDashboardLiveSnapshot);
+  const [liveSnapshot, setLiveSnapshot] = useState<AccountDashboardLiveSnapshot | null>(null);
+  const [liveRefreshing, setLiveRefreshing] = useState(false);
   const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
+
+  const refreshLiveSnapshot = useCallback(async () => {
+    setLiveRefreshing(true);
+    try {
+      const next = await loadLiveSnapshot();
+      if (next.status === "unauthenticated") {
+        window.location.assign("/conta?next=/painel");
+        return;
+      }
+      setLiveSnapshot(next);
+    } catch {
+      setLiveSnapshot((current) => current);
+    } finally {
+      setLiveRefreshing(false);
+    }
+  }, [loadLiveSnapshot]);
+
+  useEffect(() => {
+    void refreshLiveSnapshot();
+  }, [refreshLiveSnapshot]);
+
   const siteModules: DashboardModule[] = [
     {
       title: "Gerador de widgets e distribuição",
@@ -141,9 +171,17 @@ export function AccountDashboard({
           </div>
         </section>
 
-        <AccountLiveOverview />
+        <AccountLiveOverview
+          summary={liveSnapshot?.weather ?? null}
+          refreshing={liveRefreshing}
+        />
 
-        <AccountFavoritesPanel snapshot={favorites} />
+        <AccountFavoritesPanel
+          snapshot={favorites}
+          liveCards={liveSnapshot?.favorites ?? {}}
+          liveLoading={liveSnapshot === null || liveRefreshing}
+          onFavoritesChanged={refreshLiveSnapshot}
+        />
 
         <section className="account-dashboard__modules" aria-labelledby="dashboard-site-title">
           <div className="account-dashboard__section-heading">
