@@ -1,7 +1,7 @@
 # Tempo Pelotas — analytics de distribuição dos widgets
 
 Data: 11/09/2026  
-Estado: implementação V1 versionada; schema live reconciliado; gravação restrita ao servidor; ranking por domínio disponível no painel; origem do distribuidor confirmada pelo navegador
+Estado: implementação V1 versionada; schema live reconciliado; gravação restrita ao servidor; ranking por domínio disponível no painel; origem do distribuidor confirmada pelo navegador; visão consolidada da rede disponível em `/widgets`
 
 ## Objetivo
 
@@ -128,6 +128,45 @@ O painel apresenta no máximo cinco domínios por widget, com:
 
 Quando houver mais de cinco domínios, o card informa quantos outros sites continuam ativos no período. Quando ainda não houver uso externo, a interface mostra estado vazio em vez de inventar exemplos ou reaproveitar GA4.
 
+## Visão consolidada da rede
+
+`/widgets` também apresenta uma camada acima dos cards individuais. A Server Function continua fazendo uma única leitura de `widget_usage_daily` e produz, no mesmo payload, os agregados individuais e a visão da rede.
+
+O resumo global mostra:
+
+- visualizações externas acumuladas nos últimos 30 dias;
+- quantidade de domínios distribuidores únicos no período;
+- quantidade de widgets que tiveram ao menos um carregamento externo na janela;
+- os cinco principais domínios de toda a rede;
+- os cinco widgets mais vistos no período.
+
+A contagem global de domínios é feita antes do corte top 5 de cada widget. Por isso um domínio pode não aparecer entre os cinco maiores de um widget específico e ainda assim contribuir corretamente para o ranking e para a cobertura da rede.
+
+### Principais domínios
+
+O ranking global agrega todas as linhas da janela por hostname e apresenta:
+
+- posição;
+- hostname;
+- visualizações em 30 dias;
+- participação percentual no tráfego externo da rede;
+- última atividade registrada.
+
+Quando houver mais de cinco domínios, o painel informa quantos outros continuam ativos.
+
+### Widgets mais vistos
+
+Cada widget é ranqueado por:
+
+1. maior número de visualizações em 30 dias;
+2. maior número de domínios ativos;
+3. atividade mais recente;
+4. ID do widget apenas como desempate determinístico final.
+
+A interface resolve o `widget_id` para o título que já existe no gerenciador e mostra visualizações, participação no total da rede, quantidade de sites ativos e última atividade.
+
+Na interface, “Sites parceiros” é uma leitura amigável. Tecnicamente o número representa domínios externos distribuidores com uso registrado nos últimos 30 dias; ele não afirma, por si só, a existência de vínculo comercial formal.
+
 ## Privacidade
 
 Dados guardados nesta V1:
@@ -149,7 +188,7 @@ Dados deliberadamente não guardados:
 - path da página hospedeira;
 - identificador de visitante.
 
-O ranking por domínio é somente uma apresentação diferente dos agregados já existentes. O handshake usa a origem da mensagem apenas para validar o hostname do site distribuidor e não adiciona um novo dado persistido.
+O ranking por domínio e a visão consolidada da rede são somente apresentações diferentes dos agregados já existentes. O handshake usa a origem da mensagem apenas para validar o hostname do site distribuidor e não adiciona um novo dado persistido.
 
 ## Relação com GA4
 
@@ -166,5 +205,7 @@ Isso evita misturar números antigos de proveniência ambígua com a nova defini
 ## Proteções de contrato
 
 `tests/widget-builder-foundation.test.ts` protege a existência do schema agregado, RLS, incremento atômico, ausência de campos de rastreamento pessoal, handshake do snippet oficial, correspondência entre hostname declarado e `event.origin`, exclusão de preview, apresentação das métricas, ranking top 5, contagem de outros domínios, participação percentual e estado vazio no painel.
+
+`tests/widget-network-overview.test.ts` protege a visão consolidada: mesma leitura agregada, ausência de uma segunda chamada de analytics no `WidgetBuilder`, total da rede, sites parceiros/distribuidores, widgets distribuídos, top 5 de domínios, top 5 de widgets e comportamento responsivo. O arquivo está incluído explicitamente em `npm run test:contracts`.
 
 O workflow `Qualidade` continua sendo o gate completo. Em 11/09/2026 os runs observados ainda falham antes de qualquer step, com `runner_id=0` e `steps=[]`; esse estado é indisponibilidade do runner e não resultado dos testes do código.
