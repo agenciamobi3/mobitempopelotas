@@ -12,6 +12,7 @@ import {
 const builder = readFileSync("src/components/widgets/WidgetBuilder.tsx", "utf8");
 const controls = readFileSync("src/components/widgets/WidgetContentControls.tsx", "utf8");
 const controlCss = readFileSync("src/components/widgets/WidgetContentControls.css", "utf8");
+const previewCss = readFileSync("src/components/widgets/WidgetBuilderLivePreview.css", "utf8");
 const renderer = readFileSync("src/routes/embed/widget.tsx", "utf8");
 const rendererCss = readFileSync("src/components/embed/ManagedWidgetAppearance.css", "utf8");
 const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
@@ -77,6 +78,43 @@ test("builder oferece blocos, formatos e prévia real antes de criar", () => {
   assert.match(builder, /content\.visibleBlocks\.join\(","\)/);
   assert.match(builder, /appearance, content/);
   assert.doesNotMatch(builder, /iframe[\s\S]*srcDoc=/);
+});
+
+test("prévia real desacelera mudanças rápidas sem atrasar o estado editável", () => {
+  assert.match(builder, /function useDebouncedValue<T>/);
+  assert.match(builder, /window\.setTimeout\(\(\) => setDebouncedValue\(value\), delayMs\)/);
+  assert.match(builder, /useDebouncedValue\(livePreviewUrl, 280\)/);
+  assert.match(builder, /useDebouncedValue\(draftPreviewUrl, 280\)/);
+  assert.match(builder, /debouncedLivePreviewUrl !== livePreviewUrl/);
+  assert.match(builder, /debouncedDraftPreviewUrl !== draftPreviewUrl/);
+  assert.match(builder, /Atualizando…/);
+});
+
+test("tester de encaixe simula sidebar, coluna de conteúdo e largura total", () => {
+  assert.match(builder, /type PreviewFit = "sidebar" \| "content" \| "full"/);
+  assert.match(builder, /label: "Sidebar"/);
+  assert.match(builder, /widthLabel: "360 px"/);
+  assert.match(builder, /label: "Conteúdo"/);
+  assert.match(builder, /widthLabel: "720 px"/);
+  assert.match(builder, /label: "Largura total"/);
+  assert.match(builder, /widthLabel: "100%"/);
+  assert.match(builder, /aria-label="Testar largura da prévia"/);
+  assert.match(builder, /aria-pressed=\{option\.key === fit\}/);
+  assert.match(builder, /A largura de\s+teste não é salva/);
+  assert.match(previewCss, /is-fit-sidebar iframe[\s\S]*360px/);
+  assert.match(previewCss, /is-fit-content iframe[\s\S]*720px/);
+  assert.match(previewCss, /is-fit-full iframe[\s\S]*width: 100%/);
+  assert.match(previewCss, /focus-visible/);
+  assert.match(previewCss, /forced-colors: active/);
+  assert.doesNotMatch(functions, /PreviewFit|previewFit|previewWidth/);
+});
+
+test("edição existente recebe prévia temporária antes de salvar", () => {
+  assert.match(builder, /const \[editorOpen, setEditorOpen\] = useState\(false\)/);
+  assert.match(builder, /onToggle=\{\(event\) => setEditorOpen\(event\.currentTarget\.open\)\}/);
+  assert.match(builder, /title=\{`Prévia da edição: \$\{widget\.title\}`\}/);
+  assert.match(builder, /src=\{debouncedDraftPreviewUrl\}/);
+  assert.match(builder, /A prévia acima é temporária/);
 });
 
 test("prévia de widgets salvos também cresce conforme o conteúdo real", () => {
