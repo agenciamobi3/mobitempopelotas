@@ -3,26 +3,23 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
+const layout = readFileSync("src/lib/auth/dashboard-layout.ts", "utf8");
 const liveOverview = readFileSync("src/components/auth/AccountLiveOverview.tsx", "utf8");
 const favoritesPanel = readFileSync("src/components/auth/AccountFavoritesPanel.tsx", "utf8");
 const liveFunctions = readFileSync("src/lib/auth/account-dashboard-live.functions.ts", "utf8");
 const liveStyles = readFileSync("src/components/auth/AccountLiveOverview.css", "utf8");
 const favoriteStyles = readFileSync("src/components/auth/AccountFavoriteLive.css", "utf8");
 
-test("painel Free coloca valor pessoal antes das ferramentas de publicação", () => {
+test("painel Free mantém valor pessoal como ordem padrão e permite personalização explícita", () => {
   assert.match(dashboard, /Meu Tempo Pelotas/);
   assert.match(dashboard, /<AccountLiveOverview/);
   assert.match(dashboard, /<AccountFavoritesPanel/);
-  assert.match(dashboard, /Para meu site/);
+  assert.match(dashboard, /DashboardPersonalizationBar/);
+  assert.match(dashboard, /layout\.sections\.map/);
   assert.match(dashboard, /Próximas camadas/);
-  assert.ok(
-    dashboard.indexOf("<AccountLiveOverview") < dashboard.indexOf("Para meu site"),
-    "o resumo pessoal deve aparecer antes da área de publicação",
-  );
-  assert.ok(
-    dashboard.indexOf("<AccountFavoritesPanel") < dashboard.indexOf("Para meu site"),
-    "favoritos devem permanecer na experiência pessoal, antes dos widgets",
-  );
+  assert.match(layout, /\["live", "favorites", "site"\]/);
+  assert.match(dashboard, /SECTION_LABELS/);
+  assert.match(dashboard, /site:\s*"Para meu site"/);
 });
 
 test("painel vivo e favoritos vivos compartilham um único snapshot autenticado", () => {
