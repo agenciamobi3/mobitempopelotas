@@ -6,9 +6,12 @@ import { z } from "zod";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseRequestClient } from "@/lib/supabase/request-client.server";
 import {
-  createSupabaseAdminClient,
+  createSupabasePublicServerClient,
   getSupabaseServerConfig,
 } from "@/lib/supabase/server-client.server";
+
+const SAO_PAULO_TIME_ZONE = "America/Sao_Paulo";
+const DAY_MS = 24 * 60 * 60 * 1_000;
 
 const widgetImpressionSchema = z.object({
   token: z.string().uuid(),
@@ -21,24 +24,30 @@ const widgetImpressionSchema = z.object({
     .regex(/^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?$/),
 });
 
-type WidgetAnalyticsRow = {
+type WidgetUsageDailyRow = {
   widget_id: string;
-  impressions_today: number | string;
-  impressions_7d: number | string;
-  impressions_30d: number | string;
-  active_hosts_30d: number | string;
+  user_id: string;
+  site_host: string;
+  day: string;
+  loads: number | string;
+  first_seen_at: string;
+  last_seen_at: string;
 };
 
 type WidgetAnalyticsDatabase = Omit<Database, "public"> & {
-  public: Omit<Database["public"], "Functions"> & {
-    Functions: Database["public"]["Functions"] & {
-      record_widget_impression: {
-        Args: { p_token: string; p_host: string };
-        Returns: boolean;
+  public: Omit<Database["public"], "Tables" | "Functions"> & {
+    Tables: Database["public"]["Tables"] & {
+      widget_usage_daily: {
+        Row: WidgetUsageDailyRow;
+        Insert: WidgetUsageDailyRow;
+        Update: Partial<WidgetUsageDailyRow>;
+        Relationships: [];
       };
-      get_user_widget_analytics: {
-        Args: Record<PropertyKey, never>;
-        Returns: WidgetAnalyticsRow[];
+    };
+    Functions: Database["public"]["Functions"] & {
+      record_widget_load: {
+        Args: { p_token: string; p_site_host: string };
+        Returns: boolean;
       };
     };
   };
@@ -53,8 +62,7 @@ export type WidgetAnalyticsSummary = {
 
 export type WidgetAnalyticsSnapshot = Record<string, WidgetAnalyticsSummary>;
 
-function privateNoStoreHeaders() {
-  const headers = new Headers();
+function privateNoStoreHeaders(headers = new Headers()) {
   headers.set("Cache-Control", "private, no-store, max-age=0");
   headers.set("Pragma", "no-cache");
   headers.set("Vary", "Cookie, Authorization");
@@ -66,20 +74,29 @@ function safeCount(value: number | string) {
   return Number.isFinite(count) && count > 0 ? Math.trunc(count) : 0;
 }
 
+function saoPauloDateKey(daysAgo: number) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: SAO_PAULO_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(Date.now() - daysAgo * DAY_MS));
+}
+
 export const recordWidgetImpression = createServerFn({ method: "POST" })
   .validator(widgetImpressionSchema)
   .handler(async ({ data }) => {
     const config = getSupabaseServerConfig();
-    if (!config.isAdminConfigured) return { ok: false as const, code: "unavailable" as const };
+    if (!config.isPublicConfigured) return { ok: false as const, code: "unavailable" as const };
 
-    const client = createSupabaseAdminClient() as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
-    const { error } = await client.rpc("record_widget_impression", {
+    const client = createSupabasePublicServerClient() as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
+    const { error } = await client.rpc("record_widget_load", {
       p_token: data.token,
-      p_host: data.host,
+      p_site_host: data.host,
     });
 
     if (error) {
-      console.warn("[widgets] Não foi possível registrar impressão", {
+      console.warn("[widgets] Não foi possível registrar visualização", {
         code: error.code,
         message: error.message,
       });
@@ -103,17 +120,21 @@ export const getWidgetAnalyticsSnapshot = createServerFn({ method: "GET" }).hand
     } = await client.auth.getUser();
 
     if (!user) {
-      privateNoStoreHeaders();
+      privateNoStoreHeaders(responseHeaders);
       return {};
     }
 
+    const today = saoPauloDateKey(0);
+    const sevenDaysAgo = saoPauloDateKey(6);
+    const thirtyDaysAgo = saoPauloDateKey(29);
     const analyticsClient = client as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
-    const { data, error } = await analyticsClient.rpc("get_user_widget_analytics", {});
+    const { data, error } = await analyticsClient
+      .from("widget_usage_daily")
+      .select("widget_id,site_host,day,loads")
+      .eq("user_id", user.id)
+      .gte("day", thirtyDaysAgo);
 
-    responseHeaders.set("Cache-Control", "private, no-store, max-age=0");
-    responseHeaders.set("Pragma", "no-cache");
-    responseHeaders.set("Vary", "Cookie, Authorization");
-    setResponseHeaders(responseHeaders);
+    privateNoStoreHeaders(responseHeaders);
 
     if (error) {
       console.warn("[widgets] Não foi possível carregar analytics dos widgets", {
@@ -123,16 +144,33 @@ export const getWidgetAnalyticsSnapshot = createServerFn({ method: "GET" }).hand
       return {};
     }
 
-    return Object.fromEntries(
-      (data ?? []).map((row) => [
-        row.widget_id,
-        {
-          today: safeCount(row.impressions_today),
-          last7Days: safeCount(row.impressions_7d),
-          last30Days: safeCount(row.impressions_30d),
-          activeHosts30Days: safeCount(row.active_hosts_30d),
-        },
-      ]),
-    );
+    const snapshot: WidgetAnalyticsSnapshot = {};
+    const hosts = new Map<string, Set<string>>();
+
+    for (const row of data ?? []) {
+      const summary = snapshot[row.widget_id] ?? {
+        today: 0,
+        last7Days: 0,
+        last30Days: 0,
+        activeHosts30Days: 0,
+      };
+      const loads = safeCount(row.loads);
+
+      summary.last30Days += loads;
+      if (row.day >= sevenDaysAgo) summary.last7Days += loads;
+      if (row.day === today) summary.today += loads;
+      snapshot[row.widget_id] = summary;
+
+      const widgetHosts = hosts.get(row.widget_id) ?? new Set<string>();
+      widgetHosts.add(row.site_host);
+      hosts.set(row.widget_id, widgetHosts);
+    }
+
+    for (const [widgetId, widgetHosts] of hosts) {
+      const summary = snapshot[widgetId];
+      if (summary) summary.activeHosts30Days = widgetHosts.size;
+    }
+
+    return snapshot;
   },
 );
