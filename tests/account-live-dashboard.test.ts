@@ -77,8 +77,11 @@ test("painel vivo oferece leitura útil e rotas de aprofundamento", () => {
   assert.match(liveOverview, /to="\/alertas"/);
 });
 
-test("falha de dados não é substituída por valores inventados", () => {
-  assert.match(liveOverview, /unavailable/);
+test("falha de dados não é substituída por valores inventados nem loading permanente", () => {
+  assert.match(liveOverview, /failed:\s*boolean/);
+  assert.match(liveOverview, /summary === null && !failed/);
+  assert.match(dashboard, /setLiveFailed\(true\)/);
+  assert.match(dashboard, /liveSnapshot === null && !liveFailed/);
   assert.match(liveOverview, /nenhuma informação demonstrativa foi exibida/);
   assert.match(liveFunctions, /EMPTY_WEATHER/);
   assert.doesNotMatch(liveFunctions, /Math\.random/);
