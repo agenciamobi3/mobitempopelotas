@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredWeatherEnrichment } from "@/components/auth/RegisteredWeatherEnrichment";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { TodayForecastPageV5 } from "@/components/weather/TodayForecastPageV5";
@@ -145,6 +146,7 @@ function TempoHojePage() {
       {(recoveredWeather) => (
         <>
           <TodayForecastPageV5 data={recoveredWeather} />
+          <RegisteredWeatherEnrichment data={recoveredWeather} variant="today" pagePath={PAGE_PATH} />
           <EditorialContentSection id="como-interpretar-hoje" content={TODAY_PAGE_CONTENT} />
         </>
       )}
