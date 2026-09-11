@@ -58,6 +58,9 @@ jobs:
           node --import ./scripts/test-node-resolver.mjs --test
           tests/widget-builder-appearance.test.ts
 
+      - name: Instalação assistida dos widgets
+        run: node --test tests/widget-builder-installation.test.ts
+
       - name: Histórico documentado da cheia de 2001
         run: node --test tests/flood-2001-historical-page.test.ts
 
@@ -188,7 +191,7 @@ jobs:
 
       - name: Iniciar preview de produção
         run: |
-          npm run preview -- --host 127.0.0.1 > /tmp/tempo-pelotas-preview.log 2>&1 &
+          npm run preview -- --host 127.0.0.1:4173 > /tmp/tempo-pelotas-preview.log 2>&1 &
           echo $! > /tmp/tempo-pelotas-preview.pid
           for attempt in {1..45}; do
             if curl --fail --silent --show-error http://127.0.0.1:4173/ > /dev/null; then
