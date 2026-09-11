@@ -52,12 +52,12 @@ export function AccountDashboard({
   const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
   const siteModules: DashboardModule[] = [
     {
-      title: "Widgets e distribuição",
+      title: "Gerador de widgets e distribuição",
       description:
         "Crie widgets responsivos, incorpore dados do Tempo Pelotas em outros sites e acompanhe a rede de distribuição dos seus embeds.",
       state: "available",
       href: "/widgets",
-      actionLabel: "Abrir meus widgets →",
+      actionLabel: "Criar meus widgets →",
     },
   ];
   const futureModules: DashboardModule[] = [
@@ -131,7 +131,7 @@ export function AccountDashboard({
           </div>
           <div>
             <small>Painel vivo</small>
-            <strong>Ativo</strong>
+            <strong>Incluído</strong>
             <span>Resumo meteorológico recuperado das mesmas fontes do portal</span>
           </div>
           <div>
