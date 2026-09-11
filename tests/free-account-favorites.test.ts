@@ -9,6 +9,8 @@ const migration = readFileSync(
 const catalog = readFileSync("src/lib/auth/favorite-resources.ts", "utf8");
 const functions = readFileSync("src/lib/auth/favorites.functions.ts", "utf8");
 const panel = readFileSync("src/components/auth/AccountFavoritesPanel.tsx", "utf8");
+const liveOverview = readFileSync("src/components/auth/AccountLiveOverview.tsx", "utf8");
+const liveOverviewCss = readFileSync("src/components/auth/AccountLiveOverview.css", "utf8");
 const accessOverview = readFileSync("src/components/auth/AccountAccessOverview.tsx", "utf8");
 const dashboardRoute = readFileSync("src/routes/painel.tsx", "utf8");
 const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
@@ -70,11 +72,41 @@ test("painel autenticado carrega e renderiza favoritos Free reais", () => {
   assert.match(dashboard, /AccountFavoritesPanel/);
   assert.match(dashboard, /<AccountFavoritesPanel snapshot=\{favorites\}/);
   assert.match(dashboard, /Favoritos/);
-  assert.match(dashboard, /favoritos,\s*preferências e widgets/);
+  assert.match(dashboard, /Meu Tempo Pelotas/);
   assert.doesNotMatch(
     dashboard,
     /title:\s*"Favoritos"[\s\S]{0,240}state:\s*"preparing"/,
   );
+});
+
+test("painel Free entrega valor pessoal antes das ferramentas de publicação", () => {
+  assert.match(dashboard, /AccountLiveOverview/);
+  assert.match(dashboard, /<AccountLiveOverview \/>/);
+  assert.match(dashboard, /Para meu site/);
+  assert.match(dashboard, /Próximas camadas/);
+  assert.ok(
+    dashboard.indexOf("<AccountLiveOverview />") < dashboard.indexOf("Para meu site"),
+    "resumo vivo deve aparecer antes da área de publicação",
+  );
+  assert.ok(
+    dashboard.indexOf("<AccountFavoritesPanel snapshot={favorites} />") <
+      dashboard.indexOf("Para meu site"),
+    "favoritos devem permanecer na experiência pessoal",
+  );
+});
+
+test("painel vivo reutiliza dados reais e oferece aprofundamento", () => {
+  assert.match(liveOverview, /getWeatherIntelligence/);
+  assert.match(liveOverview, /toProductionWeatherData/);
+  assert.match(liveOverview, /toProductionAlerts/);
+  assert.match(liveOverview, /weather\.hourly\.slice\(0, 6\)/);
+  assert.match(liveOverview, /alert\.relevance === "pelotas"/);
+  assert.match(liveOverview, /to="\/tempo-hoje-pelotas"/);
+  assert.match(liveOverview, /to="\/previsao-7-dias-pelotas"/);
+  assert.match(liveOverview, /to="\/chuva-em-pelotas"/);
+  assert.match(liveOverview, /to="\/alertas"/);
+  assert.match(liveOverview, /nenhuma informação demonstrativa foi exibida/);
+  assert.doesNotMatch(liveOverview, /Math\.random/);
 });
 
 test("componente permite adicionar e remover favoritos de forma acessível", () => {
@@ -124,6 +156,13 @@ test("workspace de favoritos mantém responsividade e acessibilidade visual", ()
   assert.match(dashboardCss, /prefers-reduced-motion: reduce/);
   assert.match(dashboardCss, /forced-colors: active/);
   assert.match(dashboardCss, /:focus-visible/);
+});
+
+test("painel vivo mantém responsividade e foco visível", () => {
+  assert.match(liveOverviewCss, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(liveOverviewCss, /@media \(max-width: 1120px\)/);
+  assert.match(liveOverviewCss, /@media \(max-width: 720px\)/);
+  assert.match(liveOverviewCss, /a:focus-visible/);
 });
 
 test("visão de acesso mantém grade 4→2→1 e contratos de foco e alto contraste", () => {
