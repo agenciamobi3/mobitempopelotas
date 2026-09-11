@@ -1,13 +1,13 @@
 # Tempo Pelotas — evolução do painel cadastrado
 
 Data: 11/09/2026
-Estado: fase 1 implementada no `main`
+Estado: fases 1 e 2 implementadas no `main`
 
 ## Princípio de produto
 
 A área autenticada não deve existir apenas como passagem para recursos públicos ou como vitrine de funcionalidades PRO.
 
-A regra adotada a partir desta fase é:
+A regra adotada é:
 
 - **Free cria hábito e organização pessoal**;
 - **PRO amplia profundidade, automação e capacidade de trabalho**;
@@ -17,30 +17,44 @@ A regra adotada a partir desta fase é:
 
 ## Fase 1 — Painel Vivo Free
 
-O `/painel` passa a se apresentar como **Meu Tempo Pelotas**.
+O `/painel` se apresenta como **Meu Tempo Pelotas**.
 
-A ordem de leitura agora é:
+A ordem de leitura é:
 
 1. identidade e camada da conta;
 2. resumo vivo pessoal;
-3. favoritos do usuário;
+3. favoritos vivos do usuário;
 4. área `Para meu site`;
 5. próximas camadas de profundidade;
 6. ferramentas internas condicionais já existentes.
 
 Essa ordem evita que widgets, PRO ou recursos futuros apareçam antes do valor cotidiano da conta.
 
+## Snapshot vivo compartilhado
+
+A meteorologia do Painel Vivo e os Favoritos Vivos usam uma única Server Function autenticada: `getAccountDashboardLiveSnapshot`.
+
+Esse snapshot:
+
+- autentica a sessão no servidor;
+- lê os favoritos reais de `user_favorites` sob RLS;
+- devolve resposta privada e `no-store`;
+- carrega a consolidação meteorológica canônica do portal;
+- consulta hidrologia somente quando algum favorito salvo exige aquela fonte;
+- normaliza o resultado em contratos pequenos próprios da interface do painel;
+- tolera falha isolada de cada fonte sem preencher o painel com valores demonstrativos.
+
+A interface não envia uma lista arbitrária de recursos para o servidor dizendo o que deve ser enriquecido. O servidor deriva essa necessidade dos favoritos persistidos da própria conta.
+
 ## Resumo meteorológico pessoal
 
-`AccountLiveOverview` recupera dados com a mesma Server Function `getWeatherIntelligence` usada pela camada meteorológica do portal.
+A meteorologia é obtida por `fetchAggregatedPelotasWeather`, a mesma consolidação usada pelo runtime público.
 
-Não existe uma API paralela específica para o painel.
-
-A primeira versão mostra:
+O snapshot transforma essa consolidação com os adaptadores canônicos do portal e entrega ao `AccountLiveOverview`:
 
 - temperatura atual medida quando existe observação utilizável;
 - fallback explícito para previsão quando não há medição atual;
-- condição derivada da apresentação meteorológica canônica;
+- condição meteorológica usando os mesmos rótulos de apresentação do portal;
 - mínima e máxima do dia;
 - chance e volume de chuva previstos;
 - maior chance de chuva nas próximas seis horas;
@@ -48,47 +62,120 @@ A primeira versão mostra:
 - quantidade de avisos oficiais relevantes para Pelotas;
 - links para aprofundar cada leitura nas páginas públicas correspondentes.
 
-## Integridade dos dados
+O componente não dispara uma segunda consulta meteorológica própria. Painel Vivo e Favoritos Vivos compartilham o mesmo snapshot.
 
-O painel não usa números demonstrativos para preencher estados vazios.
+## Fase 2 — Favoritos Vivos
 
-Quando a consolidação meteorológica não retorna conteúdo utilizável:
+Os favoritos continuam privados por usuário, mas os itens salvos deixam de ser necessariamente apenas atalhos.
 
-- o estado é marcado como indisponível;
-- valores ficam vazios;
-- o usuário é informado de que as páginas públicas continuam disponíveis;
-- nenhuma leitura fictícia substitui o dado real.
+Quando existe um contrato de dados seguro para aquele recurso, o card salvo mostra no próprio `/painel`:
 
-## Favoritos
+- estado da leitura;
+- valor principal;
+- contexto ou tendência permitida pela fonte;
+- informação complementar;
+- horário da observação quando aplicável;
+- origem do dado;
+- acesso à página pública completa.
 
-Os favoritos continuam sendo privados por usuário e permanecem no centro da experiência Free.
+A primeira versão enriquece:
 
-Nesta fase eles ainda funcionam principalmente como organização e atalhos persistidos. A evolução natural é torná-los **favoritos vivos**, exibindo no próprio painel o estado resumido do recurso escolhido quando a fonte e a semântica forem seguras.
+### Previsão de 7 dias
 
-Prioridade sugerida para favoritos vivos:
+Usa a mesma previsão meteorológica consolidada do Painel Vivo e mostra o resumo de hoje, incluindo mínima, máxima, condição, chance de chuva e volume previsto.
 
-1. previsão de 7 dias;
-2. Tempo no Laranjal;
-3. nível da Lagoa no Laranjal;
-4. Canal São Gonçalo;
-5. Guaíba;
-6. Rio Jaguarão;
-7. radar/satélite e câmeras como estado de disponibilidade/atualização.
+### Nível da Lagoa no Laranjal
+
+Usa `fetchSelectedLaranjalLevelData`, preservando o seletor já adotado pelo portal entre a fonte principal, contingência CIEX/FURG e último dado conhecido quando aplicável.
+
+O card pode mostrar nível, tendência recente e variação de seis horas porque essas grandezas já são derivadas da própria série canônica desse recurso.
+
+### Nível do Guaíba
+
+Usa `fetchGuaibaObservation` e mantém a mesma seleção e proveniência da página pública.
+
+O card pode mostrar nível, variação em 24 horas e tendência recente porque essas informações já fazem parte do contrato da série monitorada.
+
+### Canal São Gonçalo
+
+Usa a Rede de Monitoramento Hidrometeorológico da Defesa Civil RS e seleciona a estação `DCRS-00063`, a mesma usada pela página pública da Eclusa em Capão do Leão.
+
+O painel reproduz apenas nível, chuva quando disponível, horário/freshness e a tendência textual informada pela própria fonte.
+
+### Rio Jaguarão
+
+Usa a mesma rede oficial e seleciona a estação `DCRS-00115`, já adotada pela página pública correspondente.
+
+A semântica é a mesma do São Gonçalo: nenhuma tendência é inventada a partir de um único ponto.
+
+### Situação das águas
+
+Quando esse recurso é favorito, o card resume a disponibilidade da rede regional da Defesa Civil RS com número de leituras recentes e estações regionais na consulta.
+
+Ele reforça que cada régua continua sendo interpretada dentro da própria referência.
+
+## Recursos que continuam como atalhos
+
+Nem todo favorito precisa fingir uma leitura viva.
+
+Enquanto não houver um resumo estruturado que realmente acrescente valor, recursos como radar/satélite, câmeras e gerador de widgets continuam funcionando como atalhos normais dentro da área de favoritos.
+
+Essa escolha é deliberada: ausência de semântica confiável não deve ser substituída por um selo genérico de “online” ou por informação pouco útil.
+
+## Integridade hidrológica
+
+Favoritos Vivos não criam classificação de risco própria.
+
+Para São Gonçalo e Jaguarão, onde o produto não possui um limiar oficial específico para transformar a régua em cota de atenção ou inundação, o painel não produz rótulos como risco baixo, risco alto ou inundação iminente.
+
+O painel preserva:
+
+- estação;
+- unidade;
+- horário;
+- freshness;
+- nível recebido;
+- chuva recebida;
+- tendência textual da fonte, quando existente.
+
+Laranjal e Guaíba podem apresentar variações já calculadas pelas suas séries canônicas, sem extrapolar isso para uma categoria de risco.
+
+## Eficiência de consulta
+
+A Server Function sempre busca meteorologia porque ela alimenta o resumo principal.
+
+As outras fontes são condicionais:
+
+- Laranjal somente quando `laranjal-level` está salvo;
+- Guaíba somente quando `guaiba-level` está salvo;
+- Defesa Civil RS uma única vez quando existe qualquer favorito entre `regional-waters`, `sao-goncalo-level` e `jaguarao-level`.
+
+Assim, vários favoritos da mesma rede compartilham a mesma consulta.
+
+Cada fonte possui prazo de execução e falha isolada. Uma fonte hidrológica indisponível não derruba a meteorologia nem os demais favoritos.
+
+## Atualização após favoritar
+
+A mutação continua sendo feita pela Server Function existente `setAccountFavorite`, que valida catálogo, sessão, entitlement e proprietário.
+
+Após uma inclusão ou remoção bem-sucedida, o componente solicita novamente o snapshot vivo. Dessa forma um recurso compatível pode se transformar em card vivo sem recarregar toda a página.
+
+Se esse refresh falhar, a interface encerra o estado de carregamento e mantém os favoritos como caminhos navegáveis. Não existe loading permanente.
 
 ## Para meu site
 
 O gerador de widgets continua disponível no Free.
 
-Ele foi reposicionado para a área **Para meu site**, junto da distribuição e analytics dos widgets. A mudança é de arquitetura da experiência, não de entitlement.
+Ele permanece na área **Para meu site**, junto da distribuição e analytics dos widgets. A mudança é de arquitetura da experiência, não de entitlement.
 
 ## Próximas camadas
 
-Depois de consolidar o valor diário do painel Free, as próximas evoluções recomendadas são:
+Com Painel Vivo e Favoritos Vivos estabelecidos, a sequência recomendada passa a ser:
 
-1. favoritos vivos;
-2. preferências pessoais que realmente alterem o painel;
-3. resumo diário personalizado;
-4. histórico pessoal curto no Free;
+1. preferências pessoais que realmente alterem o painel;
+2. resumo diário personalizado;
+3. histórico pessoal curto no Free;
+4. enriquecimento seguro de radar e câmeras quando houver um estado útil a mostrar;
 5. reavaliação segura da experiência de notificações, respeitando o estado atual da infraestrutura de push;
 6. histórico profundo, comparações, regras avançadas, exportações e análises como candidatos naturais ao PRO.
 
@@ -100,15 +187,20 @@ Há infraestrutura preservada no repositório, mas contratos atuais mantêm o ge
 
 ## Proteções
 
-`tests/free-account-favorites.test.ts` agora também protege que:
+`tests/free-account-favorites.test.ts` e `tests/account-live-dashboard.test.ts` protegem que:
 
-- o resumo vivo exista;
-- ele apareça antes da área `Para meu site`;
-- favoritos permaneçam na experiência pessoal;
-- os dados venham da consolidação meteorológica real;
-- avisos sejam filtrados por relevância para Pelotas;
-- existam rotas de aprofundamento;
-- falhas não sejam preenchidas com dados inventados;
-- o layout seja responsivo e preserve foco visível.
+- o valor pessoal apareça antes da área `Para meu site`;
+- Painel Vivo e Favoritos Vivos usem o mesmo snapshot autenticado;
+- os favoritos sejam lidos do usuário autenticado sob RLS;
+- a resposta personalizada seja privada e sem cache compartilhado;
+- meteorologia venha da consolidação real;
+- hidrologia seja consultada apenas quando necessária;
+- São Gonçalo use `DCRS-00063`;
+- Jaguarão use `DCRS-00115`;
+- a tendência da Defesa Civil seja tratada como informação da fonte;
+- nenhuma classificação de risco seja inventada;
+- falhas não sejam preenchidas com dados demonstrativos;
+- uma falha de transporte não deixe o painel em carregamento infinito;
+- layouts permaneçam responsivos e acessíveis.
 
-`tests/account-live-dashboard.test.ts` adiciona uma verificação focada da mesma arquitetura na suíte ampla.
+O teste focado também faz parte de `npm run test:contracts`.
