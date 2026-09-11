@@ -23,6 +23,7 @@ import type { WidgetType } from "@/lib/widgets/widget-registry";
 import { WidgetAppearanceControls } from "./WidgetAppearanceControls";
 import { WidgetContentControls } from "./WidgetContentControls";
 import { WidgetInstallGuide } from "./WidgetInstallGuide";
+import { WidgetInsightsDashboard } from "./WidgetInsightsDashboard";
 import "./WidgetBuilder.css";
 import "./WidgetBuilderAppearance.css";
 import "./WidgetBuilderLivePreview.css";
@@ -579,6 +580,10 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
           </p>
         ) : null}
       </section>
+
+      {snapshot.access.entitlements.widgetsAnalytics ? (
+        <WidgetInsightsDashboard widgets={widgets} />
+      ) : null}
 
       <section aria-labelledby="widget-list-title">
         <div className="widget-builder-list__heading">
