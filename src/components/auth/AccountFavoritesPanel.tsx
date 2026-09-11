@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
+import type { FavoriteLiveCard } from "@/lib/auth/account-dashboard-live.functions";
 import {
   FAVORITE_RESOURCES,
   type FavoriteResourceKey,
@@ -12,12 +13,59 @@ import {
   type AccountFavoritesSnapshot,
 } from "@/lib/auth/favorites.functions";
 
+import "./AccountFavoriteLive.css";
+
 type AuthenticatedFavorites = Extract<AccountFavoritesSnapshot, { status: "authenticated" }>;
 type Feedback = { tone: "success" | "error"; text: string } | null;
 
 const GROUPS: readonly FavoriteResourceGroup[] = ["Tempo", "Águas", "Ferramentas"];
 
-export function AccountFavoritesPanel({ snapshot }: { snapshot: AuthenticatedFavorites }) {
+function formatUpdatedAt(value: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function FavoriteLiveContent({ card }: { card: FavoriteLiveCard }) {
+  const updatedAt = formatUpdatedAt(card.updatedAt);
+
+  return (
+    <>
+      <div className="account-favorites__live-topline">
+        <span className={`account-favorites__live-status is-${card.status}`}>{card.badge}</span>
+        <span>Dados do portal</span>
+      </div>
+      <div className="account-favorites__live-value">{card.primary}</div>
+      <p className="account-favorites__live-summary">{card.secondary}</p>
+      {card.detail ? <p className="account-favorites__live-detail">{card.detail}</p> : null}
+      <div className="account-favorites__live-footer">
+        <small>
+          {updatedAt ? `Atualizado ${updatedAt}` : card.source ? `Fonte: ${card.source}` : "Consulta atual"}
+        </small>
+        <strong>Abrir →</strong>
+      </div>
+    </>
+  );
+}
+
+export function AccountFavoritesPanel({
+  snapshot,
+  liveCards,
+  liveLoading,
+  onFavoritesChanged,
+}: {
+  snapshot: AuthenticatedFavorites;
+  liveCards: Partial<Record<FavoriteResourceKey, FavoriteLiveCard>>;
+  liveLoading: boolean;
+  onFavoritesChanged?: () => Promise<void>;
+}) {
   const updateFavorite = useServerFn(setAccountFavorite);
   const [favoriteKeys, setFavoriteKeys] = useState<FavoriteResourceKey[]>(snapshot.favoriteKeys);
   const [pendingKey, setPendingKey] = useState<FavoriteResourceKey | null>(null);
@@ -61,8 +109,11 @@ export function AccountFavoritesPanel({ snapshot }: { snapshot: AuthenticatedFav
       );
       setFeedback({
         tone: "success",
-        text: active ? "Atalho adicionado aos seus favoritos." : "Atalho removido dos favoritos.",
+        text: active
+          ? "Favorito salvo. O painel vai buscar a leitura atual quando ela estiver disponível."
+          : "Favorito removido do seu painel.",
       });
+      await onFavoritesChanged?.();
     } catch {
       setFeedback({ tone: "error", text: "Não foi possível atualizar seus favoritos agora." });
     } finally {
@@ -73,11 +124,12 @@ export function AccountFavoritesPanel({ snapshot }: { snapshot: AuthenticatedFav
   return (
     <section className="account-favorites" aria-labelledby="account-favorites-title">
       <div className="account-dashboard__section-heading account-favorites__heading">
-        <span className="eyebrow">Favoritos · Free</span>
-        <h2 id="account-favorites-title">Seu Tempo Pelotas em poucos atalhos</h2>
+        <span className="eyebrow">Favoritos Vivos · Free</span>
+        <h2 id="account-favorites-title">O que você acompanha vem até o painel</h2>
         <p>
-          Salve páginas, estações e ferramentas que você consulta com frequência. O favorito organiza
-          seu painel, mas o conteúdo público continua aberto para qualquer visitante.
+          Salve páginas, estações e ferramentas que você consulta com frequência. Quando existe uma
+          leitura canônica disponível, o favorito deixa de ser apenas um atalho e mostra o estado atual
+          diretamente aqui. O conteúdo público continua aberto para qualquer visitante.
         </p>
       </div>
 
@@ -86,7 +138,7 @@ export function AccountFavoritesPanel({ snapshot }: { snapshot: AuthenticatedFav
           <strong>Favoritos temporariamente indisponíveis</strong>
           <p>
             Sua conta continua ativa. Assim que a estrutura de favoritos estiver disponível neste
-            ambiente, seus atalhos poderão ser salvos aqui.
+            ambiente, seus recursos poderão ser salvos aqui.
           </p>
         </div>
       ) : !snapshot.enabled ? (
@@ -96,32 +148,47 @@ export function AccountFavoritesPanel({ snapshot }: { snapshot: AuthenticatedFav
         </div>
       ) : (
         <>
-          <div className="account-favorites__saved" aria-live="polite">
+          <div className="account-favorites__saved" aria-live="polite" aria-busy={liveLoading}>
             <div className="account-favorites__saved-heading">
               <div>
-                <small>Meus atalhos</small>
+                <small>Meu acompanhamento</small>
                 <strong>
                   {selectedResources.length === 0
                     ? "Nenhum favorito ainda"
                     : `${selectedResources.length} ${selectedResources.length === 1 ? "favorito" : "favoritos"}`}
                 </strong>
               </div>
-              <span>Incluído no plano Free</span>
+              <span>{liveLoading ? "Atualizando dados" : "Incluído no plano Free"}</span>
             </div>
 
             {selectedResources.length === 0 ? (
               <p className="account-favorites__empty">
-                Marque a estrela nos recursos abaixo. Eles aparecerão aqui para abrir em um toque.
+                Marque a estrela nos recursos abaixo. Os que possuem leitura estruturada passam a mostrar
+                a condição atual aqui no painel.
               </p>
             ) : (
-              <div className="account-favorites__shortcuts">
-                {selectedResources.map((resource) => (
-                  <Link key={resource.key} to={resource.href} className="account-favorites__shortcut">
-                    <span>{resource.group}</span>
-                    <strong>{resource.title}</strong>
-                    <small>Abrir →</small>
-                  </Link>
-                ))}
+              <div className="account-favorites__shortcuts account-favorites__shortcuts--live">
+                {selectedResources.map((resource) => {
+                  const liveCard = liveCards[resource.key];
+                  return (
+                    <Link
+                      key={resource.key}
+                      to={resource.href}
+                      className={`account-favorites__shortcut${liveCard ? " account-favorites__shortcut--live" : ""}`}
+                    >
+                      <span>{resource.group}</span>
+                      <strong>{resource.title}</strong>
+                      {liveCard ? (
+                        <FavoriteLiveContent card={liveCard} />
+                      ) : (
+                        <>
+                          <p className="account-favorites__shortcut-description">{resource.description}</p>
+                          <small>{liveLoading ? "Verificando dados…" : "Abrir →"}</small>
+                        </>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
