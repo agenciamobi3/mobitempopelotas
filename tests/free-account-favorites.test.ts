@@ -9,6 +9,7 @@ const migration = readFileSync(
 const catalog = readFileSync("src/lib/auth/favorite-resources.ts", "utf8");
 const functions = readFileSync("src/lib/auth/favorites.functions.ts", "utf8");
 const liveFunctions = readFileSync("src/lib/auth/account-dashboard-live.functions.ts", "utf8");
+const dashboardLayout = readFileSync("src/lib/auth/dashboard-layout.ts", "utf8");
 const panel = readFileSync("src/components/auth/AccountFavoritesPanel.tsx", "utf8");
 const liveOverview = readFileSync("src/components/auth/AccountLiveOverview.tsx", "utf8");
 const liveOverviewCss = readFileSync("src/components/auth/AccountLiveOverview.css", "utf8");
@@ -81,19 +82,14 @@ test("painel autenticado carrega e renderiza favoritos Free reais", () => {
   );
 });
 
-test("painel Free entrega valor pessoal antes das ferramentas de publicação", () => {
+test("painel Free nasce com valor pessoal primeiro e permite que o usuário reorganize depois", () => {
   assert.match(dashboard, /AccountLiveOverview/);
   assert.match(dashboard, /<AccountLiveOverview/);
-  assert.match(dashboard, /Para meu site/);
+  assert.match(dashboard, /DashboardPersonalizationBar/);
+  assert.match(dashboard, /layout\.sections\.map/);
   assert.match(dashboard, /Próximas camadas/);
-  assert.ok(
-    dashboard.indexOf("<AccountLiveOverview") < dashboard.indexOf("Para meu site"),
-    "resumo vivo deve aparecer antes da área de publicação",
-  );
-  assert.ok(
-    dashboard.indexOf("<AccountFavoritesPanel") < dashboard.indexOf("Para meu site"),
-    "favoritos devem permanecer na experiência pessoal",
-  );
+  assert.match(dashboardLayout, /\["live", "favorites", "site"\]/);
+  assert.match(dashboard, /site:\s*"Para meu site"/);
 });
 
 test("painel vivo reutiliza dados reais e oferece aprofundamento", () => {
@@ -132,13 +128,14 @@ test("componente permite adicionar e remover favoritos de forma acessível", () 
   assert.match(panel, /window\.location\.assign\("\/conta\?next=\/painel"\)/);
 });
 
-test("favoritos entram nos direitos LGPD da conta", () => {
+test("favoritos e layout entram nos direitos LGPD da conta", () => {
   assert.match(accountPage, /Favoritos e widgets já estão disponíveis no painel/);
   assert.match(accountPage, /perfil, preferências, favoritos, histórico de consentimentos/);
   assert.match(accountPage, /remove perfil, preferências, favoritos, consentimentos/);
   assert.match(accountExport, /loadFavorites/);
   assert.match(accountExport, /\.from\("user_favorites"\)/);
-  assert.match(accountExport, /export_version:\s*"1\.3"/);
+  assert.match(accountExport, /dashboard_layout/);
+  assert.match(accountExport, /export_version:\s*"1\.4"/);
   assert.match(accountExport, /\n\s*favorites,\n/);
 });
 
