@@ -169,7 +169,7 @@ function rainMetrics(data: WeatherIntelligenceData): Metric[] {
   const next6 = data.weather.hourly.slice(0, 6);
   const next12 = data.weather.hourly.slice(0, 12);
   const next24 = data.weather.hourly.slice(0, 24);
-  const peakChance = maxHour(next24, (hour) => hour.precipitation);
+  const peakChance = maxHour(next24, (hour) => hour.precipitationProbability);
   const peakVolume = maxHour(next24, (hour) => hour.precipitationMm);
 
   return [
@@ -192,7 +192,7 @@ function rainMetrics(data: WeatherIntelligenceData): Metric[] {
       label: "Pico horário previsto",
       value: peakVolume ? `${formatNumber(peakVolume.value)} mm` : "—",
       detail: peakVolume
-        ? `${hourLabel(peakVolume.hour)}${peakChance ? ` · maior chance chega a ${Math.round(peakChance.value)}% às ${hourLabel(peakChance.hour)}` : ""}.`
+        ? `${hourLabel(peakVolume.hour)}${peakChance ? ` · maior chance chega a ${Math.round(peakChance.value)}% perto de ${hourLabel(peakChance.hour)}` : ""}.`
         : "Sem volume horário disponível.",
     },
   ];
@@ -241,9 +241,12 @@ function weekMetrics(data: WeatherIntelligenceData): Metric[] {
   const hottest = maxDay(days, (day) => day.max);
   const coldest = minDay(days, (day) => day.min);
   const gust = maxDay(days, (day) => day.windGust);
-  const totalRain = days.reduce((total, day) => total + (finite(day.precipitation) ? day.precipitation : 0), 0);
+  const totalRain = days.reduce(
+    (total, day) => total + (finite(day.precipitationMm) ? day.precipitationMm : 0),
+    0,
+  );
   const rainyDays = days.filter(
-    (day) => day.precipitation > 0.1 || (finite(day.rainChance) && day.rainChance >= 50),
+    (day) => day.precipitationMm > 0.1 || (finite(day.rainChance) && day.rainChance >= 50),
   ).length;
 
   return [
