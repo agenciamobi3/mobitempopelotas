@@ -23,13 +23,15 @@ function formatWind(value: number | null | undefined) {
 export function AccountLiveOverview({
   summary,
   refreshing,
+  failed,
 }: {
   summary: AccountLiveWeatherSummary | null;
   refreshing: boolean;
+  failed: boolean;
 }) {
-  const loading = summary === null;
-  const unavailable = !loading && !summary.available;
-  const status = loading ? "loading" : unavailable ? "unavailable" : refreshing ? "loading" : "ready";
+  const loading = summary === null && !failed;
+  const unavailable = failed || (!loading && !summary?.available);
+  const status = loading || refreshing ? "loading" : unavailable ? "unavailable" : "ready";
 
   return (
     <section className="account-live" aria-labelledby="account-live-title">
@@ -50,10 +52,16 @@ export function AccountLiveOverview({
       <div className="account-live__grid" aria-busy={loading || refreshing}>
         <article className="account-live__card is-primary">
           <small>{summary?.currentIsObservation ? "Agora · medição" : "Agora · previsão"}</small>
-          <strong>{loading ? "—" : formatTemperature(summary?.currentTemperature)}</strong>
-          <span>{loading ? "Consultando as fontes do portal" : summary?.condition}</span>
-          <p>
+          <strong>{loading || unavailable ? "—" : formatTemperature(summary?.currentTemperature)}</strong>
+          <span>
             {loading
+              ? "Consultando as fontes do portal"
+              : unavailable
+                ? "Dados atuais indisponíveis"
+                : summary?.condition}
+          </span>
+          <p>
+            {loading || unavailable
               ? ""
               : summary?.observedAt
                 ? `Atualizado em ${summary.observedAt}`
@@ -65,17 +73,19 @@ export function AccountLiveOverview({
         <article className="account-live__card">
           <small>Hoje</small>
           <strong>
-            {loading || !summary?.today
+            {loading || unavailable || !summary?.today
               ? "—"
               : `${formatTemperature(summary.today.min)} / ${formatTemperature(summary.today.max)}`}
           </strong>
           <span>
-            {loading || !summary?.today
+            {loading
               ? "Mínima e máxima em atualização"
-              : `${summary.today.condition} · chuva ${formatPercent(summary.today.rainChance)}`}
+              : unavailable || !summary?.today
+                ? "Previsão indisponível nesta consulta"
+                : `${summary.today.condition} · chuva ${formatPercent(summary.today.rainChance)}`}
           </span>
           <p>
-            {loading || !summary?.today
+            {loading || unavailable || !summary?.today
               ? ""
               : `Volume previsto: ${formatMillimeters(summary.today.precipitation)}`}
           </p>
@@ -84,10 +94,10 @@ export function AccountLiveOverview({
 
         <article className="account-live__card">
           <small>Próximas horas</small>
-          <strong>{loading ? "—" : formatPercent(summary?.rainPeak6h)}</strong>
+          <strong>{loading || unavailable ? "—" : formatPercent(summary?.rainPeak6h)}</strong>
           <span>Maior chance de chuva nas próximas 6 horas</span>
           <p>
-            {loading
+            {loading || unavailable
               ? ""
               : `${formatMillimeters(summary?.rainVolume6h ?? 0)} previstos · vento até ${formatWind(summary?.windPeak6h)}`}
           </p>
@@ -96,13 +106,15 @@ export function AccountLiveOverview({
 
         <article className={`account-live__card is-alert${(summary?.officialAlertCount ?? 0) > 0 ? " has-alert" : ""}`}>
           <small>Avisos oficiais</small>
-          <strong>{loading ? "—" : summary?.officialAlertCount ?? 0}</strong>
+          <strong>{loading || unavailable ? "—" : summary?.officialAlertCount ?? 0}</strong>
           <span>
             {loading
               ? "Consultando avisos do INMET"
-              : (summary?.officialAlertCount ?? 0) === 0
-                ? "Nenhum aviso para Pelotas agora"
-                : `${summary?.officialAlertCount} aviso${summary?.officialAlertCount === 1 ? "" : "s"} com relevância para Pelotas`}
+              : unavailable
+                ? "Avisos indisponíveis nesta consulta"
+                : (summary?.officialAlertCount ?? 0) === 0
+                  ? "Nenhum aviso para Pelotas agora"
+                  : `${summary?.officialAlertCount} aviso${summary?.officialAlertCount === 1 ? "" : "s"} com relevância para Pelotas`}
           </span>
           <p>Validade e orientações permanecem na página oficial de alertas do portal.</p>
           <Link to="/alertas">Ver avisos →</Link>
