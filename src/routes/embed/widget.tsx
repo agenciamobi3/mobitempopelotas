@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, type CSSProperties } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 import "@/components/embed/LaranjalEmbedIsolation.css";
 import "@/components/embed/ManagedWidgetAppearance.css";
@@ -11,6 +12,7 @@ import { WindWidget } from "@/components/embed/WindWidget";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { getAggregatedPelotasWeather } from "@/lib/weather/aggregated-weather.functions";
 import { getObsWeatherStatus } from "@/lib/weather/obs-weather-status.functions";
+import { recordPublicWidgetLoad } from "@/lib/widgets/widget-analytics.functions";
 import {
   createAppearanceFromPreset,
   getWidgetStylePreset,
@@ -37,6 +39,7 @@ const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
 function validateSearch(search: Record<string, unknown>) {
   return {
     token: typeof search.token === "string" ? search.token : "",
+    site: typeof search.site === "string" ? search.site : "",
     v:
       typeof search.v === "string" || typeof search.v === "number"
         ? String(search.v)
@@ -202,11 +205,34 @@ function useResponsiveEmbedMetrics(
   }, [presentation, token]);
 }
 
+function useExternalWidgetLoadTracking(
+  token: string | null,
+  siteHost: string,
+  rendered: boolean,
+) {
+  const recordLoad = useServerFn(recordPublicWidgetLoad);
+  const recordedKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!token || token === "preview" || !siteHost || !rendered) return;
+    const key = `${token}:${siteHost}`;
+    if (recordedKeyRef.current === key) return;
+    recordedKeyRef.current = key;
+
+    void recordLoad({ data: { token, siteHost } }).catch(() => {
+      // Métricas são auxiliares e nunca devem impedir a renderização do widget.
+    });
+  }, [recordLoad, rendered, siteHost, token]);
+}
+
 function GeneratedWidgetRoute() {
   const snapshot = Route.useLoaderData();
+  const search = Route.useSearch();
   const token = snapshot.definition?.publicToken ?? null;
   const presentation = snapshot.definition?.content.presentation ?? null;
+  const rendered = Boolean(snapshot.definition && snapshot.payload && "kind" in snapshot);
   useResponsiveEmbedMetrics(token, presentation);
+  useExternalWidgetLoadTracking(token, search.site, rendered);
 
   if (!snapshot.definition || !snapshot.payload || !("kind" in snapshot)) {
     return (
