@@ -573,7 +573,6 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                   widgetType={selectedType}
                   value={content}
                   onChange={setContent}
-                  compact
                   controlName="widget-new-content"
                 />
               </>
