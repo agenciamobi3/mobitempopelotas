@@ -1,0 +1,260 @@
+.dashboard-personalize {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px 28px;
+  padding: 18px 20px;
+  border: 1px solid rgba(7, 30, 47, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dashboard-personalize.is-editing {
+  border-color: rgba(24, 189, 205, 0.34);
+  box-shadow: 0 16px 40px rgba(7, 30, 47, 0.05);
+}
+
+.dashboard-personalize > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.dashboard-personalize__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 12px;
+  background: rgba(24, 189, 205, 0.1);
+  color: #087985;
+}
+
+.dashboard-personalize strong,
+.dashboard-personalize p {
+  display: block;
+}
+
+.dashboard-personalize strong {
+  color: #071e2f;
+  font-size: 0.96rem;
+}
+
+.dashboard-personalize p {
+  margin: 5px 0 0;
+  color: #647887;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.dashboard-personalize__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dashboard-personalize button,
+.dashboard-personalize select,
+.dashboard-personalize__item-controls button,
+.dashboard-personalize__item-controls select {
+  font: inherit;
+}
+
+.dashboard-personalize__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid rgba(7, 30, 47, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: #294657;
+  font-size: 0.74rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.dashboard-personalize__actions button.is-primary {
+  border-color: #071e2f;
+  background: #071e2f;
+  color: #fff;
+}
+
+.dashboard-personalize__actions button:disabled {
+  cursor: default;
+  opacity: 0.52;
+}
+
+.dashboard-personalize__feedback {
+  grid-column: 1 / -1;
+  margin: -2px 0 0 !important;
+  color: #087985 !important;
+  font-weight: 750;
+}
+
+.dashboard-section-frame {
+  min-width: 0;
+}
+
+.dashboard-section-frame.is-editing {
+  position: relative;
+  padding: 8px;
+  border: 1px dashed rgba(24, 189, 205, 0.34);
+  border-radius: 32px;
+  background: rgba(24, 189, 205, 0.025);
+}
+
+.dashboard-section-frame__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 4px 9px;
+}
+
+.dashboard-section-frame__controls > span {
+  color: #087985;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dashboard-personalize__item-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dashboard-personalize__item-controls > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(7, 30, 47, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #294657;
+  cursor: pointer;
+}
+
+.dashboard-personalize__item-controls > button:disabled {
+  cursor: default;
+  opacity: 0.34;
+}
+
+.dashboard-personalize__drag-handle {
+  cursor: grab !important;
+}
+
+.dashboard-personalize__drag-handle:active {
+  cursor: grabbing !important;
+}
+
+.dashboard-personalize__item-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding-left: 6px;
+  color: #647887;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.dashboard-personalize__item-controls select {
+  min-height: 32px;
+  padding: 0 28px 0 9px;
+  border: 1px solid rgba(7, 30, 47, 0.12);
+  border-radius: 10px;
+  background: #fff;
+  color: #294657;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.dashboard-card-size-compact {
+  grid-column: span 1;
+}
+
+.dashboard-card-size-medium {
+  grid-column: span 2;
+}
+
+.dashboard-card-size-wide {
+  grid-column: 1 / -1;
+}
+
+.dashboard-card-edit-shell {
+  min-width: 0;
+}
+
+.dashboard-card-edit-shell.is-editing {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px dashed rgba(24, 189, 205, 0.34);
+  border-radius: 20px;
+  background: rgba(24, 189, 205, 0.025);
+}
+
+.dashboard-card-edit-shell.is-editing > .dashboard-personalize__item-controls {
+  justify-content: flex-end;
+}
+
+.dashboard-card-edit-shell > .account-favorites__shortcut {
+  flex: 1;
+}
+
+.dashboard-personalize button:focus-visible,
+.dashboard-personalize select:focus-visible,
+.dashboard-personalize__item-controls button:focus-visible,
+.dashboard-personalize__item-controls select:focus-visible {
+  outline: 3px solid rgba(24, 189, 205, 0.42);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .dashboard-personalize {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-personalize__actions {
+    justify-content: flex-start;
+  }
+
+  .dashboard-section-frame.is-editing {
+    padding: 6px;
+  }
+
+  .dashboard-section-frame__controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-card-size-compact,
+  .dashboard-card-size-medium,
+  .dashboard-card-size-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (forced-colors: active) {
+  .dashboard-section-frame.is-editing,
+  .dashboard-card-edit-shell.is-editing,
+  .dashboard-personalize {
+    border-color: CanvasText;
+  }
+}
