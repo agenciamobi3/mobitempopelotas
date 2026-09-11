@@ -6,8 +6,10 @@
   const token = script.dataset.widget?.trim();
   if (!token) return;
 
+  const parentHost = window.location.hostname.trim().toLowerCase();
+  const parentHostQuery = parentHost ? `&host=${encodeURIComponent(parentHost)}` : "";
   const iframe = document.createElement("iframe");
-  iframe.src = `${ORIGIN}/embed/widget?token=${encodeURIComponent(token)}`;
+  iframe.src = `${ORIGIN}/embed/widget?token=${encodeURIComponent(token)}${parentHostQuery}`;
   iframe.title = script.dataset.title?.trim() || "Widget Tempo Pelotas";
   iframe.loading = "lazy";
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
