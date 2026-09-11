@@ -102,9 +102,9 @@ test("tester de encaixe simula sidebar, coluna de conteúdo e largura total", ()
   assert.match(builder, /aria-label="Testar largura da prévia"/);
   assert.match(builder, /aria-pressed=\{option\.key === fit\}/);
   assert.match(builder, /A largura de\s+teste não é salva/);
-  assert.match(previewCss, /is-fit-sidebar iframe[\s\S]*360px/);
-  assert.match(previewCss, /is-fit-content iframe[\s\S]*720px/);
-  assert.match(previewCss, /is-fit-full iframe[\s\S]*width: 100%/);
+  assert.match(previewCss, /\.widget-builder-live-preview__stage\.is-fit-sidebar iframe\s*\{[\s\S]*?360px/);
+  assert.match(previewCss, /\.widget-builder-live-preview__stage\.is-fit-content iframe\s*\{[\s\S]*?720px/);
+  assert.match(previewCss, /\.widget-builder-live-preview__stage\.is-fit-full iframe\s*\{[\s\S]*?width: 100%/);
   assert.match(previewCss, /focus-visible/);
   assert.match(previewCss, /forced-colors: active/);
   assert.doesNotMatch(functions, /PreviewFit|previewFit|previewWidth/);
