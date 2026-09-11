@@ -82,12 +82,17 @@ export function WidgetInstallGuide({
   defaultOpen = false,
 }: WidgetInstallGuideProps) {
   const [target, setTarget] = useState<InstallationTarget>("wordpress");
+  const [open, setOpen] = useState(defaultOpen);
   const placement = placementAdvice(presentation);
   const selectedTarget = INSTALLATION_TARGETS.find((item) => item.key === target)!;
   const steps = installationSteps(target);
 
   return (
-    <details className="widget-install-guide" open={defaultOpen ? true : undefined}>
+    <details
+      className="widget-install-guide"
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
       <summary>
         <div>
           <span>Instalação</span>
