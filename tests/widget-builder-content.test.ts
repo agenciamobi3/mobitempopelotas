@@ -82,7 +82,8 @@ test("builder oferece blocos, formatos e prévia real antes de criar", () => {
 
 test("prévia real desacelera mudanças rápidas sem atrasar o estado editável", () => {
   assert.match(builder, /function useDebouncedValue<T>/);
-  assert.match(builder, /window\.setTimeout\(\(\) => setDebouncedValue\(value\), delayMs\)/);
+  assert.match(builder, /setTimeout\(\(\) => setDebouncedValue\(value\), delayMs\)/);
+  assert.match(builder, /clearTimeout\(timer\)/);
   assert.match(builder, /useDebouncedValue\(livePreviewUrl, 280\)/);
   assert.match(builder, /useDebouncedValue\(draftPreviewUrl, 280\)/);
   assert.match(builder, /debouncedLivePreviewUrl !== livePreviewUrl/);
