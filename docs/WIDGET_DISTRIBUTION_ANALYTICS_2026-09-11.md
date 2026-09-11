@@ -1,7 +1,7 @@
 # Tempo Pelotas — analytics de distribuição dos widgets
 
 Data: 11/09/2026  
-Estado: implementação V1 versionada; schema live reconciliado; gravação restrita ao servidor
+Estado: implementação V1 versionada; schema live reconciliado; gravação restrita ao servidor; ranking por domínio disponível no painel
 
 ## Objetivo
 
@@ -77,9 +77,36 @@ A migration `20260911044137_harden_widget_insights_rpc.sql` remove execução di
 - Hoje;
 - 7 dias;
 - 30 dias;
-- Sites ativos nos últimos 30 dias.
+- Sites ativos nos últimos 30 dias;
+- até cinco sites que mais distribuíram o widget no período;
+- quantidade de outros sites ativos fora do top 5.
 
 `Sites ativos` significa hostnames distintos com pelo menos um carregamento na janela. Não significa usuários únicos.
+
+### Ranking de distribuição
+
+O ranking é calculado a partir da mesma consulta agregada já usada pelos contadores. Não existe nova coleta e não existe nova tabela para essa interface.
+
+Para cada hostname o snapshot calcula:
+
+- visualizações acumuladas nos últimos 30 dias;
+- última data com atividade dentro da janela.
+
+A ordenação usa, nesta sequência:
+
+1. maior número de visualizações em 30 dias;
+2. atividade mais recente;
+3. hostname, para manter resultado determinístico em empates.
+
+O painel apresenta no máximo cinco domínios por widget, com:
+
+- posição no ranking;
+- hostname;
+- visualizações do período;
+- participação percentual nas visualizações de 30 dias daquele widget;
+- última atividade registrada.
+
+Quando houver mais de cinco domínios, o card informa quantos outros sites continuam ativos no período. Quando ainda não houver uso externo, a interface mostra estado vazio em vez de inventar exemplos ou reaproveitar GA4.
 
 ## Privacidade
 
@@ -102,6 +129,8 @@ Dados deliberadamente não guardados:
 - path da página hospedeira;
 - identificador de visitante.
 
+O ranking por domínio é somente uma apresentação diferente dos agregados já existentes. Ele não amplia a superfície de rastreamento.
+
 ## Relação com GA4
 
 GA4 continua útil para análise geral do portal e historicamente enxerga rotas `/embed/widget`. Ele não é a fonte canônica do contador mostrado ao proprietário porque pageviews podem incluir prévias e outras cargas técnicas.
@@ -116,6 +145,6 @@ Isso evita misturar números antigos de proveniência ambígua com a nova defini
 
 ## Proteções de contrato
 
-`tests/widget-builder-foundation.test.ts` protege a existência do schema agregado, RLS, incremento atômico, ausência de campos de rastreamento pessoal, transmissão de hostname pelo snippet oficial, exclusão de preview e apresentação das métricas no painel.
+`tests/widget-builder-foundation.test.ts` protege a existência do schema agregado, RLS, incremento atômico, ausência de campos de rastreamento pessoal, transmissão de hostname pelo snippet oficial, exclusão de preview, apresentação das métricas, ranking top 5, contagem de outros domínios, participação percentual e estado vazio no painel.
 
 O workflow `Qualidade` continua sendo o gate completo. Em 11/09/2026 os runs observados ainda falham antes de qualquer step, com `runner_id=0` e `steps=[]`; esse estado é indisponibilidade do runner e não resultado dos testes do código.
