@@ -1,7 +1,7 @@
 # Tempo Pelotas — evolução do painel cadastrado
 
 Data: 11/09/2026
-Estado: fases 1 e 2 implementadas no `main`
+Estado: fases 1, 2 e 3 implementadas no `main`
 
 ## Princípio de produto
 
@@ -19,7 +19,7 @@ A regra adotada é:
 
 O `/painel` se apresenta como **Meu Tempo Pelotas**.
 
-A ordem de leitura é:
+A ordem padrão de leitura é:
 
 1. identidade e camada da conta;
 2. resumo vivo pessoal;
@@ -28,7 +28,7 @@ A ordem de leitura é:
 5. próximas camadas de profundidade;
 6. ferramentas internas condicionais já existentes.
 
-Essa ordem evita que widgets, PRO ou recursos futuros apareçam antes do valor cotidiano da conta.
+A partir da fase 3, os itens 2, 3 e 4 formam o workspace personalizável. Essa continua sendo a ordem inicial para contas novas, mas o usuário pode reorganizá-la.
 
 ## Snapshot vivo compartilhado
 
@@ -162,17 +162,128 @@ Após uma inclusão ou remoção bem-sucedida, o componente solicita novamente o
 
 Se esse refresh falhar, a interface encerra o estado de carregamento e mantém os favoritos como caminhos navegáveis. Não existe loading permanente.
 
+## Fase 3 — Painel personalizável
+
+O `/painel` agora possui um modo explícito **Personalizar painel**.
+
+A personalização não altera os dados nem cria uma segunda versão das fontes. Ela muda somente a composição da interface autenticada.
+
+### Seções reorganizáveis
+
+O usuário pode mudar a ordem das três seções que formam o workspace da conta:
+
+- `Painel Vivo`;
+- `Favoritos Vivos`;
+- `Para meu site`.
+
+A ordem padrão continua `Painel Vivo → Favoritos Vivos → Para meu site`.
+
+`Próximas camadas` e ferramentas internas condicionais ficam fora desse workspace nesta fase. Isso evita misturar recursos ainda em evolução com a área pessoal configurável.
+
+### Cards reorganizáveis
+
+Dentro do Painel Vivo, podem ser reorganizados:
+
+- Tempo agora;
+- resumo de hoje;
+- próximas horas;
+- avisos oficiais.
+
+Dentro de Favoritos Vivos, a ordem dos recursos salvos também pode ser alterada. A ordenação é mantida para todo o catálogo canônico, então um favorito removido e adicionado novamente recupera sua posição persistida sempre que ela continuar válida.
+
+### Tamanhos de card
+
+Cards do Painel Vivo e Favoritos Vivos podem usar três larguras:
+
+- `compact`: uma unidade da grade;
+- `medium`: duas unidades;
+- `wide`: largura total da grade.
+
+No mobile todas as opções degradam para uma única coluna. O tamanho persistido continua guardado e volta a produzir diferença quando a viewport comporta a grade.
+
+### Drag and drop sem depender do mouse
+
+No desktop, as seções e os cards podem ser movidos pelas alças de arraste usando o Drag and Drop nativo do navegador.
+
+O drag não é o único mecanismo. Cada item também possui:
+
+- mover para cima;
+- mover para baixo;
+- seletor de tamanho quando aplicável.
+
+Isso preserva uso por teclado e dá um caminho determinístico em telas touch, onde o Drag and Drop HTML nativo não deve ser tratado como a única interação.
+
+### Edição transacional na interface
+
+Alterações de layout ficam locais durante o modo de personalização.
+
+O usuário possui ações explícitas:
+
+- `Salvar layout`;
+- `Cancelar`;
+- `Padrão`.
+
+O sistema não dispara uma escrita de banco a cada movimento do mouse.
+
+Cancelar restaura a última versão salva. `Padrão` prepara a configuração inicial e ainda exige `Salvar layout` para persistir.
+
+## Persistência do layout
+
+Não foi criada uma nova tabela.
+
+A migration `20260911063644_add_account_dashboard_layout.sql` adiciona `dashboard_layout jsonb` em `public.user_preferences`.
+
+A coluna:
+
+- pertence à mesma linha privada da conta;
+- continua protegida pelas políticas RLS já existentes de `user_preferences`;
+- aceita somente objeto JSON no banco;
+- possui limite de 16 KiB;
+- não guarda meteorologia, hidrologia nem cópias dos dados do portal;
+- armazena somente ordem, tamanhos e versão do layout.
+
+O contrato de aplicação é `DashboardLayout` versão `1`.
+
+A validação do servidor limita:
+
+- IDs de seção conhecidos;
+- IDs dos cards meteorológicos conhecidos;
+- favoritos pertencentes ao catálogo canônico;
+- tamanhos `compact`, `medium` ou `wide`;
+- ausência de itens duplicados;
+- chaves de tamanho pertencentes a cards conhecidos.
+
+Quando um layout antigo ou incompleto é carregado, `normalizeDashboardLayout` preserva as escolhas válidas e acrescenta novos itens padrão que tenham surgido em versões posteriores do produto.
+
+## Salvamento seguro
+
+`saveAccountDashboardLayout`:
+
+- exige sessão autenticada;
+- usa o cliente da própria requisição, não `service_role`;
+- grava somente `user_preferences` da linha cujo `user_id` é o titular autenticado;
+- devolve resposta privada e `no-store`;
+- tenta reparar `ensure_current_user_account_foundation` se a linha de preferências estiver ausente antes de repetir o salvamento.
+
+## LGPD
+
+O layout personalizado passa a fazer parte da exportação de dados da conta.
+
+A exportação foi elevada para `export_version: 1.4` e inclui `dashboard_layout` dentro das preferências do titular.
+
 ## Para meu site
 
 O gerador de widgets continua disponível no Free.
 
 Ele permanece na área **Para meu site**, junto da distribuição e analytics dos widgets. A mudança é de arquitetura da experiência, não de entitlement.
 
+Agora o próprio usuário pode decidir se essa seção aparece antes ou depois de Painel Vivo e Favoritos Vivos.
+
 ## Próximas camadas
 
-Com Painel Vivo e Favoritos Vivos estabelecidos, a sequência recomendada passa a ser:
+Com Painel Vivo, Favoritos Vivos e personalização estabelecidos, a sequência recomendada passa a ser:
 
-1. preferências pessoais que realmente alterem o painel;
+1. preferências temáticas que alterem prioridade e conteúdo do resumo, não apenas posição;
 2. resumo diário personalizado;
 3. histórico pessoal curto no Free;
 4. enriquecimento seguro de radar e câmeras quando houver um estado útil a mostrar;
@@ -187,9 +298,9 @@ Há infraestrutura preservada no repositório, mas contratos atuais mantêm o ge
 
 ## Proteções
 
-`tests/free-account-favorites.test.ts` e `tests/account-live-dashboard.test.ts` protegem que:
+`tests/free-account-favorites.test.ts`, `tests/account-live-dashboard.test.ts` e `tests/account-dashboard-personalization.test.ts` protegem que:
 
-- o valor pessoal apareça antes da área `Para meu site`;
+- o valor pessoal continue sendo a ordem padrão do Free;
 - Painel Vivo e Favoritos Vivos usem o mesmo snapshot autenticado;
 - os favoritos sejam lidos do usuário autenticado sob RLS;
 - a resposta personalizada seja privada e sem cache compartilhado;
@@ -197,10 +308,16 @@ Há infraestrutura preservada no repositório, mas contratos atuais mantêm o ge
 - hidrologia seja consultada apenas quando necessária;
 - São Gonçalo use `DCRS-00063`;
 - Jaguarão use `DCRS-00115`;
-- a tendência da Defesa Civil seja tratada como informação da fonte;
 - nenhuma classificação de risco seja inventada;
-- falhas não sejam preenchidas com dados demonstrativos;
 - uma falha de transporte não deixe o painel em carregamento infinito;
-- layouts permaneçam responsivos e acessíveis.
+- o layout seja versionado e validado;
+- o banco limite o JSON e não crie tabela paralela;
+- salvamento seja restrito ao usuário autenticado;
+- seções e cards aceitem Drag and Drop;
+- existam alternativas de movimento por botões;
+- tamanhos sejam restritos a três estados conhecidos;
+- mobile degrade tamanhos para uma coluna;
+- foco visível e alto contraste sejam preservados;
+- `dashboard_layout` faça parte da exportação LGPD.
 
-O teste focado também faz parte de `npm run test:contracts`.
+Os testes focados fazem parte de `npm run test:contracts`.
