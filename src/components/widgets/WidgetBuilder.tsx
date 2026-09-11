@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import {
+  getWidgetAnalyticsSnapshot,
+  type WidgetAnalyticsSnapshot,
+} from "@/lib/widgets/widget-analytics.functions";
+import {
   createUserWidget,
   setUserWidgetActive,
   updateUserWidgetAppearance,
@@ -20,6 +24,7 @@ import {
 } from "@/lib/widgets/widget-content";
 import type { WidgetType } from "@/lib/widgets/widget-registry";
 
+import { WidgetAnalyticsSummary } from "./WidgetAnalyticsSummary";
 import { WidgetAppearanceControls } from "./WidgetAppearanceControls";
 import { WidgetContentControls } from "./WidgetContentControls";
 import { WidgetInstallGuide } from "./WidgetInstallGuide";
@@ -352,12 +357,15 @@ function WidgetCustomizationEditor({
 export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot }) {
   const createWidget = useServerFn(createUserWidget);
   const setActive = useServerFn(setUserWidgetActive);
+  const loadAnalytics = useServerFn(getWidgetAnalyticsSnapshot);
   const enabledModules = useMemo(
     () => snapshot.modules.filter((module) => module.enabled),
     [snapshot.modules],
   );
   const canCustomizeAppearance = snapshot.access.entitlements.widgetsAdvancedThemes;
   const [widgets, setWidgets] = useState(snapshot.widgets);
+  const [analytics, setAnalytics] = useState<WidgetAnalyticsSnapshot>({});
+  const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
   const [selectedType, setSelectedType] = useState<WidgetType>(
     enabledModules[0]?.type ?? "nivel-laranjal",
   );
@@ -380,6 +388,24 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
   );
   const debouncedLivePreviewUrl = useDebouncedValue(livePreviewUrl, 280);
   const previewRefreshing = debouncedLivePreviewUrl !== livePreviewUrl;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void loadAnalytics()
+      .then((result) => {
+        if (cancelled) return;
+        setAnalytics(result);
+        setAnalyticsLoaded(true);
+      })
+      .catch(() => {
+        if (!cancelled) setAnalyticsLoaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loadAnalytics]);
 
   function changeModule(nextType: WidgetType) {
     setSelectedType(nextType);
@@ -547,6 +573,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                   widgetType={selectedType}
                   value={content}
                   onChange={setContent}
+                  compact
                   controlName="widget-new-content"
                 />
               </>
@@ -619,6 +646,10 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                       <span className="widget-builder-badge">v{widget.version}</span>
                       <span className="widget-builder-badge">Marca Tempo Pelotas</span>
                     </div>
+                    <WidgetAnalyticsSummary
+                      summary={analytics[widget.id]}
+                      loaded={analyticsLoaded}
+                    />
                   </div>
 
                   {widget.status === "active" ? (
