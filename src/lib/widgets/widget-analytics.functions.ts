@@ -12,6 +12,7 @@ import {
 
 const SAO_PAULO_TIME_ZONE = "America/Sao_Paulo";
 const DAY_MS = 24 * 60 * 60 * 1_000;
+const TOP_DISTRIBUTION_HOSTS = 5;
 
 const widgetImpressionSchema = z.object({
   token: z.string().uuid(),
@@ -53,14 +54,24 @@ type WidgetAnalyticsDatabase = Omit<Database, "public"> & {
   };
 };
 
+export type WidgetAnalyticsHostSummary = {
+  host: string;
+  last30Days: number;
+  lastActiveDay: string;
+};
+
 export type WidgetAnalyticsSummary = {
   today: number;
   last7Days: number;
   last30Days: number;
   activeHosts30Days: number;
+  topHosts30Days: WidgetAnalyticsHostSummary[];
+  otherHosts30Days: number;
 };
 
 export type WidgetAnalyticsSnapshot = Record<string, WidgetAnalyticsSummary>;
+
+type HostAccumulator = Omit<WidgetAnalyticsHostSummary, "host">;
 
 function privateNoStoreHeaders(headers = new Headers()) {
   headers.set("Cache-Control", "private, no-store, max-age=0");
@@ -148,7 +159,7 @@ export const getWidgetAnalyticsSnapshot = createServerFn({ method: "GET" }).hand
     }
 
     const snapshot: WidgetAnalyticsSnapshot = {};
-    const hosts = new Map<string, Set<string>>();
+    const hostsByWidget = new Map<string, Map<string, HostAccumulator>>();
 
     for (const row of data ?? []) {
       const summary = snapshot[row.widget_id] ?? {
@@ -156,6 +167,8 @@ export const getWidgetAnalyticsSnapshot = createServerFn({ method: "GET" }).hand
         last7Days: 0,
         last30Days: 0,
         activeHosts30Days: 0,
+        topHosts30Days: [],
+        otherHosts30Days: 0,
       };
       const loads = safeCount(row.loads);
 
@@ -164,14 +177,36 @@ export const getWidgetAnalyticsSnapshot = createServerFn({ method: "GET" }).hand
       if (row.day === today) summary.today += loads;
       snapshot[row.widget_id] = summary;
 
-      const widgetHosts = hosts.get(row.widget_id) ?? new Set<string>();
-      widgetHosts.add(row.site_host);
-      hosts.set(row.widget_id, widgetHosts);
+      const widgetHosts = hostsByWidget.get(row.widget_id) ?? new Map<string, HostAccumulator>();
+      const hostSummary = widgetHosts.get(row.site_host) ?? {
+        last30Days: 0,
+        lastActiveDay: row.day,
+      };
+      hostSummary.last30Days += loads;
+      if (row.day > hostSummary.lastActiveDay) hostSummary.lastActiveDay = row.day;
+      widgetHosts.set(row.site_host, hostSummary);
+      hostsByWidget.set(row.widget_id, widgetHosts);
     }
 
-    for (const [widgetId, widgetHosts] of hosts) {
+    for (const [widgetId, widgetHosts] of hostsByWidget) {
       const summary = snapshot[widgetId];
-      if (summary) summary.activeHosts30Days = widgetHosts.size;
+      if (!summary) continue;
+
+      const rankedHosts = Array.from(widgetHosts.entries())
+        .map(([host, stats]) => ({ host, ...stats }))
+        .sort(
+          (left, right) =>
+            right.last30Days - left.last30Days ||
+            right.lastActiveDay.localeCompare(left.lastActiveDay) ||
+            left.host.localeCompare(right.host),
+        );
+
+      summary.activeHosts30Days = rankedHosts.length;
+      summary.topHosts30Days = rankedHosts.slice(0, TOP_DISTRIBUTION_HOSTS);
+      summary.otherHosts30Days = Math.max(
+        0,
+        rankedHosts.length - summary.topHosts30Days.length,
+      );
     }
 
     return snapshot;
