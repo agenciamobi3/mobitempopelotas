@@ -1,7 +1,7 @@
 # Tempo Pelotas — analytics de distribuição dos widgets
 
 Data: 11/09/2026  
-Estado: implementação V1 versionada; schema live reconciliado; gravação restrita ao servidor; ranking por domínio disponível no painel
+Estado: implementação V1 versionada; schema live reconciliado; gravação restrita ao servidor; ranking por domínio disponível no painel; origem do distribuidor confirmada pelo navegador
 
 ## Objetivo
 
@@ -16,10 +16,29 @@ Uma visualização é registrada quando:
 - o snippet oficial `https://tempopelotas.com.br/widgets/embed.js` cria o iframe;
 - o iframe é carregado dentro de uma página externa;
 - existe token público válido e ativo;
-- o snippet informa o hostname do site hospedeiro;
-- o hostname passa pela validação do renderer e da função SQL.
+- o iframe solicita a identidade do site pai por `postMessage`;
+- o snippet pai responde com o hostname local;
+- o renderer confirma que esse hostname coincide com `event.origin`, fornecido pelo navegador;
+- o hostname passa pela validação final da Server Function e da função SQL.
 
 O hostname é normalizado no banco, inclusive removendo `www.` para não separar artificialmente duas instalações do mesmo site.
+
+## Confirmação da origem do distribuidor
+
+O hostname não é mais aceito por query string do iframe. Essa decisão evita tratar um parâmetro manipulável como prova de origem.
+
+O fluxo atual é:
+
+1. o iframe publica `request-host` para a janela pai;
+2. somente o `embed.js` oficial responde com `tempo-pelotas-widget-parent`;
+3. o renderer exige que a mensagem venha de `window.parent`;
+4. o renderer extrai o hostname de `event.origin`;
+5. o hostname declarado pelo script precisa ser exatamente igual ao hostname derivado de `event.origin`;
+6. somente então a Server Function registra a visualização.
+
+`event.origin` é preenchido pelo navegador para a mensagem recebida e não pelo conteúdo da mensagem. Isso impede que um site A simplesmente declare que é o site B para atribuir visualizações a outro domínio.
+
+Essa confirmação não transforma a métrica em antifraude absoluto. Um site que realmente hospeda o widget ainda pode recarregar a própria página repetidamente. A V1 mede carregamentos reais do embed, não pessoas únicas nem sessões deduplicadas.
 
 ## O que não conta
 
@@ -29,6 +48,7 @@ Não entram nas métricas:
 - prévia de edição de um widget existente;
 - iframe de um widget salvo aberto dentro de `/widgets`;
 - abertura direta de `/embed/widget` fora de um iframe;
+- iframe inserido manualmente sem o handshake do snippet oficial;
 - host do próprio `tempopelotas.com.br` ou subdomínios;
 - token inválido, removido ou widget pausado.
 
@@ -129,7 +149,7 @@ Dados deliberadamente não guardados:
 - path da página hospedeira;
 - identificador de visitante.
 
-O ranking por domínio é somente uma apresentação diferente dos agregados já existentes. Ele não amplia a superfície de rastreamento.
+O ranking por domínio é somente uma apresentação diferente dos agregados já existentes. O handshake usa a origem da mensagem apenas para validar o hostname do site distribuidor e não adiciona um novo dado persistido.
 
 ## Relação com GA4
 
@@ -139,12 +159,12 @@ A fonte canônica da V1 passa a ser `widget_usage_daily`.
 
 ## Limite histórico
 
-Não existe backfill automático dos pageviews antigos do GA4. A nova métrica começa a ser confiável a partir da publicação do runtime que contém o `embed.js` com transmissão do hostname e o renderer com registro de impressão.
+Não existe backfill automático dos pageviews antigos do GA4. A nova métrica começa a ser confiável a partir da publicação conjunta do runtime que contém o `embed.js` com handshake de origem e o renderer que confirma `event.origin` antes de registrar a impressão.
 
 Isso evita misturar números antigos de proveniência ambígua com a nova definição de visualização externa real.
 
 ## Proteções de contrato
 
-`tests/widget-builder-foundation.test.ts` protege a existência do schema agregado, RLS, incremento atômico, ausência de campos de rastreamento pessoal, transmissão de hostname pelo snippet oficial, exclusão de preview, apresentação das métricas, ranking top 5, contagem de outros domínios, participação percentual e estado vazio no painel.
+`tests/widget-builder-foundation.test.ts` protege a existência do schema agregado, RLS, incremento atômico, ausência de campos de rastreamento pessoal, handshake do snippet oficial, correspondência entre hostname declarado e `event.origin`, exclusão de preview, apresentação das métricas, ranking top 5, contagem de outros domínios, participação percentual e estado vazio no painel.
 
 O workflow `Qualidade` continua sendo o gate completo. Em 11/09/2026 os runs observados ainda falham antes de qualquer step, com `runner_id=0` e `steps=[]`; esse estado é indisponibilidade do runner e não resultado dos testes do código.
