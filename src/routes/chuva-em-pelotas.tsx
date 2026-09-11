@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredWeatherEnrichment } from "@/components/auth/RegisteredWeatherEnrichment";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { RainForecastPageV2 } from "@/components/weather/RainForecastPageV2";
 import { RainRetailHero } from "@/components/weather/RainRetailHero";
@@ -75,7 +76,12 @@ function ChuvaPage() {
         />
       )}
     >
-      {(recoveredWeather) => <RainForecastPageV2 data={recoveredWeather} />}
+      {(recoveredWeather) => (
+        <>
+          <RainForecastPageV2 data={recoveredWeather} />
+          <RegisteredWeatherEnrichment data={recoveredWeather} variant="rain" pagePath={PAGE_PATH} />
+        </>
+      )}
     </InternalWeatherPageShell>
   );
 }
