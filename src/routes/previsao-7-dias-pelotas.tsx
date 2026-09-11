@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredWeatherEnrichment } from "@/components/auth/RegisteredWeatherEnrichment";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { ForecastHorizonBridge } from "@/components/weather/ForecastHorizonBridge";
 import { SevenDayForecastPageV2 } from "@/components/weather/SevenDayForecastPageV2";
@@ -62,6 +63,7 @@ function PrevisaoSeteDiasPage() {
       {(recoveredWeather) => (
         <>
           <SevenDayForecastPageV2 data={recoveredWeather} />
+          <RegisteredWeatherEnrichment data={recoveredWeather} variant="week" pagePath={PAGE_PATH} />
           <ForecastHorizonBridge />
         </>
       )}
