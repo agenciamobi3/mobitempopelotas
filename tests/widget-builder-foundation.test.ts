@@ -123,13 +123,20 @@ test("analytics de distribuição agrega por widget, domínio e dia sem rastream
   assert.doesNotMatch(analyticsMigration, /ip_address|user_agent|fingerprint|cookie/i);
 });
 
-test("somente o snippet externo injeta host; prévias internas não viram visualização", () => {
+test("snippet e renderer confirmam o domínio externo pelo origin do navegador", () => {
   assert.match(loaderScript, /window\.location\.hostname/);
-  assert.match(loaderScript, /&host=\$\{encodeURIComponent\(parentHost\)\}/);
-  assert.match(renderer, /host: typeof search\.host === "string"/);
+  assert.match(loaderScript, /tempo-pelotas-widget-parent/);
+  assert.match(loaderScript, /data\.type === "request-host"/);
+  assert.match(loaderScript, /iframe\.contentWindow\.postMessage/);
+  assert.doesNotMatch(loaderScript, /[?&]host=/);
   assert.match(renderer, /token === "preview"/);
+  assert.match(renderer, /event\.source !== window\.parent/);
+  assert.match(renderer, /new URL\(event\.origin\)\.hostname/);
+  assert.match(renderer, /originHost !== claimedHost/);
+  assert.match(renderer, /type: "request-host"/);
   assert.match(renderer, /INTERNAL_WIDGET_HOSTS/);
   assert.match(renderer, /recordWidgetImpression/);
+  assert.doesNotMatch(renderer, /host: typeof search\.host/);
   assert.doesNotMatch(widgetFunctions, /embedUrl: `[^`]*&host=/);
 });
 
