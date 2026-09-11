@@ -80,7 +80,7 @@ test("painel exige autenticação server-side e permanece fora do índice", () =
   );
 });
 
-test("exportação exige sessão, inclui acesso e dados pessoais Free sem secrets", () => {
+test("exportação exige sessão, inclui acesso, favoritos e layout sem secrets", () => {
   assert.match(exportRoute, /getVerifiedRequestUser\(request\)/);
   assert.match(exportRoute, /status:\s*401/);
   assert.match(exportRoute, /Content-Disposition/);
@@ -89,7 +89,8 @@ test("exportação exige sessão, inclui acesso e dados pessoais Free sem secret
   assert.match(exportRoute, /\.from\("account_access"\)/);
   assert.match(exportRoute, /\.select\("tier,status,source,valid_until,created_at,updated_at"\)/);
   assert.match(exportRoute, /access:\s*accessResult\.data/);
-  assert.match(exportRoute, /export_version:\s*["']1\.3["']/);
+  assert.match(exportRoute, /export_version:\s*["']1\.4["']/);
+  assert.match(exportRoute, /dashboard_layout/);
   assert.match(exportRoute, /\.from\("user_favorites"\)/);
   assert.match(exportRoute, /\n\s*favorites,\n/);
   assert.match(
