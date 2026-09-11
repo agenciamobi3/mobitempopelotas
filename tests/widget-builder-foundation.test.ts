@@ -9,8 +9,14 @@ const migration = readFileSync(
   "supabase/migrations/20260829061000_create_user_widgets.sql",
   "utf8",
 );
+const analyticsMigration = readFileSync(
+  "supabase/migrations/20260911034558_create_widget_insights.sql",
+  "utf8",
+);
 const widgetFunctions = readFileSync("src/lib/widgets/widget.functions.ts", "utf8");
+const analyticsFunctions = readFileSync("src/lib/widgets/widget-analytics.functions.ts", "utf8");
 const widgetBuilder = readFileSync("src/components/widgets/WidgetBuilder.tsx", "utf8");
+const analyticsSummary = readFileSync("src/components/widgets/WidgetAnalyticsSummary.tsx", "utf8");
 const renderer = readFileSync("src/routes/embed/widget.tsx", "utf8");
 const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
 const server = readFileSync("src/server.ts", "utf8");
@@ -97,6 +103,49 @@ test("embed gerado é responsivo e aceita frame externo somente no renderer dedi
   assert.match(renderer, /tempo-pelotas-widget/);
   assert.match(server, /"\/embed\/widget"/);
   assert.match(server, /withFrameAncestors\(headers\.get\("Content-Security-Policy"\), "\*"\)/);
+});
+
+test("analytics de distribuição agrega por widget, domínio e dia sem rastreamento pessoal", () => {
+  assert.match(analyticsMigration, /create table public\.widget_installations/);
+  assert.match(analyticsMigration, /create table public\.widget_usage_daily/);
+  assert.match(analyticsMigration, /primary key \(widget_id, site_host\)/);
+  assert.match(analyticsMigration, /primary key \(widget_id, site_host, day\)/);
+  assert.match(analyticsMigration, /alter table public\.widget_installations enable row level security/);
+  assert.match(analyticsMigration, /alter table public\.widget_usage_daily enable row level security/);
+  assert.match(analyticsMigration, /Users can read own widget installations/);
+  assert.match(analyticsMigration, /Users can read own widget daily usage/);
+  assert.match(analyticsMigration, /create or replace function public\.record_widget_load/);
+  assert.match(analyticsMigration, /w\.status = 'active'/);
+  assert.match(analyticsMigration, /v_host = 'tempopelotas\.com\.br'/);
+  assert.match(analyticsMigration, /total_loads = wi\.total_loads \+ 1/);
+  assert.match(analyticsMigration, /loads = wd\.loads \+ 1/);
+  assert.doesNotMatch(analyticsMigration, /ip_address|user_agent|fingerprint|cookie/i);
+});
+
+test("somente o snippet externo injeta host; prévias internas não viram visualização", () => {
+  assert.match(loaderScript, /window\.location\.hostname/);
+  assert.match(loaderScript, /&host=\$\{encodeURIComponent\(parentHost\)\}/);
+  assert.match(renderer, /host: typeof search\.host === "string"/);
+  assert.match(renderer, /token === "preview"/);
+  assert.match(renderer, /INTERNAL_WIDGET_HOSTS/);
+  assert.match(renderer, /recordWidgetImpression/);
+  assert.doesNotMatch(widgetFunctions, /embedUrl: `[^`]*&host=/);
+});
+
+test("painel mostra hoje, 7 dias, 30 dias e sites ativos usando leitura protegida por sessão", () => {
+  assert.match(analyticsFunctions, /createSupabaseRequestClient\(getRequest\(\)\)/);
+  assert.match(analyticsFunctions, /client\.auth\.getUser\(\)/);
+  assert.match(analyticsFunctions, /\.from\("widget_usage_daily"\)/);
+  assert.match(analyticsFunctions, /\.eq\("user_id", user\.id\)/);
+  assert.match(analyticsFunctions, /\.gte\("day", thirtyDaysAgo\)/);
+  assert.match(analyticsFunctions, /record_widget_load/);
+  assert.match(widgetBuilder, /getWidgetAnalyticsSnapshot/);
+  assert.match(widgetBuilder, /WidgetAnalyticsSummary/);
+  assert.match(analyticsSummary, />Hoje</);
+  assert.match(analyticsSummary, />7 dias</);
+  assert.match(analyticsSummary, />30 dias</);
+  assert.match(analyticsSummary, />Sites ativos</);
+  assert.match(analyticsSummary, /Prévia, edição e abertura[\s\S]*não entram/);
 });
 
 test("renderer gerenciado não usa cache e widgets fixos preservam cache público", () => {
