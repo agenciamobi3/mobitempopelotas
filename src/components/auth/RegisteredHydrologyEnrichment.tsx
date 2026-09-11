@@ -62,17 +62,15 @@ function RainCard({ station }: { station: DefesaCivilHydroStation }) {
     ["72h", station.rain.h72Mm],
     ["7 dias", station.rain.h168Mm],
   ] as const;
+  const rainSummary = values
+    .flatMap(([label, value]) => (finite(value) ? [`${label}: ${formatNumber(value)} mm`] : []))
+    .join(" · ");
 
   return (
     <article>
       <small>Chuva na própria estação</small>
       <strong>{finite(station.rain.h24Mm) ? `${formatNumber(station.rain.h24Mm)} mm · 24h` : "Sem acumulado de 24h"}</strong>
-      <p>
-        {values
-          .filter((entry): entry is readonly [string, number] => finite(entry[1]))
-          .map(([label, value]) => `${label}: ${formatNumber(value)} mm`)
-          .join(" · ") || "A fonte não entregou acumulados utilizáveis nesta consulta."}
-      </p>
+      <p>{rainSummary || "A fonte não entregou acumulados utilizáveis nesta consulta."}</p>
     </article>
   );
 }
