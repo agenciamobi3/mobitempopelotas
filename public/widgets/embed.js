@@ -7,9 +7,8 @@
   if (!token) return;
 
   const parentHost = window.location.hostname.trim().toLowerCase();
-  const parentHostQuery = parentHost ? `&host=${encodeURIComponent(parentHost)}` : "";
   const iframe = document.createElement("iframe");
-  iframe.src = `${ORIGIN}/embed/widget?token=${encodeURIComponent(token)}${parentHostQuery}`;
+  iframe.src = `${ORIGIN}/embed/widget?token=${encodeURIComponent(token)}`;
   iframe.title = script.dataset.title?.trim() || "Widget Tempo Pelotas";
   iframe.loading = "lazy";
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
@@ -36,10 +35,29 @@
     }
   };
 
+  const sendHost = () => {
+    if (!parentHost || !iframe.contentWindow) return;
+    iframe.contentWindow.postMessage(
+      {
+        source: "tempo-pelotas-widget-parent",
+        token,
+        type: "host",
+        host: parentHost,
+      },
+      ORIGIN,
+    );
+  };
+
   const onMessage = (event) => {
     if (event.origin !== ORIGIN || event.source !== iframe.contentWindow) return;
     const data = event.data;
     if (!data || data.source !== "tempo-pelotas-widget" || data.token !== token) return;
+
+    if (data.type === "request-host") {
+      sendHost();
+      return;
+    }
+
     if (data.type !== "resize" || typeof data.height !== "number") return;
 
     const height = Math.max(120, Math.min(Math.ceil(data.height), 2000));
@@ -50,6 +68,7 @@
   window.addEventListener("message", onMessage);
   iframe.addEventListener("load", () => {
     iframe.dataset.loaded = "true";
+    sendHost();
   });
 
   script.insertAdjacentElement("afterend", iframe);
