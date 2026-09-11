@@ -11,14 +11,9 @@ import {
   getSupabaseServerConfig,
 } from "@/lib/supabase/server-client.server";
 
-const SITE_ORIGIN = "https://tempopelotas.com.br";
 const SITE_HOST_PATTERN = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/;
 const SAO_PAULO_TIME_ZONE = "America/Sao_Paulo";
-
-const recordWidgetLoadSchema = z.object({
-  token: z.string().uuid(),
-  siteHost: z.string().trim().min(1).max(253),
-});
+const widgetTokenSchema = z.string().uuid();
 
 type WidgetInstallationRow = {
   widget_id: string;
@@ -44,14 +39,14 @@ type WidgetAnalyticsDatabase = Omit<Database, "public"> & {
     Tables: Database["public"]["Tables"] & {
       widget_installations: {
         Row: WidgetInstallationRow;
-        Insert: never;
-        Update: never;
+        Insert: WidgetInstallationRow;
+        Update: Partial<WidgetInstallationRow>;
         Relationships: [];
       };
       widget_usage_daily: {
         Row: WidgetUsageDailyRow;
-        Insert: never;
-        Update: never;
+        Insert: WidgetUsageDailyRow;
+        Update: Partial<WidgetUsageDailyRow>;
         Relationships: [];
       };
     };
@@ -122,6 +117,17 @@ function normalizeSiteHost(value: string) {
   if (!host || host.length > 253 || !SITE_HOST_PATTERN.test(host)) return null;
   if (host === "tempopelotas.com.br" || host.endsWith(".tempopelotas.com.br")) return null;
   return host;
+}
+
+function siteHostFromOrigin(origin: string | null) {
+  if (!origin) return null;
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return normalizeSiteHost(url.hostname);
+  } catch {
+    return null;
+  }
 }
 
 function toCount(value: number | string | null | undefined) {
@@ -268,55 +274,34 @@ function buildWidgetInsight(
   };
 }
 
-export const recordPublicWidgetLoad = createServerFn({ method: "POST" })
-  .validator(recordWidgetLoadSchema)
-  .handler(async ({ data }) => {
-    const siteHost = normalizeSiteHost(data.siteHost);
-    if (!siteHost) return { ok: false as const, code: "invalid_site" as const };
+export async function recordWidgetLoadFromOrigin(token: string, origin: string | null) {
+  const parsedToken = widgetTokenSchema.safeParse(token.trim());
+  if (!parsedToken.success) return { ok: false as const, code: "invalid_token" as const };
 
-    const request = getRequest();
-    const fetchSite = request.headers.get("sec-fetch-site");
-    if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "same-site") {
-      return { ok: false as const, code: "invalid_context" as const };
-    }
+  const siteHost = siteHostFromOrigin(origin);
+  if (!siteHost) return { ok: false as const, code: "invalid_origin" as const };
 
-    const referer = request.headers.get("referer");
-    if (referer) {
-      try {
-        const refererUrl = new URL(referer);
-        if (refererUrl.origin !== SITE_ORIGIN || refererUrl.pathname !== "/embed/widget") {
-          return { ok: false as const, code: "invalid_context" as const };
-        }
-        const referredSite = normalizeSiteHost(refererUrl.searchParams.get("site") ?? "");
-        if (referredSite && referredSite !== siteHost) {
-          return { ok: false as const, code: "invalid_context" as const };
-        }
-      } catch {
-        return { ok: false as const, code: "invalid_context" as const };
-      }
-    }
+  const config = getSupabaseServerConfig();
+  if (!config.isAdminConfigured) return { ok: false as const, code: "unavailable" as const };
 
-    const config = getSupabaseServerConfig();
-    if (!config.isAdminConfigured) return { ok: false as const, code: "unavailable" as const };
-
-    const client = createSupabaseAdminClient() as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
-    const { data: recorded, error } = await client.rpc("record_widget_load", {
-      p_token: data.token,
-      p_site_host: siteHost,
-    });
-
-    if (error) {
-      console.warn("[widgets] Não foi possível registrar carregamento agregado", {
-        code: error.code,
-        message: error.message,
-      });
-      return { ok: false as const, code: "storage" as const };
-    }
-
-    return recorded
-      ? { ok: true as const }
-      : { ok: false as const, code: "ignored" as const };
+  const client = createSupabaseAdminClient() as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
+  const { data: recorded, error } = await client.rpc("record_widget_load", {
+    p_token: parsedToken.data,
+    p_site_host: siteHost,
   });
+
+  if (error) {
+    console.warn("[widgets] Não foi possível registrar carregamento agregado", {
+      code: error.code,
+      message: error.message,
+    });
+    return { ok: false as const, code: "storage" as const };
+  }
+
+  return recorded
+    ? { ok: true as const }
+    : { ok: false as const, code: "ignored" as const };
+}
 
 export const getWidgetInsightsSnapshot = createServerFn({ method: "GET" }).handler(
   async (): Promise<WidgetInsightsSnapshot> => {
