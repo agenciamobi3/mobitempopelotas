@@ -17,6 +17,7 @@ const widgetFunctions = readFileSync("src/lib/widgets/widget.functions.ts", "utf
 const analyticsFunctions = readFileSync("src/lib/widgets/widget-analytics.functions.ts", "utf8");
 const widgetBuilder = readFileSync("src/components/widgets/WidgetBuilder.tsx", "utf8");
 const analyticsSummary = readFileSync("src/components/widgets/WidgetAnalyticsSummary.tsx", "utf8");
+const analyticsStyles = readFileSync("src/components/widgets/WidgetAnalyticsSummary.css", "utf8");
 const renderer = readFileSync("src/routes/embed/widget.tsx", "utf8");
 const loaderScript = readFileSync("public/widgets/embed.js", "utf8");
 const server = readFileSync("src/server.ts", "utf8");
@@ -146,6 +147,23 @@ test("painel mostra hoje, 7 dias, 30 dias e sites ativos usando leitura protegid
   assert.match(analyticsSummary, />30 dias</);
   assert.match(analyticsSummary, />Sites ativos</);
   assert.match(analyticsSummary, /Prévia, edição e abertura[\s\S]*não entram/);
+});
+
+test("painel ranqueia os cinco principais sites distribuidores sem coletar dados adicionais", () => {
+  assert.match(analyticsFunctions, /const TOP_DISTRIBUTION_HOSTS = 5/);
+  assert.match(analyticsFunctions, /hostsByWidget/);
+  assert.match(analyticsFunctions, /rankedHosts\.slice\(0, TOP_DISTRIBUTION_HOSTS\)/);
+  assert.match(analyticsFunctions, /otherHosts30Days/);
+  assert.match(analyticsFunctions, /lastActiveDay/);
+  assert.match(analyticsSummary, /Sites que distribuem este widget/);
+  assert.match(analyticsSummary, /Últimos 30 dias/);
+  assert.match(analyticsSummary, /% do período/);
+  assert.match(analyticsSummary, /Última atividade em/);
+  assert.match(analyticsSummary, /<progress/);
+  assert.match(analyticsSummary, /Ainda não há visualizações externas registradas/);
+  assert.match(analyticsStyles, /widget-analytics__sites/);
+  assert.match(analyticsStyles, /grid-template-columns: 1fr/);
+  assert.doesNotMatch(analyticsFunctions, /ip_address|user_agent|fingerprint|cookie/i);
 });
 
 test("renderer gerenciado não usa cache e widgets fixos preservam cache público", () => {
