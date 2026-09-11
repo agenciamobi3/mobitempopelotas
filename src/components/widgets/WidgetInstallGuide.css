@@ -212,6 +212,25 @@
   line-height: 1.5;
 }
 
+.widget-install-guide__aftercare {
+  padding: 14px 16px;
+  border: 1px solid #bae6fd;
+  border-radius: 15px;
+  background: #f0f9ff;
+}
+
+.widget-install-guide__aftercare strong {
+  color: #075985;
+  font-size: 0.86rem;
+}
+
+.widget-install-guide__aftercare p {
+  margin: 5px 0 0;
+  color: #475569;
+  font-size: 0.76rem;
+  line-height: 1.55;
+}
+
 .widget-install-guide > summary:focus-visible,
 .widget-install-guide__targets button:focus-visible,
 .widget-install-guide__code-actions button:focus-visible {
@@ -256,6 +275,7 @@
   .widget-install-guide__placement,
   .widget-install-guide__steps,
   .widget-install-guide__code-block,
+  .widget-install-guide__aftercare,
   .widget-install-guide__targets button,
   .widget-install-guide > summary::after {
     border-color: CanvasText;
