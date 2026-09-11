@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, type CSSProperties } from "react";
 
 import "@/components/embed/LaranjalEmbedIsolation.css";
@@ -11,6 +12,7 @@ import { WindWidget } from "@/components/embed/WindWidget";
 import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import { getAggregatedPelotasWeather } from "@/lib/weather/aggregated-weather.functions";
 import { getObsWeatherStatus } from "@/lib/weather/obs-weather-status.functions";
+import { recordWidgetImpression } from "@/lib/widgets/widget-analytics.functions";
 import {
   createAppearanceFromPreset,
   getWidgetStylePreset,
@@ -33,6 +35,13 @@ import { isWidgetType } from "@/lib/widgets/widget-registry";
 
 const ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
+const HOST_PATTERN = /^[a-z0-9](?:[a-z0-9.-]{0,251}[a-z0-9])?$/;
+const INTERNAL_WIDGET_HOSTS = new Set([
+  "tempopelotas.com.br",
+  "www.tempopelotas.com.br",
+  "localhost",
+  "127.0.0.1",
+]);
 
 function validateSearch(search: Record<string, unknown>) {
   return {
@@ -41,6 +50,7 @@ function validateSearch(search: Record<string, unknown>) {
       typeof search.v === "string" || typeof search.v === "number"
         ? String(search.v)
         : "",
+    host: typeof search.host === "string" ? search.host : "",
     previewType: typeof search.previewType === "string" ? search.previewType : "",
     preset: typeof search.preset === "string" ? search.preset : "",
     accent: typeof search.accent === "string" ? search.accent : "",
@@ -202,11 +212,26 @@ function useResponsiveEmbedMetrics(
   }, [presentation, token]);
 }
 
+function useWidgetImpression(token: string | null, host: string) {
+  const recordImpression = useServerFn(recordWidgetImpression);
+
+  useEffect(() => {
+    if (!token || token === "preview" || !host) return;
+
+    const normalizedHost = host.trim().toLowerCase();
+    if (!HOST_PATTERN.test(normalizedHost) || INTERNAL_WIDGET_HOSTS.has(normalizedHost)) return;
+
+    void recordImpression({ data: { token, host: normalizedHost } }).catch(() => undefined);
+  }, [host, recordImpression, token]);
+}
+
 function GeneratedWidgetRoute() {
   const snapshot = Route.useLoaderData();
+  const search = Route.useSearch();
   const token = snapshot.definition?.publicToken ?? null;
   const presentation = snapshot.definition?.content.presentation ?? null;
   useResponsiveEmbedMetrics(token, presentation);
+  useWidgetImpression(token, search.host);
 
   if (!snapshot.definition || !snapshot.payload || !("kind" in snapshot)) {
     return (
