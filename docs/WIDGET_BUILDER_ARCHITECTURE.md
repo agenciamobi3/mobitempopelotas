@@ -1,7 +1,7 @@
 # Tempo Pelotas — arquitetura do gerador de widgets
 
 Última atualização: 10/09/2026  
-Estado: fundação publicada; 5 módulos; aparência, apresentação, blocos controlados e prévia real versionados
+Estado: fundação publicada; 5 módulos; aparência, apresentação, blocos controlados, prévia real e teste de encaixe versionados
 
 ## Objetivo
 
@@ -21,6 +21,7 @@ A conta Free permanece propositalmente generosa:
 - apresentações Cartão, Compacto e Horizontal habilitadas;
 - escolha de blocos visíveis habilitada;
 - prévia real antes da criação habilitada;
+- teste visual em Sidebar 360 px, Conteúdo 720 px e Largura total habilitado;
 - marca Tempo Pelotas mantida;
 - billing comercial inexistente nesta frente.
 
@@ -101,6 +102,22 @@ A definição recebe `publicToken=preview`, não cria registro no banco e não a
 
 O iframe devolve sua altura pelo mesmo protocolo `tempo-pelotas-widget`. O builder valida origem, `contentWindow`, token e tipo da mensagem antes de ajustar a altura. Widgets já salvos usam o mesmo mecanismo na prévia do painel.
 
+Mudanças rápidas de aparência e conteúdo passam por debounce de 280 ms antes de trocar a URL do iframe. O estado dos controles continua imediato, enquanto a última prévia válida permanece visível com o indicador **Atualizando…**. Isso evita recarregar as fontes reais a cada pixel do slider de cantos ou a cada clique em sequência.
+
+A edição de um widget existente também usa uma definição efêmera para mostrar a combinação ainda não salva. O iframe temporário só é montado quando o painel **Personalizar widget** está aberto, evitando consultas desnecessárias para cards fechados.
+
+## Teste de encaixe no site
+
+A prévia oferece três larguras de simulação:
+
+- **Sidebar — 360 px**: coluna lateral, cards estreitos e áreas auxiliares;
+- **Conteúdo — 720 px**: coluna principal de artigo, notícia ou página institucional;
+- **Largura total — 100%**: seção ampla, landing page ou faixa horizontal.
+
+Esse seletor não faz parte de `config` e não é persistido no banco. Ele altera somente a largura do iframe de prévia dentro do builder. O objetivo é responder visualmente “isso cabe no espaço onde pretendo instalar?” sem criar outra dimensão de configuração para o widget definitivo.
+
+A apresentação continua sendo a configuração persistente. Assim, por exemplo, um widget `compact` mantém seu limite estrutural mesmo quando é testado dentro de uma coluna de 720 px; o teste representa o espaço hospedeiro, enquanto `compact|card|horizontal` representa o comportamento escolhido para o widget.
+
 ## Persistência e compatibilidade
 
 A migration `20260829061000_create_user_widgets.sql` continua suficiente. Nenhuma migration adicional é necessária para aparência/apresentação porque `user_widgets.config` já é JSON controlado pelo produto.
@@ -114,6 +131,8 @@ Criação e edição fazem merge no JSON para não destruir futuras configuraç�
 
 Widgets antigos sem `config.content` recebem `card` + todos os blocos do módulo. Widgets sem `config.appearance` continuam usando o fallback legado de tema. Assim não há migração destrutiva dos registros existentes.
 
+O teste de largura da prévia não é persistido e, portanto, não cria migration, campo de config ou compatibilidade adicional.
+
 ## Segurança
 
 Permanece válido:
@@ -126,7 +145,8 @@ Permanece válido:
 - token inválido ou widget pausado não revela metadados privados;
 - aparência e conteúdo exigem entitlement de personalização;
 - `visibleBlocks` é validado contra o catálogo do tipo do widget;
-- nenhum campo aceita CSS/HTML/JavaScript fornecido pelo usuário.
+- nenhum campo aceita CSS/HTML/JavaScript fornecido pelo usuário;
+- largura de simulação da prévia permanece estritamente local ao browser e não entra no contrato público do widget.
 
 ## Fluxo do usuário
 
@@ -139,9 +159,10 @@ Em `/widgets`:
 5. escolhe Cartão, Compacto ou Horizontal;
 6. liga/desliga apenas os blocos permitidos para aquele módulo;
 7. vê a prévia real antes de gravar;
-8. cria o widget;
-9. copia o snippet;
-10. posteriormente reabre **Personalizar widget**, salva nova versão, pausa ou reativa.
+8. testa essa prévia em 360 px, 720 px ou largura total;
+9. cria o widget;
+10. copia o snippet;
+11. posteriormente reabre **Personalizar widget**, testa a nova combinação antes de salvar, salva nova versão, pausa ou reativa.
 
 O snippet público não muda quando a pessoa edita aparência ou conteúdo.
 
@@ -155,7 +176,7 @@ O snippet público não muda quando a pessoa edita aparência ou conteúdo.
 ></script>
 ```
 
-`public/widgets/embed.js` cria iframe isolado, usa largura 100%, valida mensagens pela origem/token/frame e ajusta a altura. O CSS do site hospedeiro não é injetado dentro do widget e o CSS do widget não escapa para o site.
+`public/widgets/embed.js` cria iframe isolado, usa largura responsiva, valida mensagens pela origem/token/frame e ajusta a altura. A apresentação persistida comunica ao script apenas limites enumerados: Compacto até 420 px, Cartão até 760 px e Horizontal em 100%. O CSS do site hospedeiro não é injetado dentro do widget e o CSS do widget não escapa para o site.
 
 O renderer marca sua raiz com:
 
@@ -184,7 +205,10 @@ O renderer marca sua raiz com:
 - preservação de outras chaves em `config`;
 - impossibilidade de desligar o último bloco no editor;
 - persistência por owner e versão;
-- prévia real antes de criar;
+- prévia real antes de criar e antes de salvar uma edição;
+- debounce da troca do iframe;
+- seletor local Sidebar 360 px / Conteúdo 720 px / Largura total;
+- garantia de que a largura de teste não entra na persistência;
 - validação das mensagens do iframe;
 - autoaltura de previews salvos;
 - uso das mesmas funções de dados no preview e no widget definitivo;
