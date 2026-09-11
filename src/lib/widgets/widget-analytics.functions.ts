@@ -6,7 +6,7 @@ import { z } from "zod";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseRequestClient } from "@/lib/supabase/request-client.server";
 import {
-  createSupabasePublicServerClient,
+  createSupabaseAdminClient,
   getSupabaseServerConfig,
 } from "@/lib/supabase/server-client.server";
 
@@ -75,21 +75,24 @@ function safeCount(value: number | string) {
 }
 
 function saoPauloDateKey(daysAgo: number) {
-  return new Intl.DateTimeFormat("en-CA", {
+  const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: SAO_PAULO_TIME_ZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date(Date.now() - daysAgo * DAY_MS));
+  }).formatToParts(new Date(Date.now() - daysAgo * DAY_MS));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
 export const recordWidgetImpression = createServerFn({ method: "POST" })
   .validator(widgetImpressionSchema)
   .handler(async ({ data }) => {
     const config = getSupabaseServerConfig();
-    if (!config.isPublicConfigured) return { ok: false as const, code: "unavailable" as const };
+    if (!config.isAdminConfigured) return { ok: false as const, code: "unavailable" as const };
 
-    const client = createSupabasePublicServerClient() as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
+    const client = createSupabaseAdminClient() as unknown as SupabaseClient<WidgetAnalyticsDatabase>;
     const { error } = await client.rpc("record_widget_load", {
       p_token: data.token,
       p_site_host: data.host,
