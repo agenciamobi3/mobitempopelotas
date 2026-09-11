@@ -216,7 +216,15 @@ function useWidgetImpression(token: string | null, host: string) {
   const recordImpression = useServerFn(recordWidgetImpression);
 
   useEffect(() => {
-    if (!token || token === "preview" || !host) return;
+    if (
+      !token ||
+      token === "preview" ||
+      !host ||
+      typeof window === "undefined" ||
+      window.parent === window
+    ) {
+      return;
+    }
 
     const normalizedHost = host.trim().toLowerCase();
     if (!HOST_PATTERN.test(normalizedHost) || INTERNAL_WIDGET_HOSTS.has(normalizedHost)) return;
