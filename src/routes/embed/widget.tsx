@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 import "@/components/embed/LaranjalEmbedIsolation.css";
 import "@/components/embed/ManagedWidgetAppearance.css";
@@ -50,7 +50,6 @@ function validateSearch(search: Record<string, unknown>) {
       typeof search.v === "string" || typeof search.v === "number"
         ? String(search.v)
         : "",
-    host: typeof search.host === "string" ? search.host : "",
     previewType: typeof search.previewType === "string" ? search.previewType : "",
     preset: typeof search.preset === "string" ? search.preset : "",
     accent: typeof search.accent === "string" ? search.accent : "",
@@ -212,34 +211,79 @@ function useResponsiveEmbedMetrics(
   }, [presentation, token]);
 }
 
-function useWidgetImpression(token: string | null, host: string) {
+function useWidgetImpression(token: string | null) {
   const recordImpression = useServerFn(recordWidgetImpression);
+  const recordedTokenRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (
       !token ||
       token === "preview" ||
-      !host ||
       typeof window === "undefined" ||
-      window.parent === window
+      window.parent === window ||
+      recordedTokenRef.current === token
     ) {
       return;
     }
 
-    const normalizedHost = host.trim().toLowerCase();
-    if (!HOST_PATTERN.test(normalizedHost) || INTERNAL_WIDGET_HOSTS.has(normalizedHost)) return;
+    const handleMessage = (event: MessageEvent) => {
+      if (recordedTokenRef.current === token || event.source !== window.parent) return;
 
-    void recordImpression({ data: { token, host: normalizedHost } }).catch(() => undefined);
-  }, [host, recordImpression, token]);
+      const data = event.data as {
+        source?: string;
+        token?: string;
+        type?: string;
+        host?: string;
+      };
+      if (
+        data?.source !== "tempo-pelotas-widget-parent" ||
+        data.token !== token ||
+        data.type !== "host" ||
+        typeof data.host !== "string"
+      ) {
+        return;
+      }
+
+      let originHost = "";
+      try {
+        originHost = new URL(event.origin).hostname.trim().toLowerCase();
+      } catch {
+        return;
+      }
+
+      const claimedHost = data.host.trim().toLowerCase();
+      if (
+        !HOST_PATTERN.test(originHost) ||
+        originHost !== claimedHost ||
+        INTERNAL_WIDGET_HOSTS.has(originHost)
+      ) {
+        return;
+      }
+
+      recordedTokenRef.current = token;
+      void recordImpression({ data: { token, host: originHost } }).catch(() => undefined);
+    };
+
+    window.addEventListener("message", handleMessage);
+    window.parent.postMessage(
+      {
+        source: "tempo-pelotas-widget",
+        token,
+        type: "request-host",
+      },
+      "*",
+    );
+
+    return () => window.removeEventListener("message", handleMessage);
+  }, [recordImpression, token]);
 }
 
 function GeneratedWidgetRoute() {
   const snapshot = Route.useLoaderData();
-  const search = Route.useSearch();
   const token = snapshot.definition?.publicToken ?? null;
   const presentation = snapshot.definition?.content.presentation ?? null;
   useResponsiveEmbedMetrics(token, presentation);
-  useWidgetImpression(token, search.host);
+  useWidgetImpression(token);
 
   if (!snapshot.definition || !snapshot.payload || !("kind" in snapshot)) {
     return (
