@@ -1,0 +1,179 @@
+.account-live {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 44px);
+  border: 1px solid rgba(7, 30, 47, 0.1);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(24, 189, 205, 0.14), transparent 26%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 250, 252, 0.96));
+  box-shadow: 0 24px 70px rgba(7, 30, 47, 0.06);
+}
+
+.account-live__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.account-live__heading > div {
+  max-width: 820px;
+}
+
+.account-live__heading h2 {
+  margin: 10px 0 0;
+  color: #071e2f;
+  font-size: clamp(2rem, 4vw, 4rem);
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.account-live__heading p {
+  margin: 18px 0 0;
+  color: #647887;
+  line-height: 1.65;
+}
+
+.account-live__status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 999px;
+  background: rgba(7, 30, 47, 0.06);
+  color: #506777;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.account-live__status.is-ready {
+  background: rgba(24, 189, 205, 0.11);
+  color: #087985;
+}
+
+.account-live__status.is-unavailable {
+  background: rgba(148, 70, 70, 0.09);
+  color: #8c2727;
+}
+
+.account-live__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.account-live__card {
+  display: flex;
+  min-width: 0;
+  min-height: 238px;
+  flex-direction: column;
+  padding: 20px;
+  border: 1px solid rgba(7, 30, 47, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.account-live__card.is-primary {
+  border-color: rgba(24, 189, 205, 0.24);
+  background: linear-gradient(160deg, rgba(24, 189, 205, 0.09), rgba(255, 255, 255, 0.96));
+}
+
+.account-live__card.has-alert {
+  border-color: rgba(199, 117, 24, 0.28);
+  background: linear-gradient(160deg, rgba(255, 239, 214, 0.76), rgba(255, 255, 255, 0.96));
+}
+
+.account-live__card small,
+.account-live__card strong,
+.account-live__card span {
+  display: block;
+}
+
+.account-live__card small {
+  color: #087985;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.account-live__card strong {
+  margin-top: 13px;
+  color: #071e2f;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.account-live__card span {
+  margin-top: 12px;
+  color: #294657;
+  font-size: 0.87rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.account-live__card p {
+  margin: 8px 0 0;
+  color: #718591;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.account-live__card a {
+  margin-top: auto;
+  padding-top: 20px;
+  color: #087985;
+  font-size: 0.82rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.account-live__card a:hover {
+  text-decoration: underline;
+}
+
+.account-live__card a:focus-visible {
+  outline: 3px solid rgba(24, 189, 205, 0.42);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.account-live__notice {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(7, 30, 47, 0.045);
+  color: #647887;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 1120px) {
+  .account-live__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .account-live__heading {
+    display: grid;
+  }
+
+  .account-live__status {
+    justify-self: start;
+  }
+
+  .account-live__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .account-live__card {
+    min-height: 210px;
+  }
+}
