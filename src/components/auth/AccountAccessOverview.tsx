@@ -44,6 +44,12 @@ function buildAccessItems(entitlements: Entitlements): AccessItem[] {
         entitlements.widgetsAccess && entitlements.widgetsCreate ? "available" : "not-included",
     },
     {
+      title: "Widget Insights",
+      description:
+        "Acompanhe carregamentos, atividade recente e domínios detectados sem rastrear visitantes individuais.",
+      state: entitlements.widgetsAnalytics ? "available" : "not-included",
+    },
+    {
       title: "Histórico pessoal",
       description:
         entitlements.historyAccessDays === null
@@ -84,7 +90,7 @@ export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAcc
         </div>
         <p>
           {isFree
-            ? "O cadastro gratuito acrescenta organização pessoal e ferramentas de conta. Previsão, alertas oficiais, radar, câmeras e dados públicos continuam acessíveis sem login."
+            ? "O cadastro gratuito acrescenta organização pessoal, widgets e métricas agregadas das instalações. Previsão, alertas oficiais, radar, câmeras e dados públicos continuam acessíveis sem login."
             : "Sua camada de acesso é aplicada por capacidades. O conteúdo público continua aberto, enquanto ferramentas adicionais são liberadas apenas quando estiverem implementadas e permitidas pelas fontes."}
         </p>
       </div>
