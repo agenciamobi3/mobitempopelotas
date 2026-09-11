@@ -33,6 +33,13 @@ function formatUpdatedAt(value: string | null) {
   }).format(date);
 }
 
+function liveMeta(card: FavoriteLiveCard, updatedAt: string | null) {
+  const parts = [updatedAt ? `Atualizado ${updatedAt}` : null, card.source ? `Fonte: ${card.source}` : null].filter(
+    (value): value is string => Boolean(value),
+  );
+  return parts.length > 0 ? parts.join(" · ") : "Consulta atual";
+}
+
 function FavoriteLiveContent({ card }: { card: FavoriteLiveCard }) {
   const updatedAt = formatUpdatedAt(card.updatedAt);
 
@@ -46,9 +53,7 @@ function FavoriteLiveContent({ card }: { card: FavoriteLiveCard }) {
       <p className="account-favorites__live-summary">{card.secondary}</p>
       {card.detail ? <p className="account-favorites__live-detail">{card.detail}</p> : null}
       <div className="account-favorites__live-footer">
-        <small>
-          {updatedAt ? `Atualizado ${updatedAt}` : card.source ? `Fonte: ${card.source}` : "Consulta atual"}
-        </small>
+        <small>{liveMeta(card, updatedAt)}</small>
         <strong>Abrir →</strong>
       </div>
     </>
