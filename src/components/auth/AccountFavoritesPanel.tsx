@@ -1,8 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type DragEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
+import { DashboardItemControls } from "@/components/auth/DashboardPersonalization";
 import type { FavoriteLiveCard } from "@/lib/auth/account-dashboard-live.functions";
+import {
+  dashboardCardSize,
+  favoriteCardLayoutKey,
+  placeDashboardItem,
+  type DashboardLayout,
+} from "@/lib/auth/dashboard-layout";
 import {
   FAVORITE_RESOURCES,
   type FavoriteResourceKey,
@@ -65,19 +72,65 @@ export function AccountFavoritesPanel({
   liveCards,
   liveLoading,
   onFavoritesChanged,
+  layout,
+  customizing,
+  onLayoutChange,
 }: {
   snapshot: AuthenticatedFavorites;
   liveCards: Partial<Record<FavoriteResourceKey, FavoriteLiveCard>>;
   liveLoading: boolean;
   onFavoritesChanged?: () => Promise<void>;
+  layout: DashboardLayout;
+  customizing: boolean;
+  onLayoutChange: (layout: DashboardLayout) => void;
 }) {
   const updateFavorite = useServerFn(setAccountFavorite);
   const [favoriteKeys, setFavoriteKeys] = useState<FavoriteResourceKey[]>(snapshot.favoriteKeys);
   const [pendingKey, setPendingKey] = useState<FavoriteResourceKey | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
+  const [draggedFavorite, setDraggedFavorite] = useState<FavoriteResourceKey | null>(null);
 
   const favoriteSet = new Set(favoriteKeys);
-  const selectedResources = FAVORITE_RESOURCES.filter((resource) => favoriteSet.has(resource.key));
+  const favoriteOrderIndex = new Map(layout.favoriteOrder.map((key, index) => [key, index] as const));
+  const selectedResources = FAVORITE_RESOURCES.filter((resource) => favoriteSet.has(resource.key)).sort(
+    (first, second) =>
+      (favoriteOrderIndex.get(first.key) ?? Number.MAX_SAFE_INTEGER) -
+      (favoriteOrderIndex.get(second.key) ?? Number.MAX_SAFE_INTEGER),
+  );
+  const selectedKeys = selectedResources.map((resource) => resource.key);
+
+  function moveFavorite(resourceKey: FavoriteResourceKey, direction: -1 | 1) {
+    const index = selectedKeys.indexOf(resourceKey);
+    const target = selectedKeys[index + direction];
+    if (!target) return;
+    onLayoutChange({
+      ...layout,
+      favoriteOrder: placeDashboardItem(layout.favoriteOrder, resourceKey, target),
+    });
+  }
+
+  function resizeFavorite(resourceKey: FavoriteResourceKey, size: "compact" | "medium" | "wide") {
+    const key = favoriteCardLayoutKey(resourceKey);
+    onLayoutChange({
+      ...layout,
+      sizes: { ...layout.sizes, [key]: size },
+    });
+  }
+
+  function startFavoriteDrag(event: DragEvent<HTMLButtonElement>, resourceKey: FavoriteResourceKey) {
+    setDraggedFavorite(resourceKey);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", resourceKey);
+  }
+
+  function dropFavorite(target: FavoriteResourceKey) {
+    if (!draggedFavorite) return;
+    onLayoutChange({
+      ...layout,
+      favoriteOrder: placeDashboardItem(layout.favoriteOrder, draggedFavorite, target),
+    });
+    setDraggedFavorite(null);
+  }
 
   async function toggleFavorite(resourceKey: FavoriteResourceKey) {
     if (pendingKey) return;
@@ -173,25 +226,45 @@ export function AccountFavoritesPanel({
               </p>
             ) : (
               <div className="account-favorites__shortcuts account-favorites__shortcuts--live">
-                {selectedResources.map((resource) => {
+                {selectedResources.map((resource, index) => {
                   const liveCard = liveCards[resource.key];
+                  const layoutKey = favoriteCardLayoutKey(resource.key);
+                  const size = dashboardCardSize(layout, layoutKey);
                   return (
-                    <Link
+                    <div
                       key={resource.key}
-                      to={resource.href}
-                      className={`account-favorites__shortcut${liveCard ? " account-favorites__shortcut--live" : ""}`}
+                      className={`dashboard-card-edit-shell dashboard-card-size-${size}${customizing ? " is-editing" : ""}`}
+                      onDragOver={customizing ? (event) => event.preventDefault() : undefined}
+                      onDrop={customizing ? () => dropFavorite(resource.key) : undefined}
                     >
-                      <span>{resource.group}</span>
-                      <strong>{resource.title}</strong>
-                      {liveCard ? (
-                        <FavoriteLiveContent card={liveCard} />
-                      ) : (
-                        <>
-                          <p className="account-favorites__shortcut-description">{resource.description}</p>
-                          <small>{liveLoading ? "Verificando dados…" : "Abrir →"}</small>
-                        </>
-                      )}
-                    </Link>
+                      {customizing ? (
+                        <DashboardItemControls
+                          label={resource.title}
+                          size={size}
+                          canMoveUp={index > 0}
+                          canMoveDown={index < selectedResources.length - 1}
+                          onMoveUp={() => moveFavorite(resource.key, -1)}
+                          onMoveDown={() => moveFavorite(resource.key, 1)}
+                          onSizeChange={(nextSize) => resizeFavorite(resource.key, nextSize)}
+                          onDragStart={(event) => startFavoriteDrag(event, resource.key)}
+                        />
+                      ) : null}
+                      <Link
+                        to={resource.href}
+                        className={`account-favorites__shortcut${liveCard ? " account-favorites__shortcut--live" : ""}`}
+                      >
+                        <span>{resource.group}</span>
+                        <strong>{resource.title}</strong>
+                        {liveCard ? (
+                          <FavoriteLiveContent card={liveCard} />
+                        ) : (
+                          <>
+                            <p className="account-favorites__shortcut-description">{resource.description}</p>
+                            <small>{liveLoading ? "Verificando dados…" : "Abrir →"}</small>
+                          </>
+                        )}
+                      </Link>
+                    </div>
                   );
                 })}
               </div>
