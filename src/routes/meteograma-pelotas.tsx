@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredMeteogramEnrichment } from "@/components/auth/RegisteredMeteogramEnrichment";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { MeteogramForecastHighlights } from "@/components/weather/MeteogramForecastHighlights";
 import { MeteogramHero, MeteogramPage } from "@/components/weather/MeteogramPage";
@@ -97,6 +98,7 @@ function MeteogramaPelotasPage() {
         <>
           <MeteogramForecastHighlights meteogram={meteogram} />
           <MeteogramPage weather={recoveredWeather} meteogram={meteogram} />
+          <RegisteredMeteogramEnrichment meteogram={meteogram} />
           <SimagroModelProducts />
         </>
       )}
