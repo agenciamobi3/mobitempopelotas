@@ -1,7 +1,7 @@
 # Tempo Pelotas — arquitetura do gerador de widgets
 
 Última atualização: 10/09/2026  
-Estado: fundação publicada; 5 módulos; aparência, apresentação, blocos controlados, prévia real e teste de encaixe versionados
+Estado: fundação publicada; 5 módulos; aparência, apresentação, blocos controlados, prévia real, teste de encaixe e instalação assistida versionados
 
 ## Objetivo
 
@@ -22,6 +22,7 @@ A conta Free permanece propositalmente generosa:
 - escolha de blocos visíveis habilitada;
 - prévia real antes da criação habilitada;
 - teste visual em Sidebar 360 px, Conteúdo 720 px e Largura total habilitado;
+- instalação assistida para WordPress/Elementor, HTML comum e outros construtores habilitada;
 - marca Tempo Pelotas mantida;
 - billing comercial inexistente nesta frente.
 
@@ -118,6 +119,26 @@ Esse seletor não faz parte de `config` e não é persistido no banco. Ele alter
 
 A apresentação continua sendo a configuração persistente. Assim, por exemplo, um widget `compact` mantém seu limite estrutural mesmo quando é testado dentro de uma coluna de 720 px; o teste representa o espaço hospedeiro, enquanto `compact|card|horizontal` representa o comportamento escolhido para o widget.
 
+## Instalação assistida
+
+Cada widget salvo inclui `WidgetInstallGuide`, uma camada de orientação que usa o mesmo `embedCode` já emitido pelo backend. O guia não gera uma segunda variante do snippet e não modifica o contrato público de incorporação.
+
+Ambientes orientados nesta fase:
+
+- **WordPress / Elementor**: orienta o uso do widget HTML do Elementor ou do bloco HTML personalizado do editor de blocos;
+- **HTML comum**: orienta a inserir o snippet no conteúdo da página exatamente onde o widget deve aparecer, sem mover o código para CSS ou para o `<head>`;
+- **Outros construtores**: orienta a procurar um bloco HTML, Embed, Código ou Custom HTML e explica o que fazer quando a plataforma remove ou bloqueia `<script>`.
+
+A recomendação de espaço deriva apenas da apresentação já salva:
+
+- `compact`: coluna estreita, aproximadamente 320–420 px;
+- `card`: coluna de conteúdo, aproximadamente 480–760 px;
+- `horizontal`: seção ampla, preferencialmente 680 px ou mais.
+
+Essas faixas são ajuda editorial e não viram configuração persistente. O widget continua responsivo ao espaço realmente oferecido pelo site hospedeiro.
+
+O guia fica recolhido nos widgets existentes para manter o painel compacto. Quando um widget é criado na sessão atual, o builder marca seu ID localmente e abre o guia daquele novo card como próximo passo do fluxo. Esse estado também não vai para o banco.
+
 ## Persistência e compatibilidade
 
 A migration `20260829061000_create_user_widgets.sql` continua suficiente. Nenhuma migration adicional é necessária para aparência/apresentação porque `user_widgets.config` já é JSON controlado pelo produto.
@@ -131,7 +152,7 @@ Criação e edição fazem merge no JSON para não destruir futuras configuraç�
 
 Widgets antigos sem `config.content` recebem `card` + todos os blocos do módulo. Widgets sem `config.appearance` continuam usando o fallback legado de tema. Assim não há migração destrutiva dos registros existentes.
 
-O teste de largura da prévia não é persistido e, portanto, não cria migration, campo de config ou compatibilidade adicional.
+O teste de largura da prévia e o estado do guia de instalação não são persistidos e, portanto, não criam migration, campo de config ou compatibilidade adicional.
 
 ## Segurança
 
@@ -146,7 +167,8 @@ Permanece válido:
 - aparência e conteúdo exigem entitlement de personalização;
 - `visibleBlocks` é validado contra o catálogo do tipo do widget;
 - nenhum campo aceita CSS/HTML/JavaScript fornecido pelo usuário;
-- largura de simulação da prévia permanece estritamente local ao browser e não entra no contrato público do widget.
+- largura de simulação da prévia permanece estritamente local ao browser e não entra no contrato público do widget;
+- o guia de instalação apenas exibe e copia `widget.embedCode`; ele não executa HTML fornecido pelo usuário nem monta snippets alternativos.
 
 ## Fluxo do usuário
 
@@ -161,8 +183,10 @@ Em `/widgets`:
 7. vê a prévia real antes de gravar;
 8. testa essa prévia em 360 px, 720 px ou largura total;
 9. cria o widget;
-10. copia o snippet;
-11. posteriormente reabre **Personalizar widget**, testa a nova combinação antes de salvar, salva nova versão, pausa ou reativa.
+10. abre automaticamente o guia **Instalar no seu site** do widget recém-criado;
+11. escolhe WordPress/Elementor, HTML comum ou outros construtores e segue os três passos;
+12. copia o snippet único;
+13. posteriormente reabre **Personalizar widget**, testa a nova combinação antes de salvar, salva nova versão, pausa ou reativa.
 
 O snippet público não muda quando a pessoa edita aparência ou conteúdo.
 
@@ -215,8 +239,20 @@ O renderer marca sua raiz com:
 - aplicação dos blocos nos cinco módulos;
 - responsividade do modo Horizontal.
 
+`tests/widget-builder-installation.test.ts` protege:
+
+- os três ambientes de instalação;
+- uso do snippet canônico já existente, sem geração alternativa;
+- orientação específica para Elementor/editor de blocos;
+- alertas contra CSS, `<head>`, texto rico e cabeçalho global;
+- recomendação de espaço derivada da apresentação;
+- abertura automática do guia do widget recém-criado;
+- disclosure, `aria-pressed`, foco, mobile, reduced motion e forced colors.
+
+O workflow `Qualidade` executa esse contrato em um step próprio chamado **Instalação assistida dos widgets**.
+
 ## Gate atual
 
-O workflow `Qualidade` continua configurado para executar o contrato de personalização em step dedicado, seguido de build, rotas, TypeScript, lint e navegador. Em 10/09/2026 os runs observados ainda encerravam antes do primeiro step (`runner_id=0`, `steps=[]`). Enquanto isso persistir, vermelho sem steps significa indisponibilidade do runner, não reprovação do código.
+O workflow `Qualidade` continua configurado para executar os contratos do builder, seguido de build, rotas, TypeScript, lint e navegador. Em 10/09/2026 os runs observados ainda encerravam antes do primeiro step (`runner_id=0`, `steps=[]`). Enquanto isso persistir, vermelho sem steps significa indisponibilidade do runner, não reprovação do código.
 
 Antes de restringir qualquer recurso do Free, deve-se observar uso real e definir a proposta do futuro plano pago.
