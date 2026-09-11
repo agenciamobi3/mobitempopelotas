@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredHydrologyEnrichment } from "@/components/auth/RegisteredHydrologyEnrichment";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import {
   DefesaCivilStationHydrologyPage,
@@ -134,6 +135,7 @@ function NivelRioJaguaraoPage() {
   return (
     <div className="hydrology-editorial-route hydrology-editorial-route--defesa-civil-station hydrology-editorial-route--jaguarao">
       <DefesaCivilStationHydrologyPage data={data} config={PAGE_CONFIG} />
+      <RegisteredHydrologyEnrichment data={data} stationCode="DCRS-00115" pagePath={PAGE_PATH} />
       <EditorialContentSection id="como-interpretar-nivel-rio-jaguarao" content={PAGE_CONTENT} />
     </div>
   );
