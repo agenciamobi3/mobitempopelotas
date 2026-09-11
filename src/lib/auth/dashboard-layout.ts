@@ -96,9 +96,19 @@ function completeOrder<T extends string>(saved: readonly T[], defaults: readonly
   return result;
 }
 
+function defaultDashboardLayout(): DashboardLayout {
+  return {
+    version: 1,
+    sections: [...DEFAULT_SECTIONS],
+    liveCards: [...DEFAULT_LIVE_CARDS],
+    favoriteOrder: [...DEFAULT_FAVORITES],
+    sizes: {},
+  };
+}
+
 export function normalizeDashboardLayout(value: unknown): DashboardLayout {
   const parsed = dashboardLayoutSchema.safeParse(value);
-  if (!parsed.success) return structuredClone(DEFAULT_DASHBOARD_LAYOUT);
+  if (!parsed.success) return defaultDashboardLayout();
 
   return {
     version: 1,
