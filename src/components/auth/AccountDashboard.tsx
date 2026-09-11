@@ -1,15 +1,28 @@
 import { Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type DragEvent, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
 import { AccountFavoritesPanel } from "@/components/auth/AccountFavoritesPanel";
 import { AccountLiveOverview } from "@/components/auth/AccountLiveOverview";
+import {
+  DashboardPersonalizationBar,
+  DashboardSectionFrame,
+} from "@/components/auth/DashboardPersonalization";
 import { HistoricalModerationPanel } from "@/components/history/HistoricalModerationPanel";
 import {
   getAccountDashboardLiveSnapshot,
   type AccountDashboardLiveSnapshot,
 } from "@/lib/auth/account-dashboard-live.functions";
 import type { AccountSnapshot } from "@/lib/auth/account.functions";
+import {
+  DEFAULT_DASHBOARD_LAYOUT,
+  moveDashboardItem,
+  normalizeDashboardLayout,
+  placeDashboardItem,
+  type DashboardLayout,
+  type DashboardSectionId,
+} from "@/lib/auth/dashboard-layout";
+import { saveAccountDashboardLayout } from "@/lib/auth/dashboard-layout.functions";
 import type { AccountFavoritesSnapshot } from "@/lib/auth/favorites.functions";
 import type { HistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import { SiteFooter } from "@/production/components/site-footer";
@@ -38,10 +51,20 @@ type DashboardModule = {
   actionLabel?: string;
 };
 
+const SECTION_LABELS: Record<DashboardSectionId, string> = {
+  live: "Painel Vivo",
+  favorites: "Favoritos Vivos",
+  site: "Para meu site",
+};
+
 function moduleStateLabel(state: DashboardModule["state"]) {
   if (state === "available") return "Disponível";
   if (state === "pro") return "PRO";
   return "Em evolução";
+}
+
+function layoutsEqual(first: DashboardLayout, second: DashboardLayout) {
+  return JSON.stringify(first) === JSON.stringify(second);
 }
 
 export function AccountDashboard({
@@ -54,12 +77,20 @@ export function AccountDashboard({
   favorites: AuthenticatedFavorites;
 }) {
   const loadLiveSnapshot = useServerFn(getAccountDashboardLiveSnapshot);
+  const saveLayout = useServerFn(saveAccountDashboardLayout);
   const [liveSnapshot, setLiveSnapshot] = useState<AccountDashboardLiveSnapshot | null>(null);
   const [liveRefreshing, setLiveRefreshing] = useState(false);
   const [liveFailed, setLiveFailed] = useState(false);
+  const [layout, setLayout] = useState<DashboardLayout>(snapshot.dashboardLayout);
+  const [savedLayout, setSavedLayout] = useState<DashboardLayout>(snapshot.dashboardLayout);
+  const [customizing, setCustomizing] = useState(false);
+  const [layoutSaving, setLayoutSaving] = useState(false);
+  const [layoutFeedback, setLayoutFeedback] = useState<string | null>(null);
+  const [draggedSection, setDraggedSection] = useState<DashboardSectionId | null>(null);
   const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
+  const layoutDirty = !layoutsEqual(layout, savedLayout);
 
   const refreshLiveSnapshot = useCallback(async () => {
     setLiveRefreshing(true);
@@ -116,6 +147,126 @@ export function AccountDashboard({
     },
   ];
 
+  function updateSectionOrder(section: DashboardSectionId, direction: -1 | 1) {
+    setLayout((current) => ({
+      ...current,
+      sections: moveDashboardItem(current.sections, section, direction),
+    }));
+  }
+
+  function startSectionDrag(event: DragEvent<HTMLButtonElement>, section: DashboardSectionId) {
+    setDraggedSection(section);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", section);
+  }
+
+  function dropSection(target: DashboardSectionId) {
+    if (!draggedSection) return;
+    setLayout((current) => ({
+      ...current,
+      sections: placeDashboardItem(current.sections, draggedSection, target),
+    }));
+    setDraggedSection(null);
+  }
+
+  async function persistLayout() {
+    setLayoutSaving(true);
+    setLayoutFeedback(null);
+    try {
+      const result = await saveLayout({ data: layout });
+      if (!result.ok) {
+        if (result.code === "unauthenticated") {
+          window.location.assign("/conta?next=/painel");
+          return;
+        }
+        setLayoutFeedback("Não foi possível salvar a organização do painel agora.");
+        return;
+      }
+      setLayout(result.layout);
+      setSavedLayout(result.layout);
+      setCustomizing(false);
+      setLayoutFeedback("Layout salvo na sua conta.");
+    } catch {
+      setLayoutFeedback("Não foi possível salvar a organização do painel agora.");
+    } finally {
+      setLayoutSaving(false);
+    }
+  }
+
+  function cancelCustomization() {
+    setLayout(savedLayout);
+    setCustomizing(false);
+    setLayoutFeedback(null);
+  }
+
+  function resetCustomization() {
+    setLayout(normalizeDashboardLayout(DEFAULT_DASHBOARD_LAYOUT));
+    setLayoutFeedback("Layout padrão preparado. Salve para manter essa organização.");
+  }
+
+  function siteSection(): ReactNode {
+    return (
+      <section className="account-dashboard__modules" aria-labelledby="dashboard-site-title">
+        <div className="account-dashboard__section-heading">
+          <span className="eyebrow">Para meu site</span>
+          <h2 id="dashboard-site-title">Distribua o Tempo Pelotas fora do portal</h2>
+          <p>
+            Esta área reúne ferramentas de publicação vinculadas à sua conta. O painel pessoal
+            fica acima; aqui entram os recursos para quem também mantém um site, portal ou projeto digital.
+          </p>
+        </div>
+
+        <div className="account-dashboard__grid">
+          {siteModules.map((module) => (
+            <article className="account-dashboard__module" key={module.title}>
+              <div className="account-dashboard__module-topline">
+                <span>{moduleStateLabel(module.state)}</span>
+              </div>
+              <h3>{module.title}</h3>
+              <p>{module.description}</p>
+              {module.href ? (
+                <Link to={module.href} className="account-dashboard__module-link">
+                  {module.actionLabel}
+                </Link>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  function personalizedSection(section: DashboardSectionId): ReactNode {
+    if (section === "live") {
+      return (
+        <AccountLiveOverview
+          summary={liveSnapshot?.weather ?? null}
+          refreshing={liveRefreshing}
+          failed={liveFailed}
+          layout={layout}
+          customizing={customizing}
+          onLayoutChange={setLayout}
+        />
+      );
+    }
+
+    if (section === "favorites") {
+      return (
+        <AccountFavoritesPanel
+          snapshot={favorites}
+          liveCards={liveSnapshot?.favorites ?? {}}
+          liveLoading={(liveSnapshot === null && !liveFailed) || liveRefreshing}
+          onFavoritesChanged={refreshLiveSnapshot}
+          layout={layout}
+          customizing={customizing}
+          onLayoutChange={setLayout}
+        />
+      );
+    }
+
+    return siteSection();
+  }
+
   return (
     <div className="site-shell site-shell--account">
       <SiteHeader advisoryLevel="normal" />
@@ -168,52 +319,41 @@ export function AccountDashboard({
             <span>Resumo meteorológico recuperado das mesmas fontes do portal</span>
           </div>
           <div>
-            <small>Histórico pessoal</small>
-            <strong>{historyLimit === null ? "Completo" : `Até ${historyLimit} dias`}</strong>
-            <span>Profundidade prevista para a evolução da sua conta</span>
+            <small>Layout pessoal</small>
+            <strong>Personalizável</strong>
+            <span>Ordem e tamanho dos cards ficam salvos na sua conta</span>
           </div>
         </section>
 
-        <AccountLiveOverview
-          summary={liveSnapshot?.weather ?? null}
-          refreshing={liveRefreshing}
-          failed={liveFailed}
+        <DashboardPersonalizationBar
+          editing={customizing}
+          dirty={layoutDirty}
+          saving={layoutSaving}
+          feedback={layoutFeedback}
+          onEdit={() => {
+            setCustomizing(true);
+            setLayoutFeedback(null);
+          }}
+          onSave={() => void persistLayout()}
+          onCancel={cancelCustomization}
+          onReset={resetCustomization}
         />
 
-        <AccountFavoritesPanel
-          snapshot={favorites}
-          liveCards={liveSnapshot?.favorites ?? {}}
-          liveLoading={(liveSnapshot === null && !liveFailed) || liveRefreshing}
-          onFavoritesChanged={refreshLiveSnapshot}
-        />
-
-        <section className="account-dashboard__modules" aria-labelledby="dashboard-site-title">
-          <div className="account-dashboard__section-heading">
-            <span className="eyebrow">Para meu site</span>
-            <h2 id="dashboard-site-title">Distribua o Tempo Pelotas fora do portal</h2>
-            <p>
-              Esta área reúne ferramentas de publicação vinculadas à sua conta. O painel pessoal
-              fica acima; aqui entram os recursos para quem também mantém um site, portal ou projeto digital.
-            </p>
-          </div>
-
-          <div className="account-dashboard__grid">
-            {siteModules.map((module) => (
-              <article className="account-dashboard__module" key={module.title}>
-                <div className="account-dashboard__module-topline">
-                  <span>{moduleStateLabel(module.state)}</span>
-                </div>
-                <h3>{module.title}</h3>
-                <p>{module.description}</p>
-                {module.href ? (
-                  <Link to={module.href} className="account-dashboard__module-link">
-                    {module.actionLabel}
-                  </Link>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        </section>
+        {layout.sections.map((section, index) => (
+          <DashboardSectionFrame
+            key={section}
+            id={section}
+            label={SECTION_LABELS[section]}
+            editing={customizing}
+            index={index}
+            total={layout.sections.length}
+            onMove={updateSectionOrder}
+            onDragStart={startSectionDrag}
+            onDrop={dropSection}
+          >
+            {personalizedSection(section)}
+          </DashboardSectionFrame>
+        ))}
 
         <section className="account-dashboard__modules" aria-labelledby="dashboard-evolution-title">
           <div className="account-dashboard__section-heading">
