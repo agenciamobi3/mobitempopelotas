@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
 
+import type { DashboardPreferencesDatabase } from "@/lib/auth/dashboard-layout.functions";
 import type { FavoriteDatabase, UserFavoriteRow } from "@/lib/auth/favorites.functions";
 import { getVerifiedRequestUser } from "@/lib/auth/request-user.server";
 import type { ContributionDatabase } from "@/lib/history/contribution-database";
@@ -187,6 +188,7 @@ async function exportAccountData(request: Request) {
     }
 
     const admin = createSupabaseAdminClient();
+    const dashboardAdmin = admin as unknown as SupabaseClient<DashboardPreferencesDatabase>;
     const [
       profileResult,
       preferencesResult,
@@ -202,10 +204,10 @@ async function exportAccountData(request: Request) {
         .eq("id", account.user.id)
         .abortSignal(timeoutSignal())
         .maybeSingle(),
-      admin
+      dashboardAdmin
         .from("user_preferences")
         .select(
-          "weather_alerts,water_alerts,daily_summary,community_updates,created_at,updated_at",
+          "weather_alerts,water_alerts,daily_summary,community_updates,dashboard_layout,created_at,updated_at",
         )
         .eq("user_id", account.user.id)
         .abortSignal(timeoutSignal())
@@ -236,7 +238,7 @@ async function exportAccountData(request: Request) {
 
     const exportedAt = new Date();
     const document = {
-      export_version: "1.3",
+      export_version: "1.4",
       exported_at: exportedAt.toISOString(),
       portal: "Tempo Pelotas",
       account: {
