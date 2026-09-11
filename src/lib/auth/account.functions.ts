@@ -1,8 +1,14 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 import { resolveAccountAccess, type EffectiveAccountAccess } from "@/lib/auth/account-access";
+import {
+  normalizeDashboardLayout,
+  type DashboardLayout,
+} from "@/lib/auth/dashboard-layout";
+import type { DashboardPreferencesDatabase } from "@/lib/auth/dashboard-layout.functions";
 import { createSupabaseRequestClient } from "@/lib/supabase/request-client.server";
 import { getSupabaseServerConfig } from "@/lib/supabase/server-client.server";
 
@@ -33,6 +39,7 @@ export type AccountSnapshot =
         avatarUrl: string | null;
       };
       preferences: AccountPreferences;
+      dashboardLayout: DashboardLayout;
       access: EffectiveAccountAccess;
     };
 
@@ -44,6 +51,8 @@ const defaultPreferences: AccountPreferences = {
 };
 
 type AccountRequestClient = ReturnType<typeof createSupabaseRequestClient>["client"];
+
+type DashboardPreferenceClient = SupabaseClient<DashboardPreferencesDatabase>;
 
 function metadataText(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -57,15 +66,17 @@ function applyPrivateResponseHeaders(headers: Headers) {
 }
 
 function loadAccountFoundation(client: AccountRequestClient, userId: string) {
+  const dashboardClient = client as unknown as DashboardPreferenceClient;
+
   return Promise.all([
     client
       .from("profiles")
       .select("display_name,email,avatar_url")
       .eq("id", userId)
       .maybeSingle(),
-    client
+    dashboardClient
       .from("user_preferences")
-      .select("weather_alerts,water_alerts,daily_summary,community_updates")
+      .select("weather_alerts,water_alerts,daily_summary,community_updates,dashboard_layout")
       .eq("user_id", userId)
       .maybeSingle(),
     client
@@ -167,6 +178,7 @@ export const getAccountSnapshot = createServerFn({ method: "GET" }).handler(
             communityUpdates: preferences.community_updates,
           }
         : defaultPreferences,
+      dashboardLayout: normalizeDashboardLayout(preferences?.dashboard_layout ?? null),
       access: resolveAccountAccess(
         accountAccess
           ? {
