@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredExtendedForecastEnrichment } from "@/components/auth/RegisteredExtendedForecastEnrichment";
 import { InternalWeatherPageShell } from "@/components/layout/InternalWeatherPageShell";
 import { FifteenDayForecastHero } from "@/components/weather/FifteenDayForecastHero";
 import { FifteenDayForecastPage } from "@/components/weather/FifteenDayForecastPage";
@@ -54,7 +55,10 @@ function PrevisaoQuinzeDiasPage() {
         />
       )}
     >
-      <FifteenDayForecastPage forecast={extendedForecast} />
+      <>
+        <FifteenDayForecastPage forecast={extendedForecast} />
+        <RegisteredExtendedForecastEnrichment forecast={extendedForecast} />
+      </>
     </InternalWeatherPageShell>
   );
 }
