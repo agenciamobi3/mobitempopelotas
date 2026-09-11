@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredHydrologyOverviewEnrichment } from "@/components/auth/RegisteredHydrologyOverviewEnrichment";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { AnaRhnRegionalStations } from "@/components/hydrology/AnaRhnRegionalStations";
 import { DefesaCivilHydroNetwork } from "@/components/hydrology/DefesaCivilHydroNetwork";
@@ -190,6 +191,14 @@ function SituacaoHidrologicaPage() {
           <HydrologySectionBoundary label="Contexto complementar · SACE Guaíba">
             <SaceGuaibaContext data={data.sace} />
           </HydrologySectionBoundary>
+          <RegisteredHydrologyOverviewEnrichment
+            level={data.level}
+            guaiba={data.guaiba}
+            lagoon={data.lagoon}
+            sace={data.sace}
+            defesaCivil={data.defesaCivil}
+            anaRhnRegional={data.anaRhnRegional}
+          />
           <EditorialContentSection
             id="como-interpretar-situacao-das-aguas"
             content={HYDROLOGY_PAGE_CONTENT}
