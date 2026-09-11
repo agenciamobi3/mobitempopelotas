@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import {
   getWidgetAnalyticsSnapshot,
-  type WidgetAnalyticsSnapshot,
+  type WidgetAnalyticsPayload,
 } from "@/lib/widgets/widget-analytics.functions";
 import {
   createUserWidget,
@@ -28,6 +28,7 @@ import { WidgetAnalyticsSummary } from "./WidgetAnalyticsSummary";
 import { WidgetAppearanceControls } from "./WidgetAppearanceControls";
 import { WidgetContentControls } from "./WidgetContentControls";
 import { WidgetInstallGuide } from "./WidgetInstallGuide";
+import { WidgetNetworkOverview } from "./WidgetNetworkOverview";
 import "./WidgetBuilder.css";
 import "./WidgetBuilderAppearance.css";
 import "./WidgetBuilderLivePreview.css";
@@ -40,6 +41,18 @@ type Feedback = {
 } | null;
 
 type PreviewFit = "sidebar" | "content" | "full";
+
+const EMPTY_ANALYTICS: WidgetAnalyticsPayload = {
+  widgets: {},
+  network: {
+    last30Days: 0,
+    activeHosts30Days: 0,
+    activeWidgets30Days: 0,
+    topHosts30Days: [],
+    otherHosts30Days: 0,
+    topWidgets30Days: [],
+  },
+};
 
 const PREVIEW_FIT_OPTIONS: ReadonlyArray<{
   key: PreviewFit;
@@ -364,7 +377,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
   );
   const canCustomizeAppearance = snapshot.access.entitlements.widgetsAdvancedThemes;
   const [widgets, setWidgets] = useState(snapshot.widgets);
-  const [analytics, setAnalytics] = useState<WidgetAnalyticsSnapshot>({});
+  const [analytics, setAnalytics] = useState<WidgetAnalyticsPayload>(EMPTY_ANALYTICS);
   const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
   const [selectedType, setSelectedType] = useState<WidgetType>(
     enabledModules[0]?.type ?? "nivel-laranjal",
@@ -525,6 +538,12 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
         </aside>
       </section>
 
+      <WidgetNetworkOverview
+        summary={analytics.network}
+        widgets={widgets}
+        loaded={analyticsLoaded}
+      />
+
       <section className="widget-builder-create" aria-labelledby="widget-create-title">
         <div className="widget-builder-create__heading">
           <div>
@@ -646,7 +665,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                       <span className="widget-builder-badge">Marca Tempo Pelotas</span>
                     </div>
                     <WidgetAnalyticsSummary
-                      summary={analytics[widget.id]}
+                      summary={analytics.widgets[widget.id]}
                       loaded={analyticsLoaded}
                     />
                   </div>
