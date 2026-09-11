@@ -22,6 +22,7 @@ import type { WidgetType } from "@/lib/widgets/widget-registry";
 
 import { WidgetAppearanceControls } from "./WidgetAppearanceControls";
 import { WidgetContentControls } from "./WidgetContentControls";
+import { WidgetInstallGuide } from "./WidgetInstallGuide";
 import "./WidgetBuilder.css";
 import "./WidgetBuilderAppearance.css";
 import "./WidgetBuilderLivePreview.css";
@@ -372,6 +373,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
   const [pending, setPending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [latestCreatedId, setLatestCreatedId] = useState<string | null>(null);
   const livePreviewUrl = useMemo(
     () => buildLivePreviewUrl(selectedType, appearance, content),
     [appearance, content, selectedType],
@@ -421,9 +423,10 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
       }
 
       setWidgets((current) => [result.widget, ...current]);
+      setLatestCreatedId(result.widget.id);
       setFeedback({
         tone: "success",
-        text: "Widget criado. A apresentação vista na prévia já está aplicada ao código incorporável.",
+        text: "Widget criado. O guia de instalação foi aberto abaixo para você colocar o código no seu site.",
       });
     } catch {
       setFeedback({ tone: "error", text: "Não foi possível criar o widget agora." });
@@ -588,7 +591,7 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
 
         {widgets.length === 0 ? (
           <div className="widget-builder-empty">
-            Crie o primeiro widget acima. A prévia e o código de incorporação aparecerão aqui.
+            Crie o primeiro widget acima. A prévia e o guia de instalação aparecerão aqui.
           </div>
         ) : (
           <div className="widget-builder-grid">
@@ -634,15 +637,15 @@ export function WidgetBuilder({ snapshot }: { snapshot: AuthenticatedSnapshot })
                     {canCustomizeAppearance ? (
                       <WidgetCustomizationEditor widget={widget} onSaved={replaceWidget} />
                     ) : null}
-                    <code className="widget-builder-code">{widget.embedCode}</code>
+                    <WidgetInstallGuide
+                      title={widget.title}
+                      embedCode={widget.embedCode}
+                      presentation={widget.content.presentation}
+                      copied={copiedId === widget.id}
+                      onCopy={() => copyEmbed(widget)}
+                      defaultOpen={latestCreatedId === widget.id}
+                    />
                     <div className="widget-builder-card__actions">
-                      <button
-                        className="widget-builder-button is-secondary"
-                        type="button"
-                        onClick={() => copyEmbed(widget)}
-                      >
-                        {copiedId === widget.id ? "Copiado" : "Copiar código"}
-                      </button>
                       <button
                         className="widget-builder-button is-secondary"
                         type="button"
