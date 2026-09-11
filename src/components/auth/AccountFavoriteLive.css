@@ -1,0 +1,135 @@
+.account-favorites__shortcuts--live {
+  align-items: stretch;
+}
+
+.account-favorites__shortcut--live {
+  min-height: 230px;
+  gap: 0;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(24, 189, 205, 0.1), transparent 42%),
+    #fff;
+}
+
+.account-favorites__shortcut-description {
+  margin: 10px 0 0;
+  color: #647887;
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.account-favorites__live-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.account-favorites__live-topline > span:last-child {
+  color: #7a8c98;
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.account-favorites__live-status {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.account-favorites__live-status.is-live {
+  background: rgba(24, 189, 205, 0.11);
+  color: #087985;
+}
+
+.account-favorites__live-status.is-stale {
+  background: rgba(201, 126, 24, 0.1);
+  color: #8a570d;
+}
+
+.account-favorites__live-status.is-unavailable {
+  background: rgba(100, 120, 135, 0.1);
+  color: #596d7a;
+}
+
+.account-favorites__live-value {
+  margin-top: 15px;
+  color: #071e2f;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 920;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.account-favorites__live-summary,
+.account-favorites__live-detail {
+  margin: 0;
+  color: #496170;
+  font-size: 0.76rem;
+  font-weight: 550;
+  line-height: 1.5;
+}
+
+.account-favorites__live-summary {
+  margin-top: 11px;
+  color: #294657;
+  font-weight: 760;
+}
+
+.account-favorites__live-detail {
+  margin-top: 6px;
+}
+
+.account-favorites__live-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.account-favorites__live-footer small {
+  max-width: 68%;
+  padding: 0;
+  color: #728591;
+  font-size: 0.64rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.account-favorites__live-footer strong {
+  flex: 0 0 auto;
+  color: #087985;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+@media (max-width: 760px) {
+  .account-favorites__shortcut--live {
+    min-height: 210px;
+  }
+
+  .account-favorites__live-topline,
+  .account-favorites__live-footer {
+    align-items: flex-start;
+  }
+}
+
+@media (forced-colors: active) {
+  .account-favorites__live-status,
+  .account-favorites__shortcut--live {
+    border: 1px solid CanvasText;
+  }
+}
