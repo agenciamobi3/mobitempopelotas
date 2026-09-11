@@ -56,12 +56,14 @@ export function AccountDashboard({
   const loadLiveSnapshot = useServerFn(getAccountDashboardLiveSnapshot);
   const [liveSnapshot, setLiveSnapshot] = useState<AccountDashboardLiveSnapshot | null>(null);
   const [liveRefreshing, setLiveRefreshing] = useState(false);
+  const [liveFailed, setLiveFailed] = useState(false);
   const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
 
   const refreshLiveSnapshot = useCallback(async () => {
     setLiveRefreshing(true);
+    setLiveFailed(false);
     try {
       const next = await loadLiveSnapshot();
       if (next.status === "unauthenticated") {
@@ -69,8 +71,9 @@ export function AccountDashboard({
         return;
       }
       setLiveSnapshot(next);
+      setLiveFailed(next.status === "unavailable");
     } catch {
-      setLiveSnapshot((current) => current);
+      setLiveFailed(true);
     } finally {
       setLiveRefreshing(false);
     }
@@ -174,12 +177,13 @@ export function AccountDashboard({
         <AccountLiveOverview
           summary={liveSnapshot?.weather ?? null}
           refreshing={liveRefreshing}
+          failed={liveFailed}
         />
 
         <AccountFavoritesPanel
           snapshot={favorites}
           liveCards={liveSnapshot?.favorites ?? {}}
-          liveLoading={liveSnapshot === null || liveRefreshing}
+          liveLoading={(liveSnapshot === null && !liveFailed) || liveRefreshing}
           onFavoritesChanged={refreshLiveSnapshot}
         />
 
