@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { RegisteredSeriesHydrologyEnrichment } from "@/components/auth/RegisteredSeriesHydrologyEnrichment";
 import { EditorialContentSection } from "@/components/content/EditorialContentSection";
 import { GuaibaLevelPage } from "@/components/hydrology/GuaibaLevelPage";
 import "@/components/hydrology/GuaibaLevelVisualRefresh.css";
@@ -118,6 +119,11 @@ function NivelGuaibaPage() {
   return (
     <div className="hydrology-editorial-route hydrology-editorial-route--guaiba">
       <GuaibaLevelPage data={guaiba} />
+      <RegisteredSeriesHydrologyEnrichment
+        variant="guaiba"
+        data={guaiba}
+        pagePath={PAGE_PATH}
+      />
       <EditorialContentSection id="como-interpretar-nivel-guaiba" content={GUAIBA_PAGE_CONTENT} />
     </div>
   );
