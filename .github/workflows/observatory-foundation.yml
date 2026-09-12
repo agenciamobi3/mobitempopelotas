@@ -1,0 +1,64 @@
+name: Observatório — Fundação
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/observatory-foundation.yml"
+      - "src/observatory/**"
+      - "src/routes/observatorio.tsx"
+      - "src/lib/auth/account-access.ts"
+      - "src/components/layout/SiteLayout.tsx"
+      - "tests/observatory-foundation.test.ts"
+      - "tests/account-access-entitlements.test.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "bun.lock"
+      - "vite.config.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation:
+    name: Acesso, rotas, tipos e build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci --no-audit --no-fund
+
+      - name: Gerar árvore de rotas
+        run: npm run routes:generate
+
+      - name: Contratos do Observatório
+        run: >-
+          node --import ./scripts/test-node-resolver.mjs --test
+          tests/account-access-entitlements.test.ts
+          tests/observatory-foundation.test.ts
+
+      - name: TypeScript
+        run: npm run typecheck
+
+      - name: Build de produção
+        run: npm run build
+
+      - name: Guardar routeTree gerada
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: observatory-route-tree-${{ github.sha }}
+          path: src/routeTree.gen.ts
+          if-no-files-found: error
+          retention-days: 3
