@@ -1,4 +1,9 @@
 import {
+  normalizeObservatoryComparisonState,
+  type ObservatoryComparisonLayerId,
+  type ObservatoryComparisonState,
+} from "./ObservatoryComparison";
+import {
   OBSERVATORY_LAYER_IDS,
   isObservatoryLayerId,
   type ObservatoryLayerId,
@@ -27,6 +32,7 @@ export type ObservatoryScenarioState = {
   selectedAt: string | null;
   layers: ObservatoryScenarioLayerState[];
   camera: ObservatoryCameraState | null;
+  comparison: ObservatoryComparisonState | null;
 };
 
 type CompactScenario = {
@@ -34,6 +40,7 @@ type CompactScenario = {
   t?: string;
   l: Array<[ObservatoryLayerId, 0 | 1, number]>;
   c?: [number, number, number, number, number, number];
+  x?: [ObservatoryComparisonLayerId, string | null, string | null, number];
 };
 
 function clamp(value: number, minimum: number, maximum: number) {
@@ -84,6 +91,7 @@ export function createObservatoryScenario(input: {
   selectedAt: string | null;
   layers: readonly ObservatoryScenarioLayerState[];
   camera?: ObservatoryCameraState | null;
+  comparison?: ObservatoryComparisonState | null;
 }): ObservatoryScenarioState {
   const byId = new Map<ObservatoryLayerId, ObservatoryScenarioLayerState>();
   for (const layer of input.layers) {
@@ -102,6 +110,7 @@ export function createObservatoryScenario(input: {
       (id) => byId.get(id) ?? { id, enabled: false, opacity: 1 },
     ),
     camera: normalizeObservatoryCameraState(input.camera ?? null),
+    comparison: normalizeObservatoryComparisonState(input.comparison ?? null),
   };
 }
 
@@ -122,6 +131,14 @@ export function encodeObservatoryScenario(scenario: ObservatoryScenarioState) {
       camera.heading,
       camera.pitch,
       camera.roll,
+    ];
+  }
+  if (normalized.comparison) {
+    compact.x = [
+      normalized.comparison.layerId,
+      normalized.comparison.leftAt,
+      normalized.comparison.rightAt,
+      normalized.comparison.splitPosition,
     ];
   }
 
@@ -153,10 +170,23 @@ export function decodeObservatoryScenario(value: string | null | undefined): Obs
       camera = normalizeObservatoryCameraState({ longitude, latitude, height, heading, pitch, roll });
     }
 
+    let comparison: ObservatoryComparisonState | null = null;
+    if (Array.isArray(parsed.x) && parsed.x.length === 4) {
+      const [layerId, leftAt, rightAt, splitPosition] = parsed.x;
+      comparison = normalizeObservatoryComparisonState({
+        enabled: true,
+        layerId,
+        leftAt,
+        rightAt,
+        splitPosition,
+      });
+    }
+
     return createObservatoryScenario({
       selectedAt: normalizeTimestamp(parsed.t),
       layers,
       camera,
+      comparison,
     });
   } catch {
     return null;
