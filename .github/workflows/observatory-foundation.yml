@@ -11,6 +11,7 @@ on:
       - "src/components/layout/SiteLayout.tsx"
       - "tests/observatory-foundation.test.ts"
       - "tests/observatory-timeline.test.ts"
+      - "tests/observatory-interface.test.ts"
       - "tests/account-access-entitlements.test.ts"
       - "package.json"
       - "package-lock.json"
@@ -50,6 +51,7 @@ jobs:
           tests/account-access-entitlements.test.ts
           tests/observatory-foundation.test.ts
           tests/observatory-timeline.test.ts
+          tests/observatory-interface.test.ts
 
       - name: Sincronizar routeTree versionada
         if: steps.contracts.outcome == 'success'
