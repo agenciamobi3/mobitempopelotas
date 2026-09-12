@@ -11,6 +11,7 @@ import {
   type ObservatoryTemporalLayerResult,
 } from "../data/observatory-temporal-layers";
 import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
+import type { ObservatoryCameraState } from "./ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
 import type { ObservatoryCesiumRuntime } from "./observatory-cesium-runtime";
 import { ObservatoryRenderGovernor } from "./ObservatoryRenderGovernor";
@@ -29,6 +30,8 @@ type ObservatoryViewerProps = {
   enabledLayers: readonly ObservatoryLayerId[];
   layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
   selectedTimelineAt: string | null;
+  cameraRestoreState: ObservatoryCameraState | null;
+  onCameraStateChange: (state: ObservatoryCameraState) => void;
   onTimelineSourceChange: (id: ObservatoryTemporalLayerId, timestamps: string[]) => void;
   onLayerRuntimeChange: (
     id: ObservatoryLayerId,
@@ -73,18 +76,23 @@ export function ObservatoryViewer({
   enabledLayers,
   layerOpacities,
   selectedTimelineAt,
+  cameraRestoreState,
+  onCameraStateChange,
   onTimelineSourceChange,
   onLayerRuntimeChange,
 }: ObservatoryViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
+  const cameraUnsubscribeRef = useRef<(() => void) | null>(null);
   const temporalLayersRef = useRef<Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>>({});
   const layerRevisionRef = useRef(0);
   const timelineSelectionRevisionRef = useRef(0);
   const layerOpacitiesRef = useRef(layerOpacities);
   const selectedTimelineAtRef = useRef(selectedTimelineAt);
+  const onCameraStateChangeRef = useRef(onCameraStateChange);
   layerOpacitiesRef.current = layerOpacities;
   selectedTimelineAtRef.current = selectedTimelineAt;
+  onCameraStateChangeRef.current = onCameraStateChange;
 
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
@@ -116,6 +124,10 @@ export function ObservatoryViewer({
         }
 
         runtimeRef.current = runtime;
+        cameraUnsubscribeRef.current = runtime.subscribeCameraChange((camera) => {
+          onCameraStateChangeRef.current(camera);
+        });
+        onCameraStateChangeRef.current(runtime.getCameraState());
         setTerrainStatus(runtime.terrainStatus);
 
         renderGovernor.attach({ requestRender: () => runtimeRef.current?.widget.scene.requestRender() });
@@ -142,6 +154,8 @@ export function ObservatoryViewer({
       cancelled = true;
       layerRevisionRef.current += 1;
       timelineSelectionRevisionRef.current += 1;
+      cameraUnsubscribeRef.current?.();
+      cameraUnsubscribeRef.current = null;
       renderGovernor.destroy();
       runtimeRef.current?.clearDataLayers();
       if (runtime && !runtime.widget.isDestroyed()) runtime.widget.destroy();
@@ -155,6 +169,23 @@ export function ObservatoryViewer({
     .map((id) => `${id}:${layerOpacities[id] ?? 1}`)
     .sort()
     .join("|");
+  const cameraRestoreKey = cameraRestoreState
+    ? [
+        cameraRestoreState.longitude,
+        cameraRestoreState.latitude,
+        cameraRestoreState.height,
+        cameraRestoreState.heading,
+        cameraRestoreState.pitch,
+        cameraRestoreState.roll,
+      ].join("|")
+    : "";
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready" || !cameraRestoreState) return;
+    runtime.setCameraState(cameraRestoreState);
+    onCameraStateChangeRef.current(runtime.getCameraState());
+  }, [cameraRestoreKey, runtimeRevision, status]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
