@@ -40,6 +40,9 @@ export function ObservatoryViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
   const layerRevisionRef = useRef(0);
+  const layerOpacitiesRef = useRef(layerOpacities);
+  layerOpacitiesRef.current = layerOpacities;
+
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
   const [runtimeRevision, setRuntimeRevision] = useState(0);
@@ -145,7 +148,7 @@ export function ObservatoryViewer({
             await runtime.setImageLayer(id, {
               imageUrl: result.payload.imageUrl,
               bounds: result.payload.bounds,
-              opacity: layerOpacities[id] ?? 0.72,
+              opacity: layerOpacitiesRef.current[id] ?? 0.72,
             });
           } else {
             runtime.setPointLayer(id, result.payload.points);
@@ -171,7 +174,7 @@ export function ObservatoryViewer({
           });
         });
     }
-  }, [enabledKey, opacityKey, runtimeRevision, status]);
+  }, [enabledKey, runtimeRevision, status, onLayerRuntimeChange]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
