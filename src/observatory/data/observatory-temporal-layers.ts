@@ -91,7 +91,14 @@ function imageResult(
 function lightningResult(layer: RedemetStormLayerResponse): ObservatoryTemporalLayerResult {
   return {
     id: "lightning",
-    status: layer.frames.length === 0 ? (layer.error ? "unavailable" : "current") : layer.error ? "degraded" : "current",
+    status:
+      layer.frames.length === 0
+        ? layer.error
+          ? "unavailable"
+          : "current"
+        : layer.error
+          ? "degraded"
+          : "current",
     sourceLabel: layer.sourceLabel,
     product: layer.product,
     updatedAt: layer.updatedAt,
@@ -134,7 +141,10 @@ export async function loadObservatoryTemporalLayer(
 export function temporalTimestamps(result: ObservatoryTemporalLayerResult) {
   return result.frames
     .map((frame) => frame.observedAt)
-    .filter((value): value is string => Boolean(value) && Number.isFinite(Date.parse(value)));
+    .filter((value): value is string => {
+      if (!value) return false;
+      return Number.isFinite(Date.parse(value));
+    });
 }
 
 export function selectTemporalFrame(
@@ -168,5 +178,11 @@ export function selectTemporalFrame(
     }
   }
 
-  return latestBefore ?? earliestAfter ?? result.frames[result.currentIndex] ?? result.frames.at(-1) ?? null;
+  return (
+    latestBefore ??
+    earliestAfter ??
+    result.frames[result.currentIndex] ??
+    result.frames.at(-1) ??
+    null
+  );
 }
