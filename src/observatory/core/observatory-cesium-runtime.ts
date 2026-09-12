@@ -5,8 +5,10 @@ import {
   Color,
   Credit,
   EllipsoidTerrainProvider,
+  HeadingPitchRange,
   ImageryLayer,
   Math as CesiumMath,
+  Matrix4,
   NearFarScalar,
   OpenStreetMapImageryProvider,
   PointPrimitiveCollection,
@@ -19,7 +21,8 @@ import { PELOTAS_LATITUDE, PELOTAS_LONGITUDE } from "@/lib/site-config";
 
 const OSM_TILE_URL = "https://tile.openstreetmap.org/";
 const REEARTH_TERRAIN_URL = "https://terrain.reearth.land/cesium-mesh/ellipsoid";
-const INITIAL_ALTITUDE_METERS = 220_000;
+const INITIAL_CAMERA_RANGE_METERS = 430_000;
+const INITIAL_CAMERA_PITCH_DEGREES = -72;
 
 export type ObservatoryTerrainStatus = "reearth" | "ellipsoid";
 
@@ -118,18 +121,16 @@ export async function createObservatoryCesiumRuntime(
   widget.scene.globe.showGroundAtmosphere = true;
   if (widget.scene.skyAtmosphere) widget.scene.skyAtmosphere.show = true;
 
-  widget.camera.setView({
-    destination: Cartesian3.fromDegrees(
-      PELOTAS_LONGITUDE,
-      PELOTAS_LATITUDE,
-      INITIAL_ALTITUDE_METERS,
+  const initialTarget = Cartesian3.fromDegrees(PELOTAS_LONGITUDE, PELOTAS_LATITUDE, 0);
+  widget.camera.lookAt(
+    initialTarget,
+    new HeadingPitchRange(
+      CesiumMath.toRadians(0),
+      CesiumMath.toRadians(INITIAL_CAMERA_PITCH_DEGREES),
+      INITIAL_CAMERA_RANGE_METERS,
     ),
-    orientation: {
-      heading: 0,
-      pitch: CesiumMath.toRadians(-58),
-      roll: 0,
-    },
-  });
+  );
+  widget.camera.lookAtTransform(Matrix4.IDENTITY);
 
   const imageLayers = new Map<string, ImageryLayer>();
   const pointLayers = new Map<string, PointPrimitiveCollection>();
