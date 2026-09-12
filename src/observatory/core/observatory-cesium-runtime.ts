@@ -14,6 +14,7 @@ import {
   PointPrimitiveCollection,
   Rectangle,
   SingleTileImageryProvider,
+  SplitDirection,
   type TerrainProvider,
 } from "cesium";
 
@@ -40,6 +41,12 @@ export type ObservatoryCesiumImageInput = {
   opacity: number;
 };
 
+export type ObservatoryCesiumComparisonInput = {
+  left: ObservatoryCesiumImageInput;
+  right: ObservatoryCesiumImageInput;
+  splitPosition: number;
+};
+
 export type ObservatoryCesiumPointInput = {
   id: string;
   latitude: number;
@@ -62,6 +69,8 @@ export type ObservatoryCesiumRuntime = {
   setCameraState: (state: ObservatoryCameraState) => void;
   subscribeCameraChange: (listener: (state: ObservatoryCameraState) => void) => () => void;
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
+  setImageComparison: (id: string, input: ObservatoryCesiumComparisonInput) => Promise<void>;
+  setComparisonSplitPosition: (position: number) => void;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
   setLayerOpacity: (id: string, opacity: number) => void;
   removeLayer: (id: string) => void;
@@ -73,6 +82,11 @@ function clampOpacity(value: number) {
   return Math.min(1, Math.max(0, value));
 }
 
+function clampSplitPosition(value: number) {
+  if (!Number.isFinite(value)) return 0.5;
+  return Math.min(0.92, Math.max(0.08, value));
+}
+
 function clampCameraHeight(value: number) {
   if (!Number.isFinite(value)) return INITIAL_CAMERA_RANGE_METERS;
   return Math.min(MAXIMUM_CAMERA_HEIGHT_METERS, Math.max(MINIMUM_CAMERA_HEIGHT_METERS, value));
@@ -81,6 +95,17 @@ function clampCameraHeight(value: number) {
 function parseCssColor(value: string | undefined, fallback: Color) {
   if (!value) return fallback.clone();
   return Color.fromCssColorString(value) ?? fallback.clone();
+}
+
+function imageryProviderOptions(input: ObservatoryCesiumImageInput) {
+  return {
+    rectangle: Rectangle.fromDegrees(
+      input.bounds.west,
+      input.bounds.south,
+      input.bounds.east,
+      input.bounds.north,
+    ),
+  };
 }
 
 async function resolveTerrain(): Promise<{
@@ -134,6 +159,7 @@ export async function createObservatoryCesiumRuntime(
   widget.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
   widget.scene.globe.enableLighting = true;
   widget.scene.globe.showGroundAtmosphere = true;
+  widget.scene.splitPosition = 0.5;
   if (widget.scene.skyAtmosphere) widget.scene.skyAtmosphere.show = true;
 
   const cameraController = widget.scene.screenSpaceCameraController;
@@ -232,6 +258,7 @@ export async function createObservatoryCesiumRuntime(
   resetView();
 
   const imageLayers = new Map<string, ImageryLayer>();
+  const comparisonImageLayers = new Map<string, { left: ImageryLayer; right: ImageryLayer }>();
   const pointLayers = new Map<string, PointPrimitiveCollection>();
   const layerGenerations = new Map<string, number>();
 
@@ -246,6 +273,14 @@ export async function createObservatoryCesiumRuntime(
     if (imageLayer) {
       widget.scene.imageryLayers.remove(imageLayer, true);
       imageLayers.delete(id);
+    }
+
+    const comparisonLayers = comparisonImageLayers.get(id);
+    if (comparisonLayers) {
+      widget.scene.imageryLayers.remove(comparisonLayers.left, true);
+      widget.scene.imageryLayers.remove(comparisonLayers.right, true);
+      comparisonImageLayers.delete(id);
+      if (comparisonImageLayers.size === 0) widget.scene.splitPosition = 0.5;
     }
 
     const pointLayer = pointLayers.get(id);
@@ -265,14 +300,10 @@ export async function createObservatoryCesiumRuntime(
     const generation = nextGeneration(id);
     detachLayer(id);
 
-    const provider = await SingleTileImageryProvider.fromUrl(input.imageUrl, {
-      rectangle: Rectangle.fromDegrees(
-        input.bounds.west,
-        input.bounds.south,
-        input.bounds.east,
-        input.bounds.north,
-      ),
-    });
+    const provider = await SingleTileImageryProvider.fromUrl(
+      input.imageUrl,
+      imageryProviderOptions(input),
+    );
 
     if (widget.isDestroyed() || layerGenerations.get(id) !== generation) return;
 
@@ -281,6 +312,39 @@ export async function createObservatoryCesiumRuntime(
     });
     widget.scene.imageryLayers.add(layer);
     imageLayers.set(id, layer);
+    requestRender();
+  }
+
+  async function setImageComparison(id: string, input: ObservatoryCesiumComparisonInput) {
+    const generation = nextGeneration(id);
+    detachLayer(id);
+
+    const [leftProvider, rightProvider] = await Promise.all([
+      SingleTileImageryProvider.fromUrl(input.left.imageUrl, imageryProviderOptions(input.left)),
+      SingleTileImageryProvider.fromUrl(input.right.imageUrl, imageryProviderOptions(input.right)),
+    ]);
+
+    if (widget.isDestroyed() || layerGenerations.get(id) !== generation) return;
+
+    const left = new ImageryLayer(leftProvider, {
+      alpha: clampOpacity(input.left.opacity),
+      splitDirection: SplitDirection.LEFT,
+    });
+    const right = new ImageryLayer(rightProvider, {
+      alpha: clampOpacity(input.right.opacity),
+      splitDirection: SplitDirection.RIGHT,
+    });
+
+    widget.scene.imageryLayers.add(left);
+    widget.scene.imageryLayers.add(right);
+    comparisonImageLayers.set(id, { left, right });
+    widget.scene.splitPosition = clampSplitPosition(input.splitPosition);
+    requestRender();
+  }
+
+  function setComparisonSplitPosition(position: number) {
+    if (widget.isDestroyed()) return;
+    widget.scene.splitPosition = clampSplitPosition(position);
     requestRender();
   }
 
@@ -314,14 +378,26 @@ export async function createObservatoryCesiumRuntime(
   }
 
   function setLayerOpacity(id: string, opacity: number) {
+    const normalizedOpacity = clampOpacity(opacity);
     const imageLayer = imageLayers.get(id);
-    if (!imageLayer) return;
-    imageLayer.alpha = clampOpacity(opacity);
-    requestRender();
+    if (imageLayer) imageLayer.alpha = normalizedOpacity;
+
+    const comparisonLayers = comparisonImageLayers.get(id);
+    if (comparisonLayers) {
+      comparisonLayers.left.alpha = normalizedOpacity;
+      comparisonLayers.right.alpha = normalizedOpacity;
+    }
+
+    if (imageLayer || comparisonLayers) requestRender();
   }
 
   function clearDataLayers() {
-    const ids = new Set([...imageLayers.keys(), ...pointLayers.keys(), ...layerGenerations.keys()]);
+    const ids = new Set([
+      ...imageLayers.keys(),
+      ...comparisonImageLayers.keys(),
+      ...pointLayers.keys(),
+      ...layerGenerations.keys(),
+    ]);
     for (const id of ids) removeLayer(id);
   }
 
@@ -338,6 +414,8 @@ export async function createObservatoryCesiumRuntime(
     setCameraState,
     subscribeCameraChange,
     setImageLayer,
+    setImageComparison,
+    setComparisonSplitPosition,
     setPointLayer,
     setLayerOpacity,
     removeLayer,
