@@ -23,6 +23,8 @@ const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
 const viewer = readFileSync("src/observatory/core/ObservatoryViewer.tsx", "utf8");
+const layerCatalog = readFileSync("src/observatory/core/ObservatoryLayerCatalog.ts", "utf8");
+const liveLayers = readFileSync("src/observatory/data/observatory-live-layers.ts", "utf8");
 const cesiumRuntime = readFileSync(
   "src/observatory/core/observatory-cesium-runtime.ts",
   "utf8",
@@ -123,6 +125,28 @@ test("Layer Manager começa tipado e sem camadas meteorológicas implícitas", (
   assert.equal(manager.setOpacity("foundation-test", 2)?.runtime.opacity, 1);
 });
 
+test("catálogo inicial expõe apenas camadas observacionais aprovadas", () => {
+  for (const id of ["radar", "satellite", "lightning", "alerts", "hydrology"]) {
+    assert.match(layerCatalog, new RegExp(`id: "${id}"`));
+  }
+  assert.match(layerCatalog, /id: "radar"[\s\S]*defaultEnabled: true/);
+  assert.match(layerCatalog, /classification: "observed"/);
+  assert.doesNotMatch(layerCatalog, /clouds3d|wind3d|fires/);
+  assert.match(shell, /OBSERVATORY_LAYER_DEFINITIONS/);
+  assert.match(shell, /aria-pressed=\{layer\.runtime\.enabled\}/);
+});
+
+test("camadas reutilizam integrações canônicas e não expõem novas APIs diretas", () => {
+  assert.match(liveLayers, /getRedemetOverview/);
+  assert.match(liveLayers, /getAggregatedPelotasWeather/);
+  assert.match(liveLayers, /getLagoonMonitoringNetwork/);
+  assert.match(liveLayers, /getLaranjalLevelData/);
+  assert.doesNotMatch(liveLayers, /REDEMET_API_KEY|SUPABASE_SERVICE_ROLE_KEY/);
+  assert.doesNotMatch(liveLayers, /fetch\s*\(/);
+  assert.match(liveLayers, /alert\.relevance === "pelotas"/);
+  assert.match(liveLayers, /REGIONAL_CITIES/);
+});
+
 test("Render Governor é independente do runtime Cesium e pode ficar ocioso", () => {
   const governor = new ObservatoryRenderGovernor();
   assert.equal(typeof governor.request, "function");
@@ -157,6 +181,16 @@ test("runtime 3D usa CesiumWidget sem Viewer/Knockout e mantém CSP rígida", ()
   assert.doesNotMatch(viewer, /Build\/Cesium\/Widgets\/widgets\.css/);
   assert.match(cesiumRuntime, /failIfMajorPerformanceCaveat:\s*false/);
   assert.doesNotMatch(csp, /unsafe-eval/);
+});
+
+test("runtime Cesium materializa raster georreferenciado e coleções de pontos", () => {
+  assert.match(cesiumRuntime, /SingleTileImageryProvider\.fromUrl/);
+  assert.match(cesiumRuntime, /Rectangle\.fromDegrees/);
+  assert.match(cesiumRuntime, /PointPrimitiveCollection/);
+  assert.match(cesiumRuntime, /setImageLayer/);
+  assert.match(cesiumRuntime, /setPointLayer/);
+  assert.match(viewer, /loadObservatoryLayer/);
+  assert.match(viewer, /runtime\.removeLayer\(id\)/);
 });
 
 test("assets Cesium são materializados sem versionar cópia do node_modules", () => {
