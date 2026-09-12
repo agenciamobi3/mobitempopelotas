@@ -89,7 +89,7 @@ export function ObservatoryViewer({
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
   const [runtimeRevision, setRuntimeRevision] = useState(0);
-  const [message, setMessage] = useState("Inicializando globo 3D…");
+  const [message, setMessage] = useState("Não foi possível iniciar a visualização 3D.");
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
 
   useEffect(() => {
@@ -123,7 +123,6 @@ export function ObservatoryViewer({
 
         setStatus("ready");
         setDiagnostic(null);
-        setMessage("Globo regional pronto. Ative as camadas observacionais no painel.");
         setRuntimeRevision((value) => value + 1);
       } catch (error) {
         console.error("[observatory] Falha ao iniciar o runtime Cesium.", error);
@@ -131,7 +130,7 @@ export function ObservatoryViewer({
           setStatus("error");
           setDiagnostic(describeRuntimeError(error));
           setMessage(
-            "O motor 3D não conseguiu concluir a inicialização. O diagnóstico abaixo ajuda a identificar a etapa que falhou.",
+            "O globo não conseguiu concluir a inicialização. Tente recarregar a página; se o problema continuar, o diagnóstico abaixo identifica a etapa que falhou.",
           );
         }
       }
@@ -301,23 +300,9 @@ export function ObservatoryViewer({
     }
   }, [opacityKey, runtimeRevision, status]);
 
-  const terrainLabel =
-    terrainStatus === "reearth"
-      ? "Relevo 3D · Re:Earth Terrain"
-      : terrainStatus === "ellipsoid"
-        ? "Relevo indisponível · elipsoide de contingência"
-        : "Carregando relevo…";
-
   return (
     <div className="observatory-viewer" data-viewer-status={status} data-terrain={terrainStatus}>
       <div ref={containerRef} className="observatory-viewer__canvas" aria-hidden="true" />
-      <div className="observatory-viewer__status" role="status" aria-live="polite">
-        <span className="observatory-viewer__status-dot" aria-hidden="true" />
-        <div>
-          <strong>{terrainLabel}</strong>
-          <span>{message}</span>
-        </div>
-      </div>
       {status === "ready" ? (
         <nav className="observatory-viewer__navigation" aria-label="Controles do globo">
           <button
