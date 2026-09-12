@@ -18,6 +18,12 @@ function operatorEmails() {
   );
 }
 
+export function isPortalOperatorEmail(email: string | null | undefined) {
+  const normalizedEmail = email?.trim().toLowerCase();
+  if (!normalizedEmail) return false;
+  return operatorEmails().has(normalizedEmail);
+}
+
 function applyPrivateHeaders(headers: Headers) {
   headers.set("Cache-Control", "private, no-store, max-age=0");
   headers.set("Pragma", "no-cache");
@@ -46,9 +52,7 @@ export async function authorizePortalOperator(): Promise<PortalOperatorAuthoriza
 
   if (error || !user) return { status: "unauthenticated" };
   if (!user.email_confirmed_at) return { status: "forbidden" };
-
-  const email = user.email?.trim().toLowerCase();
-  if (!email || !allowlist.has(email)) return { status: "forbidden" };
+  if (!isPortalOperatorEmail(user.email)) return { status: "forbidden" };
 
   return { status: "authorized", userId: user.id };
 }
