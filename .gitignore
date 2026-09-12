@@ -16,6 +16,9 @@ dist-ssr
 .nitro
 *.local
 
+# Assets do Cesium são materializados a partir do pacote npm antes de dev/build.
+public/cesium/
+
 # Environment files may contain server-side secrets.
 # Keep only the documented template and the intentionally public Vite production config versioned.
 .env
