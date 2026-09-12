@@ -22,6 +22,7 @@ import { ObservatoryLayerManager } from "../core/ObservatoryLayerManager";
 import type { ObservatoryLayerRuntimeState } from "../core/ObservatoryTypes";
 import type { ObservatoryTemporalLayerId } from "../data/observatory-temporal-layers";
 import "./ObservatoryShell.css";
+import "./ObservatoryTimeline.css";
 
 const LazyObservatoryViewer = lazy(() =>
   import("../core/ObservatoryViewer").then((module) => ({
@@ -169,9 +170,10 @@ export function ObservatoryShell() {
     const interval = window.setInterval(() => {
       setSelectedTimelineAt((current) => {
         const currentIndex = current ? timelineTimestamps.indexOf(current) : -1;
-        const nextIndex = currentIndex < 0 || currentIndex >= timelineTimestamps.length - 1
-          ? 0
-          : currentIndex + 1;
+        const nextIndex =
+          currentIndex < 0 || currentIndex >= timelineTimestamps.length - 1
+            ? 0
+            : currentIndex + 1;
         return timelineTimestamps[nextIndex] ?? timelineTimestamps.at(-1) ?? null;
       });
     }, TIMELINE_PLAYBACK_INTERVAL_MS);
@@ -181,7 +183,9 @@ export function ObservatoryShell() {
 
   const selectedTimelineIndex = Math.max(
     0,
-    selectedTimelineAt ? timelineTimestamps.indexOf(selectedTimelineAt) : timelineTimestamps.length - 1,
+    selectedTimelineAt
+      ? timelineTimestamps.indexOf(selectedTimelineAt)
+      : timelineTimestamps.length - 1,
   );
   const latestTimelineAt = timelineTimestamps.at(-1) ?? null;
   const isTimelineLive = Boolean(
@@ -314,7 +318,11 @@ export function ObservatoryShell() {
                 aria-label={playing ? "Pausar animação" : "Reproduzir animação"}
                 title={playing ? "Pausar" : "Reproduzir"}
               >
-                {playing ? <Pause aria-hidden="true" size={17} /> : <Play aria-hidden="true" size={17} />}
+                {playing ? (
+                  <Pause aria-hidden="true" size={17} />
+                ) : (
+                  <Play aria-hidden="true" size={17} />
+                )}
               </button>
               <button
                 type="button"
@@ -343,7 +351,9 @@ export function ObservatoryShell() {
                 aria-label="Escolher horário global do Observatório"
                 onChange={(event) => {
                   setPlaying(false);
-                  setSelectedTimelineAt(timelineTimestamps[Number(event.currentTarget.value)] ?? null);
+                  setSelectedTimelineAt(
+                    timelineTimestamps[Number(event.currentTarget.value)] ?? null,
+                  );
                 }}
               />
               <div className="observatory-shell__timeline-range" aria-hidden="true">
