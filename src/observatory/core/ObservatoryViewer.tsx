@@ -1,15 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-import { PELOTAS_LATITUDE, PELOTAS_LONGITUDE } from "@/lib/site-config";
-
 import { ObservatoryRenderGovernor } from "./ObservatoryRenderGovernor";
-import "cesium/Build/Cesium/Widgets/widgets.css";
 import "./ObservatoryViewer.css";
 
 const CESIUM_BASE_URL = "/cesium/";
-const OSM_TILE_URL = "https://tile.openstreetmap.org/";
-const REEARTH_TERRAIN_URL = "https://terrain.reearth.land/cesium-mesh/ellipsoid";
-const INITIAL_ALTITUDE_METERS = 220_000;
 
 type ViewerStatus = "loading" | "ready" | "error";
 type TerrainStatus = "loading" | "reearth" | "ellipsoid";
@@ -18,11 +12,19 @@ type CesiumGlobal = typeof globalThis & {
   CESIUM_BASE_URL?: string;
 };
 
+function describeRuntimeError(error: unknown) {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim().slice(0, 220);
+  }
+  return "Falha não identificada durante a inicialização do motor 3D.";
+}
+
 export function ObservatoryViewer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
   const [message, setMessage] = useState("Inicializando globo 3D…");
+  const [diagnostic, setDiagnostic] = useState<string | null>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -30,89 +32,38 @@ export function ObservatoryViewer() {
     const viewerContainer: HTMLDivElement = container;
 
     let cancelled = false;
-    let viewer: import("cesium").Viewer | null = null;
+    let widget: import("cesium").CesiumWidget | null = null;
     const renderGovernor = new ObservatoryRenderGovernor();
 
     async function initialize() {
       try {
         (globalThis as CesiumGlobal).CESIUM_BASE_URL = CESIUM_BASE_URL;
-        const Cesium = await import("cesium");
+
+        const { createObservatoryCesiumRuntime } = await import("./observatory-cesium-runtime");
         if (cancelled) return;
 
-        let terrainProvider: import("cesium").TerrainProvider;
-        try {
-          terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(REEARTH_TERRAIN_URL, {
-            requestVertexNormals: true,
-            requestWaterMask: true,
-          });
-          if (cancelled) return;
-          setTerrainStatus("reearth");
-        } catch (terrainError) {
-          console.warn("[observatory] Re:Earth Terrain indisponível; usando elipsoide.", terrainError);
-          terrainProvider = new Cesium.EllipsoidTerrainProvider();
-          if (!cancelled) setTerrainStatus("ellipsoid");
+        const runtime = await createObservatoryCesiumRuntime(viewerContainer);
+        if (cancelled) {
+          if (!runtime.widget.isDestroyed()) runtime.widget.destroy();
+          return;
         }
 
-        const imageryProvider = new Cesium.OpenStreetMapImageryProvider({
-          url: OSM_TILE_URL,
-          maximumLevel: 18,
-          retinaTiles: false,
-          credit: new Cesium.Credit(
-            '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a>',
-            true,
-          ),
-        });
+        widget = runtime.widget;
+        setTerrainStatus(runtime.terrainStatus);
 
-        viewer = new Cesium.Viewer(viewerContainer, {
-          animation: false,
-          baseLayer: new Cesium.ImageryLayer(imageryProvider),
-          baseLayerPicker: false,
-          fullscreenButton: false,
-          geocoder: false,
-          homeButton: false,
-          infoBox: false,
-          navigationHelpButton: false,
-          scene3DOnly: true,
-          sceneModePicker: false,
-          selectionIndicator: false,
-          shouldAnimate: false,
-          timeline: false,
-          terrainProvider,
-          vrButton: false,
-        });
-
-        viewer.scene.requestRenderMode = true;
-        viewer.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
-        viewer.scene.globe.enableLighting = true;
-        viewer.scene.globe.showGroundAtmosphere = true;
-        if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = true;
-
-        viewer.camera.setView({
-          destination: Cesium.Cartesian3.fromDegrees(
-            PELOTAS_LONGITUDE,
-            PELOTAS_LATITUDE,
-            INITIAL_ALTITUDE_METERS,
-          ),
-          orientation: {
-            heading: 0,
-            pitch: Cesium.Math.toRadians(-58),
-            roll: 0,
-          },
-        });
-
-        renderGovernor.attach({ requestRender: () => viewer?.scene.requestRender() });
+        renderGovernor.attach({ requestRender: () => widget?.scene.requestRender() });
         renderGovernor.request();
 
-        if (!cancelled) {
-          setStatus("ready");
-          setMessage("Globo regional pronto. Camadas meteorológicas entram na próxima fase.");
-        }
+        setStatus("ready");
+        setDiagnostic(null);
+        setMessage("Globo regional pronto. Camadas meteorológicas entram na próxima fase.");
       } catch (error) {
-        console.error("[observatory] Falha ao iniciar o viewer Cesium.", error);
+        console.error("[observatory] Falha ao iniciar o runtime Cesium.", error);
         if (!cancelled) {
           setStatus("error");
+          setDiagnostic(describeRuntimeError(error));
           setMessage(
-            "O recurso 3D não pôde ser iniciado neste navegador. Os demais recursos do Tempo Pelotas continuam disponíveis.",
+            "O motor 3D não conseguiu concluir a inicialização. O diagnóstico abaixo ajuda a identificar a etapa que falhou.",
           );
         }
       }
@@ -123,8 +74,8 @@ export function ObservatoryViewer() {
     return () => {
       cancelled = true;
       renderGovernor.destroy();
-      if (viewer && !viewer.isDestroyed()) viewer.destroy();
-      viewer = null;
+      if (widget && !widget.isDestroyed()) widget.destroy();
+      widget = null;
     };
   }, []);
 
@@ -149,6 +100,7 @@ export function ObservatoryViewer() {
         <div className="observatory-viewer__error">
           <strong>Visualização 3D indisponível</strong>
           <span>{message}</span>
+          {diagnostic ? <code>CESIUM_RUNTIME · {diagnostic}</code> : null}
         </div>
       ) : null}
     </div>
