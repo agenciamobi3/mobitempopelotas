@@ -1,11 +1,13 @@
 # Tempo Pelotas Observatório — arquitetura 3D, produto PRO e plano de implementação
 
 Data da decisão: 12/09/2026  
-Estado: **arquitetura aprovada / desenvolvimento ainda não iniciado**  
+Estado: **arquitetura aprovada / Fase 1 em andamento**  
 Branch operacional: `main`  
-Rota planejada: `/observatorio`  
-Acesso planejado: **PRO por entitlement**  
+Rota interna atual: `/observatorio`  
+Acesso atual: **PRO por entitlement**  
 Indexação durante desenvolvimento: **proibida**
+
+Estado executável da implementação: `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md`.
 
 ## 1. Objetivo
 
@@ -42,7 +44,7 @@ Nome do produto:
 
 > **Tempo Pelotas Observatório**
 
-Rota canônica planejada:
+Rota canônica:
 
 ```text
 /observatorio
@@ -54,7 +56,7 @@ Não usar `/observatorio-3d` como rota principal. O 3D é uma característica im
 
 O Observatório deve ser um recurso exclusivo do plano PRO por meio de entitlement dedicado.
 
-Novo entitlement recomendado:
+Entitlement implementado:
 
 ```ts
 observatoryAccess: boolean
@@ -1226,25 +1228,34 @@ Nenhum código funcional do Observatório deve ser considerado implementado apen
 
 ### Fase 1 — fundação silenciosa
 
-Entregas:
+Estado: **em andamento**. O detalhamento executável está em `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md`.
 
-- adicionar `observatoryAccess` a `AccountEntitlements`;
-- Free `false`;
-- PRO `true`;
-- criar `/observatorio`;
-- proteção server-side;
-- metadata/headers noindex;
-- excluir de sitemap/public routes;
-- lazy-load do Cesium;
+Já implementado na `main`:
+
+- `observatoryAccess` em `AccountEntitlements`;
+- Free `false` e PRO ativo `true`;
+- fail-closed para PRO suspenso/expirado;
+- `/observatorio` protegida por gate server-side;
+- metadata e headers noindex/no-store;
+- ausência de sitemap/public routes/navegação;
+- shell standalone responsivo;
+- contratos de camada;
+- `ObservatoryLayerManager`;
+- `ObservatoryRenderGovernor` abstrato;
+- teste `tests/observatory-foundation.test.ts` em `test:contracts`.
+
+Ainda pendente nesta fase:
+
+- instalar Cesium com lockfiles coerentes;
+- lazy-load do runtime Cesium;
 - materializar assets do Cesium no build;
 - `ObservatoryViewer` mínimo;
 - base cartográfica;
-- terreno;
-- `LayerManager`;
-- render governor;
-- testes de autorização e SEO interno.
+- terreno + fallback;
+- validação de CSP dos providers;
+- build/typecheck/smoke PRO real.
 
-Critério de saída:
+Critério de saída continua sendo:
 
 > usuário PRO de teste abre o globo; usuário Free não recebe o recurso; rota não é indexável; nenhuma página pública convencional carrega Cesium.
 
@@ -1372,13 +1383,15 @@ O MVP deve priorizar verdade e utilidade antes de espetáculo.
 
 ### Acesso
 
-- [ ] rota `/observatorio` existe;
-- [ ] PRO autorizado server-side;
-- [ ] Free bloqueado sem vazamento de dados premium;
-- [ ] sem dependência de condicional `tier === "pro"` espalhada;
-- [ ] noindex validado;
-- [ ] fora do sitemap;
-- [ ] fora da navegação pública.
+- [x] rota `/observatorio` existe;
+- [x] PRO autorizado server-side por entitlement;
+- [x] Free bloqueado sem montar o shell avançado;
+- [x] sem dependência de condicional `tier === "pro"` espalhada;
+- [x] noindex implementado no código;
+- [x] fora do sitemap/public-routes;
+- [x] fora da navegação pública.
+
+Esses itens estão implementados em código, mas a validação de runtime autenticado no domínio permanece pendente.
 
 ### Build
 
@@ -1445,11 +1458,17 @@ O MVP deve priorizar verdade e utilidade antes de espetáculo.
 
 ## 30. Testes recomendados
 
-Criar contratos específicos, por exemplo:
+Contrato inicial já criado:
 
 ```text
-tests/observatory-access.test.ts
-tests/observatory-noindex.test.ts
+tests/observatory-foundation.test.ts
+```
+
+Ele protege entitlement, noindex, ausência em `public-routes`, gate server-side, shell standalone, Layer Manager, Render Governor e o estado deliberadamente sem Cesium antes dos lockfiles coerentes.
+
+Contratos posteriores permanecem recomendados, por exemplo:
+
+```text
 tests/observatory-lazy-cesium.test.ts
 tests/observatory-layer-registry.test.ts
 tests/observatory-radar-layer.test.ts
@@ -1552,6 +1571,7 @@ Essas decisões não bloqueiam a fundação.
 ### Documentação interna relacionada
 
 - `PROJECT_CURRENT_STATE.md`
+- `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md`
 - `docs/ACCOUNT_AND_PRO_ARCHITECTURE.md`
 - `docs/DATA_ACCESS_PUBLIC_FREE_PRO_PLAN.md`
 - `docs/HISTORICAL_DATA_INVENTORY.md`
@@ -1600,21 +1620,23 @@ Termos, preços, quotas e licenças externos devem ser conferidos novamente no m
 
 ## 36. Próxima ação técnica aprovada
 
-Quando o desenvolvimento for iniciado, a primeira frente deve ser **Fase 1 — fundação silenciosa**, sem implementar ainda todas as camadas.
+A Fase 1 já foi iniciada. O próximo bloco permanece dentro da própria **fundação silenciosa** e não deve avançar ainda para camadas meteorológicas.
 
-Ordem recomendada:
+Estado da ordem:
 
 ```text
-1. entitlement observatoryAccess
-2. /observatorio protegido e noindex
-3. lazy-load do Cesium
-4. assets/build
-5. viewer mínimo
-6. terreno/base
-7. layer registry
-8. render governor
-9. testes de acesso/noindex/build
-10. somente depois iniciar radar/satélite/STSC
+1. entitlement observatoryAccess          CONCLUÍDO EM CÓDIGO
+2. /observatorio protegido e noindex      CONCLUÍDO EM CÓDIGO
+3. lazy-load do Cesium                    PENDENTE
+4. assets/build                            PENDENTE
+5. viewer mínimo                           PENDENTE
+6. terreno/base                            PENDENTE
+7. layer registry                          FUNDAÇÃO CONCLUÍDA
+8. render governor                         FUNDAÇÃO CONCLUÍDA
+9. testes de acesso/noindex                VERSIONADOS; EXECUÇÃO A CONFIRMAR
+10. somente depois radar/satélite/STSC     NÃO INICIAR AINDA
 ```
 
-Essa ordem reduz risco de misturar problemas de build/WebGL/autorização com problemas de fontes meteorológicas na mesma entrega.
+A próxima ação é instalar o runtime Cesium pelo fluxo normal que consiga atualizar os lockfiles de forma coerente com `npm ci`; depois materializar seus assets, montar `ObservatoryViewer`, base keyless, Re:Earth Terrain/fallback e validar build/SSR/CSP.
+
+A instalação não deve ser simulada adicionando `cesium` apenas ao `package.json` sem `package-lock.json` e `bun.lock` correspondentes.
