@@ -10,6 +10,7 @@ import { createSupabaseRequestClient } from "@/lib/supabase/request-client.serve
 import { getSupabaseServerConfig } from "@/lib/supabase/server-client.server";
 
 const OBSERVATORY_ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
+const ADMIN_ACCESS_SOURCE = "admin";
 
 export type ObservatoryAccessGrant = "admin" | "entitlement" | "none";
 
@@ -38,6 +39,10 @@ async function loadAccountAccess(client: ReturnType<typeof createSupabaseRequest
     .select("tier,status,source,valid_until")
     .eq("user_id", userId)
     .maybeSingle();
+}
+
+function hasPersistentAdminGrant(access: EffectiveAccountAccess) {
+  return access.status === "active" && access.source.trim().toLowerCase() === ADMIN_ACCESS_SOURCE;
 }
 
 export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
@@ -102,14 +107,16 @@ export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
       validUntil: accessResult.data.valid_until,
     });
 
-    const allowed = access.entitlements.observatoryAccess;
+    const persistentAdminGrant = hasPersistentAdminGrant(access);
+    const entitlementGrant = access.entitlements.observatoryAccess;
+    const allowed = persistentAdminGrant || entitlementGrant;
 
     applyObservatoryPrivateHeaders(responseHeaders);
 
     return {
       status: "authenticated",
       allowed,
-      grant: allowed ? "entitlement" : "none",
+      grant: persistentAdminGrant ? "admin" : entitlementGrant ? "entitlement" : "none",
       access,
     };
   },
