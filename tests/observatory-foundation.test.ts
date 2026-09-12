@@ -12,6 +12,7 @@ const accessFunctions = readFileSync(
   "utf8",
 );
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
+const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
 const packageJson = readFileSync("package.json", "utf8");
 
@@ -34,6 +35,11 @@ test("rota do Observatório permanece privada para robôs e fora do inventário 
   assert.match(route, /googlebot/);
   assert.match(route, /absoluteUrl\("\/observatorio"\)/);
   assert.doesNotMatch(publicRoutes, /\/observatorio(?:["'`/]|$)/);
+});
+
+test("Observatório usa shell próprio sem header/footer público duplicado", () => {
+  assert.match(siteLayout, /"\/observatorio"/);
+  assert.match(siteLayout, /standaloneRoutes\.has\(resolvedPathname\)/);
 });
 
 test("gate do Observatório resolve sessão e entitlement no servidor", () => {
