@@ -1,3 +1,4 @@
+import { Compass, Crosshair, Minus, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { loadObservatoryLayer } from "../data/observatory-live-layers";
@@ -201,6 +202,42 @@ export function ObservatoryViewer({
           <span>{message}</span>
         </div>
       </div>
+      {status === "ready" ? (
+        <nav className="observatory-viewer__navigation" aria-label="Controles do globo">
+          <button
+            type="button"
+            onClick={() => runtimeRef.current?.zoomIn()}
+            aria-label="Aproximar globo"
+            title="Aproximar"
+          >
+            <Plus size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => runtimeRef.current?.zoomOut()}
+            aria-label="Afastar globo"
+            title="Afastar"
+          >
+            <Minus size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => runtimeRef.current?.resetView()}
+            aria-label="Voltar para a visão regional de Pelotas"
+            title="Voltar para Pelotas"
+          >
+            <Crosshair size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => runtimeRef.current?.resetNorth()}
+            aria-label="Orientar o mapa para o norte"
+            title="Norte para cima"
+          >
+            <Compass size={18} strokeWidth={2} aria-hidden="true" />
+          </button>
+        </nav>
+      ) : null}
       {status === "error" ? (
         <div className="observatory-viewer__error">
           <strong>Visualização 3D indisponível</strong>
