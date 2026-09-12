@@ -26,7 +26,8 @@ export function ObservatoryViewer() {
 
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    if (container === null) return;
+    const viewerContainer: HTMLDivElement = container;
 
     let cancelled = false;
     let viewer: import("cesium").Viewer | null = null;
@@ -62,7 +63,7 @@ export function ObservatoryViewer() {
           ),
         });
 
-        viewer = new Cesium.Viewer(container, {
+        viewer = new Cesium.Viewer(viewerContainer, {
           animation: false,
           baseLayer: new Cesium.ImageryLayer(imageryProvider),
           baseLayerPicker: false,
@@ -84,7 +85,7 @@ export function ObservatoryViewer() {
         viewer.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
         viewer.scene.globe.enableLighting = true;
         viewer.scene.globe.showGroundAtmosphere = true;
-        viewer.scene.skyAtmosphere.show = true;
+        if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = true;
 
         viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(
