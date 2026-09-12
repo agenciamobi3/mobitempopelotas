@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest, setResponseHeaders } from "@tanstack/react-start/server";
 
+import { isPortalOperatorEmail } from "@/lib/admin/operator-authorization.server";
 import {
   resolveAccountAccess,
   type EffectiveAccountAccess,
@@ -10,12 +11,15 @@ import { getSupabaseServerConfig } from "@/lib/supabase/server-client.server";
 
 const OBSERVATORY_ROBOTS_POLICY = "noindex, nofollow, noarchive, nosnippet, noimageindex";
 
+export type ObservatoryAccessGrant = "admin" | "entitlement" | "none";
+
 export type ObservatoryAccessSnapshot =
   | { status: "unavailable" }
   | { status: "unauthenticated" }
   | {
       status: "authenticated";
       allowed: boolean;
+      grant: ObservatoryAccessGrant;
       access: EffectiveAccountAccess;
     };
 
@@ -54,6 +58,20 @@ export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
       return { status: "unauthenticated" };
     }
 
+    const isConfirmedAdmin = Boolean(
+      user.email_confirmed_at && isPortalOperatorEmail(user.email),
+    );
+
+    if (isConfirmedAdmin) {
+      applyObservatoryPrivateHeaders(responseHeaders);
+      return {
+        status: "authenticated",
+        allowed: true,
+        grant: "admin",
+        access: resolveAccountAccess(null),
+      };
+    }
+
     let accessResult = await loadAccountAccess(client, user.id);
 
     if (!accessResult.error && !accessResult.data) {
@@ -84,11 +102,14 @@ export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
       validUntil: accessResult.data.valid_until,
     });
 
+    const allowed = access.entitlements.observatoryAccess;
+
     applyObservatoryPrivateHeaders(responseHeaders);
 
     return {
       status: "authenticated",
-      allowed: access.entitlements.observatoryAccess,
+      allowed,
+      grant: allowed ? "entitlement" : "none",
       access,
     };
   },
