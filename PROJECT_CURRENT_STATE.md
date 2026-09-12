@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 09/09/2026  
+Última atualização: 12/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -30,7 +30,8 @@ Regras permanentes:
 | Footer público | Uma implementação compartilhada em `SiteFooter` → `Footer`; não publica inventário completo de fornecedores em todas as páginas |
 | Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; usa leitura editorial aberta em linhas, `ServiceStatus.state` descreve a integração e `dataCondition` descreve separadamente a condição publicável do dado para Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; critérios gerais ficam no fechamento da página |
 | Rota de compatibilidade aposentada | `/metodologia` permanece redirect 301 para `/status-dos-dados`; `/estacao-embrapa-pelotas` voltou em 09/09 como página interna real, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer |
-| SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts`; a página Embrapa restaurada ainda não altera esse inventário |
+| SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts`; a página Embrapa restaurada e o Observatório interno não alteram esse inventário |
+| Observatório PRO | Fase 1 em andamento em `/observatorio`: entitlement `observatoryAccess` (`Free=false`, `PRO ativo=true`), gate server-side, cache privado/no-store, robots estrito, shell standalone, contratos de camada, `LayerManager` e `RenderGovernor` abstrato já estão na `main`; rota segue fora de sitemap/navegação/public-routes e ainda **não possui Cesium, globo, base ou terreno reais** |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
 | Embrapa | Coletor operacional/scheduler continuam aposentados; `/estacao-embrapa-pelotas` voltou como consulta server-side direta, somente leitura, à página pública da Embrapa, sem alterar a fonte do `Agora` |
 | Previsão | Open-Meteo principal; MET Norway contingência quando aplicável |
@@ -52,11 +53,13 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs recentes ainda terminam antes dos steps; em 08/09 a run de Qualidade `34297523601`, ligada ao fechamento do seletor de satélite, concluiu `failure` com job sem steps executados |
+| GitHub Actions | Pushes atuais voltaram a abrir runs; a execução do Observatório precisa ser avaliada pelos steps/conclusão antes de declarar build/typecheck/testes aprovados |
 
 ## 3. Stack e budgets públicos
 
 Stack principal: React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro, Tailwind CSS 4, Supabase JS/SSR, MapLibre GL, Recharts e Zod.
+
+**Cesium ainda não faz parte das dependências instaladas.** A arquitetura do Observatório prevê CesiumJS exclusivamente na superfície `/observatorio`, por lazy import, sem substituir MapLibre no portal convencional. A instalação foi adiada até poder atualizar `package.json`, `package-lock.json` e `bun.lock` de forma coerente com `npm ci`.
 
 Budgets atuais:
 
@@ -133,7 +136,8 @@ A apresentação pública foi reorganizada em 08/09 para uma leitura editorial a
 ### 5.2 Rotas de compatibilidade e páginas em revalidação
 
 - `/metodologia` → 301 para `/status-dos-dados`;
-- `/estacao-embrapa-pelotas` → página interna ativa, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer.
+- `/estacao-embrapa-pelotas` → página interna ativa, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer;
+- `/observatorio` → ferramenta interna PRO em Fase 1, `noindex/noarchive/nosnippet/noimageindex`, fora do sitemap, header, megamenu, footer e `public-routes`; não é superfície pública de descoberta.
 
 A página Embrapa voltou como superfície funcional, não como restauração automática do antigo produto operacional. Reindexação, retorno ao footer e eventual uso como observação principal são decisões separadas.
 
@@ -151,11 +155,11 @@ O header público canônico é `src/production/components/home-editorial-header.
 - Explorar;
 - Avisos.
 
-`Explorar` concentra clima, Estação Embrapa, câmeras, geadas, histórico, blog e `Dados e fontes`. `/metodologia` continua ausente do menu.
+`Explorar` concentra clima, Estação Embrapa, câmeras, geadas, histórico, blog e `Dados e fontes`. `/metodologia` e `/observatorio` continuam ausentes do menu público.
 
 A implementação paralela `src/components/layout/Header.tsx` e `Header.css` foi removida depois da migração dos contratos para o header canônico. Isso evita duas árvores de navegação divergirem novamente.
 
-O footer compartilhado mantém descoberta editorial e aponta a transparência para `/status-dos-dados`; a lista completa de fornecedores não é repetida em todas as páginas. A página Embrapa ainda não foi reintroduzida no footer.
+O footer compartilhado mantém descoberta editorial e aponta a transparência para `/status-dos-dados`; a lista completa de fornecedores não é repetida em todas as páginas. A página Embrapa ainda não foi reintroduzida no footer e o Observatório não é promovido publicamente nesta fase.
 
 ### 5.4 Proteção contra shell duplicado
 
@@ -169,7 +173,7 @@ A regressão de header/footer duplicados foi corrigida para, entre outras superf
 - `ObservationDataPageShell`;
 - uso direto de `SiteHeader` + `SiteFooter`.
 
-A rota `/estacao-embrapa-pelotas` usa o shell genérico de página interna do `SiteLayout` e não deve ser adicionada ao conjunto standalone enquanto não renderizar shell próprio. A rota legada `/metodologia` permanece na lista standalone por compatibilidade, embora hoje redirecione antes de renderizar conteúdo.
+`/observatorio` foi incluída explicitamente em `standaloneRoutes` para que seu shell PRO não receba header/footer público por cima. A rota `/estacao-embrapa-pelotas` usa o shell genérico de página interna do `SiteLayout` e não deve ser adicionada ao conjunto standalone enquanto não renderizar shell próprio. A rota legada `/metodologia` permanece na lista standalone por compatibilidade, embora hoje redirecione antes de renderizar conteúdo.
 
 ## 6. SEO, rotas públicas e descoberta
 
@@ -186,6 +190,8 @@ Uma URL nova só nasce quando existe:
 - contrato que impeça expansão acidental.
 
 `/estacao-embrapa-pelotas` voltou funcionalmente, mas **não voltou ao inventário indexável**. Enquanto a fonte é revalidada, a rota usa `noindex`, permanece fora de `src/lib/public-routes.ts` e do sitemap. A presença no megamenu é somente descoberta interna e não altera esse contrato de indexação. `/metodologia` continua redirect de compatibilidade.
+
+`/observatorio` também não integra o inventário indexável. O recurso é autenticado/PRO, possui robots estrito e permanece deliberadamente ausente de descoberta pública durante o desenvolvimento.
 
 O estado de código, o build/sincronização, a propagação em `tempopelotas.com.br` e a descoberta/indexação por buscadores são provas diferentes.
 
@@ -404,7 +410,7 @@ Fontes novas exigem governança antes de ingestão. O histórico Embrapa já arm
 
 Se a série ANA `87955000` for importada futuramente, bruto e consistido precisam continuar distinguíveis por proveniência/status.
 
-## 12. Widget Builder, conta e segurança
+## 12. Widget Builder, conta, Observatório e segurança
 
 Área autenticada de widgets: `/widgets`, descoberta em `/painel`.
 
@@ -415,21 +421,24 @@ Módulos V1:
 
 `/widgets/embed.js` cria iframe para `/embed/widget?token=...`; `/embed/widget` é `noindex`.
 
-Segurança ativa inclui RLS, secrets server-side, gate geográfico quando aplicável, CSP, rate limiting, allowlists/proxies de fontes e logs sanitizados.
+A fundação do Observatório PRO usa o mesmo sistema de conta já existente, sem criar autenticação paralela. `src/lib/auth/account-access.ts` deriva `observatoryAccess` do acesso efetivo; `src/observatory/data/observatory-access.functions.ts` resolve usuário e entitlement no servidor e falha fechado. Visitante é redirecionado a `/conta?next=/observatorio`; Free recebe estado privado sem montar `ObservatoryShell`; PRO ativo recebe o shell interno. Nenhuma migration ou alteração de Supabase foi necessária nesta fatia.
 
-E2E autenticado completo de Widget Builder, conta e contribuição continua pendente.
+Segurança ativa inclui RLS, secrets server-side, gate geográfico quando aplicável, CSP, rate limiting, allowlists/proxies de fontes e logs sanitizados. O Observatório acrescenta `Cache-Control: private, no-store`, `Vary: Cookie, Authorization` e `X-Robots-Tag` estrito na fundação de acesso.
+
+E2E autenticado completo de Widget Builder, conta, contribuição e Observatório continua pendente.
 
 ## 13. Testes, CI e deploy
 
 Contratos versionados cobrem meteorologia, navegação, shells, hidrologia, REDEMET, histórico, widgets, enchentes e colaboração.
 
-A consolidação de 08–09/09 atualizou contratos para:
+A consolidação de 08–12/09 atualizou contratos para:
 
 - `/status-dos-dados` como única superfície pública indexável de transparência;
 - `dataCondition` público em `/status-dos-dados` separado de `state`/`detail` e restrito nesta fase a Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; o contrato `tests/data-status-data-condition.test.ts` impede espalhar a semântica para outras fontes sem definição própria;
 - visual editorial de `/status-dos-dados` em linhas abertas, sem antiga grade de duas colunas, com condição do dado separada do badge de estado, histórico em faixas/linhas e critérios de publicação no fechamento; protegido por `tests/data-status-editorial-visual.test.ts`;
 - redirect 301 de `/metodologia` mantido;
 - `/estacao-embrapa-pelotas` restaurada em 09/09 como página interna real, com reader server-side direto, `noindex`, fora do sitemap e do footer, novamente descoberta no megamenu `Explorar` e sem reativar o coletor aposentado; protegida por `tests/embrapa-station-page.test.ts` e pelo contrato de separação em `tests/retired-weather-source-cleanup.test.ts`;
+- fundação silenciosa do Observatório em `/observatorio`, com entitlement PRO, gate server-side, robots estrito, shell standalone, contratos de camada, `LayerManager` e `RenderGovernor`; protegida por `tests/observatory-foundation.test.ts`, incluído em `npm run test:contracts`; o teste também impede declarar Cesium instalado antes de os lockfiles serem atualizados corretamente;
 - header canônico `HomeEditorialHeader` sem implementação paralela e com a Estação Embrapa novamente em `Explorar > Observação e contexto`;
 - footer compartilhado sem inventário repetido de fornecedores;
 - overlay fotográfico da Home em preto neutro, com opacidade geral reduzida e blur de 10 px mascarado para desaparecer antes da área direita da fotografia; protegido por `tests/home-hero-overlay-and-recovery.test.ts`;
@@ -451,9 +460,9 @@ A consolidação de 08–09/09 atualizou contratos para:
 
 ### 13.1 GitHub Actions
 
-A infraestrutura do runner continua sendo uma limitação externa. Na run `34297523601`, ligada ao commit `02f459417268d39fac397bf5869aaa8c8651393f`, o job `Testes, build, rotas, typecheck, lint e navegador` terminou como `failure` sem steps executados.
+Os pushes da fundação do Observatório voltaram a abrir runs do workflow `Qualidade` em 12/09. Isso é diferente do estado observado em 08/09, quando jobs encerravam sem steps.
 
-Enquanto isso persistir, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como executados pelo GitHub Actions.
+Até a execução atual concluir e os jobs/steps serem inspecionados, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como aprovados para esta entrega.
 
 ### 13.2 Estado de deploy
 
@@ -468,26 +477,29 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 
 ## 14. Próximas prioridades
 
-1. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
-2. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível, atalho no megamenu e permanência fora do sitemap.
-3. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático, ao sitemap/indexação ou ao footer.
-4. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
-5. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
-6. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
-7. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar Moderação V1 com conta autorizada e contribuição descartável.
-8. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-9. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
-10. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
-11. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
-12. Validar visualmente a família `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas`, `/previsao-7-dias-pelotas`, `/previsao-15-dias-pelotas`, `/chuva-em-pelotas` e `/vento-em-pelotas` em desktop e mobile depois da propagação, conferindo rails, primeira dobra, estados indisponíveis e responsividade sem tratar preview isolado como prova de produção.
-13. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
-14. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
-15. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
-16. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
-17. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+1. Fechar a própria Fase 1 do Observatório: instalar Cesium pelo fluxo normal quando houver executor/créditos para regenerar `package-lock.json` e `bun.lock`, materializar assets, criar `ObservatoryViewer`, base keyless, Re:Earth Terrain com fallback, lazy import e validação de CSP/build sem iniciar radar/satélite/STSC antes disso.
+2. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
+3. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível, atalho no megamenu e permanência fora do sitemap.
+4. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático, ao sitemap/indexação ou ao footer.
+5. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
+6. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
+7. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
+8. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar Moderação V1 com conta autorizada e contribuição descartável.
+9. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+10. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
+11. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
+12. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
+13. Validar visualmente a família `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas`, `/previsao-7-dias-pelotas`, `/previsao-15-dias-pelotas`, `/chuva-em-pelotas` e `/vento-em-pelotas` em desktop e mobile depois da propagação, conferindo rails, primeira dobra, estados indisponíveis e responsividade sem tratar preview isolado como prova de produção.
+14. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
+15. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
+16. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
+17. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
+18. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
+- `docs/TEMPO_PELOTAS_OBSERVATORIO_3D_ARCHITECTURE.md` — arquitetura e fases do Observatório PRO;
+- `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md` — estado executável da Fase 1, entregas e pendências do runtime Cesium;
 - `docs/DEFESA_CIVIL_DEDICATED_PAGE_GATE_2026-09-05.md` — gate editorial de páginas dedicadas;
 - `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração da Rede Defesa Civil RS;
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — resiliência, budgets e estados de dados;
