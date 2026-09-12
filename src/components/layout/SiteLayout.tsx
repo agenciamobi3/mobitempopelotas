@@ -42,6 +42,7 @@ const standaloneRoutes = new Set([
   "/contribuir",
   "/painel",
   "/widgets",
+  "/observatorio",
   "/entrar",
   "/minha-conta",
   "/privacidade-e-dados",
