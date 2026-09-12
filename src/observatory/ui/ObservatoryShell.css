@@ -13,45 +13,145 @@
 }
 
 .observatory-shell__header {
-  min-height: 76px;
+  min-height: 92px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 16px clamp(18px, 3vw, 42px);
+  padding: 14px clamp(18px, 3vw, 42px);
   border-bottom: 1px solid var(--observatory-border);
   background: rgba(4, 14, 23, 0.82);
   backdrop-filter: blur(16px);
 }
 
+.observatory-shell__identity {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 4px;
+}
+
+.observatory-shell__brand {
+  display: inline-flex;
+  align-items: center;
+  max-width: min(205px, 48vw);
+  text-decoration: none;
+}
+
+.observatory-shell__brand img {
+  display: block;
+  width: clamp(150px, 14vw, 190px);
+  height: auto;
+}
+
 .observatory-shell__header h1 {
-  margin: 2px 0 0;
+  margin: 0;
   font-size: clamp(1.35rem, 2.5vw, 2rem);
   font-weight: 720;
   letter-spacing: -0.04em;
 }
 
-.observatory-shell__eyebrow {
-  color: var(--observatory-muted);
-  font-size: 0.74rem;
-  font-weight: 720;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
+.observatory-shell__account-menu {
+  position: relative;
+  z-index: 12;
 }
 
-.observatory-shell__pro {
+.observatory-shell__account-menu summary {
+  min-height: 40px;
   display: inline-flex;
-  min-height: 30px;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
   padding: 0 12px;
-  border: 1px solid rgba(105, 238, 228, 0.36);
+  border: 1px solid rgba(105, 238, 228, 0.24);
   border-radius: 999px;
-  background: rgba(24, 189, 205, 0.12);
-  color: #8ff5ec;
-  font-size: 0.76rem;
-  font-weight: 760;
-  letter-spacing: 0.08em;
+  background: rgba(24, 189, 205, 0.08);
+  color: rgba(239, 250, 252, 0.94);
+  font-size: 0.78rem;
+  font-weight: 720;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.observatory-shell__account-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.observatory-shell__account-menu summary:hover,
+.observatory-shell__account-menu[open] summary {
+  border-color: rgba(117, 233, 223, 0.42);
+  background: rgba(24, 189, 205, 0.14);
+  color: #9af5ee;
+}
+
+.observatory-shell__account-menu summary:focus-visible {
+  outline: 2px solid #75e9df;
+  outline-offset: 3px;
+}
+
+.observatory-shell__account-chevron {
+  transition: transform 150ms ease;
+}
+
+.observatory-shell__account-menu[open] .observatory-shell__account-chevron {
+  transform: rotate(180deg);
+}
+
+.observatory-shell__account-popover {
+  position: absolute;
+  top: calc(100% + 9px);
+  right: 0;
+  width: min(220px, calc(100vw - 28px));
+  display: grid;
+  padding: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+  background: rgba(5, 16, 25, 0.97);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.observatory-shell__account-popover a,
+.observatory-shell__account-popover button {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(238, 247, 252, 0.82);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 660;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.observatory-shell__account-popover a:hover,
+.observatory-shell__account-popover button:hover {
+  background: rgba(117, 233, 223, 0.08);
+  color: #9af5ee;
+}
+
+.observatory-shell__account-popover a:focus-visible,
+.observatory-shell__account-popover button:focus-visible {
+  outline: 2px solid #75e9df;
+  outline-offset: -2px;
+}
+
+.observatory-shell__account-popover form {
+  margin: 3px 0 0;
+  padding-top: 3px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .observatory-shell__workspace {
@@ -72,7 +172,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   font-size: 0.9rem;
   font-weight: 740;
 }
@@ -290,8 +390,30 @@
   }
 
   .observatory-shell__header {
-    min-height: 66px;
-    padding: 13px 16px;
+    min-height: 78px;
+    gap: 12px;
+    padding: 11px 16px;
+  }
+
+  .observatory-shell__brand img {
+    width: 136px;
+  }
+
+  .observatory-shell__header h1 {
+    font-size: 1.32rem;
+  }
+
+  .observatory-shell__account-menu summary {
+    min-height: 38px;
+    padding: 0 10px;
+  }
+
+  .observatory-shell__account-menu summary span {
+    display: none;
+  }
+
+  .observatory-shell__account-chevron {
+    display: none;
   }
 
   .observatory-shell__workspace {
