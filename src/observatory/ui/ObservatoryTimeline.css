@@ -1,0 +1,155 @@
+.observatory-shell__timeline {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px clamp(14px, 2vw, 24px) calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--observatory-border);
+  background: rgba(4, 14, 23, 0.96);
+  color: var(--observatory-muted);
+  text-align: left;
+}
+
+.observatory-shell__timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.observatory-shell__timeline-controls button,
+.observatory-shell__live {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(239, 247, 251, 0.82);
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.observatory-shell__timeline-controls button:hover:not(:disabled),
+.observatory-shell__live:hover:not(:disabled) {
+  border-color: rgba(117, 233, 223, 0.34);
+  background: rgba(24, 189, 205, 0.1);
+  color: #9af5ed;
+}
+
+.observatory-shell__timeline-controls button:focus-visible,
+.observatory-shell__live:focus-visible,
+.observatory-shell__timeline-track input:focus-visible {
+  outline: 2px solid #75e9df;
+  outline-offset: 2px;
+}
+
+.observatory-shell__timeline-controls button:disabled,
+.observatory-shell__live:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.observatory-shell__timeline-controls .observatory-shell__timeline-play {
+  border-color: rgba(117, 233, 223, 0.25);
+  background: rgba(24, 189, 205, 0.1);
+  color: #87eee5;
+}
+
+.observatory-shell__timeline-track {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.observatory-shell__timeline-meta,
+.observatory-shell__timeline-range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.observatory-shell__timeline-meta strong {
+  color: #eff8fb;
+  font-size: 0.78rem;
+  font-weight: 720;
+}
+
+.observatory-shell__timeline-meta span,
+.observatory-shell__timeline-range {
+  color: rgba(233, 242, 248, 0.48);
+  font-size: 0.63rem;
+}
+
+.observatory-shell__timeline-track input[type="range"] {
+  width: 100%;
+  margin: 0;
+  accent-color: #18bdcd;
+  cursor: pointer;
+}
+
+.observatory-shell__live {
+  width: auto;
+  min-width: 96px;
+  grid-auto-flow: column;
+  gap: 7px;
+  padding: 0 11px;
+  color: rgba(239, 247, 251, 0.7);
+  font-size: 0.68rem;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.observatory-shell__live.is-live {
+  border-color: rgba(117, 233, 223, 0.32);
+  background: rgba(24, 189, 205, 0.11);
+  color: #88efe6;
+}
+
+.observatory-shell__live.is-live svg {
+  filter: drop-shadow(0 0 5px rgba(117, 233, 223, 0.65));
+}
+
+.observatory-shell__timeline-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  color: rgba(233, 242, 248, 0.58);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .observatory-shell__timeline {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 9px 12px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+  }
+
+  .observatory-shell__timeline-controls {
+    align-self: start;
+  }
+
+  .observatory-shell__timeline-meta {
+    align-items: flex-start;
+  }
+
+  .observatory-shell__timeline-meta span {
+    display: none;
+  }
+
+  .observatory-shell__timeline-range {
+    font-size: 0.58rem;
+  }
+
+  .observatory-shell__live {
+    grid-column: 1 / -1;
+    justify-self: end;
+    height: 32px;
+  }
+}
