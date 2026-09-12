@@ -10,6 +10,7 @@ import {
   type ObservatoryTemporalLayerId,
   type ObservatoryTemporalLayerResult,
 } from "../data/observatory-temporal-layers";
+import type { ObservatoryComparisonState } from "./ObservatoryComparison";
 import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
 import type { ObservatoryCameraState } from "./ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
@@ -30,6 +31,7 @@ type ObservatoryViewerProps = {
   enabledLayers: readonly ObservatoryLayerId[];
   layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
   selectedTimelineAt: string | null;
+  comparison: ObservatoryComparisonState | null;
   cameraRestoreState: ObservatoryCameraState | null;
   onCameraStateChange: (state: ObservatoryCameraState) => void;
   onTimelineSourceChange: (id: ObservatoryTemporalLayerId, timestamps: string[]) => void;
@@ -37,6 +39,11 @@ type ObservatoryViewerProps = {
     id: ObservatoryLayerId,
     patch: Partial<ObservatoryLayerRuntimeState>,
   ) => void;
+};
+
+type RenderedTemporalState = {
+  observedAt: string | null;
+  detail: string | null;
 };
 
 function describeRuntimeError(error: unknown) {
@@ -52,7 +59,7 @@ async function renderTemporalFrame(
   result: ObservatoryTemporalLayerResult,
   selectedAt: string | null,
   opacity: number,
-) {
+): Promise<RenderedTemporalState | null> {
   const frame = selectTemporalFrame(result, selectedAt);
   if (!frame) {
     runtime.removeLayer(id);
@@ -69,13 +76,54 @@ async function renderTemporalFrame(
     runtime.setPointLayer(id, frame.payload.points);
   }
 
-  return frame;
+  return { observedAt: frame.observedAt, detail: frame.detail };
+}
+
+async function renderTemporalLayer(
+  runtime: ObservatoryCesiumRuntime,
+  id: ObservatoryTemporalLayerId,
+  result: ObservatoryTemporalLayerResult,
+  selectedAt: string | null,
+  opacity: number,
+  comparison: ObservatoryComparisonState | null,
+): Promise<RenderedTemporalState | null> {
+  if (comparison?.enabled && comparison.layerId === id) {
+    const leftFrame = selectTemporalFrame(result, comparison.leftAt);
+    const rightFrame = selectTemporalFrame(result, comparison.rightAt);
+
+    if (
+      leftFrame?.payload.kind === "image" &&
+      rightFrame?.payload.kind === "image"
+    ) {
+      await runtime.setImageComparison(id, {
+        left: {
+          imageUrl: leftFrame.payload.imageUrl,
+          bounds: leftFrame.payload.bounds,
+          opacity,
+        },
+        right: {
+          imageUrl: rightFrame.payload.imageUrl,
+          bounds: rightFrame.payload.bounds,
+          opacity,
+        },
+        splitPosition: comparison.splitPosition,
+      });
+
+      return {
+        observedAt: rightFrame.observedAt ?? leftFrame.observedAt,
+        detail: `Comparação A/B · ${leftFrame.label} ↔ ${rightFrame.label}`,
+      };
+    }
+  }
+
+  return renderTemporalFrame(runtime, id, result, selectedAt, opacity);
 }
 
 export function ObservatoryViewer({
   enabledLayers,
   layerOpacities,
   selectedTimelineAt,
+  comparison,
   cameraRestoreState,
   onCameraStateChange,
   onTimelineSourceChange,
@@ -84,14 +132,18 @@ export function ObservatoryViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
   const cameraUnsubscribeRef = useRef<(() => void) | null>(null);
-  const temporalLayersRef = useRef<Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>>({});
+  const temporalLayersRef = useRef<
+    Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>
+  >({});
   const layerRevisionRef = useRef(0);
   const timelineSelectionRevisionRef = useRef(0);
   const layerOpacitiesRef = useRef(layerOpacities);
   const selectedTimelineAtRef = useRef(selectedTimelineAt);
+  const comparisonRef = useRef(comparison);
   const onCameraStateChangeRef = useRef(onCameraStateChange);
   layerOpacitiesRef.current = layerOpacities;
   selectedTimelineAtRef.current = selectedTimelineAt;
+  comparisonRef.current = comparison;
   onCameraStateChangeRef.current = onCameraStateChange;
 
   const [status, setStatus] = useState<ViewerStatus>("loading");
@@ -169,6 +221,9 @@ export function ObservatoryViewer({
     .map((id) => `${id}:${layerOpacities[id] ?? 1}`)
     .sort()
     .join("|");
+  const comparisonKey = comparison
+    ? [comparison.layerId, comparison.leftAt ?? "", comparison.rightAt ?? ""].join("|")
+    : "";
   const cameraRestoreKey = cameraRestoreState
     ? [
         cameraRestoreState.longitude,
@@ -193,7 +248,13 @@ export function ObservatoryViewer({
 
     const revision = ++layerRevisionRef.current;
     const enabledSet = new Set(enabledLayers);
-    const allLayerIds: ObservatoryLayerId[] = ["radar", "satellite", "lightning", "alerts", "hydrology"];
+    const allLayerIds: ObservatoryLayerId[] = [
+      "radar",
+      "satellite",
+      "lightning",
+      "alerts",
+      "hydrology",
+    ];
 
     for (const id of allLayerIds) {
       if (enabledSet.has(id)) continue;
@@ -225,20 +286,24 @@ export function ObservatoryViewer({
             temporalLayersRef.current[id] = result;
             onTimelineSourceChange(id, temporalTimestamps(result));
 
-            const frame = await renderTemporalFrame(
+            const rendered = await renderTemporalLayer(
               runtime,
               id,
               result,
               selectedTimelineAtRef.current,
               layerOpacitiesRef.current[id] ?? 0.72,
+              comparisonRef.current,
             );
             if (layerRevisionRef.current !== revision) return;
 
             onLayerRuntimeChange(id, {
               status: result.status,
               enabled: true,
-              observedAt: frame?.observedAt ?? null,
-              detail: frame?.detail ?? result.error ?? `${result.sourceLabel} sem quadro temporal utilizável.`,
+              observedAt: rendered?.observedAt ?? null,
+              detail:
+                rendered?.detail ??
+                result.error ??
+                `${result.sourceLabel} sem quadro temporal utilizável.`,
             });
           })
           .catch((error) => {
@@ -297,7 +362,7 @@ export function ObservatoryViewer({
 
   useEffect(() => {
     const runtime = runtimeRef.current;
-    if (!runtime || status !== "ready" || !selectedTimelineAt) return;
+    if (!runtime || status !== "ready") return;
 
     const revision = ++timelineSelectionRevisionRef.current;
     for (const id of enabledLayers) {
@@ -305,23 +370,30 @@ export function ObservatoryViewer({
       const result = temporalLayersRef.current[id];
       if (!result) continue;
 
-      void renderTemporalFrame(
+      void renderTemporalLayer(
         runtime,
         id,
         result,
         selectedTimelineAt,
         layerOpacitiesRef.current[id] ?? 0.72,
-      ).then((frame) => {
-        if (timelineSelectionRevisionRef.current !== revision || !frame) return;
+        comparison,
+      ).then((rendered) => {
+        if (timelineSelectionRevisionRef.current !== revision || !rendered) return;
         onLayerRuntimeChange(id, {
           status: result.status,
           enabled: true,
-          observedAt: frame.observedAt,
-          detail: frame.detail,
+          observedAt: rendered.observedAt,
+          detail: rendered.detail,
         });
       });
     }
-  }, [selectedTimelineAt, enabledKey, runtimeRevision, status, onLayerRuntimeChange]);
+  }, [selectedTimelineAt, comparisonKey, enabledKey, runtimeRevision, status, onLayerRuntimeChange]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready" || !comparison) return;
+    runtime.setComparisonSplitPosition(comparison.splitPosition);
+  }, [comparison?.splitPosition, runtimeRevision, status]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
@@ -334,6 +406,19 @@ export function ObservatoryViewer({
   return (
     <div className="observatory-viewer" data-viewer-status={status} data-terrain={terrainStatus}>
       <div ref={containerRef} className="observatory-viewer__canvas" aria-hidden="true" />
+      {status === "ready" && comparison ? (
+        <>
+          <div className="observatory-viewer__comparison-labels" aria-hidden="true">
+            <span>A</span>
+            <span>B</span>
+          </div>
+          <div
+            className="observatory-viewer__comparison-divider"
+            style={{ left: `${comparison.splitPosition * 100}%` }}
+            aria-hidden="true"
+          />
+        </>
+      ) : null}
       {status === "ready" ? (
         <nav className="observatory-viewer__navigation" aria-label="Controles do globo">
           <button
