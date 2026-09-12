@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CloudLightning,
+  Columns2,
   Globe2,
   House,
   LayoutDashboard,
@@ -23,6 +24,11 @@ import {
 } from "lucide-react";
 
 import {
+  createObservatoryComparison,
+  type ObservatoryComparisonLayerId,
+  type ObservatoryComparisonState,
+} from "../core/ObservatoryComparison";
+import {
   OBSERVATORY_LAYER_DEFINITIONS,
   OBSERVATORY_LAYER_IDS,
   type ObservatoryLayerId,
@@ -36,6 +42,7 @@ import {
 } from "../core/ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "../core/ObservatoryTypes";
 import type { ObservatoryTemporalLayerId } from "../data/observatory-temporal-layers";
+import { ObservatoryComparisonControls } from "./ObservatoryComparisonControls";
 import "./ObservatoryShell.css";
 import "./ObservatoryTimeline.css";
 
@@ -174,6 +181,7 @@ export function ObservatoryShell() {
   >({});
   const [selectedTimelineAt, setSelectedTimelineAt] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [comparison, setComparison] = useState<ObservatoryComparisonState | null>(null);
   const [cameraState, setCameraState] = useState<ObservatoryCameraState | null>(null);
   const [cameraRestoreState, setCameraRestoreState] = useState<ObservatoryCameraState | null>(null);
   const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "error">("idle");
@@ -197,6 +205,10 @@ export function ObservatoryShell() {
       manager.setEnabled(id, layer?.enabled ?? false);
       manager.setOpacity(id, layer?.opacity ?? 1);
     }
+    if (scenario.comparison) {
+      manager.setEnabled(scenario.comparison.layerId, true);
+      setComparison(scenario.comparison);
+    }
     refreshLayers();
 
     requestedTimelineAtRef.current = scenario.selectedAt;
@@ -214,10 +226,12 @@ export function ObservatoryShell() {
     (id: ObservatoryLayerId) => {
       const current = manager.get(id);
       if (!current) return;
-      manager.setEnabled(id, !current.runtime.enabled);
+      const enabled = !current.runtime.enabled;
+      manager.setEnabled(id, enabled);
+      if (!enabled && comparison?.layerId === id) setComparison(null);
       refreshLayers();
     },
-    [manager, refreshLayers],
+    [manager, refreshLayers, comparison?.layerId],
   );
 
   const changeOpacity = useCallback(
@@ -265,6 +279,31 @@ export function ObservatoryShell() {
     return [...unique].sort((first, second) => Date.parse(first) - Date.parse(second));
   }, [timelineSources]);
   const timelineKey = timelineTimestamps.join("|");
+
+  const comparisonTimestamps = useMemo(() => {
+    if (!comparison) return [];
+    return [...(timelineSources[comparison.layerId] ?? [])].sort(
+      (first, second) => Date.parse(first) - Date.parse(second),
+    );
+  }, [comparison?.layerId, timelineSources]);
+  const comparisonTimelineKey = comparisonTimestamps.join("|");
+
+  useEffect(() => {
+    if (!comparison || comparisonTimestamps.length === 0) return;
+
+    setComparison((current) => {
+      if (!current) return current;
+      const leftAt = current.leftAt
+        ? nearestTimelineTimestamp(comparisonTimestamps, current.leftAt)
+        : comparisonTimestamps[0] ?? null;
+      const rightAt = current.rightAt
+        ? nearestTimelineTimestamp(comparisonTimestamps, current.rightAt)
+        : comparisonTimestamps.at(-1) ?? null;
+
+      if (leftAt === current.leftAt && rightAt === current.rightAt) return current;
+      return { ...current, leftAt, rightAt };
+    });
+  }, [comparison?.layerId, comparisonTimelineKey]);
 
   useEffect(() => {
     if (timelineTimestamps.length === 0) {
@@ -332,6 +371,42 @@ export function ObservatoryShell() {
     [timelineKey],
   );
 
+  const openComparison = useCallback(() => {
+    const layerId: ObservatoryComparisonLayerId = manager.get("radar")?.runtime.enabled
+      ? "radar"
+      : "satellite";
+    manager.setEnabled(layerId, true);
+    refreshLayers();
+    setPlaying(false);
+
+    const timestamps = timelineSources[layerId] ?? [];
+    setComparison(
+      createObservatoryComparison({
+        layerId,
+        leftAt: timestamps[0] ?? null,
+        rightAt: timestamps.at(-1) ?? null,
+      }),
+    );
+  }, [manager, refreshLayers, timelineSources]);
+
+  const changeComparisonLayer = useCallback(
+    (layerId: ObservatoryComparisonLayerId) => {
+      manager.setEnabled(layerId, true);
+      refreshLayers();
+      setPlaying(false);
+      const timestamps = timelineSources[layerId] ?? [];
+      setComparison((current) =>
+        createObservatoryComparison({
+          layerId,
+          leftAt: timestamps[0] ?? null,
+          rightAt: timestamps.at(-1) ?? null,
+          splitPosition: current?.splitPosition ?? 0.5,
+        }),
+      );
+    },
+    [manager, refreshLayers, timelineSources],
+  );
+
   const shareScenario = useCallback(async () => {
     if (typeof window === "undefined") return;
 
@@ -343,6 +418,7 @@ export function ObservatoryShell() {
         opacity: layer.runtime.opacity,
       })),
       camera: cameraState,
+      comparison,
     });
     const url = `${window.location.origin}${window.location.pathname}${window.location.search}${buildObservatoryScenarioHash(scenario)}`;
 
@@ -353,7 +429,7 @@ export function ObservatoryShell() {
       console.warn("[observatory] Não foi possível copiar o cenário.", error);
       setShareFeedback("error");
     }
-  }, [layers, selectedTimelineAt, cameraState]);
+  }, [layers, selectedTimelineAt, cameraState, comparison]);
 
   return (
     <main className="observatory-shell" id="conteudo-principal">
@@ -370,6 +446,18 @@ export function ObservatoryShell() {
           <h1>Observatório</h1>
         </div>
         <div className="observatory-shell__header-actions">
+          {!comparison ? (
+            <button
+              type="button"
+              className="observatory-shell__share"
+              onClick={openComparison}
+              aria-label="Abrir comparador A/B do Observatório"
+              title="Comparar dois horários"
+            >
+              <Columns2 aria-hidden="true" size={17} />
+              <span>Comparar</span>
+            </button>
+          ) : null}
           <button
             type="button"
             className="observatory-shell__share"
@@ -456,11 +544,21 @@ export function ObservatoryShell() {
         </aside>
 
         <section className="observatory-shell__viewer" aria-label="Área 3D do Observatório">
+          {comparison ? (
+            <ObservatoryComparisonControls
+              comparison={comparison}
+              timestamps={comparisonTimestamps}
+              onChange={setComparison}
+              onLayerChange={changeComparisonLayer}
+              onClose={() => setComparison(null)}
+            />
+          ) : null}
           <Suspense fallback={<ViewerLoadingState />}>
             <LazyObservatoryViewer
               enabledLayers={enabledLayers}
               layerOpacities={layerOpacities}
               selectedTimelineAt={selectedTimelineAt}
+              comparison={comparison}
               cameraRestoreState={cameraRestoreState}
               onCameraStateChange={setCameraState}
               onTimelineSourceChange={handleTimelineSourceChange}
