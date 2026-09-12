@@ -3,44 +3,73 @@
 Data: 12/09/2026  
 Branch operacional: `main`  
 Rota interna: `/observatorio`  
-Estado: **Fase 1 em andamento**
+Estado: **Fase 1 tecnicamente implementada; smoke autenticado em produção pendente**
 
-## 1. Escopo desta entrega
+## 1. Escopo
 
-Esta etapa inicia a Fase 1 definida em `docs/TEMPO_PELOTAS_OBSERVATORIO_3D_ARCHITECTURE.md` sem antecipar radar, satélite, STSC, alertas ou hidrologia.
+Esta etapa executa a **Fase 1 — fundação silenciosa** definida em `docs/TEMPO_PELOTAS_OBSERVATORIO_3D_ARCHITECTURE.md` sem antecipar radar, satélite, STSC, alertas ou hidrologia.
 
-O objetivo desta fatia é garantir primeiro:
+A fundação agora cobre:
 
-- autorização PRO centralizada;
+- entitlement PRO centralizado;
+- exceção administrativa server-only para desenvolvimento;
 - rota interna e não indexável;
-- resposta privada;
-- shell próprio do Observatório;
-- contratos de camada;
+- gate server-side;
+- CesiumJS isolado e lazy;
+- assets locais do Cesium;
+- viewer mínimo;
+- base OpenStreetMap;
+- Re:Earth Terrain com fallback elipsoidal;
 - Layer Manager;
 - Render Governor;
-- testes de regressão da fundação.
+- CSP restrita aos providers adotados;
+- contratos de regressão;
+- build Vite/TanStack/Nitro validado em runner real.
 
-A instalação do runtime Cesium, seus assets, base cartográfica e terreno permanecem deliberadamente pendentes nesta mesma Fase 1.
+Nenhuma camada meteorológica do Observatório foi iniciada nesta fase.
 
-## 2. Entitlement implementado
+## 2. Acesso PRO e acesso administrativo
 
-`AccountEntitlements` passou a possuir:
+`AccountEntitlements` possui:
 
 ```ts
 observatoryAccess: boolean
 ```
 
-Política efetiva:
+Política comercial:
 
 ```text
 Free -> false
 PRO ativo -> true
-PRO suspenso/expirado -> false, por fail-closed para Free
+PRO suspenso/expirado -> false
 ```
 
-A rota não decide acesso por `tier === "pro"`. O contrato continua centralizado em `resolveAccountAccess()`.
+Durante desenvolvimento existe uma exceção administrativa deliberada:
 
-Nenhuma migration foi criada e o schema `account_access` não foi alterado. O entitlement é derivado do tier/status já existentes.
+```text
+usuário autenticado
++ e-mail confirmado no Supabase
++ e-mail presente em MOBI_PORTAL_ADMIN_EMAILS
+= acesso ao Observatório mesmo sem assinatura PRO
+```
+
+A allowlist é server-only. Não existe query string, cookie manual, flag no navegador nem e-mail hardcoded no repositório.
+
+O helper canônico é:
+
+```text
+src/lib/admin/operator-authorization.server.ts
+```
+
+O gate do Observatório reaproveita `isPortalOperatorEmail()` antes de consultar a assinatura. Dessa forma o único admin/dev pode testar a ferramenta em produção com uma conta Free, sem alterar o contrato comercial dos demais usuários.
+
+A variável continua sendo:
+
+```text
+MOBI_PORTAL_ADMIN_EMAILS
+```
+
+Ela deve conter o e-mail usado no login do Tempo Pelotas e permanecer somente no runtime do servidor.
 
 ## 3. Gate server-side
 
@@ -50,17 +79,19 @@ Arquivo:
 src/observatory/data/observatory-access.functions.ts
 ```
 
-O gate:
+Fluxo:
 
 1. valida configuração pública do Supabase;
-2. resolve a sessão no servidor com `client.auth.getUser()`;
-3. lê `account_access` do usuário autenticado;
-4. reutiliza `ensure_current_user_account_foundation` se a fundação da conta estiver ausente;
-5. resolve `EffectiveAccountAccess` pelo contrato central;
-6. autoriza somente quando `access.entitlements.observatoryAccess` for `true`;
-7. falha fechado quando a conta/acesso não puder ser resolvido.
+2. resolve a sessão com `client.auth.getUser()` no servidor;
+3. se a conta possui e-mail confirmado e está em `MOBI_PORTAL_ADMIN_EMAILS`, concede `grant: "admin"` imediatamente;
+4. caso contrário, lê `account_access`;
+5. reutiliza `ensure_current_user_account_foundation` quando necessário;
+6. resolve `EffectiveAccountAccess` pelo contrato central;
+7. concede `grant: "entitlement"` somente quando `observatoryAccess=true`;
+8. Free comum recebe `grant: "none"`;
+9. falhas de conta/acesso permanecem fail-closed.
 
-Headers aplicados pela fundação de acesso:
+Headers:
 
 ```text
 Cache-Control: private, no-store, max-age=0
@@ -70,11 +101,11 @@ Vary: Cookie, Authorization
 X-Robots-Tag: noindex, nofollow, noarchive, nosnippet, noimageindex
 ```
 
-Nenhum `service_role` é utilizado ou exposto.
+Nenhum service role é enviado ao navegador.
 
-## 4. Rota interna
+## 4. Rota `/observatorio`
 
-Criada:
+Arquivo:
 
 ```text
 src/routes/observatorio.tsx
@@ -90,23 +121,23 @@ Redireciona para:
 /conta?next=/observatorio
 ```
 
-### Conta autenticada sem entitlement
+### Conta Free comum
 
-Renderiza somente estado privado de acesso PRO.
+Vê somente o estado privado informando que o Observatório pertence ao PRO. O viewer não é montado.
 
-Não monta `ObservatoryShell`.
+### Conta PRO ativa
 
-Não consulta camada meteorológica do Observatório.
+Recebe o viewer.
 
-### Conta PRO autorizada
+### Admin/dev confirmado
 
-Renderiza o shell interno da ferramenta.
+Recebe o viewer mesmo que sua conta esteja em Free e nunca tenha assinado o PRO.
 
-Nesta etapa ainda não existe runtime 3D real.
+A rota possui shell próprio e não herda header/footer público duplicado.
 
 ## 5. SEO e descoberta
 
-A rota usa:
+A rota continua deliberadamente oculta:
 
 ```text
 noindex
@@ -116,178 +147,238 @@ nosnippet
 noimageindex
 ```
 
-Também possui `googlebot` equivalente e canonical próprio `/observatorio`.
+Também:
 
-A rota:
+- `googlebot` recebe política equivalente;
+- response possui `X-Robots-Tag`;
+- `/observatorio` não está em `src/lib/public-routes.ts`;
+- não está no sitemap;
+- não está no header;
+- não está no megamenu;
+- não está no footer;
+- não está no feed;
+- não possui CTA público.
 
-- não foi adicionada ao header;
-- não foi adicionada ao megamenu;
-- não foi adicionada ao footer;
-- não foi adicionada ao feed;
-- não foi adicionada ao sitemap;
-- não foi adicionada a `src/lib/public-routes.ts`;
-- não altera a contagem de URLs públicas indexáveis.
+`noindex` é somente política de descoberta. A segurança real é sessão + entitlement/admin server-side.
 
-`noindex` permanece apenas política de descoberta. A barreira real é sessão + entitlement server-side.
+## 6. CesiumJS
 
-## 6. Shell do Observatório
-
-Arquivos:
+Versão fixada:
 
 ```text
-src/observatory/ui/ObservatoryShell.tsx
-src/observatory/ui/ObservatoryShell.css
+cesium 1.145.0
 ```
 
-A primeira superfície estabelece a identidade do produto sem copiar o HUD/cockpit do God's Eye View.
+`package.json`, `package-lock.json` e `bun.lock` foram atualizados de forma coerente por runner real. `npm ci` foi validado após a instalação.
 
-Estrutura inicial:
+Cesium não entra no bundle das páginas convencionais do portal.
 
-- cabeçalho `Tempo Pelotas / Observatório`;
-- selo `PRO`;
-- área de camadas;
-- viewport central reservada ao globo;
-- barra inferior reservada à timeline;
-- layout responsivo;
-- suporte a `prefers-reduced-motion`.
+Fluxo:
 
-O texto da interface informa explicitamente que a fundação 3D ainda está em implantação. Não há mapa falso, globo fake ou dado meteorológico ilustrativo apresentado como runtime.
+```text
+/observatorio
+  -> gate server-side
+  -> ObservatoryShell
+  -> React.lazy(ObservatoryViewer)
+  -> import("cesium") somente no cliente
+```
 
-## 7. Contratos internos
+A rota e o shell não possuem import estático do pacote Cesium.
 
-### `ObservatoryTypes`
+## 7. Assets
 
-Foram definidos contratos mínimos para:
+Script:
 
-- categoria de camada;
-- classificação `observed | forecast | derived | visual`;
-- estados `loading | current | stale | degraded | unavailable | disabled | review`;
+```text
+scripts/prepare-cesium-assets.mjs
+```
+
+Antes de `dev` e `build`, o projeto materializa a partir de `node_modules/cesium/Build/Cesium`:
+
+- `Assets`;
+- `ThirdParty`;
+- `Widgets`;
+- `Workers`.
+
+Destino:
+
+```text
+public/cesium/
+```
+
+Runtime:
+
+```text
+CESIUM_BASE_URL=/cesium/
+```
+
+A cópia gerada não é tratada como código-fonte manual nem como dataset do Observatório.
+
+## 8. Viewer mínimo
+
+Arquivo:
+
+```text
+src/observatory/core/ObservatoryViewer.tsx
+```
+
+O viewer:
+
+- inicializa apenas no navegador;
+- define `CESIUM_BASE_URL` antes do import do runtime;
+- usa `OpenStreetMapImageryProvider` como base keyless;
+- preserva atribuição do OpenStreetMap;
+- tenta Re:Earth Terrain por `CesiumTerrainProvider.fromUrl()`;
+- usa fallback `EllipsoidTerrainProvider` se o terreno falhar;
+- inicia a câmera no contexto Pelotas/Lagoa;
+- usa `requestRenderMode`;
+- mantém `maximumRenderTimeChange = Infinity` em repouso;
+- conecta o `ObservatoryRenderGovernor` a `viewer.scene.requestRender()`;
+- destrói viewer e governor no cleanup;
+- apresenta fallback de interface se WebGL/Cesium não puder iniciar.
+
+Não existe Google Photorealistic 3D nem Cesium ion como requisito da Fase 1.
+
+## 9. Providers e CSP
+
+A fundação adiciona somente os hosts necessários:
+
+```text
+https://tile.openstreetmap.org
+https://terrain.reearth.land
+```
+
+Eles entram onde necessário em `img-src`/`connect-src`.
+
+Não foram adicionados a `script-src`.
+
+`worker-src 'self' blob:` permanece adequado aos workers locais do Cesium.
+
+## 10. Layer Manager e Render Governor
+
+### Layer Manager
+
+`ObservatoryLayerManager` já suporta:
+
+- IDs únicos;
+- classificação científica;
+- categoria;
+- temporalidade;
 - entitlement requerido;
 - attribution;
 - source policy;
-- estado de runtime.
+- estados de runtime;
+- enable/disable;
+- opacidade;
+- cleanup.
 
-### `ObservatoryLayerManager`
+Nenhuma camada meteorológica é registrada implicitamente.
 
-Implementa:
+### Render Governor
 
-- registro central;
-- prevenção de IDs duplicados;
-- listagem/leitura defensiva;
-- ligar/desligar;
-- controle de opacidade limitado a `0..1`;
-- atualização de estado;
-- cleanup do registro.
+`ObservatoryRenderGovernor`:
 
-Nenhuma camada meteorológica é registrada implicitamente nesta fase.
-
-### `ObservatoryRenderGovernor`
-
-Foi criada a abstração de renderização sob demanda antes da chegada do Cesium.
-
-Ela:
-
-- recebe um alvo com `requestRender()`;
-- agrupa solicitações em `requestAnimationFrame` quando disponível;
-- permanece utilizável sem DOM durante testes/SSR;
+- conecta a `requestRender()`;
+- agrupa pedidos de render;
+- pode ficar ocioso;
+- funciona em ambiente sem DOM durante testes;
 - possui detach/destroy explícitos.
 
-O adapter para `viewer.scene.requestRender()` será conectado quando o viewer Cesium existir.
+A fundação não mantém 60 FPS contínuos quando a cena está parada.
 
-## 8. Testes
+## 11. Validação
 
-Criado:
+Workflow dedicado:
 
 ```text
-tests/observatory-foundation.test.ts
+.github/workflows/observatory-foundation.yml
 ```
 
-O contrato cobre:
+Validação real já comprovada durante a implementação:
 
-- Free sem `observatoryAccess`;
-- PRO ativo com acesso;
+- `npm ci` passou;
+- geração de `routeTree` passou;
+- `/observatorio` foi registrada na árvore versionada;
+- contratos específicos do Observatório passaram;
+- build de produção com Cesium passou;
+- assets Cesium foram materializados durante o build.
+
+O typecheck global continua encontrando uma incompatibilidade preexistente em:
+
+```text
+src/lib/hydrology/ana-rhn-hydrography.functions.ts
+```
+
+O erro é de serialização do campo `geometry.coordinates` tipado como `unknown` em um `createServerFn`. Não foi causado pela fundação do Observatório e não deve ser corrigido dentro desta frente apenas para produzir CI verde.
+
+## 12. Contratos protegidos
+
+`tests/observatory-foundation.test.ts` protege, entre outros:
+
+- Free sem entitlement;
+- PRO ativo;
 - PRO suspenso fail-closed;
-- meta robots estrita;
-- ausência da rota em `public-routes`;
-- gate server-side por entitlement;
-- headers privados/noindex;
-- ausência de `service_role`;
-- shell montado somente após gate;
-- comportamento básico do Layer Manager;
-- existência do Render Governor;
-- ausência deliberada de Cesium enquanto instalação versionada ainda não foi concluída.
+- bypass administrativo somente server-side;
+- exigência de e-mail confirmado para admin;
+- ausência de `VITE_MOBI_PORTAL_ADMIN_EMAILS`;
+- noindex completo;
+- ausência em public routes;
+- gate no servidor;
+- headers privados;
+- ausência de service role no gate;
+- shell somente após autorização;
+- Layer Manager vazio na fundação;
+- Render Governor;
+- Cesium 1.145.0 fixado;
+- import dinâmico;
+- assets locais;
+- OSM;
+- Re:Earth Terrain;
+- fallback elipsoidal;
+- render sob demanda;
+- CSP restrita aos providers usados.
 
-O teste foi adicionado a `npm run test:contracts`.
-
-As dependências de `package.json` foram preservadas. Apenas o script de contratos recebeu o novo teste, de modo que `package-lock.json` não precisa ser alterado nesta fatia.
-
-## 9. Cesium ainda não implementado
-
-A tentativa de executar a parte de instalação pelo projeto conectado ao Lovable foi bloqueada porque o workspace estava sem créditos no momento desta implementação.
-
-Como o workflow do projeto usa:
-
-```text
-npm ci
-```
-
-não foi adicionada uma dependência `cesium` manualmente sem atualizar corretamente os lockfiles.
-
-Isso evita deixar a `main` em estado em que:
-
-- `package.json` declara Cesium;
-- `package-lock.json` não conhece Cesium;
-- `npm ci` falha antes dos testes.
-
-Portanto permanecem pendentes na Fase 1:
-
-- instalar versão aprovada do `cesium` pelo fluxo normal;
-- atualizar `package-lock.json` e `bun.lock` coerentemente;
-- materializar `Workers`, `Assets`, `Widgets` e `ThirdParty`;
-- definir `CESIUM_BASE_URL`/equivalente;
-- criar `ObservatoryViewer` real;
-- conectar `ObservatoryRenderGovernor` ao scene;
-- configurar base cartográfica keyless;
-- integrar Re:Earth Terrain com fallback elipsoidal;
-- revisar CSP somente para os hosts efetivamente adotados;
-- validar build Vite/TanStack/Nitro;
-- validar a rota no preview/domínio com conta PRO real.
-
-## 10. Estado da Fase 1
-
-### Concluído nesta fatia
+## 13. Estado da Fase 1
 
 - [x] entitlement `observatoryAccess`;
 - [x] Free `false`;
 - [x] PRO ativo `true`;
 - [x] PRO suspenso/expirado fail-closed;
+- [x] acesso admin/dev sem assinatura por allowlist server-only;
 - [x] `/observatorio` criada;
 - [x] gate server-side;
-- [x] meta robots estrita;
-- [x] `X-Robots-Tag` na fundação de acesso;
+- [x] noindex completo;
 - [x] cache privado/no-store;
-- [x] ausência em `public-routes`/sitemap/navegação;
-- [x] shell interno;
-- [x] contratos de camada;
+- [x] fora de sitemap/public routes/navegação;
+- [x] shell próprio;
+- [x] Cesium instalado com lockfiles coerentes;
+- [x] lazy import;
+- [x] assets materializados;
+- [x] `ObservatoryViewer` real;
+- [x] base cartográfica;
+- [x] terreno + fallback;
 - [x] Layer Manager;
-- [x] Render Governor abstrato;
-- [x] teste de fundação versionado.
+- [x] Render Governor;
+- [x] CSP dos providers iniciais;
+- [x] contratos focados;
+- [x] build de produção com Cesium;
+- [ ] confirmar `MOBI_PORTAL_ADMIN_EMAILS` no runtime de produção para a conta de desenvolvimento;
+- [ ] smoke autenticado no domínio canônico;
+- [ ] confirmar por análise de build que páginas públicas convencionais não recebem chunk Cesium no carregamento inicial.
 
-### Pendente antes de marcar Fase 1 como concluída
+## 14. Próxima fronteira
 
-- [ ] Cesium instalado com lockfiles coerentes;
-- [ ] lazy import do runtime Cesium;
-- [ ] assets Cesium materializados no build;
-- [ ] `ObservatoryViewer` real;
-- [ ] base cartográfica;
-- [ ] terreno + fallback;
-- [ ] CSP final dos providers escolhidos;
-- [ ] build/typecheck/testes executados em executor funcional;
-- [ ] smoke com conta PRO real;
-- [ ] confirmação de que bundles públicos convencionais não carregam Cesium.
+A Fase 2 só começa depois do smoke autenticado da fundação.
 
-## 11. Próxima ação
+Ordem aprovada após o smoke:
 
-Retomar a própria Fase 1 pelo runtime 3D assim que houver executor capaz de instalar dependências e regenerar lockfiles com segurança.
+1. radar REDEMET;
+2. satélite Realçado;
+3. satélite IR;
+4. satélite Visível;
+5. STSC;
+6. alertas;
+7. hidrologia;
+8. inspector e transparência por camada.
 
-Não iniciar radar, satélite, STSC, alertas ou hidrologia antes de fechar esse bloco.
+A fundação 3D não deve receber dados meteorológicos antes de a rota, assets, terreno e autorização serem confirmados no runtime canônico.
