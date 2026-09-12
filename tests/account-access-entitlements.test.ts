@@ -19,6 +19,7 @@ test("authenticated account defaults safely to Free", () => {
   assert.equal(access.tier, "free");
   assert.equal(access.label, "Free");
   assert.equal(access.entitlements.panelAccess, true);
+  assert.equal(access.entitlements.observatoryAccess, false);
   assert.equal(access.entitlements.historyAccessDays, 60);
   assert.equal(access.entitlements.historyFull, false);
   assert.equal(access.entitlements.dataExport, false);
@@ -28,6 +29,7 @@ test("active PRO receives advanced entitlements without changing public data pol
   const access = resolveAccountAccess({ tier: "pro", status: "active", source: "admin" });
   assert.equal(access.tier, "pro");
   assert.equal(access.label, "PRO");
+  assert.equal(access.entitlements.observatoryAccess, true);
   assert.equal(access.entitlements.historyAccessDays, null);
   assert.equal(access.entitlements.historyFull, true);
   assert.equal(access.entitlements.stationCompare, true);
@@ -37,6 +39,7 @@ test("active PRO receives advanced entitlements without changing public data pol
 test("expired or suspended PRO fails closed to Free entitlements", () => {
   const suspended = resolveAccountAccess({ tier: "pro", status: "suspended" });
   assert.equal(suspended.tier, "free");
+  assert.equal(suspended.entitlements.observatoryAccess, false);
   assert.equal(suspended.entitlements.historyAccessDays, 60);
 
   const expired = resolveAccountAccess(
@@ -45,6 +48,7 @@ test("expired or suspended PRO fails closed to Free entitlements", () => {
   );
   assert.equal(expired.tier, "free");
   assert.equal(expired.status, "expired");
+  assert.equal(expired.entitlements.observatoryAccess, false);
 });
 
 test("account_access is private, user-readable and automatically created as Free", () => {
