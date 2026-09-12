@@ -14,6 +14,9 @@ const accessFunctions = readFileSync(
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
+const viewer = readFileSync("src/observatory/core/ObservatoryViewer.tsx", "utf8");
+const assetPrep = readFileSync("scripts/prepare-cesium-assets.mjs", "utf8");
+const csp = readFileSync("src/lib/security/content-security-policy.server.ts", "utf8");
 const packageJson = readFileSync("package.json", "utf8");
 
 test("Observatório é negado ao Free e concedido somente ao PRO ativo", () => {
@@ -81,17 +84,59 @@ test("Layer Manager começa tipado e sem camadas meteorológicas implícitas", (
   assert.equal(manager.setOpacity("foundation-test", 2)?.runtime.opacity, 1);
 });
 
-test("Render Governor é independente de Cesium e pode ficar ocioso", () => {
+test("Render Governor é independente do runtime Cesium e pode ficar ocioso", () => {
   const governor = new ObservatoryRenderGovernor();
   assert.equal(typeof governor.request, "function");
   assert.equal(typeof governor.attach, "function");
   governor.destroy();
 });
 
-test("fundação atual não finge que Cesium já está instalado", () => {
-  const parsed = JSON.parse(packageJson) as { dependencies?: Record<string, string> };
-  assert.equal(parsed.dependencies?.cesium, undefined);
-  assert.doesNotMatch(route, /from ["']cesium["']/);
-  assert.doesNotMatch(shell, /from ["']cesium["']/);
-  assert.match(shell, /runtime Cesium será\s+conectado após a instalação versionada/s);
+test("Cesium fica restrito à árvore lazy do Observatório", () => {
+  const parsed = JSON.parse(packageJson) as {
+    dependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
+  };
+
+  assert.equal(parsed.dependencies?.cesium, "1.145.0");
+  assert.match(shell, /lazy\(\(\) =>\s*import\("\.\.\/core\/ObservatoryViewer"\)/s);
+  assert.match(viewer, /await import\("cesium"\)/);
+  assert.doesNotMatch(route, /(?:from|import\()\s*["']cesium/);
+  assert.equal(route.includes("ObservatoryViewer"), false);
+  assert.match(viewer, /CESIUM_BASE_URL = "\/cesium\/"/);
+  assert.ok(
+    viewer.indexOf("CESIUM_BASE_URL = CESIUM_BASE_URL") < viewer.indexOf('await import("cesium")'),
+    "base URL precisa ser definido antes de importar o runtime Cesium",
+  );
+  assert.match(parsed.scripts?.["cesium:prepare"] ?? "", /prepare-cesium-assets\.mjs/);
+  assert.match(parsed.scripts?.build ?? "", /cesium:prepare/);
+  assert.match(parsed.scripts?.dev ?? "", /cesium:prepare/);
+});
+
+test("assets Cesium são materializados sem versionar cópia do node_modules", () => {
+  for (const directory of ["Assets", "ThirdParty", "Widgets", "Workers"]) {
+    assert.match(assetPrep, new RegExp(`"${directory}"`));
+  }
+  assert.match(assetPrep, /Build", "Cesium"/);
+  assert.match(assetPrep, /public", "cesium"/);
+});
+
+test("viewer mínimo usa base keyless, terreno com fallback e render sob demanda", () => {
+  assert.match(viewer, /OpenStreetMapImageryProvider/);
+  assert.match(viewer, /© OpenStreetMap contributors/);
+  assert.match(viewer, /terrain\.reearth\.land\/cesium-mesh\/ellipsoid/);
+  assert.match(viewer, /CesiumTerrainProvider\.fromUrl/);
+  assert.match(viewer, /new Cesium\.EllipsoidTerrainProvider\(\)/);
+  assert.match(viewer, /requestRenderMode = true/);
+  assert.match(viewer, /maximumRenderTimeChange = Number\.POSITIVE_INFINITY/);
+  assert.match(viewer, /PELOTAS_LONGITUDE/);
+  assert.match(viewer, /PELOTAS_LATITUDE/);
+  assert.match(viewer, /viewer\.destroy\(\)/);
+});
+
+test("CSP acrescenta somente os providers usados pela fundação 3D", () => {
+  assert.match(csp, /https:\/\/tile\.openstreetmap\.org/);
+  assert.match(csp, /https:\/\/terrain\.reearth\.land/);
+  assert.match(csp, /worker-src 'self' blob:/);
+  assert.doesNotMatch(csp, /script-src[^\n]*terrain\.reearth\.land/);
+  assert.doesNotMatch(csp, /script-src[^\n]*tile\.openstreetmap\.org/);
 });
