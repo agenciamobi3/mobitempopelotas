@@ -15,6 +15,10 @@ const operatorAuthorization = readFileSync(
   "src/lib/admin/operator-authorization.server.ts",
   "utf8",
 );
+const accountAccessMigration = readFileSync(
+  "supabase/migrations/20260822043000_create_account_access.sql",
+  "utf8",
+);
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
@@ -45,8 +49,21 @@ test("admin confirmado pode acessar sem assinatura por allowlist server-only", (
   assert.match(accessFunctions, /allowed: true/);
   assert.ok(
     accessFunctions.indexOf("if (isConfirmedAdmin)") < accessFunctions.indexOf("loadAccountAccess(client, user.id)"),
-    "admin precisa ser liberado antes da consulta de assinatura",
+    "admin de allowlist precisa ser liberado antes da consulta de assinatura",
   );
+});
+
+test("admin persistente pode acessar como Free sem forjar tier PRO", () => {
+  assert.match(accountAccessMigration, /source[^\n]*system, admin ou billing/);
+  assert.match(accountAccessMigration, /revoke all on table public\.account_access from public, anon, authenticated/);
+  assert.match(accountAccessMigration, /grant select on table public\.account_access to authenticated/);
+  assert.doesNotMatch(accountAccessMigration, /grant\s+(?:update|insert|delete)[^\n]*authenticated/i);
+  assert.match(accessFunctions, /ADMIN_ACCESS_SOURCE = "admin"/);
+  assert.match(accessFunctions, /hasPersistentAdminGrant/);
+  assert.match(accessFunctions, /access\.status === "active"/);
+  assert.match(accessFunctions, /access\.source\.trim\(\)\.toLowerCase\(\) === ADMIN_ACCESS_SOURCE/);
+  assert.match(accessFunctions, /persistentAdminGrant \|\| entitlementGrant/);
+  assert.match(accessFunctions, /persistentAdminGrant \? "admin"/);
 });
 
 test("rota do Observatório permanece privada para robôs e fora do inventário público", () => {
