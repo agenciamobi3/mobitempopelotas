@@ -11,6 +11,10 @@ const accessFunctions = readFileSync(
   "src/observatory/data/observatory-access.functions.ts",
   "utf8",
 );
+const operatorAuthorization = readFileSync(
+  "src/lib/admin/operator-authorization.server.ts",
+  "utf8",
+);
 const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
@@ -19,7 +23,7 @@ const assetPrep = readFileSync("scripts/prepare-cesium-assets.mjs", "utf8");
 const csp = readFileSync("src/lib/security/content-security-policy.server.ts", "utf8");
 const packageJson = readFileSync("package.json", "utf8");
 
-test("Observatório é negado ao Free e concedido somente ao PRO ativo", () => {
+test("Observatório é negado ao Free e concedido ao PRO ativo", () => {
   assert.equal(resolveAccountAccess(null).entitlements.observatoryAccess, false);
   assert.equal(
     resolveAccountAccess({ tier: "pro", status: "active" }).entitlements.observatoryAccess,
@@ -28,6 +32,20 @@ test("Observatório é negado ao Free e concedido somente ao PRO ativo", () => {
   assert.equal(
     resolveAccountAccess({ tier: "pro", status: "suspended" }).entitlements.observatoryAccess,
     false,
+  );
+});
+
+test("admin confirmado pode acessar sem assinatura por allowlist server-only", () => {
+  assert.match(operatorAuthorization, /process\.env\.MOBI_PORTAL_ADMIN_EMAILS/);
+  assert.match(operatorAuthorization, /export function isPortalOperatorEmail/);
+  assert.doesNotMatch(operatorAuthorization, /VITE_.*PORTAL_ADMIN_EMAILS/);
+  assert.match(accessFunctions, /isPortalOperatorEmail\(user\.email\)/);
+  assert.match(accessFunctions, /user\.email_confirmed_at/);
+  assert.match(accessFunctions, /grant: "admin"/);
+  assert.match(accessFunctions, /allowed: true/);
+  assert.ok(
+    accessFunctions.indexOf("if (isConfirmedAdmin)") < accessFunctions.indexOf("loadAccountAccess(client, user.id)"),
+    "admin precisa ser liberado antes da consulta de assinatura",
   );
 });
 
