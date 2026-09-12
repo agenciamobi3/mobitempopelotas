@@ -1,6 +1,23 @@
+import { lazy, Suspense } from "react";
 import { Clock3, Globe2, Layers3 } from "lucide-react";
 
 import "./ObservatoryShell.css";
+
+const LazyObservatoryViewer = lazy(() =>
+  import("../core/ObservatoryViewer").then((module) => ({
+    default: module.ObservatoryViewer,
+  })),
+);
+
+function ViewerLoadingState() {
+  return (
+    <div className="observatory-shell__viewer-placeholder" role="status" aria-live="polite">
+      <Globe2 aria-hidden="true" size={42} />
+      <strong>Inicializando Observatório 3D</strong>
+      <span>Carregando o motor geoespacial somente para esta sessão PRO.</span>
+    </div>
+  );
+}
 
 export function ObservatoryShell() {
   return (
@@ -20,21 +37,16 @@ export function ObservatoryShell() {
             <span>Camadas</span>
           </div>
           <p>
-            O registro de camadas já está preparado. Radar, satélite, raios, alertas e hidrologia
-            entram somente na próxima fase.
+            O globo e o relevo formam a base do Observatório. Radar, satélite, raios, alertas e
+            hidrologia entram somente na próxima fase.
           </p>
           <div className="observatory-shell__empty-layer">Nenhuma camada meteorológica ativa</div>
         </aside>
 
         <section className="observatory-shell__viewer" aria-label="Área 3D do Observatório">
-          <div className="observatory-shell__viewer-placeholder">
-            <Globe2 aria-hidden="true" size={42} />
-            <strong>Fundação 3D em implantação</strong>
-            <span>
-              O acesso PRO, o shell e os contratos internos já estão ativos. O runtime Cesium será
-              conectado após a instalação versionada dos assets e lockfiles.
-            </span>
-          </div>
+          <Suspense fallback={<ViewerLoadingState />}>
+            <LazyObservatoryViewer />
+          </Suspense>
         </section>
       </div>
 
