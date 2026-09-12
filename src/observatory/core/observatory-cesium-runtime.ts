@@ -18,6 +18,7 @@ import {
 } from "cesium";
 
 import { PELOTAS_LATITUDE, PELOTAS_LONGITUDE } from "@/lib/site-config";
+import type { ObservatoryCameraState } from "./ObservatoryScenario";
 
 const OSM_TILE_URL = "https://tile.openstreetmap.org/";
 const REEARTH_TERRAIN_URL = "https://terrain.reearth.land/cesium-mesh/ellipsoid";
@@ -57,6 +58,9 @@ export type ObservatoryCesiumRuntime = {
   zoomOut: () => void;
   resetView: () => void;
   resetNorth: () => void;
+  getCameraState: () => ObservatoryCameraState;
+  setCameraState: (state: ObservatoryCameraState) => void;
+  subscribeCameraChange: (listener: (state: ObservatoryCameraState) => void) => () => void;
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
   setLayerOpacity: (id: string, opacity: number) => void;
@@ -67,6 +71,11 @@ export type ObservatoryCesiumRuntime = {
 function clampOpacity(value: number) {
   if (!Number.isFinite(value)) return 1;
   return Math.min(1, Math.max(0, value));
+}
+
+function clampCameraHeight(value: number) {
+  if (!Number.isFinite(value)) return INITIAL_CAMERA_RANGE_METERS;
+  return Math.min(MAXIMUM_CAMERA_HEIGHT_METERS, Math.max(MINIMUM_CAMERA_HEIGHT_METERS, value));
 }
 
 function parseCssColor(value: string | undefined, fallback: Color) {
@@ -185,6 +194,41 @@ export async function createObservatoryCesiumRuntime(
     requestRender();
   }
 
+  function getCameraState(): ObservatoryCameraState {
+    const position = widget.camera.positionCartographic;
+    return {
+      longitude: CesiumMath.toDegrees(position.longitude),
+      latitude: CesiumMath.toDegrees(position.latitude),
+      height: position.height,
+      heading: CesiumMath.toDegrees(widget.camera.heading),
+      pitch: CesiumMath.toDegrees(widget.camera.pitch),
+      roll: CesiumMath.toDegrees(widget.camera.roll),
+    };
+  }
+
+  function setCameraState(state: ObservatoryCameraState) {
+    if (widget.isDestroyed()) return;
+    widget.camera.setView({
+      destination: Cartesian3.fromDegrees(
+        state.longitude,
+        state.latitude,
+        clampCameraHeight(state.height),
+      ),
+      orientation: {
+        heading: CesiumMath.toRadians(state.heading),
+        pitch: CesiumMath.toRadians(state.pitch),
+        roll: CesiumMath.toRadians(state.roll),
+      },
+    });
+    requestRender();
+  }
+
+  function subscribeCameraChange(listener: (state: ObservatoryCameraState) => void) {
+    const handleMoveEnd = () => listener(getCameraState());
+    widget.camera.moveEnd.addEventListener(handleMoveEnd);
+    return () => widget.camera.moveEnd.removeEventListener(handleMoveEnd);
+  }
+
   resetView();
 
   const imageLayers = new Map<string, ImageryLayer>();
@@ -290,6 +334,9 @@ export async function createObservatoryCesiumRuntime(
     zoomOut,
     resetView,
     resetNorth,
+    getCameraState,
+    setCameraState,
+    subscribeCameraChange,
     setImageLayer,
     setPointLayer,
     setLayerOpacity,
