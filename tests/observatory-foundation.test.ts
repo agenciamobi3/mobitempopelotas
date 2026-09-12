@@ -23,6 +23,10 @@ const publicRoutes = readFileSync("src/lib/public-routes.ts", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
 const viewer = readFileSync("src/observatory/core/ObservatoryViewer.tsx", "utf8");
+const cesiumRuntime = readFileSync(
+  "src/observatory/core/observatory-cesium-runtime.ts",
+  "utf8",
+);
 const assetPrep = readFileSync("scripts/prepare-cesium-assets.mjs", "utf8");
 const csp = readFileSync("src/lib/security/content-security-policy.server.ts", "utf8");
 const packageJson = readFileSync("package.json", "utf8");
@@ -134,17 +138,25 @@ test("Cesium fica restrito à árvore lazy do Observatório", () => {
 
   assert.equal(parsed.dependencies?.cesium, "1.145.0");
   assert.match(shell, /lazy\(\(\) =>\s*import\("\.\.\/core\/ObservatoryViewer"\)/s);
-  assert.match(viewer, /await import\("cesium"\)/);
+  assert.match(viewer, /import\("\.\/observatory-cesium-runtime"\)/);
   assert.doesNotMatch(route, /(?:from|import\()\s*["']cesium/);
   assert.equal(route.includes("ObservatoryViewer"), false);
   assert.match(viewer, /CESIUM_BASE_URL = "\/cesium\/"/);
   assert.ok(
-    viewer.indexOf("CESIUM_BASE_URL = CESIUM_BASE_URL") < viewer.indexOf('await import("cesium")'),
-    "base URL precisa ser definido antes de importar o runtime Cesium",
+    viewer.indexOf("CESIUM_BASE_URL = CESIUM_BASE_URL") < viewer.indexOf('import("./observatory-cesium-runtime")'),
+    "base URL precisa ser definida antes de importar o runtime Cesium",
   );
   assert.match(parsed.scripts?.["cesium:prepare"] ?? "", /prepare-cesium-assets\.mjs/);
   assert.match(parsed.scripts?.build ?? "", /cesium:prepare/);
   assert.match(parsed.scripts?.dev ?? "", /cesium:prepare/);
+});
+
+test("runtime 3D usa CesiumWidget sem Viewer/Knockout e mantém CSP rígida", () => {
+  assert.match(cesiumRuntime, /CesiumWidget/);
+  assert.doesNotMatch(cesiumRuntime, /\bViewer\b/);
+  assert.doesNotMatch(viewer, /Build\/Cesium\/Widgets\/widgets\.css/);
+  assert.match(cesiumRuntime, /failIfMajorPerformanceCaveat:\s*false/);
+  assert.doesNotMatch(csp, /unsafe-eval/);
 });
 
 test("assets Cesium são materializados sem versionar cópia do node_modules", () => {
@@ -156,16 +168,17 @@ test("assets Cesium são materializados sem versionar cópia do node_modules", (
 });
 
 test("viewer mínimo usa base keyless, terreno com fallback e render sob demanda", () => {
-  assert.match(viewer, /OpenStreetMapImageryProvider/);
-  assert.match(viewer, /© OpenStreetMap contributors/);
-  assert.match(viewer, /terrain\.reearth\.land\/cesium-mesh\/ellipsoid/);
-  assert.match(viewer, /CesiumTerrainProvider\.fromUrl/);
-  assert.match(viewer, /new Cesium\.EllipsoidTerrainProvider\(\)/);
-  assert.match(viewer, /requestRenderMode = true/);
-  assert.match(viewer, /maximumRenderTimeChange = Number\.POSITIVE_INFINITY/);
-  assert.match(viewer, /PELOTAS_LONGITUDE/);
-  assert.match(viewer, /PELOTAS_LATITUDE/);
-  assert.match(viewer, /viewer\.destroy\(\)/);
+  assert.match(cesiumRuntime, /OpenStreetMapImageryProvider/);
+  assert.match(cesiumRuntime, /© OpenStreetMap contributors/);
+  assert.match(cesiumRuntime, /terrain\.reearth\.land\/cesium-mesh\/ellipsoid/);
+  assert.match(cesiumRuntime, /CesiumTerrainProvider\.fromUrl/);
+  assert.match(cesiumRuntime, /new EllipsoidTerrainProvider\(\)/);
+  assert.match(cesiumRuntime, /requestRenderMode = true/);
+  assert.match(cesiumRuntime, /maximumRenderTimeChange = Number\.POSITIVE_INFINITY/);
+  assert.match(cesiumRuntime, /PELOTAS_LONGITUDE/);
+  assert.match(cesiumRuntime, /PELOTAS_LATITUDE/);
+  assert.match(viewer, /widget\.destroy\(\)/);
+  assert.match(viewer, /CESIUM_RUNTIME/);
 });
 
 test("CSP acrescenta somente os providers usados pela fundação 3D", () => {
