@@ -8,15 +8,13 @@
 }
 
 .observatory-viewer__canvas,
-.observatory-viewer__canvas .cesium-viewer,
-.observatory-viewer__canvas .cesium-viewer-cesiumWidgetContainer,
 .observatory-viewer__canvas .cesium-widget,
 .observatory-viewer__canvas canvas {
   width: 100%;
   height: 100%;
 }
 
-.observatory-viewer__canvas .cesium-viewer-bottom {
+.observatory-viewer__canvas .cesium-widget-credits {
   left: 12px;
   right: auto;
   bottom: 10px;
@@ -106,9 +104,23 @@
 }
 
 .observatory-viewer__error span {
-  max-width: 500px;
+  max-width: 540px;
   color: rgba(236, 245, 250, 0.67);
   line-height: 1.55;
+}
+
+.observatory-viewer__error code {
+  max-width: min(720px, calc(100vw - 48px));
+  margin-top: 8px;
+  padding: 9px 11px;
+  overflow-wrap: anywhere;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(229, 242, 248, 0.78);
+  font-size: 0.72rem;
+  line-height: 1.45;
+  text-align: left;
 }
 
 @media (max-width: 760px) {
@@ -119,7 +131,7 @@
     padding: 9px 10px;
   }
 
-  .observatory-viewer__canvas .cesium-viewer-bottom {
+  .observatory-viewer__canvas .cesium-widget-credits {
     left: 8px;
     bottom: 8px;
     max-width: calc(100% - 16px);
