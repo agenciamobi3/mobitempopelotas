@@ -1,0 +1,126 @@
+.observatory-comparison {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 6;
+  width: min(720px, calc(100% - 96px));
+  display: grid;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(5, 16, 25, 0.9);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.observatory-comparison__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.observatory-comparison__heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #eaf9fb;
+}
+
+.observatory-comparison__heading strong {
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.observatory-comparison__heading button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(238, 247, 252, 0.75);
+  cursor: pointer;
+}
+
+.observatory-comparison__heading button:hover {
+  border-color: rgba(117, 233, 223, 0.28);
+  color: #8ff3ea;
+}
+
+.observatory-comparison__fields {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(150px, 1fr) minmax(150px, 1fr);
+  gap: 8px;
+}
+
+.observatory-comparison label {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.observatory-comparison label > span {
+  color: rgba(233, 242, 248, 0.55);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.observatory-comparison select {
+  min-width: 0;
+  height: 34px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 9px;
+  background: #0a1b28;
+  color: #eef8fb;
+  font: inherit;
+  font-size: 0.72rem;
+}
+
+.observatory-comparison select:focus-visible,
+.observatory-comparison input:focus-visible,
+.observatory-comparison__heading button:focus-visible {
+  outline: 2px solid #75e9df;
+  outline-offset: 2px;
+}
+
+.observatory-comparison__split {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px !important;
+}
+
+.observatory-comparison__split input {
+  width: 100%;
+  accent-color: #18bdcd;
+}
+
+.observatory-comparison__split output {
+  min-width: 34px;
+  color: rgba(238, 247, 252, 0.72);
+  font-size: 0.68rem;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .observatory-comparison {
+    top: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+    padding: 10px;
+  }
+
+  .observatory-comparison__fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .observatory-comparison__fields label:first-child {
+    grid-column: 1 / -1;
+  }
+}
