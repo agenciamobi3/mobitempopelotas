@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
+import { loadObservatoryLayer } from "../data/observatory-live-layers";
+import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
+import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
+import type { ObservatoryCesiumRuntime } from "./observatory-cesium-runtime";
 import { ObservatoryRenderGovernor } from "./ObservatoryRenderGovernor";
 import "./ObservatoryViewer.css";
 
@@ -12,6 +16,15 @@ type CesiumGlobal = typeof globalThis & {
   CESIUM_BASE_URL?: string;
 };
 
+type ObservatoryViewerProps = {
+  enabledLayers: readonly ObservatoryLayerId[];
+  layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
+  onLayerRuntimeChange: (
+    id: ObservatoryLayerId,
+    patch: Partial<ObservatoryLayerRuntimeState>,
+  ) => void;
+};
+
 function describeRuntimeError(error: unknown) {
   if (error instanceof Error && error.message.trim()) {
     return error.message.trim().slice(0, 220);
@@ -19,10 +32,17 @@ function describeRuntimeError(error: unknown) {
   return "Falha não identificada durante a inicialização do motor 3D.";
 }
 
-export function ObservatoryViewer() {
+export function ObservatoryViewer({
+  enabledLayers,
+  layerOpacities,
+  onLayerRuntimeChange,
+}: ObservatoryViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
+  const layerRevisionRef = useRef(0);
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
+  const [runtimeRevision, setRuntimeRevision] = useState(0);
   const [message, setMessage] = useState("Inicializando globo 3D…");
   const [diagnostic, setDiagnostic] = useState<string | null>(null);
 
@@ -32,7 +52,7 @@ export function ObservatoryViewer() {
     const viewerContainer: HTMLDivElement = container;
 
     let cancelled = false;
-    let widget: import("cesium").CesiumWidget | null = null;
+    let runtime: ObservatoryCesiumRuntime | null = null;
     const renderGovernor = new ObservatoryRenderGovernor();
 
     async function initialize() {
@@ -42,21 +62,23 @@ export function ObservatoryViewer() {
         const { createObservatoryCesiumRuntime } = await import("./observatory-cesium-runtime");
         if (cancelled) return;
 
-        const runtime = await createObservatoryCesiumRuntime(viewerContainer);
+        runtime = await createObservatoryCesiumRuntime(viewerContainer);
         if (cancelled) {
+          runtime.clearDataLayers();
           if (!runtime.widget.isDestroyed()) runtime.widget.destroy();
           return;
         }
 
-        widget = runtime.widget;
+        runtimeRef.current = runtime;
         setTerrainStatus(runtime.terrainStatus);
 
-        renderGovernor.attach({ requestRender: () => widget?.scene.requestRender() });
+        renderGovernor.attach({ requestRender: () => runtimeRef.current?.widget.scene.requestRender() });
         renderGovernor.request();
 
         setStatus("ready");
         setDiagnostic(null);
-        setMessage("Globo regional pronto. Camadas meteorológicas entram na próxima fase.");
+        setMessage("Globo regional pronto. Ative as camadas observacionais no painel.");
+        setRuntimeRevision((value) => value + 1);
       } catch (error) {
         console.error("[observatory] Falha ao iniciar o runtime Cesium.", error);
         if (!cancelled) {
@@ -73,11 +95,91 @@ export function ObservatoryViewer() {
 
     return () => {
       cancelled = true;
+      layerRevisionRef.current += 1;
       renderGovernor.destroy();
-      if (widget && !widget.isDestroyed()) widget.destroy();
-      widget = null;
+      runtimeRef.current?.clearDataLayers();
+      if (runtime && !runtime.widget.isDestroyed()) runtime.widget.destroy();
+      runtimeRef.current = null;
     };
   }, []);
+
+  const enabledKey = [...enabledLayers].sort().join("|");
+  const opacityKey = enabledLayers
+    .map((id) => `${id}:${layerOpacities[id] ?? 1}`)
+    .sort()
+    .join("|");
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready") return;
+
+    const revision = ++layerRevisionRef.current;
+    const enabledSet = new Set(enabledLayers);
+    const allLayerIds: ObservatoryLayerId[] = ["radar", "satellite", "lightning", "alerts", "hydrology"];
+
+    for (const id of allLayerIds) {
+      if (enabledSet.has(id)) continue;
+      runtime.removeLayer(id);
+      onLayerRuntimeChange(id, {
+        status: "disabled",
+        enabled: false,
+        observedAt: null,
+        detail: null,
+      });
+    }
+
+    for (const id of enabledLayers) {
+      onLayerRuntimeChange(id, {
+        status: "loading",
+        enabled: true,
+        detail: "Carregando fonte observacional…",
+      });
+
+      void loadObservatoryLayer(id)
+        .then(async (result) => {
+          if (layerRevisionRef.current !== revision || !runtimeRef.current) return;
+
+          if (!result.payload || result.status === "unavailable") {
+            runtime.removeLayer(id);
+          } else if (result.payload.kind === "image") {
+            await runtime.setImageLayer(id, {
+              imageUrl: result.payload.imageUrl,
+              bounds: result.payload.bounds,
+              opacity: layerOpacities[id] ?? 0.72,
+            });
+          } else {
+            runtime.setPointLayer(id, result.payload.points);
+          }
+
+          if (layerRevisionRef.current !== revision) return;
+          onLayerRuntimeChange(id, {
+            status: result.status,
+            enabled: true,
+            observedAt: result.observedAt,
+            detail: result.detail,
+          });
+        })
+        .catch((error) => {
+          if (layerRevisionRef.current !== revision) return;
+          console.error(`[observatory] Falha ao carregar camada ${id}.`, error);
+          runtime.removeLayer(id);
+          onLayerRuntimeChange(id, {
+            status: "unavailable",
+            enabled: true,
+            observedAt: null,
+            detail: describeRuntimeError(error),
+          });
+        });
+    }
+  }, [enabledKey, opacityKey, runtimeRevision, status]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready") return;
+    for (const id of enabledLayers) {
+      runtime.setLayerOpacity(id, layerOpacities[id] ?? 0.72);
+    }
+  }, [opacityKey, runtimeRevision, status]);
 
   const terrainLabel =
     terrainStatus === "reearth"
