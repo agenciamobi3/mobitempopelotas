@@ -2,6 +2,14 @@ import { Compass, Crosshair, Minus, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { loadObservatoryLayer } from "../data/observatory-live-layers";
+import {
+  isObservatoryTemporalLayerId,
+  loadObservatoryTemporalLayer,
+  selectTemporalFrame,
+  temporalTimestamps,
+  type ObservatoryTemporalLayerId,
+  type ObservatoryTemporalLayerResult,
+} from "../data/observatory-temporal-layers";
 import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
 import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
 import type { ObservatoryCesiumRuntime } from "./observatory-cesium-runtime";
@@ -20,6 +28,8 @@ type CesiumGlobal = typeof globalThis & {
 type ObservatoryViewerProps = {
   enabledLayers: readonly ObservatoryLayerId[];
   layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
+  selectedTimelineAt: string | null;
+  onTimelineSourceChange: (id: ObservatoryTemporalLayerId, timestamps: string[]) => void;
   onLayerRuntimeChange: (
     id: ObservatoryLayerId,
     patch: Partial<ObservatoryLayerRuntimeState>,
@@ -33,16 +43,48 @@ function describeRuntimeError(error: unknown) {
   return "Falha não identificada durante a inicialização do motor 3D.";
 }
 
+async function renderTemporalFrame(
+  runtime: ObservatoryCesiumRuntime,
+  id: ObservatoryTemporalLayerId,
+  result: ObservatoryTemporalLayerResult,
+  selectedAt: string | null,
+  opacity: number,
+) {
+  const frame = selectTemporalFrame(result, selectedAt);
+  if (!frame) {
+    runtime.removeLayer(id);
+    return null;
+  }
+
+  if (frame.payload.kind === "image") {
+    await runtime.setImageLayer(id, {
+      imageUrl: frame.payload.imageUrl,
+      bounds: frame.payload.bounds,
+      opacity,
+    });
+  } else {
+    runtime.setPointLayer(id, frame.payload.points);
+  }
+
+  return frame;
+}
+
 export function ObservatoryViewer({
   enabledLayers,
   layerOpacities,
+  selectedTimelineAt,
+  onTimelineSourceChange,
   onLayerRuntimeChange,
 }: ObservatoryViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
+  const temporalLayersRef = useRef<Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>>({});
   const layerRevisionRef = useRef(0);
+  const timelineSelectionRevisionRef = useRef(0);
   const layerOpacitiesRef = useRef(layerOpacities);
+  const selectedTimelineAtRef = useRef(selectedTimelineAt);
   layerOpacitiesRef.current = layerOpacities;
+  selectedTimelineAtRef.current = selectedTimelineAt;
 
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
@@ -100,10 +142,12 @@ export function ObservatoryViewer({
     return () => {
       cancelled = true;
       layerRevisionRef.current += 1;
+      timelineSelectionRevisionRef.current += 1;
       renderGovernor.destroy();
       runtimeRef.current?.clearDataLayers();
       if (runtime && !runtime.widget.isDestroyed()) runtime.widget.destroy();
       runtimeRef.current = null;
+      temporalLayersRef.current = {};
     };
   }, []);
 
@@ -124,6 +168,10 @@ export function ObservatoryViewer({
     for (const id of allLayerIds) {
       if (enabledSet.has(id)) continue;
       runtime.removeLayer(id);
+      if (isObservatoryTemporalLayerId(id)) {
+        delete temporalLayersRef.current[id];
+        onTimelineSourceChange(id, []);
+      }
       onLayerRuntimeChange(id, {
         status: "disabled",
         enabled: false,
@@ -138,6 +186,46 @@ export function ObservatoryViewer({
         enabled: true,
         detail: "Carregando fonte observacional…",
       });
+
+      if (isObservatoryTemporalLayerId(id)) {
+        void loadObservatoryTemporalLayer(id)
+          .then(async (result) => {
+            if (layerRevisionRef.current !== revision || !runtimeRef.current) return;
+
+            temporalLayersRef.current[id] = result;
+            onTimelineSourceChange(id, temporalTimestamps(result));
+
+            const frame = await renderTemporalFrame(
+              runtime,
+              id,
+              result,
+              selectedTimelineAtRef.current,
+              layerOpacitiesRef.current[id] ?? 0.72,
+            );
+            if (layerRevisionRef.current !== revision) return;
+
+            onLayerRuntimeChange(id, {
+              status: result.status,
+              enabled: true,
+              observedAt: frame?.observedAt ?? null,
+              detail: frame?.detail ?? result.error ?? `${result.sourceLabel} sem quadro temporal utilizável.`,
+            });
+          })
+          .catch((error) => {
+            if (layerRevisionRef.current !== revision) return;
+            console.error(`[observatory] Falha ao carregar série temporal ${id}.`, error);
+            delete temporalLayersRef.current[id];
+            onTimelineSourceChange(id, []);
+            runtime.removeLayer(id);
+            onLayerRuntimeChange(id, {
+              status: "unavailable",
+              enabled: true,
+              observedAt: null,
+              detail: describeRuntimeError(error),
+            });
+          });
+        continue;
+      }
 
       void loadObservatoryLayer(id)
         .then(async (result) => {
@@ -175,7 +263,35 @@ export function ObservatoryViewer({
           });
         });
     }
-  }, [enabledKey, runtimeRevision, status, onLayerRuntimeChange]);
+  }, [enabledKey, runtimeRevision, status, onLayerRuntimeChange, onTimelineSourceChange]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready" || !selectedTimelineAt) return;
+
+    const revision = ++timelineSelectionRevisionRef.current;
+    for (const id of enabledLayers) {
+      if (!isObservatoryTemporalLayerId(id)) continue;
+      const result = temporalLayersRef.current[id];
+      if (!result) continue;
+
+      void renderTemporalFrame(
+        runtime,
+        id,
+        result,
+        selectedTimelineAt,
+        layerOpacitiesRef.current[id] ?? 0.72,
+      ).then((frame) => {
+        if (timelineSelectionRevisionRef.current !== revision || !frame) return;
+        onLayerRuntimeChange(id, {
+          status: result.status,
+          enabled: true,
+          observedAt: frame.observedAt,
+          detail: frame.detail,
+        });
+      });
+    }
+  }, [selectedTimelineAt, enabledKey, runtimeRevision, status, onLayerRuntimeChange]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
