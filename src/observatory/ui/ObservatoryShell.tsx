@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,7 @@ import {
   Radio,
   Satellite,
   Settings,
+  Share2,
   TriangleAlert,
   UserRound,
   Waves,
@@ -22,9 +24,16 @@ import {
 
 import {
   OBSERVATORY_LAYER_DEFINITIONS,
+  OBSERVATORY_LAYER_IDS,
   type ObservatoryLayerId,
 } from "../core/ObservatoryLayerCatalog";
 import { ObservatoryLayerManager } from "../core/ObservatoryLayerManager";
+import {
+  buildObservatoryScenarioHash,
+  createObservatoryScenario,
+  readObservatoryScenarioHash,
+  type ObservatoryCameraState,
+} from "../core/ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "../core/ObservatoryTypes";
 import type { ObservatoryTemporalLayerId } from "../data/observatory-temporal-layers";
 import "./ObservatoryShell.css";
@@ -69,6 +78,44 @@ function formatTimelineTimestamp(value: string | null) {
     minute: "2-digit",
     hour12: false,
   }).format(date);
+}
+
+function nearestTimelineTimestamp(timestamps: readonly string[], requestedAt: string) {
+  const requested = Date.parse(requestedAt);
+  if (!Number.isFinite(requested) || timestamps.length === 0) return timestamps.at(-1) ?? null;
+
+  let nearest = timestamps[0] ?? null;
+  let nearestDistance = nearest ? Math.abs(Date.parse(nearest) - requested) : Number.POSITIVE_INFINITY;
+  for (const timestamp of timestamps.slice(1)) {
+    const distance = Math.abs(Date.parse(timestamp) - requested);
+    if (distance < nearestDistance) {
+      nearest = timestamp;
+      nearestDistance = distance;
+    }
+  }
+  return nearest;
+}
+
+async function copyScenarioLink(value: string) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {
+      // Fallback para ambientes sem permissão de Clipboard API.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  if (!copied) throw new Error("Não foi possível copiar o link do cenário.");
 }
 
 function ViewerLoadingState() {
@@ -127,10 +174,41 @@ export function ObservatoryShell() {
   >({});
   const [selectedTimelineAt, setSelectedTimelineAt] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [cameraState, setCameraState] = useState<ObservatoryCameraState | null>(null);
+  const [cameraRestoreState, setCameraRestoreState] = useState<ObservatoryCameraState | null>(null);
+  const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "error">("idle");
+  const scenarioAppliedRef = useRef(false);
+  const requestedTimelineAtRef = useRef<string | null>(null);
 
   const refreshLayers = useCallback(() => {
     setLayers(manager.list());
   }, [manager]);
+
+  useEffect(() => {
+    if (scenarioAppliedRef.current || typeof window === "undefined") return;
+    scenarioAppliedRef.current = true;
+
+    const scenario = readObservatoryScenarioHash(window.location.hash);
+    if (!scenario) return;
+
+    const scenarioLayers = new Map(scenario.layers.map((layer) => [layer.id, layer]));
+    for (const id of OBSERVATORY_LAYER_IDS) {
+      const layer = scenarioLayers.get(id);
+      manager.setEnabled(id, layer?.enabled ?? false);
+      manager.setOpacity(id, layer?.opacity ?? 1);
+    }
+    refreshLayers();
+
+    requestedTimelineAtRef.current = scenario.selectedAt;
+    if (scenario.selectedAt) setSelectedTimelineAt(scenario.selectedAt);
+    if (scenario.camera) setCameraRestoreState(scenario.camera);
+  }, [manager, refreshLayers]);
+
+  useEffect(() => {
+    if (shareFeedback === "idle") return;
+    const timeout = window.setTimeout(() => setShareFeedback("idle"), 2200);
+    return () => window.clearTimeout(timeout);
+  }, [shareFeedback]);
 
   const toggleLayer = useCallback(
     (id: ObservatoryLayerId) => {
@@ -191,15 +269,22 @@ export function ObservatoryShell() {
   useEffect(() => {
     if (timelineTimestamps.length === 0) {
       setPlaying(false);
-      setSelectedTimelineAt(null);
+      if (!requestedTimelineAtRef.current) setSelectedTimelineAt(null);
       return;
     }
 
-    setSelectedTimelineAt((current) =>
-      current && timelineTimestamps.includes(current)
-        ? current
-        : timelineTimestamps.at(-1) ?? null,
-    );
+    setSelectedTimelineAt((current) => {
+      const requested = requestedTimelineAtRef.current;
+      if (requested) {
+        requestedTimelineAtRef.current = null;
+        return nearestTimelineTimestamp(timelineTimestamps, requested);
+      }
+      if (current && timelineTimestamps.includes(current)) return current;
+      if (current && Number.isFinite(Date.parse(current))) {
+        return nearestTimelineTimestamp(timelineTimestamps, current);
+      }
+      return timelineTimestamps.at(-1) ?? null;
+    });
   }, [timelineKey]);
 
   useEffect(() => {
@@ -247,6 +332,29 @@ export function ObservatoryShell() {
     [timelineKey],
   );
 
+  const shareScenario = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
+    const scenario = createObservatoryScenario({
+      selectedAt: selectedTimelineAt,
+      layers: layers.map((layer) => ({
+        id: layer.definition.id as ObservatoryLayerId,
+        enabled: layer.runtime.enabled,
+        opacity: layer.runtime.opacity,
+      })),
+      camera: cameraState,
+    });
+    const url = `${window.location.origin}${window.location.pathname}${window.location.search}${buildObservatoryScenarioHash(scenario)}`;
+
+    try {
+      await copyScenarioLink(url);
+      setShareFeedback("copied");
+    } catch (error) {
+      console.warn("[observatory] Não foi possível copiar o cenário.", error);
+      setShareFeedback("error");
+    }
+  }, [layers, selectedTimelineAt, cameraState]);
+
   return (
     <main className="observatory-shell" id="conteudo-principal">
       <header className="observatory-shell__header">
@@ -261,7 +369,29 @@ export function ObservatoryShell() {
           </Link>
           <h1>Observatório</h1>
         </div>
-        <ObservatoryAccountMenu />
+        <div className="observatory-shell__header-actions">
+          <button
+            type="button"
+            className="observatory-shell__share"
+            onClick={() => void shareScenario()}
+            aria-label="Compartilhar cenário atual do Observatório"
+            title="Copiar link deste cenário"
+          >
+            {shareFeedback === "copied" ? (
+              <Check aria-hidden="true" size={17} />
+            ) : (
+              <Share2 aria-hidden="true" size={17} />
+            )}
+            <span>
+              {shareFeedback === "copied"
+                ? "Link copiado"
+                : shareFeedback === "error"
+                  ? "Tente novamente"
+                  : "Compartilhar"}
+            </span>
+          </button>
+          <ObservatoryAccountMenu />
+        </div>
       </header>
 
       <div className="observatory-shell__workspace">
@@ -331,6 +461,8 @@ export function ObservatoryShell() {
               enabledLayers={enabledLayers}
               layerOpacities={layerOpacities}
               selectedTimelineAt={selectedTimelineAt}
+              cameraRestoreState={cameraRestoreState}
+              onCameraStateChange={setCameraState}
               onTimelineSourceChange={handleTimelineSourceChange}
               onLayerRuntimeChange={handleLayerRuntimeChange}
             />
