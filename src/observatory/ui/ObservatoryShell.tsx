@@ -1,16 +1,22 @@
+import { Link } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CloudLightning,
   Globe2,
-  Layers3,
+  House,
+  LayoutDashboard,
+  LogOut,
   Pause,
   Play,
   Radar,
   Radio,
   Satellite,
+  Settings,
   TriangleAlert,
+  UserRound,
   Waves,
 } from "lucide-react";
 
@@ -69,9 +75,41 @@ function ViewerLoadingState() {
   return (
     <div className="observatory-shell__viewer-placeholder" role="status" aria-live="polite">
       <Globe2 aria-hidden="true" size={42} />
-      <strong>Inicializando Observatório 3D</strong>
-      <span>Carregando o motor geoespacial somente para esta sessão PRO.</span>
+      <strong>Preparando o Observatório</strong>
+      <span>Carregando o globo e as ferramentas de visualização.</span>
     </div>
+  );
+}
+
+function ObservatoryAccountMenu() {
+  return (
+    <details className="observatory-shell__account-menu">
+      <summary aria-label="Abrir menu da minha conta">
+        <UserRound aria-hidden="true" size={18} />
+        <span>Meu painel</span>
+        <ChevronDown className="observatory-shell__account-chevron" aria-hidden="true" size={15} />
+      </summary>
+      <div className="observatory-shell__account-popover">
+        <Link to="/painel">
+          <LayoutDashboard aria-hidden="true" size={16} />
+          <span>Meu painel</span>
+        </Link>
+        <Link to="/conta" search={{ erro: undefined, next: "/conta" }}>
+          <Settings aria-hidden="true" size={16} />
+          <span>Minha conta</span>
+        </Link>
+        <Link to="/">
+          <House aria-hidden="true" size={16} />
+          <span>Portal público</span>
+        </Link>
+        <form action="/auth/signout" method="post">
+          <button type="submit">
+            <LogOut aria-hidden="true" size={16} />
+            <span>Sair</span>
+          </button>
+        </form>
+      </div>
+    </details>
   );
 }
 
@@ -212,23 +250,26 @@ export function ObservatoryShell() {
   return (
     <main className="observatory-shell" id="conteudo-principal">
       <header className="observatory-shell__header">
-        <div>
-          <span className="observatory-shell__eyebrow">Tempo Pelotas</span>
+        <div className="observatory-shell__identity">
+          <Link className="observatory-shell__brand" to="/" aria-label="Ir para o Tempo Pelotas">
+            <img
+              src="/brand/tempo-pelotas-header.svg"
+              alt="Tempo Pelotas"
+              width={11349}
+              height={1552}
+            />
+          </Link>
           <h1>Observatório</h1>
         </div>
-        <span className="observatory-shell__pro">PRO</span>
+        <ObservatoryAccountMenu />
       </header>
 
       <div className="observatory-shell__workspace">
         <aside className="observatory-shell__panel" aria-label="Camadas do Observatório">
           <div className="observatory-shell__panel-title">
-            <Layers3 aria-hidden="true" size={18} />
             <span>Camadas</span>
           </div>
-          <p>
-            Ligue apenas o que deseja analisar. Radar, satélite, STSC, alertas e hidrologia usam as
-            mesmas fontes oficiais já integradas ao Tempo Pelotas.
-          </p>
+          <p>Ative apenas o que deseja visualizar no Globo. Radar, satélite, raios, alertas e hidrologia.</p>
 
           <div className="observatory-shell__layer-list">
             {layers.map((layer) => {
