@@ -21,8 +21,10 @@ import { PELOTAS_LATITUDE, PELOTAS_LONGITUDE } from "@/lib/site-config";
 
 const OSM_TILE_URL = "https://tile.openstreetmap.org/";
 const REEARTH_TERRAIN_URL = "https://terrain.reearth.land/cesium-mesh/ellipsoid";
-const INITIAL_CAMERA_RANGE_METERS = 430_000;
-const INITIAL_CAMERA_PITCH_DEGREES = -72;
+const INITIAL_CAMERA_RANGE_METERS = 900_000;
+const INITIAL_CAMERA_PITCH_DEGREES = -82;
+const MINIMUM_CAMERA_HEIGHT_METERS = 5_000;
+const MAXIMUM_CAMERA_HEIGHT_METERS = 10_000_000;
 
 export type ObservatoryTerrainStatus = "reearth" | "ellipsoid";
 
@@ -51,6 +53,10 @@ export type ObservatoryCesiumPointInput = {
 export type ObservatoryCesiumRuntime = {
   widget: CesiumWidget;
   terrainStatus: ObservatoryTerrainStatus;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetView: () => void;
+  resetNorth: () => void;
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
   setLayerOpacity: (id: string, opacity: number) => void;
@@ -121,16 +127,65 @@ export async function createObservatoryCesiumRuntime(
   widget.scene.globe.showGroundAtmosphere = true;
   if (widget.scene.skyAtmosphere) widget.scene.skyAtmosphere.show = true;
 
+  const cameraController = widget.scene.screenSpaceCameraController;
+  cameraController.minimumZoomDistance = MINIMUM_CAMERA_HEIGHT_METERS;
+  cameraController.maximumZoomDistance = MAXIMUM_CAMERA_HEIGHT_METERS;
+  cameraController.enableTilt = true;
+  cameraController.enableRotate = true;
+  cameraController.enableZoom = true;
+
   const initialTarget = Cartesian3.fromDegrees(PELOTAS_LONGITUDE, PELOTAS_LATITUDE, 0);
-  widget.camera.lookAt(
-    initialTarget,
-    new HeadingPitchRange(
-      CesiumMath.toRadians(0),
-      CesiumMath.toRadians(INITIAL_CAMERA_PITCH_DEGREES),
-      INITIAL_CAMERA_RANGE_METERS,
-    ),
-  );
-  widget.camera.lookAtTransform(Matrix4.IDENTITY);
+
+  function requestRender() {
+    if (!widget.isDestroyed()) widget.scene.requestRender();
+  }
+
+  function resetView() {
+    if (widget.isDestroyed()) return;
+    widget.camera.lookAt(
+      initialTarget,
+      new HeadingPitchRange(
+        CesiumMath.toRadians(0),
+        CesiumMath.toRadians(INITIAL_CAMERA_PITCH_DEGREES),
+        INITIAL_CAMERA_RANGE_METERS,
+      ),
+    );
+    widget.camera.lookAtTransform(Matrix4.IDENTITY);
+    requestRender();
+  }
+
+  function cameraZoomAmount() {
+    const height = widget.camera.positionCartographic.height;
+    return Math.min(650_000, Math.max(20_000, height * 0.28));
+  }
+
+  function zoomIn() {
+    if (widget.isDestroyed()) return;
+    widget.camera.zoomIn(cameraZoomAmount());
+    requestRender();
+  }
+
+  function zoomOut() {
+    if (widget.isDestroyed()) return;
+    widget.camera.zoomOut(cameraZoomAmount());
+    requestRender();
+  }
+
+  function resetNorth() {
+    if (widget.isDestroyed()) return;
+    const destination = Cartesian3.clone(widget.camera.positionWC);
+    widget.camera.setView({
+      destination,
+      orientation: {
+        heading: 0,
+        pitch: widget.camera.pitch,
+        roll: 0,
+      },
+    });
+    requestRender();
+  }
+
+  resetView();
 
   const imageLayers = new Map<string, ImageryLayer>();
   const pointLayers = new Map<string, PointPrimitiveCollection>();
@@ -159,7 +214,7 @@ export async function createObservatoryCesiumRuntime(
   function removeLayer(id: string) {
     nextGeneration(id);
     detachLayer(id);
-    if (!widget.isDestroyed()) widget.scene.requestRender();
+    requestRender();
   }
 
   async function setImageLayer(id: string, input: ObservatoryCesiumImageInput) {
@@ -182,7 +237,7 @@ export async function createObservatoryCesiumRuntime(
     });
     widget.scene.imageryLayers.add(layer);
     imageLayers.set(id, layer);
-    widget.scene.requestRender();
+    requestRender();
   }
 
   function setPointLayer(id: string, points: ObservatoryCesiumPointInput[]) {
@@ -211,14 +266,14 @@ export async function createObservatoryCesiumRuntime(
 
     widget.scene.primitives.add(collection);
     pointLayers.set(id, collection);
-    widget.scene.requestRender();
+    requestRender();
   }
 
   function setLayerOpacity(id: string, opacity: number) {
     const imageLayer = imageLayers.get(id);
     if (!imageLayer) return;
     imageLayer.alpha = clampOpacity(opacity);
-    if (!widget.isDestroyed()) widget.scene.requestRender();
+    requestRender();
   }
 
   function clearDataLayers() {
@@ -226,11 +281,15 @@ export async function createObservatoryCesiumRuntime(
     for (const id of ids) removeLayer(id);
   }
 
-  widget.scene.requestRender();
+  requestRender();
 
   return {
     widget,
     terrainStatus: terrain.status,
+    zoomIn,
+    zoomOut,
+    resetView,
+    resetNorth,
     setImageLayer,
     setPointLayer,
     setLayerOpacity,
