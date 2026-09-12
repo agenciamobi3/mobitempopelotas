@@ -52,6 +52,43 @@
   letter-spacing: -0.04em;
 }
 
+.observatory-shell__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.observatory-shell__share {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(239, 247, 252, 0.82);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.observatory-shell__share:hover {
+  border-color: rgba(117, 233, 223, 0.32);
+  background: rgba(24, 189, 205, 0.09);
+  color: #9af5ee;
+}
+
+.observatory-shell__share:focus-visible {
+  outline: 2px solid #75e9df;
+  outline-offset: 3px;
+}
+
 .observatory-shell__account-menu {
   position: relative;
   z-index: 12;
@@ -401,6 +438,21 @@
 
   .observatory-shell__header h1 {
     font-size: 1.32rem;
+  }
+
+  .observatory-shell__header-actions {
+    gap: 7px;
+  }
+
+  .observatory-shell__share {
+    min-width: 38px;
+    min-height: 38px;
+    justify-content: center;
+    padding: 0 10px;
+  }
+
+  .observatory-shell__share span {
+    display: none;
   }
 
   .observatory-shell__account-menu summary {
