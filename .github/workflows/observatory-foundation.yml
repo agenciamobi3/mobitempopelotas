@@ -10,6 +10,7 @@ on:
       - "src/lib/auth/account-access.ts"
       - "src/components/layout/SiteLayout.tsx"
       - "tests/observatory-foundation.test.ts"
+      - "tests/observatory-timeline.test.ts"
       - "tests/account-access-entitlements.test.ts"
       - "package.json"
       - "package-lock.json"
@@ -48,6 +49,7 @@ jobs:
           node --import ./scripts/test-node-resolver.mjs --test
           tests/account-access-entitlements.test.ts
           tests/observatory-foundation.test.ts
+          tests/observatory-timeline.test.ts
 
       - name: Sincronizar routeTree versionada
         if: steps.contracts.outcome == 'success'
