@@ -2,11 +2,16 @@ import {
   Cartesian3,
   CesiumTerrainProvider,
   CesiumWidget,
+  Color,
   Credit,
   EllipsoidTerrainProvider,
   ImageryLayer,
   Math as CesiumMath,
+  NearFarScalar,
   OpenStreetMapImageryProvider,
+  PointPrimitiveCollection,
+  Rectangle,
+  SingleTileImageryProvider,
   type TerrainProvider,
 } from "cesium";
 
@@ -18,10 +23,42 @@ const INITIAL_ALTITUDE_METERS = 220_000;
 
 export type ObservatoryTerrainStatus = "reearth" | "ellipsoid";
 
+export type ObservatoryCesiumImageInput = {
+  imageUrl: string;
+  bounds: {
+    west: number;
+    south: number;
+    east: number;
+    north: number;
+  };
+  opacity: number;
+};
+
+export type ObservatoryCesiumPointInput = {
+  id: string;
+  latitude: number;
+  longitude: number;
+  color: string;
+  outlineColor?: string;
+  pixelSize?: number;
+  label: string;
+  detail: string | null;
+};
+
 export type ObservatoryCesiumRuntime = {
   widget: CesiumWidget;
   terrainStatus: ObservatoryTerrainStatus;
+  setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
+  setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
+  setLayerOpacity: (id: string, opacity: number) => void;
+  removeLayer: (id: string) => void;
+  clearDataLayers: () => void;
 };
+
+function clampOpacity(value: number) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(1, Math.max(0, value));
+}
 
 async function resolveTerrain(): Promise<{
   provider: TerrainProvider;
@@ -89,10 +126,95 @@ export async function createObservatoryCesiumRuntime(
     },
   });
 
+  const imageLayers = new Map<string, ImageryLayer>();
+  const pointLayers = new Map<string, PointPrimitiveCollection>();
+
+  function removeLayer(id: string) {
+    const imageLayer = imageLayers.get(id);
+    if (imageLayer) {
+      widget.scene.imageryLayers.remove(imageLayer, true);
+      imageLayers.delete(id);
+    }
+
+    const pointLayer = pointLayers.get(id);
+    if (pointLayer) {
+      widget.scene.primitives.remove(pointLayer);
+      pointLayers.delete(id);
+    }
+
+    if (!widget.isDestroyed()) widget.scene.requestRender();
+  }
+
+  async function setImageLayer(id: string, input: ObservatoryCesiumImageInput) {
+    removeLayer(id);
+
+    const provider = await SingleTileImageryProvider.fromUrl(input.imageUrl, {
+      rectangle: Rectangle.fromDegrees(
+        input.bounds.west,
+        input.bounds.south,
+        input.bounds.east,
+        input.bounds.north,
+      ),
+    });
+
+    if (widget.isDestroyed()) return;
+
+    const layer = new ImageryLayer(provider, {
+      alpha: clampOpacity(input.opacity),
+    });
+    widget.scene.imageryLayers.add(layer);
+    imageLayers.set(id, layer);
+    widget.scene.requestRender();
+  }
+
+  function setPointLayer(id: string, points: ObservatoryCesiumPointInput[]) {
+    removeLayer(id);
+    if (points.length === 0 || widget.isDestroyed()) return;
+
+    const collection = new PointPrimitiveCollection();
+    for (const point of points) {
+      collection.add({
+        id: {
+          observatoryLayerId: id,
+          pointId: point.id,
+          label: point.label,
+          detail: point.detail,
+        },
+        position: Cartesian3.fromDegrees(point.longitude, point.latitude, 60),
+        color: Color.fromCssColorString(point.color).withAlpha(0.96),
+        outlineColor: Color.fromCssColorString(point.outlineColor ?? "#ffffff").withAlpha(0.92),
+        outlineWidth: 2,
+        pixelSize: point.pixelSize ?? 8,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scaleByDistance: new NearFarScalar(10_000, 1.25, 1_000_000, 0.7),
+      });
+    }
+
+    widget.scene.primitives.add(collection);
+    pointLayers.set(id, collection);
+    widget.scene.requestRender();
+  }
+
+  function setLayerOpacity(id: string, opacity: number) {
+    const imageLayer = imageLayers.get(id);
+    if (!imageLayer) return;
+    imageLayer.alpha = clampOpacity(opacity);
+    if (!widget.isDestroyed()) widget.scene.requestRender();
+  }
+
+  function clearDataLayers() {
+    for (const id of [...imageLayers.keys(), ...pointLayers.keys()]) removeLayer(id);
+  }
+
   widget.scene.requestRender();
 
   return {
     widget,
     terrainStatus: terrain.status,
+    setImageLayer,
+    setPointLayer,
+    setLayerOpacity,
+    removeLayer,
+    clearDataLayers,
   };
 }
