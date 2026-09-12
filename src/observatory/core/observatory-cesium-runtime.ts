@@ -60,6 +60,11 @@ function clampOpacity(value: number) {
   return Math.min(1, Math.max(0, value));
 }
 
+function parseCssColor(value: string | undefined, fallback: Color) {
+  if (!value) return fallback.clone();
+  return Color.fromCssColorString(value) ?? fallback.clone();
+}
+
 async function resolveTerrain(): Promise<{
   provider: TerrainProvider;
   status: ObservatoryTerrainStatus;
@@ -128,8 +133,15 @@ export async function createObservatoryCesiumRuntime(
 
   const imageLayers = new Map<string, ImageryLayer>();
   const pointLayers = new Map<string, PointPrimitiveCollection>();
+  const layerGenerations = new Map<string, number>();
 
-  function removeLayer(id: string) {
+  function nextGeneration(id: string) {
+    const generation = (layerGenerations.get(id) ?? 0) + 1;
+    layerGenerations.set(id, generation);
+    return generation;
+  }
+
+  function detachLayer(id: string) {
     const imageLayer = imageLayers.get(id);
     if (imageLayer) {
       widget.scene.imageryLayers.remove(imageLayer, true);
@@ -141,12 +153,17 @@ export async function createObservatoryCesiumRuntime(
       widget.scene.primitives.remove(pointLayer);
       pointLayers.delete(id);
     }
+  }
 
+  function removeLayer(id: string) {
+    nextGeneration(id);
+    detachLayer(id);
     if (!widget.isDestroyed()) widget.scene.requestRender();
   }
 
   async function setImageLayer(id: string, input: ObservatoryCesiumImageInput) {
-    removeLayer(id);
+    const generation = nextGeneration(id);
+    detachLayer(id);
 
     const provider = await SingleTileImageryProvider.fromUrl(input.imageUrl, {
       rectangle: Rectangle.fromDegrees(
@@ -157,7 +174,7 @@ export async function createObservatoryCesiumRuntime(
       ),
     });
 
-    if (widget.isDestroyed()) return;
+    if (widget.isDestroyed() || layerGenerations.get(id) !== generation) return;
 
     const layer = new ImageryLayer(provider, {
       alpha: clampOpacity(input.opacity),
@@ -168,7 +185,8 @@ export async function createObservatoryCesiumRuntime(
   }
 
   function setPointLayer(id: string, points: ObservatoryCesiumPointInput[]) {
-    removeLayer(id);
+    nextGeneration(id);
+    detachLayer(id);
     if (points.length === 0 || widget.isDestroyed()) return;
 
     const collection = new PointPrimitiveCollection();
@@ -181,8 +199,8 @@ export async function createObservatoryCesiumRuntime(
           detail: point.detail,
         },
         position: Cartesian3.fromDegrees(point.longitude, point.latitude, 60),
-        color: Color.fromCssColorString(point.color).withAlpha(0.96),
-        outlineColor: Color.fromCssColorString(point.outlineColor ?? "#ffffff").withAlpha(0.92),
+        color: parseCssColor(point.color, Color.WHITE).withAlpha(0.96),
+        outlineColor: parseCssColor(point.outlineColor, Color.WHITE).withAlpha(0.92),
         outlineWidth: 2,
         pixelSize: point.pixelSize ?? 8,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -203,7 +221,8 @@ export async function createObservatoryCesiumRuntime(
   }
 
   function clearDataLayers() {
-    for (const id of [...imageLayers.keys(), ...pointLayers.keys()]) removeLayer(id);
+    const ids = new Set([...imageLayers.keys(), ...pointLayers.keys(), ...layerGenerations.keys()]);
+    for (const id of ids) removeLayer(id);
   }
 
   widget.scene.requestRender();
