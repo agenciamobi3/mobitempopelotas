@@ -1,11 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeftRight,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   CloudLightning,
+  Columns2,
   Globe2,
   House,
   LayoutDashboard,
@@ -20,8 +22,14 @@ import {
   TriangleAlert,
   UserRound,
   Waves,
+  X,
 } from "lucide-react";
 
+import {
+  createObservatoryComparison,
+  type ObservatoryComparisonSideId,
+  type ObservatoryComparisonState,
+} from "../core/ObservatoryComparison";
 import {
   OBSERVATORY_LAYER_DEFINITIONS,
   OBSERVATORY_LAYER_IDS,
@@ -35,7 +43,11 @@ import {
   type ObservatoryCameraState,
 } from "../core/ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "../core/ObservatoryTypes";
-import type { ObservatoryTemporalLayerId } from "../data/observatory-temporal-layers";
+import {
+  isObservatoryTemporalLayerId,
+  type ObservatoryTemporalLayerId,
+} from "../data/observatory-temporal-layers";
+import "./ObservatoryComparison.css";
 import "./ObservatoryShell.css";
 import "./ObservatoryTimeline.css";
 
@@ -94,6 +106,13 @@ function nearestTimelineTimestamp(timestamps: readonly string[], requestedAt: st
     }
   }
   return nearest;
+}
+
+function timelineIndex(timestamps: readonly string[], selectedAt: string | null) {
+  if (timestamps.length === 0) return 0;
+  if (!selectedAt) return timestamps.length - 1;
+  const index = timestamps.indexOf(selectedAt);
+  return index < 0 ? timestamps.length - 1 : index;
 }
 
 async function copyScenarioLink(value: string) {
@@ -168,6 +187,7 @@ export function ObservatoryShell() {
     instance.setOpacity("satellite", 0.64);
     return instance;
   }, []);
+  const viewerSectionRef = useRef<HTMLElement | null>(null);
   const [layers, setLayers] = useState(() => manager.list());
   const [timelineSources, setTimelineSources] = useState<
     Partial<Record<ObservatoryTemporalLayerId, string[]>>
@@ -177,8 +197,13 @@ export function ObservatoryShell() {
   const [cameraState, setCameraState] = useState<ObservatoryCameraState | null>(null);
   const [cameraRestoreState, setCameraRestoreState] = useState<ObservatoryCameraState | null>(null);
   const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "error">("idle");
+  const [comparisonState, setComparisonState] = useState<ObservatoryComparisonState | null>(null);
+  const [comparisonSide, setComparisonSide] = useState<ObservatoryComparisonSideId>("b");
+  const [timelineSettlementRevision, setTimelineSettlementRevision] = useState(0);
   const scenarioAppliedRef = useRef(false);
   const requestedTimelineAtRef = useRef<string | null>(null);
+  const expectedScenarioTimelineLayersRef = useRef<Set<ObservatoryTemporalLayerId>>(new Set());
+  const settledScenarioTimelineLayersRef = useRef<Set<ObservatoryTemporalLayerId>>(new Set());
 
   const refreshLayers = useCallback(() => {
     setLayers(manager.list());
@@ -199,7 +224,13 @@ export function ObservatoryShell() {
     }
     refreshLayers();
 
-    requestedTimelineAtRef.current = scenario.selectedAt;
+    const expectedTemporalLayers = scenario.layers
+      .filter((layer) => layer.enabled && isObservatoryTemporalLayerId(layer.id))
+      .map((layer) => layer.id as ObservatoryTemporalLayerId);
+    expectedScenarioTimelineLayersRef.current = new Set(expectedTemporalLayers);
+    settledScenarioTimelineLayersRef.current = new Set();
+    requestedTimelineAtRef.current =
+      expectedTemporalLayers.length > 0 ? scenario.selectedAt : null;
     if (scenario.selectedAt) setSelectedTimelineAt(scenario.selectedAt);
     if (scenario.camera) setCameraRestoreState(scenario.camera);
   }, [manager, refreshLayers]);
@@ -212,20 +243,22 @@ export function ObservatoryShell() {
 
   const toggleLayer = useCallback(
     (id: ObservatoryLayerId) => {
+      if (comparisonState) return;
       const current = manager.get(id);
       if (!current) return;
       manager.setEnabled(id, !current.runtime.enabled);
       refreshLayers();
     },
-    [manager, refreshLayers],
+    [comparisonState, manager, refreshLayers],
   );
 
   const changeOpacity = useCallback(
     (id: ObservatoryLayerId, opacity: number) => {
+      if (comparisonState) return;
       manager.setOpacity(id, opacity);
       refreshLayers();
     },
-    [manager, refreshLayers],
+    [comparisonState, manager, refreshLayers],
   );
 
   const handleLayerRuntimeChange = useCallback(
@@ -238,6 +271,10 @@ export function ObservatoryShell() {
 
   const handleTimelineSourceChange = useCallback(
     (id: ObservatoryTemporalLayerId, timestamps: string[]) => {
+      if (expectedScenarioTimelineLayersRef.current.has(id)) {
+        settledScenarioTimelineLayersRef.current.add(id);
+        setTimelineSettlementRevision((value) => value + 1);
+      }
       setTimelineSources((current) => {
         const next = { ...current };
         if (timestamps.length === 0) delete next[id];
@@ -254,6 +291,7 @@ export function ObservatoryShell() {
   const layerOpacities = Object.fromEntries(
     layers.map((layer) => [layer.definition.id, layer.runtime.opacity]),
   ) as Partial<Record<ObservatoryLayerId, number>>;
+  const hasComparableRaster = enabledLayers.some((id) => id === "radar" || id === "satellite");
 
   const timelineTimestamps = useMemo(() => {
     const unique = new Set<string>();
@@ -267,14 +305,25 @@ export function ObservatoryShell() {
   const timelineKey = timelineTimestamps.join("|");
 
   useEffect(() => {
+    const requested = requestedTimelineAtRef.current;
+    const expected = expectedScenarioTimelineLayersRef.current;
+    const settled = settledScenarioTimelineLayersRef.current;
+    const allExpectedSettled = [...expected].every((id) => settled.has(id));
+
     if (timelineTimestamps.length === 0) {
       setPlaying(false);
-      if (!requestedTimelineAtRef.current) setSelectedTimelineAt(null);
+      if (requested && allExpectedSettled) {
+        requestedTimelineAtRef.current = null;
+        setSelectedTimelineAt(null);
+      } else if (!requested) {
+        setSelectedTimelineAt(null);
+      }
       return;
     }
 
+    if (requested && !allExpectedSettled) return;
+
     setSelectedTimelineAt((current) => {
-      const requested = requestedTimelineAtRef.current;
       if (requested) {
         requestedTimelineAtRef.current = null;
         return nearestTimelineTimestamp(timelineTimestamps, requested);
@@ -285,65 +334,153 @@ export function ObservatoryShell() {
       }
       return timelineTimestamps.at(-1) ?? null;
     });
-  }, [timelineKey]);
+  }, [timelineKey, timelineSettlementRevision]);
+
+  const comparisonMode = comparisonState !== null;
+  const timelineSelectedAt = comparisonState
+    ? comparisonState[comparisonSide].selectedAt
+    : selectedTimelineAt;
+
+  const setTimelineSelection = useCallback(
+    (value: string | null) => {
+      if (!comparisonState) {
+        setSelectedTimelineAt(value);
+        return;
+      }
+      setComparisonState((current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          [comparisonSide]: {
+            ...current[comparisonSide],
+            selectedAt: value,
+          },
+        };
+      });
+    },
+    [comparisonState, comparisonSide],
+  );
 
   useEffect(() => {
     if (!playing || timelineTimestamps.length < 2) return;
 
     const interval = window.setInterval(() => {
+      if (comparisonMode) {
+        setComparisonState((current) => {
+          if (!current) return current;
+          const side = current[comparisonSide];
+          const currentIndex = timelineIndex(timelineTimestamps, side.selectedAt);
+          const nextIndex =
+            currentIndex >= timelineTimestamps.length - 1 ? 0 : currentIndex + 1;
+          return {
+            ...current,
+            [comparisonSide]: {
+              ...side,
+              selectedAt: timelineTimestamps[nextIndex] ?? timelineTimestamps.at(-1) ?? null,
+            },
+          };
+        });
+        return;
+      }
+
       setSelectedTimelineAt((current) => {
-        const currentIndex = current ? timelineTimestamps.indexOf(current) : -1;
-        const nextIndex =
-          currentIndex < 0 || currentIndex >= timelineTimestamps.length - 1
-            ? 0
-            : currentIndex + 1;
+        const currentIndex = timelineIndex(timelineTimestamps, current);
+        const nextIndex = currentIndex >= timelineTimestamps.length - 1 ? 0 : currentIndex + 1;
         return timelineTimestamps[nextIndex] ?? timelineTimestamps.at(-1) ?? null;
       });
     }, TIMELINE_PLAYBACK_INTERVAL_MS);
 
     return () => window.clearInterval(interval);
-  }, [playing, timelineKey]);
+  }, [playing, timelineKey, comparisonMode, comparisonSide]);
 
-  const selectedTimelineIndex = Math.max(
-    0,
-    selectedTimelineAt
-      ? timelineTimestamps.indexOf(selectedTimelineAt)
-      : timelineTimestamps.length - 1,
-  );
+  const selectedTimelineIndex = timelineIndex(timelineTimestamps, timelineSelectedAt);
   const latestTimelineAt = timelineTimestamps.at(-1) ?? null;
   const isTimelineLive = Boolean(
-    selectedTimelineAt && latestTimelineAt && selectedTimelineAt === latestTimelineAt,
+    timelineSelectedAt && latestTimelineAt && timelineSelectedAt === latestTimelineAt,
   );
 
   const stepTimeline = useCallback(
     (direction: -1 | 1) => {
       if (timelineTimestamps.length === 0) return;
       setPlaying(false);
-      setSelectedTimelineAt((current) => {
-        const index = current ? timelineTimestamps.indexOf(current) : timelineTimestamps.length - 1;
-        const baseIndex = index < 0 ? timelineTimestamps.length - 1 : index;
-        const nextIndex = Math.min(
-          timelineTimestamps.length - 1,
-          Math.max(0, baseIndex + direction),
-        );
-        return timelineTimestamps[nextIndex] ?? current;
-      });
+      const baseIndex = timelineIndex(timelineTimestamps, timelineSelectedAt);
+      const nextIndex = Math.min(
+        timelineTimestamps.length - 1,
+        Math.max(0, baseIndex + direction),
+      );
+      setTimelineSelection(timelineTimestamps[nextIndex] ?? timelineSelectedAt);
     },
-    [timelineKey],
+    [timelineKey, timelineSelectedAt, setTimelineSelection],
+  );
+
+  const currentScenario = useCallback(
+    () =>
+      createObservatoryScenario({
+        selectedAt: selectedTimelineAt,
+        layers: layers.map((layer) => ({
+          id: layer.definition.id as ObservatoryLayerId,
+          enabled: layer.runtime.enabled,
+          opacity: layer.runtime.opacity,
+        })),
+        camera: cameraState,
+      }),
+    [layers, selectedTimelineAt, cameraState],
+  );
+
+  const enterComparison = useCallback(() => {
+    if (!hasComparableRaster) return;
+    const scenario = currentScenario();
+    setPlaying(false);
+    setComparisonSide("b");
+    setComparisonState(createObservatoryComparison({ a: scenario, b: scenario }));
+  }, [currentScenario, hasComparableRaster]);
+
+  const exitComparison = useCallback(() => {
+    setPlaying(false);
+    setComparisonState(null);
+    setComparisonSide("b");
+  }, []);
+
+  const swapComparisonSides = useCallback(() => {
+    setPlaying(false);
+    setComparisonState((current) =>
+      current
+        ? {
+            ...current,
+            a: current.b,
+            b: current.a,
+          }
+        : current,
+    );
+    setComparisonSide((current) => (current === "a" ? "b" : "a"));
+  }, []);
+
+  const setComparisonSplitPosition = useCallback((position: number) => {
+    setComparisonState((current) =>
+      current
+        ? {
+            ...current,
+            splitPosition: Math.min(0.9, Math.max(0.1, position)),
+          }
+        : current,
+    );
+  }, []);
+
+  const updateSplitFromPointer = useCallback(
+    (clientX: number) => {
+      const section = viewerSectionRef.current;
+      if (!section) return;
+      const bounds = section.getBoundingClientRect();
+      if (bounds.width <= 0) return;
+      setComparisonSplitPosition((clientX - bounds.left) / bounds.width);
+    },
+    [setComparisonSplitPosition],
   );
 
   const shareScenario = useCallback(async () => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || comparisonState) return;
 
-    const scenario = createObservatoryScenario({
-      selectedAt: selectedTimelineAt,
-      layers: layers.map((layer) => ({
-        id: layer.definition.id as ObservatoryLayerId,
-        enabled: layer.runtime.enabled,
-        opacity: layer.runtime.opacity,
-      })),
-      camera: cameraState,
-    });
+    const scenario = currentScenario();
     const url = `${window.location.origin}${window.location.pathname}${window.location.search}${buildObservatoryScenarioHash(scenario)}`;
 
     try {
@@ -353,7 +490,7 @@ export function ObservatoryShell() {
       console.warn("[observatory] Não foi possível copiar o cenário.", error);
       setShareFeedback("error");
     }
-  }, [layers, selectedTimelineAt, cameraState]);
+  }, [comparisonState, currentScenario]);
 
   return (
     <main className="observatory-shell" id="conteudo-principal">
@@ -372,10 +509,32 @@ export function ObservatoryShell() {
         <div className="observatory-shell__header-actions">
           <button
             type="button"
+            className="observatory-shell__share observatory-comparison__trigger"
+            onClick={comparisonState ? exitComparison : enterComparison}
+            disabled={!comparisonState && !hasComparableRaster}
+            aria-pressed={Boolean(comparisonState)}
+            title={
+              comparisonState
+                ? "Sair da comparação"
+                : hasComparableRaster
+                  ? "Comparar dois horários no mesmo mapa"
+                  : "Ative radar ou satélite para comparar"
+            }
+          >
+            {comparisonState ? <X aria-hidden="true" size={17} /> : <Columns2 aria-hidden="true" size={17} />}
+            <span>{comparisonState ? "Sair da comparação" : "Comparar"}</span>
+          </button>
+          <button
+            type="button"
             className="observatory-shell__share"
             onClick={() => void shareScenario()}
+            disabled={Boolean(comparisonState)}
             aria-label="Compartilhar cenário atual do Observatório"
-            title="Copiar link deste cenário"
+            title={
+              comparisonState
+                ? "Saia da comparação para compartilhar o cenário"
+                : "Copiar link deste cenário"
+            }
           >
             {shareFeedback === "copied" ? (
               <Check aria-hidden="true" size={17} />
@@ -395,11 +554,18 @@ export function ObservatoryShell() {
       </header>
 
       <div className="observatory-shell__workspace">
-        <aside className="observatory-shell__panel" aria-label="Camadas do Observatório">
+        <aside
+          className={`observatory-shell__panel${comparisonState ? " is-comparing" : ""}`}
+          aria-label="Camadas do Observatório"
+        >
           <div className="observatory-shell__panel-title">
             <span>Camadas</span>
           </div>
-          <p>Ative apenas o que deseja visualizar no Globo. Radar, satélite, raios, alertas e hidrologia.</p>
+          <p>
+            {comparisonState
+              ? "Comparação ativa. Radar e satélite usam os lados A e B; as outras camadas ficam ocultas até você sair da comparação."
+              : "Ative apenas o que deseja visualizar no Globo. Radar, satélite, raios, alertas e hidrologia."}
+          </p>
 
           <div className="observatory-shell__layer-list">
             {layers.map((layer) => {
@@ -417,6 +583,7 @@ export function ObservatoryShell() {
                     type="button"
                     className="observatory-shell__layer-toggle"
                     aria-pressed={layer.runtime.enabled}
+                    disabled={Boolean(comparisonState)}
                     onClick={() => toggleLayer(id)}
                   >
                     <span className="observatory-shell__layer-icon">
@@ -444,6 +611,7 @@ export function ObservatoryShell() {
                         max="1"
                         step="0.05"
                         value={layer.runtime.opacity}
+                        disabled={Boolean(comparisonState)}
                         onChange={(event) => changeOpacity(id, Number(event.currentTarget.value))}
                       />
                       <output>{Math.round(layer.runtime.opacity * 100)}%</output>
@@ -455,24 +623,126 @@ export function ObservatoryShell() {
           </div>
         </aside>
 
-        <section className="observatory-shell__viewer" aria-label="Área 3D do Observatório">
+        <section
+          ref={viewerSectionRef}
+          className="observatory-shell__viewer"
+          aria-label="Área 3D do Observatório"
+        >
           <Suspense fallback={<ViewerLoadingState />}>
             <LazyObservatoryViewer
               enabledLayers={enabledLayers}
               layerOpacities={layerOpacities}
               selectedTimelineAt={selectedTimelineAt}
+              comparisonState={comparisonState}
               cameraRestoreState={cameraRestoreState}
               onCameraStateChange={setCameraState}
               onTimelineSourceChange={handleTimelineSourceChange}
               onLayerRuntimeChange={handleLayerRuntimeChange}
             />
           </Suspense>
+
+          {comparisonState ? (
+            <>
+              <div className="observatory-comparison__toolbar" aria-label="Controles da comparação">
+                <div className="observatory-comparison__side-tabs" role="group" aria-label="Lado editado pela linha do tempo">
+                  {(["a", "b"] as const).map((side) => (
+                    <button
+                      key={side}
+                      type="button"
+                      className={comparisonSide === side ? "is-active" : ""}
+                      aria-pressed={comparisonSide === side}
+                      onClick={() => {
+                        setPlaying(false);
+                        setComparisonSide(side);
+                      }}
+                    >
+                      <strong>{side.toUpperCase()}</strong>
+                      <span>{formatTimelineTimestamp(comparisonState[side].selectedAt)}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="observatory-comparison__swap"
+                  onClick={swapComparisonSides}
+                  title="Trocar os lados A e B"
+                >
+                  <ArrowLeftRight aria-hidden="true" size={16} />
+                  <span>Trocar A ↔ B</span>
+                </button>
+              </div>
+
+              <div className="observatory-comparison__label is-a" aria-hidden="true">
+                A
+              </div>
+              <div className="observatory-comparison__label is-b" aria-hidden="true">
+                B
+              </div>
+              <div className="observatory-comparison__overlay" aria-hidden="true">
+                <button
+                  type="button"
+                  className="observatory-comparison__divider"
+                  style={{ left: `${comparisonState.splitPosition * 100}%` }}
+                  role="slider"
+                  aria-label="Posição da divisão entre A e B"
+                  aria-valuemin={10}
+                  aria-valuemax={90}
+                  aria-valuenow={Math.round(comparisonState.splitPosition * 100)}
+                  onPointerDown={(event) => {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                    updateSplitFromPointer(event.clientX);
+                  }}
+                  onPointerMove={(event) => {
+                    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+                    updateSplitFromPointer(event.clientX);
+                  }}
+                  onPointerUp={(event) => {
+                    updateSplitFromPointer(event.clientX);
+                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                      event.currentTarget.releasePointerCapture(event.pointerId);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "ArrowLeft") {
+                      event.preventDefault();
+                      setComparisonSplitPosition(comparisonState.splitPosition - 0.02);
+                    }
+                    if (event.key === "ArrowRight") {
+                      event.preventDefault();
+                      setComparisonSplitPosition(comparisonState.splitPosition + 0.02);
+                    }
+                  }}
+                >
+                  <span />
+                </button>
+              </div>
+            </>
+          ) : null}
         </section>
       </div>
 
       <footer className="observatory-shell__timeline" aria-label="Linha do tempo observacional">
         {timelineTimestamps.length > 0 ? (
           <>
+            {comparisonState ? (
+              <div className="observatory-comparison__timeline-side" role="group" aria-label="Escolher lado da comparação">
+                {(["a", "b"] as const).map((side) => (
+                  <button
+                    key={side}
+                    type="button"
+                    className={comparisonSide === side ? "is-active" : ""}
+                    aria-pressed={comparisonSide === side}
+                    onClick={() => {
+                      setPlaying(false);
+                      setComparisonSide(side);
+                    }}
+                  >
+                    {side.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
             <div className="observatory-shell__timeline-controls">
               <button
                 type="button"
@@ -510,7 +780,10 @@ export function ObservatoryShell() {
 
             <div className="observatory-shell__timeline-track">
               <div className="observatory-shell__timeline-meta">
-                <strong>{formatTimelineTimestamp(selectedTimelineAt)}</strong>
+                <strong>
+                  {comparisonState ? `Lado ${comparisonSide.toUpperCase()} · ` : ""}
+                  {formatTimelineTimestamp(timelineSelectedAt)}
+                </strong>
                 <span>
                   {selectedTimelineIndex + 1} / {timelineTimestamps.length} quadros sincronizados
                 </span>
@@ -521,10 +794,14 @@ export function ObservatoryShell() {
                 max={Math.max(0, timelineTimestamps.length - 1)}
                 step="1"
                 value={selectedTimelineIndex}
-                aria-label="Escolher horário global do Observatório"
+                aria-label={
+                  comparisonState
+                    ? `Escolher horário do lado ${comparisonSide.toUpperCase()}`
+                    : "Escolher horário global do Observatório"
+                }
                 onChange={(event) => {
                   setPlaying(false);
-                  setSelectedTimelineAt(
+                  setTimelineSelection(
                     timelineTimestamps[Number(event.currentTarget.value)] ?? null,
                   );
                 }}
@@ -540,7 +817,7 @@ export function ObservatoryShell() {
               className={`observatory-shell__live${isTimelineLive ? " is-live" : ""}`}
               onClick={() => {
                 setPlaying(false);
-                setSelectedTimelineAt(latestTimelineAt);
+                setTimelineSelection(latestTimelineAt);
               }}
               disabled={!latestTimelineAt}
             >
