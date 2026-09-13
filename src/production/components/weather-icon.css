@@ -17,49 +17,119 @@
 }
 
 /*
- * Small forecast surfaces use a fixed optical frame. The source SVGs have
- * different internal whitespace, so the shared frame prevents moon/cloud/rain
- * from appearing to jump in size when conditions change.
+ * Global optical scale for the current Tempo Pelotas experience.
+ * The source artwork has generous internal whitespace, so the visual glyph can
+ * look much smaller than its CSS box. These context rules deliberately give the
+ * weather artwork more presence while keeping compact navigation/icons untouched.
  */
 .tp-home-forecast-hour__weather .weather-icon {
-  width: 40px;
-  height: 40px;
+  width: 48px !important;
+  height: 48px !important;
 }
 
-.tp-home-forecast-hour__weather .weather-icon--moon {
-  transform: scale(1.06);
-  transform-origin: 50% 50%;
-}
-
-/*
- * The compact strip inside the photographic hero needs stronger icon presence
- * than the original 28px artwork, but stays smaller than the full hourly grid.
- */
-.tp-home-hero__hour-icon .weather-icon {
-  width: 34px;
-  height: 34px;
-}
-
+.tp-home-forecast-hour__weather .weather-icon--moon,
 .tp-home-hero__hour-icon .weather-icon--moon {
   transform: scale(1.06);
   transform-origin: 50% 50%;
 }
 
+/* Photographic home hero: current condition and compact hourly strip. */
+.tp-home-hero__condition-icon {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+.tp-home-hero__condition-icon .weather-icon {
+  width: 58px !important;
+  height: 58px !important;
+}
+
+.tp-home-hero__hour {
+  grid-template-columns: auto 42px auto !important;
+}
+
+.tp-home-hero__hour-icon {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+.tp-home-hero__hour-icon .weather-icon {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+/* Official INMET panel: feature, regular periods and compact rows. */
+.tp-home-inmet .tp-home-inmet__icon {
+  width: 50px !important;
+  height: 50px !important;
+}
+
 .tp-home-inmet .tp-home-inmet__icon .weather-icon {
-  width: 34px;
-  height: 34px;
+  width: 44px !important;
+  height: 44px !important;
+}
+
+.tp-home-inmet .tp-home-inmet__icon.is-featured {
+  width: 62px !important;
+  height: 62px !important;
 }
 
 .tp-home-inmet .tp-home-inmet__icon.is-featured .weather-icon {
-  width: 42px;
-  height: 42px;
+  width: 56px !important;
+  height: 56px !important;
+}
+
+.tp-home-inmet .tp-home-inmet__featured-summary {
+  grid-template-columns: 62px minmax(0, 1fr) !important;
+  gap: 18px !important;
+}
+
+.tp-home-inmet .tp-home-inmet__compact-summary {
+  grid-template-columns: 48px minmax(0, 1fr) !important;
+  gap: 12px !important;
+}
+
+.tp-home-inmet .tp-home-inmet__compact-summary .tp-home-inmet__icon {
+  width: 48px !important;
+  height: 48px !important;
 }
 
 .tp-home-inmet .tp-home-inmet__compact-summary .tp-home-inmet__icon .weather-icon {
-  width: 32px;
-  height: 32px;
+  width: 42px !important;
+  height: 42px !important;
 }
 
+/* Home weekly trend. */
+.tp-home-trend-day__condition .weather-icon {
+  width: 42px !important;
+  height: 42px !important;
+}
+
+/* Seven- and fifteen-day forecast cards. */
+.seven-day-v2-days__condition .weather-icon {
+  width: 56px !important;
+  height: 56px !important;
+}
+
+.fifteen-day__condition .weather-icon {
+  width: 54px !important;
+  height: 54px !important;
+}
+
+/* Internal forecast hero surfaces. */
+.today-retail-hero__weather-icon .weather-icon,
+.tomorrow-retail-hero__weather-icon .weather-icon,
+.rain-retail-hero__weather-icon .weather-icon,
+.wind-retail-hero__weather-icon .weather-icon,
+.seven-day-retail-hero__weather-icon .weather-icon {
+  width: 44px !important;
+  height: 44px !important;
+}
+
+/*
+ * Motion remains restricted to primary summary surfaces. Dense hourly/daily
+ * collections stay static so increasing the artwork does not add visual noise.
+ */
 .tp-home-hero__condition-icon .weather-icon--amcharts,
 .today-retail-hero__weather-icon .weather-icon--amcharts,
 .tomorrow-retail-hero__weather-icon .weather-icon--amcharts,
@@ -104,6 +174,19 @@
   }
   50% {
     transform: translateY(-1px) scale(1.025);
+  }
+}
+
+@media (max-width: 700px) {
+  .tp-home-forecast-hour__weather .weather-icon {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .seven-day-v2-days__condition .weather-icon,
+  .fifteen-day__condition .weather-icon {
+    width: 50px !important;
+    height: 50px !important;
   }
 }
 
