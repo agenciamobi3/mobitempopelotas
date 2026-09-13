@@ -1,0 +1,67 @@
+/*
+ * Weather icon presentation layer.
+ * Artwork: amCharts weather icons, CC BY 4.0.
+ * License copy: /weather-icons/amcharts/LICENSE.txt
+ *
+ * Dense forecast lists stay static. Only the primary current-condition surfaces
+ * receive restrained motion, and reduced-motion users always receive static art.
+ */
+.weather-icon--amcharts .weather-icon__asset {
+  pointer-events: none;
+}
+
+.tp-home-hero__condition-icon .weather-icon--amcharts,
+.today-retail-hero__weather-icon .weather-icon--amcharts,
+.tomorrow-retail-hero__weather-icon .weather-icon--amcharts,
+.rain-retail-hero__weather-icon .weather-icon--amcharts {
+  transform-origin: 50% 50%;
+  animation: tp-weather-icon-float 4.8s ease-in-out infinite;
+}
+
+.tp-home-hero__condition-icon .weather-icon--sun,
+.today-retail-hero__weather-icon .weather-icon--sun,
+.tomorrow-retail-hero__weather-icon .weather-icon--sun {
+  animation: tp-weather-icon-sun 18s linear infinite;
+}
+
+.tp-home-hero__condition-icon .weather-icon--storm,
+.today-retail-hero__weather-icon .weather-icon--storm,
+.tomorrow-retail-hero__weather-icon .weather-icon--storm,
+.rain-retail-hero__weather-icon .weather-icon--storm {
+  animation: tp-weather-icon-storm 3.2s ease-in-out infinite;
+}
+
+@keyframes tp-weather-icon-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes tp-weather-icon-sun {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tp-weather-icon-storm {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.025);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-home-hero__condition-icon .weather-icon--amcharts,
+  .today-retail-hero__weather-icon .weather-icon--amcharts,
+  .tomorrow-retail-hero__weather-icon .weather-icon--amcharts,
+  .rain-retail-hero__weather-icon .weather-icon--amcharts {
+    animation: none;
+  }
+}
