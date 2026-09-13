@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +16,7 @@ import {
   Radio,
   Satellite,
   Settings,
+  Share2,
   TriangleAlert,
   UserRound,
   Waves,
@@ -25,8 +27,15 @@ import {
   type ObservatoryLayerId,
 } from "../core/ObservatoryLayerCatalog";
 import { ObservatoryLayerManager } from "../core/ObservatoryLayerManager";
+import {
+  buildObservatoryScenarioHash,
+  createObservatoryScenario,
+  readObservatoryScenarioHash,
+  type ObservatoryCameraState,
+} from "../core/ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "../core/ObservatoryTypes";
 import type { ObservatoryTemporalLayerId } from "../data/observatory-temporal-layers";
+import "./ObservatoryScenarioControls.css";
 import "./ObservatoryShell.css";
 import "./ObservatoryTimeline.css";
 
@@ -55,6 +64,8 @@ const statusLabels: Record<ObservatoryLayerRuntimeState["status"], string> = {
   disabled: "Desligado",
   review: "Revisão",
 };
+
+type ShareState = "idle" | "copied" | "error";
 
 function formatTimelineTimestamp(value: string | null) {
   if (!value) return "Horário indisponível";
@@ -126,11 +137,35 @@ export function ObservatoryShell() {
     Partial<Record<ObservatoryTemporalLayerId, string[]>>
   >({});
   const [selectedTimelineAt, setSelectedTimelineAt] = useState<string | null>(null);
+  const [initialCameraState, setInitialCameraState] = useState<ObservatoryCameraState | null>(null);
+  const [cameraState, setCameraState] = useState<ObservatoryCameraState | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [shareState, setShareState] = useState<ShareState>("idle");
 
   const refreshLayers = useCallback(() => {
     setLayers(manager.list());
   }, [manager]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const scenario = readObservatoryScenarioHash(window.location.hash);
+    if (!scenario) return;
+
+    for (const layer of scenario.layers) {
+      manager.setEnabled(layer.id, layer.enabled);
+      manager.setOpacity(layer.id, layer.opacity);
+    }
+    refreshLayers();
+    setSelectedTimelineAt(scenario.selectedAt);
+    setInitialCameraState(scenario.camera);
+    setCameraState(scenario.camera);
+  }, [manager, refreshLayers]);
+
+  useEffect(() => {
+    if (shareState === "idle" || typeof window === "undefined") return;
+    const timeout = window.setTimeout(() => setShareState("idle"), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [shareState]);
 
   const toggleLayer = useCallback(
     (id: ObservatoryLayerId) => {
@@ -170,6 +205,36 @@ export function ObservatoryShell() {
     [],
   );
 
+  const handleCameraStateChange = useCallback((state: ObservatoryCameraState) => {
+    setCameraState(state);
+  }, []);
+
+  const handleShareScenario = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
+    const scenario = createObservatoryScenario({
+      selectedAt: selectedTimelineAt,
+      layers: layers.map((layer) => ({
+        id: layer.definition.id as ObservatoryLayerId,
+        enabled: layer.runtime.enabled,
+        opacity: layer.runtime.opacity,
+      })),
+      camera: cameraState,
+    });
+    const url = new URL(window.location.href);
+    url.hash = buildObservatoryScenarioHash(scenario);
+    window.history.replaceState(window.history.state, "", url.toString());
+
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard_unavailable");
+      await navigator.clipboard.writeText(url.toString());
+      setShareState("copied");
+    } catch (error) {
+      console.warn("[observatory] Não foi possível copiar o link do cenário.", error);
+      setShareState("error");
+    }
+  }, [cameraState, layers, selectedTimelineAt]);
+
   const enabledLayers = layers
     .filter((layer) => layer.runtime.enabled)
     .map((layer) => layer.definition.id as ObservatoryLayerId);
@@ -191,7 +256,6 @@ export function ObservatoryShell() {
   useEffect(() => {
     if (timelineTimestamps.length === 0) {
       setPlaying(false);
-      setSelectedTimelineAt(null);
       return;
     }
 
@@ -261,7 +325,36 @@ export function ObservatoryShell() {
           </Link>
           <h1>Observatório</h1>
         </div>
-        <ObservatoryAccountMenu />
+        <div className="observatory-shell__header-actions">
+          <button
+            type="button"
+            className="observatory-shell__share"
+            data-state={shareState}
+            onClick={() => void handleShareScenario()}
+            aria-label={
+              shareState === "copied"
+                ? "Link da visão copiado"
+                : shareState === "error"
+                  ? "Não foi possível copiar o link da visão"
+                  : "Compartilhar esta visão do Observatório"
+            }
+            title="Copiar link desta visão"
+          >
+            {shareState === "copied" ? (
+              <Check aria-hidden="true" size={17} />
+            ) : (
+              <Share2 aria-hidden="true" size={17} />
+            )}
+            <span>
+              {shareState === "copied"
+                ? "Link copiado"
+                : shareState === "error"
+                  ? "Copie pela barra"
+                  : "Compartilhar visão"}
+            </span>
+          </button>
+          <ObservatoryAccountMenu />
+        </div>
       </header>
 
       <div className="observatory-shell__workspace">
@@ -331,6 +424,8 @@ export function ObservatoryShell() {
               enabledLayers={enabledLayers}
               layerOpacities={layerOpacities}
               selectedTimelineAt={selectedTimelineAt}
+              initialCameraState={initialCameraState}
+              onCameraStateChange={handleCameraStateChange}
               onTimelineSourceChange={handleTimelineSourceChange}
               onLayerRuntimeChange={handleLayerRuntimeChange}
             />
