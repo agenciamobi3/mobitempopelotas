@@ -326,6 +326,8 @@ export function ObservatoryViewer({
       });
 
       if (isObservatoryTemporalLayerId(id)) {
+        const loadSelectionRevision = timelineSelectionRevisionRef.current;
+        const hadTemporalCacheAtLoadStart = temporalLayersRef.current[id] !== undefined;
         let renderSelectionRevision: number | null = null;
         void loadObservatoryTemporalLayer(id)
           .then(async (result) => {
@@ -381,9 +383,19 @@ export function ObservatoryViewer({
           })
           .catch((error) => {
             if (layerRevisionRef.current !== revision) return;
+            const selectionChangedSinceLoadStarted =
+              timelineSelectionRevisionRef.current !== loadSelectionRevision;
+            const hasTemporalCache = temporalLayersRef.current[id] !== undefined;
             if (
               renderSelectionRevision !== null &&
               timelineSelectionRevisionRef.current !== renderSelectionRevision
+            ) {
+              return;
+            }
+            if (
+              renderSelectionRevision === null &&
+              selectionChangedSinceLoadStarted &&
+              (hadTemporalCacheAtLoadStart || hasTemporalCache)
             ) {
               return;
             }
