@@ -5,6 +5,7 @@ import { getAccountSnapshot } from "@/lib/auth/account.functions";
 import { getAccountFavorites } from "@/lib/auth/favorites.functions";
 import { getHistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import { absoluteUrl, SITE_NAME } from "@/lib/site-config";
+import { getObservatoryAccess } from "@/observatory/data/observatory-access.functions";
 
 export const Route = createFileRoute("/painel")({
   head: () => ({
@@ -33,21 +34,23 @@ export const Route = createFileRoute("/painel")({
         snapshot,
         moderation: { status: "unavailable" as const },
         favorites: { status: "unavailable" as const },
+        observatory: { status: "unavailable" as const },
       };
     }
 
-    const [moderation, favorites] = await Promise.all([
+    const [moderation, favorites, observatory] = await Promise.all([
       getHistoricalModerationSnapshot(),
       getAccountFavorites(),
+      getObservatoryAccess(),
     ]);
 
-    return { snapshot, moderation, favorites };
+    return { snapshot, moderation, favorites, observatory };
   },
   component: PainelPage,
 });
 
 function PainelPage() {
-  const { snapshot, moderation, favorites } = Route.useLoaderData();
+  const { snapshot, moderation, favorites, observatory } = Route.useLoaderData();
 
   if (snapshot.status === "unavailable") {
     return (
@@ -83,6 +86,11 @@ function PainelPage() {
   }
 
   return (
-    <AccountDashboard snapshot={snapshot} moderation={moderation} favorites={favorites} />
+    <AccountDashboard
+      snapshot={snapshot}
+      moderation={moderation}
+      favorites={favorites}
+      observatory={observatory}
+    />
   );
 }
