@@ -1,0 +1,50 @@
+.observatory-shell__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.observatory-shell__share {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.7rem;
+  background: rgba(8, 17, 31, 0.72);
+  padding: 0 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.observatory-shell__share:hover,
+.observatory-shell__share:focus-visible {
+  border-color: rgba(92, 189, 236, 0.55);
+  background: rgba(14, 31, 50, 0.9);
+  color: #fff;
+  outline: none;
+}
+
+.observatory-shell__share[data-state="copied"] {
+  border-color: rgba(73, 207, 149, 0.45);
+}
+
+.observatory-shell__share[data-state="error"] {
+  border-color: rgba(244, 114, 182, 0.5);
+}
+
+@media (max-width: 720px) {
+  .observatory-shell__share span {
+    display: none;
+  }
+
+  .observatory-shell__share {
+    width: 2.5rem;
+    padding: 0;
+  }
+}
