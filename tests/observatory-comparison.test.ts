@@ -126,11 +126,15 @@ test("carga inicial temporal não publica estado depois que timeline ou fonte mu
 test("falha de atualização preserva cache existente e publica degradação", () => {
   assert.match(viewer, /const cachedResultAtLoadStart = temporalLayersRef\.current\[id\]/);
   assert.match(viewer, /const hadTemporalCacheAtLoadStart = cachedResultAtLoadStart !== undefined/);
-  assert.match(viewer, /const fallbackResult = cachedResultAtLoadStart \?\? currentCachedResult/);
+  assert.match(
+    viewer,
+    /const fallbackResult =\s+cachedResultAtLoadStart \?\?\s+\(installedSourceRevision === null \? currentCachedResult : undefined\)/,
+  );
   assert.match(viewer, /Falha ao atualizar série temporal \$\{id\}; mantendo cache/);
   assert.match(viewer, /const previousMeta = renderedTemporalMetaRef\.current\[id\]/);
   assert.match(viewer, /status: "degraded"/);
   assert.match(viewer, /mantendo o último quadro já carregado/);
+  assert.match(viewer, /Falha ao carregar série temporal \$\{id\}/);
 });
 
 test("renders que usam cache antigo são invalidados quando a fonte é substituída", () => {
