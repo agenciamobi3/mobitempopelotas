@@ -182,8 +182,8 @@ export function AccountDashboard({
             <h2 id="dashboard-tools-title">Recursos para usar, explorar e publicar</h2>
           </div>
           <p>
-            As ferramentas novas entram primeiro na experiência cadastrada. Regras de planos ficam
-            para quando cada recurso estiver maduro e bem definido.
+            Abra suas ferramentas diretamente daqui e mantenha os recursos cadastrados organizados
+            em um único espaço de trabalho.
           </p>
         </div>
 
@@ -349,8 +349,8 @@ export function AccountDashboard({
                 <h2 id="dashboard-roadmap-title">Próximos recursos da conta</h2>
               </div>
               <p>
-                Primeiro deixamos as ferramentas úteis e estáveis. A definição comercial pode vir
-                depois, com limites e planos baseados no uso real do produto.
+                Novos módulos entram quando dados, fontes e experiência estiverem maduros o suficiente
+                para uso consistente dentro da conta.
               </p>
             </div>
 
