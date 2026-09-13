@@ -42,9 +42,9 @@ function buildAccessItems(entitlements: Entitlements): AccessItem[] {
       title: "Histórico pessoal",
       description:
         entitlements.historyAccessDays === null
-          ? "A conta prevê histórico amplo; a experiência pessoal está sendo integrada ao painel."
-          : `A experiência pessoal está sendo preparada com uma janela inicial de até ${entitlements.historyAccessDays} dias.`,
-      state: "preparing",
+          ? "Consulte observações arquivadas diretamente no painel, com seleção de local e período."
+          : `Consulte até ${entitlements.historyAccessDays} dias de observações arquivadas diretamente no painel.`,
+      state: "available",
     },
     {
       title: "Comparações, exportações e análises",

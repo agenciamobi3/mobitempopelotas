@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { resolveAccountAccess } from "../src/lib/auth/account-access.ts";
+import { sampleAccountHistoryPoints } from "../src/lib/auth/account-history.ts";
 
 const migration = readFileSync(
   "supabase/migrations/20260822043000_create_account_access.sql",
@@ -12,7 +13,16 @@ const repairMigration = readFileSync(
   "supabase/migrations/20260822045500_repair_authenticated_account_foundation.sql",
   "utf8",
 );
+const historicalMigration = readFileSync(
+  "supabase/migrations/20260822025000_create_historical_data_layer.sql",
+  "utf8",
+);
 const accountFunctions = readFileSync("src/lib/auth/account.functions.ts", "utf8");
+const historyFunctions = readFileSync("src/lib/auth/account-history.functions.ts", "utf8");
+const historyPanel = readFileSync("src/components/auth/AccountHistoryPanel.tsx", "utf8");
+const dashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
+const navigation = readFileSync("src/components/auth/AccountDashboardNavigation.tsx", "utf8");
+const accessOverview = readFileSync("src/components/auth/AccountAccessOverview.tsx", "utf8");
 
 test("authenticated account defaults safely to Free with current registered tools", () => {
   const access = resolveAccountAccess(null);
@@ -20,8 +30,8 @@ test("authenticated account defaults safely to Free with current registered tool
   assert.equal(access.label, "Free");
   assert.equal(access.entitlements.panelAccess, true);
   assert.equal(access.entitlements.observatoryAccess, true);
-  assert.equal(access.entitlements.historyAccessDays, 60);
-  assert.equal(access.entitlements.historyFull, false);
+  assert.equal(access.entitlements.historyAccessDays, null);
+  assert.equal(access.entitlements.historyFull, true);
   assert.equal(access.entitlements.dataExport, false);
 });
 
@@ -41,7 +51,8 @@ test("expired or suspended PRO falls back to the current Free capability set", (
   assert.equal(suspended.tier, "free");
   assert.equal(suspended.status, "suspended");
   assert.equal(suspended.entitlements.observatoryAccess, true);
-  assert.equal(suspended.entitlements.historyAccessDays, 60);
+  assert.equal(suspended.entitlements.historyAccessDays, null);
+  assert.equal(suspended.entitlements.historyFull, true);
 
   const expired = resolveAccountAccess(
     { tier: "pro", status: "active", validUntil: "2026-08-01T00:00:00.000Z" },
@@ -87,4 +98,46 @@ test("backend resolves and repairs the authenticated account foundation", () => 
   assert.match(accountFunctions, /profile &&\s*preferences &&\s*accountAccess/s);
   assert.match(accountFunctions, /resolveAccountAccess/);
   assert.match(accountFunctions, /Cache-Control", "private, no-store, max-age=0"/);
+});
+
+test("historical archive remains service-role only and history authenticates before admin access", () => {
+  assert.match(
+    historicalMigration,
+    /revoke all on table public\.historical_measurements from public, anon, authenticated/,
+  );
+  assert.match(
+    historicalMigration,
+    /grant select, insert, update, delete on table public\.historical_measurements to service_role/,
+  );
+  const authIndex = historyFunctions.indexOf("await client.auth.getUser()");
+  const adminIndex = historyFunctions.indexOf("createSupabaseAdminClient()");
+  assert.ok(authIndex >= 0, "history must authenticate the request");
+  assert.ok(adminIndex > authIndex, "service role must only be created after authentication");
+  assert.match(historyFunctions, /\.eq\("variable_key", "water_level"\)/);
+  assert.match(historyFunctions, /\.eq\("data_class", "observation"\)/);
+  assert.match(historyFunctions, /Cache-Control", "private, no-store, max-age=0"/);
+});
+
+test("history sampling keeps real points and never synthesizes intermediate values", () => {
+  const source = Array.from({ length: 101 }, (_, index) => ({
+    timestamp: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString(),
+    level: index / 10,
+  }));
+  const sampled = sampleAccountHistoryPoints(source, 12);
+
+  assert.equal(sampled[0], source[0]);
+  assert.equal(sampled.at(-1), source.at(-1));
+  assert.ok(sampled.length <= 12);
+  assert.ok(sampled.every((point) => source.includes(point)));
+});
+
+test("personal history is a real dashboard resource instead of roadmap copy", () => {
+  assert.match(historyPanel, /id="historico-pessoal"/);
+  assert.match(historyPanel, /HydrologyLevelChart/);
+  assert.match(historyPanel, /sem interpolação/);
+  assert.match(historyPanel, /ACCOUNT_HISTORY_PERIODS/);
+  assert.match(dashboard, /<AccountHistoryPanel/);
+  assert.doesNotMatch(dashboard, /title: "Histórico pessoal"/);
+  assert.match(navigation, /href="#historico-pessoal"/);
+  assert.match(accessOverview, /title: "Histórico pessoal"[\s\S]*state: "available"/);
 });

@@ -5,6 +5,7 @@ import {
   CloudSun,
   Globe2,
   Heart,
+  History,
   LayoutDashboard,
   RadioTower,
   Settings,
@@ -74,6 +75,10 @@ export function AccountDashboardNavigation({ snapshot }: { snapshot: Authenticat
             <a className="account-app-nav__item" href="#favoritos">
               <Heart aria-hidden="true" size={18} />
               <span>Favoritos</span>
+            </a>
+            <a className="account-app-nav__item" href="#historico-pessoal">
+              <History aria-hidden="true" size={18} />
+              <span>Histórico</span>
             </a>
           </div>
 

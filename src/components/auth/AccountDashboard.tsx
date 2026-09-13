@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { AccountDashboardNavigation } from "@/components/auth/AccountDashboardNavigation";
 import { AccountFavoritesPanel } from "@/components/auth/AccountFavoritesPanel";
+import { AccountHistoryPanel } from "@/components/auth/AccountHistoryPanel";
 import { AccountLiveOverview } from "@/components/auth/AccountLiveOverview";
 import { AccountObservatoryProduct } from "@/components/auth/AccountObservatoryProduct";
 import {
@@ -70,7 +71,6 @@ export function AccountDashboard({
   const [layoutSaving, setLayoutSaving] = useState(false);
   const [layoutFeedback, setLayoutFeedback] = useState<string | null>(null);
   const [draggedSection, setDraggedSection] = useState<DashboardSectionId | null>(null);
-  const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
   const layoutDirty = !layoutsEqual(layout, savedLayout);
 
@@ -97,13 +97,6 @@ export function AccountDashboard({
   }, [refreshLiveSnapshot]);
 
   const futureModules: FutureModule[] = [
-    {
-      title: "Histórico pessoal",
-      description:
-        historyLimit === null
-          ? "A conta já prevê acesso amplo ao acervo. A experiência histórica pessoal está sendo integrada ao workspace."
-          : `A experiência pessoal está sendo preparada com uma janela inicial de até ${historyLimit} dias.`,
-    },
     {
       title: "Comparações avançadas",
       description:
@@ -301,9 +294,9 @@ export function AccountDashboard({
               <span>Atalhos e leituras que você acompanha</span>
             </div>
             <div>
-              <small>Ferramentas</small>
-              <strong>2 disponíveis</strong>
-              <span>Observatório e gerador de widgets</span>
+              <small>Recursos</small>
+              <strong>3 disponíveis</strong>
+              <span>Histórico, Observatório e widgets</span>
             </div>
             <div>
               <small>Painel</small>
@@ -341,6 +334,8 @@ export function AccountDashboard({
               {personalizedSection(section)}
             </DashboardSectionFrame>
           ))}
+
+          <AccountHistoryPanel historyAccessDays={snapshot.access.entitlements.historyAccessDays} />
 
           <section className="account-dashboard__roadmap" aria-labelledby="dashboard-roadmap-title">
             <div className="account-dashboard__section-heading account-dashboard__section-heading--compact">
