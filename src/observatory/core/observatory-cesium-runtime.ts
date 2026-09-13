@@ -68,6 +68,7 @@ export type ObservatoryCesiumRuntime = {
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
   setLayerOpacity: (id: string, opacity: number) => void;
+  raiseLayer: (id: string) => void;
   removeLayer: (id: string) => void;
   clearDataLayers: () => void;
 };
@@ -343,6 +344,13 @@ export async function createObservatoryCesiumRuntime(
     requestRender();
   }
 
+  function raiseLayer(id: string) {
+    const imageLayer = imageLayers.get(id);
+    if (!imageLayer || widget.isDestroyed()) return;
+    widget.scene.imageryLayers.raiseToTop(imageLayer);
+    requestRender();
+  }
+
   function clearDataLayers() {
     const ids = new Set([...imageLayers.keys(), ...pointLayers.keys(), ...layerGenerations.keys()]);
     for (const id of ids) removeLayer(id);
@@ -364,6 +372,7 @@ export async function createObservatoryCesiumRuntime(
     setImageLayer,
     setPointLayer,
     setLayerOpacity,
+    raiseLayer,
     removeLayer,
     clearDataLayers,
   };
