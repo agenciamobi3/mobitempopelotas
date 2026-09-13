@@ -1,0 +1,293 @@
+.account-page.account-dashboard {
+  width: min(1780px, 100%);
+  padding: clamp(28px, 3.2vw, 52px) clamp(16px, 2vw, 36px) clamp(56px, 5vw, 92px);
+}
+
+.account-page.account-dashboard.account-dashboard {
+  gap: clamp(22px, 2.4vw, 34px);
+}
+
+.account-page.account-dashboard .account-dashboard__hero {
+  align-items: center;
+  gap: clamp(24px, 3vw, 54px);
+  padding: clamp(24px, 2.6vw, 38px);
+  border: 1px solid rgba(7, 30, 47, 0.08);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 78% -40%, rgba(24, 189, 205, 0.34), transparent 36%),
+    radial-gradient(circle at 12% 140%, rgba(94, 44, 237, 0.3), transparent 34%),
+    #071e2f;
+  box-shadow: 0 22px 60px rgba(7, 30, 47, 0.12);
+}
+
+.account-page.account-dashboard .account-dashboard__hero .eyebrow {
+  color: rgba(132, 226, 235, 0.9);
+}
+
+.account-page.account-dashboard .account-dashboard__title-row {
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.account-page.account-dashboard .account-dashboard__title-row h1 {
+  max-width: 920px;
+  color: #fff;
+  font-size: clamp(2.15rem, 3.8vw, 4.7rem);
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+}
+
+.account-page.account-dashboard .account-tier-badge {
+  margin-top: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff !important;
+  backdrop-filter: blur(8px);
+}
+
+.account-page.account-dashboard .account-dashboard__hero p {
+  max-width: 940px;
+  margin-top: 16px;
+  color: rgba(224, 235, 241, 0.76);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.account-page.account-dashboard .account-dashboard__actions {
+  align-self: center;
+  max-width: 390px;
+}
+
+.account-page.account-dashboard .account-dashboard__primary,
+.account-page.account-dashboard .account-dashboard__secondary {
+  min-height: 42px;
+  padding-inline: 16px;
+}
+
+.account-page.account-dashboard .account-dashboard__primary {
+  background: #fff;
+  color: #071e2f;
+}
+
+.account-page.account-dashboard .account-dashboard__secondary {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.account-page.account-dashboard .account-dashboard__summary {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid rgba(7, 30, 47, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.93);
+  box-shadow: 0 14px 38px rgba(7, 30, 47, 0.045);
+}
+
+.account-page.account-dashboard .account-dashboard__summary > div {
+  padding: 18px 20px;
+  border: 0;
+  border-right: 1px solid rgba(7, 30, 47, 0.08);
+  border-radius: 0;
+  background: transparent;
+}
+
+.account-page.account-dashboard .account-dashboard__summary > div:last-child {
+  border-right: 0;
+}
+
+.account-page.account-dashboard .account-dashboard__summary strong {
+  margin-top: 6px;
+  font-size: 1.18rem;
+}
+
+.account-page.account-dashboard .account-dashboard__summary span {
+  margin-top: 5px;
+  font-size: 0.75rem;
+  line-height: 1.42;
+}
+
+.account-page.account-dashboard .dashboard-personalize {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.account-page.account-dashboard .dashboard-section-frame {
+  min-width: 0;
+}
+
+.account-page.account-dashboard .account-live,
+.account-page.account-dashboard .account-favorites {
+  padding: clamp(22px, 2.2vw, 34px);
+  border-radius: 22px;
+  box-shadow: 0 16px 48px rgba(7, 30, 47, 0.055);
+}
+
+.account-page.account-dashboard .account-live__heading > div,
+.account-page.account-dashboard .account-dashboard__section-heading {
+  max-width: 960px;
+}
+
+.account-page.account-dashboard .account-live__heading h2,
+.account-page.account-dashboard .account-dashboard__section-heading h2 {
+  font-size: clamp(1.75rem, 2.5vw, 3rem);
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.account-page.account-dashboard .account-live__heading p,
+.account-page.account-dashboard .account-dashboard__section-heading p {
+  margin-top: 12px;
+  max-width: 900px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.account-page.account-dashboard .account-live__grid {
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.account-page.account-dashboard .account-live__card {
+  min-height: 190px;
+  padding: 18px;
+  border-radius: 17px;
+}
+
+.account-page.account-dashboard .account-live__card strong {
+  margin-top: 10px;
+  font-size: clamp(1.65rem, 2.2vw, 2.45rem);
+}
+
+.account-page.account-dashboard .account-live__card span {
+  margin-top: 9px;
+  font-size: 0.82rem;
+}
+
+.account-page.account-dashboard .account-live__card a {
+  padding-top: 14px;
+}
+
+.account-page.account-dashboard .account-favorites__catalog {
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.account-page.account-dashboard .account-favorites__shortcuts {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.account-page.account-dashboard .account-favorites__choice {
+  min-height: 96px;
+}
+
+.account-page.account-dashboard .account-dashboard__modules {
+  min-width: 0;
+  padding: clamp(22px, 2.2vw, 32px);
+  border: 1px solid rgba(7, 30, 47, 0.09);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.account-page.account-dashboard .account-dashboard__grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.account-page.account-dashboard .account-dashboard__module {
+  min-height: 205px;
+  padding: 20px;
+  border-radius: 17px;
+  box-shadow: none;
+}
+
+.account-page.account-dashboard .account-dashboard__module h3 {
+  margin-top: 16px;
+  font-size: 1.2rem;
+}
+
+.account-page.account-dashboard .account-dashboard__module p {
+  margin-top: 9px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.account-page.account-dashboard .account-dashboard__module-link {
+  padding-top: 16px;
+}
+
+@media (min-width: 1500px) {
+  .account-page.account-dashboard .account-live__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  .account-page.account-dashboard {
+    width: min(100%, 1120px);
+  }
+
+  .account-page.account-dashboard .account-dashboard__summary > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .account-page.account-dashboard .account-dashboard__summary > div:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(7, 30, 47, 0.08);
+  }
+}
+
+@media (max-width: 1040px) {
+  .account-page.account-dashboard .account-dashboard__hero {
+    align-items: start;
+  }
+
+  .account-page.account-dashboard .account-dashboard__actions {
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .account-page.account-dashboard {
+    width: 100%;
+    padding: 24px 12px 56px;
+    gap: 18px;
+  }
+
+  .account-page.account-dashboard .account-dashboard__hero {
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+
+  .account-page.account-dashboard .account-dashboard__title-row h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .account-page.account-dashboard .account-dashboard__summary {
+    border-radius: 17px;
+  }
+
+  .account-page.account-dashboard .account-dashboard__summary > div {
+    border-right: 0;
+    border-bottom: 1px solid rgba(7, 30, 47, 0.08);
+  }
+
+  .account-page.account-dashboard .account-dashboard__summary > div:last-child {
+    border-bottom: 0;
+  }
+
+  .account-page.account-dashboard .account-live,
+  .account-page.account-dashboard .account-favorites,
+  .account-page.account-dashboard .account-dashboard__modules {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .account-page.account-dashboard .account-live__heading h2,
+  .account-page.account-dashboard .account-dashboard__section-heading h2 {
+    font-size: clamp(1.65rem, 8vw, 2.25rem);
+  }
+}
