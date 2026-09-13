@@ -1,6 +1,6 @@
 # Tempo Pelotas — estado atual do projeto
 
-Última atualização: 12/09/2026  
+Última atualização: 13/09/2026  
 Branch operacional: `main`  
 Domínio canônico e único de produção: `https://tempopelotas.com.br`
 
@@ -31,7 +31,7 @@ Regras permanentes:
 | Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; usa leitura editorial aberta em linhas, `ServiceStatus.state` descreve a integração e `dataCondition` descreve separadamente a condição publicável do dado para Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; critérios gerais ficam no fechamento da página |
 | Rota de compatibilidade aposentada | `/metodologia` permanece redirect 301 para `/status-dos-dados`; `/estacao-embrapa-pelotas` voltou em 09/09 como página interna real, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer |
 | SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts`; a página Embrapa restaurada e o Observatório interno não alteram esse inventário |
-| Observatório PRO | Fase executável em `/observatorio`: entitlement `observatoryAccess` (`Free=false`, `PRO ativo=true`), gate server-side, cache privado/no-store e robots estrito; CesiumJS 1.145 roda por lazy import em `CesiumWidget`, com OpenStreetMap keyless, Re:Earth Terrain e fallback elipsoidal; radar, satélite e raios usam séries temporais REDEMET sincronizadas por relógio global, enquanto alertas e hidrologia reutilizam integrações canônicas; cenários compartilháveis V1 transportam horário, camadas, opacidade e câmera no fragmento da URL, preservando o cenário através do login; rota segue fora de sitemap/navegação/public-routes |
+| Observatório PRO | Fase executável em `/observatorio`: entitlement `observatoryAccess` (`Free=false`, `PRO ativo=true`), gate server-side, cache privado/no-store e robots estrito; CesiumJS 1.145 roda por lazy import em `CesiumWidget`, com OpenStreetMap keyless, Re:Earth Terrain e fallback elipsoidal; radar, satélite e raios usam séries temporais REDEMET sincronizadas por relógio global, enquanto alertas e hidrologia reutilizam integrações canônicas; cenários compartilháveis V1 transportam horário, camadas, opacidade e câmera no fragmento da URL, preservando o cenário através do login; na branch empilhada do PR #137 o Comparador A/B Swipe já é executável para radar/satélite com um único Cesium/câmera, timestamps independentes, split nativo e cortina acessível; rota segue fora de sitemap/navegação/public-routes |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
 | Embrapa | Coletor operacional/scheduler continuam aposentados; `/estacao-embrapa-pelotas` voltou como consulta server-side direta, somente leitura, à página pública da Embrapa, sem alterar a fonte do `Agora` |
 | Previsão | Open-Meteo principal; MET Norway contingência quando aplicável |
@@ -53,7 +53,7 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Runs de qualidade voltaram a executar steps; no PR de cenários do Observatório a suíte geral é interrompida antes dos checks específicos por uma falha de contrato hidrológico fora do escopo, portanto testes/typecheck/build do Observatório não devem ser declarados aprovados apenas pelo estado do workflow geral |
+| GitHub Actions | O workflow dedicado do Observatório aceita PRs para `main`, mas as tentativas atuais do PR #135 encerraram antes de qualquer step com `runner_id=0`, `runner_name=""` e `steps=[]`; a suíte geral no mesmo HEAD exibiu o mesmo sintoma, portanto testes/typecheck/build não devem ser declarados aprovados nem reprovados por essas execuções sem runner |
 
 ## 3. Stack e budgets públicos
 
@@ -427,6 +427,8 @@ O runtime 3D usa `CesiumWidget`, base OpenStreetMap sem chave e Re:Earth Terrain
 
 Cenários compartilháveis V1 preservam o instante global, estado/opacidade das camadas e câmera Cesium no fragmento `#scenario=...`. O codec é versionado, limitado e fail-closed. Como hash não chega ao servidor, o fluxo Google preserva somente o parâmetro `scenario` do fragmento no retorno para o `nextPath` já sanitizado por `safeNextPath`, sem criar redirect externo nem API nova. Na restauração, o timestamp solicitado só é resolvido após todas as fontes temporais ativas do cenário assentarem, evitando selecionar cedo um frame aproximado enquanto outra fonte ainda carrega.
 
+Na branch empilhada `work/observatory-comparison-ab`, o Comparador A/B Swipe reutiliza esse runtime sem abrir um segundo viewer. Radar e satélite podem manter imagery A/B simultânea com `SplitDirection.LEFT/RIGHT` e `scene.splitPosition`; cada lado preserva timestamp próprio e a timeline edita somente o lado selecionado. A entrada no comparador exige que um horário temporal real já tenha sido resolvido; a cortina é operável por mouse, toque e teclado e permanece na árvore de acessibilidade. Renders A/B são iniciados no mesmo ciclo antes do primeiro `await`, permitindo que as gerações do runtime invalidem quadros antigos em trocas rápidas ou ao sair do comparador. Raios, alertas e hidrologia continuam fora do split nesta primeira fase.
+
 Segurança ativa inclui RLS, secrets server-side, gate geográfico quando aplicável, CSP, rate limiting, allowlists/proxies de fontes e logs sanitizados. O Observatório acrescenta `Cache-Control: private, no-store`, `Vary: Cookie, Authorization` e `X-Robots-Tag` estrito na fundação de acesso.
 
 E2E autenticado completo de Widget Builder, conta, contribuição e Observatório continua pendente.
@@ -435,14 +437,14 @@ E2E autenticado completo de Widget Builder, conta, contribuição e Observatóri
 
 Contratos versionados cobrem meteorologia, navegação, shells, hidrologia, REDEMET, histórico, widgets, enchentes e colaboração.
 
-A consolidação de 08–12/09 atualizou contratos para:
+A consolidação de 08–13/09 atualizou contratos para:
 
 - `/status-dos-dados` como única superfície pública indexável de transparência;
 - `dataCondition` público em `/status-dos-dados` separado de `state`/`detail` e restrito nesta fase a Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; o contrato `tests/data-status-data-condition.test.ts` impede espalhar a semântica para outras fontes sem definição própria;
 - visual editorial de `/status-dos-dados` em linhas abertas, sem antiga grade de duas colunas, com condição do dado separada do badge de estado, histórico em faixas/linhas e critérios de publicação no fechamento; protegido por `tests/data-status-editorial-visual.test.ts`;
 - redirect 301 de `/metodologia` mantido;
 - `/estacao-embrapa-pelotas` restaurada em 09/09 como página interna real, com reader server-side direto, `noindex`, fora do sitemap e do footer, novamente descoberta no megamenu `Explorar` e sem reativar o coletor aposentado; protegida por `tests/embrapa-station-page.test.ts` e pelo contrato de separação em `tests/retired-weather-source-cleanup.test.ts`;
-- Observatório em `/observatorio` com entitlement PRO, gate server-side, robots estrito, shell standalone, Cesium lazy, assets preparados no build, base keyless, terreno com fallback, camadas observacionais, timeline global e cenários compartilháveis; `tests/observatory-foundation.test.ts`, `tests/observatory-timeline.test.ts`, `tests/observatory-interface.test.ts` e `tests/observatory-scenario.test.ts` protegem a superfície e o workflow dedicado inclui esses contratos;
+- Observatório em `/observatorio` com entitlement PRO, gate server-side, robots estrito, shell standalone, Cesium lazy, assets preparados no build, base keyless, terreno com fallback, camadas observacionais, timeline global, cenários compartilháveis e Comparador A/B Swipe na branch empilhada; `tests/observatory-foundation.test.ts`, `tests/observatory-timeline.test.ts`, `tests/observatory-interface.test.ts`, `tests/observatory-scenario.test.ts` e `tests/observatory-comparison.test.ts` protegem a superfície, incluindo split nativo, um único widget, isolamento A/B, invalidação de renders antigos, exigência de horário antes da entrada e acessibilidade da cortina;
 - header canônico `HomeEditorialHeader` sem implementação paralela e com a Estação Embrapa novamente em `Explorar > Observação e contexto`;
 - footer compartilhado sem inventário repetido de fornecedores;
 - overlay fotográfico da Home em preto neutro, com opacidade geral reduzida e blur de 10 px mascarado para desaparecer antes da área direita da fotografia; protegido por `tests/home-hero-overlay-and-recovery.test.ts`;
@@ -464,9 +466,9 @@ A consolidação de 08–12/09 atualizou contratos para:
 
 ### 13.1 GitHub Actions
 
-Os workflows gerais voltaram a executar steps. No PR #135, a execução de `Qualidade` é interrompida em um contrato de hierarquia Defesa Civil/SACE antes de chegar aos testes específicos do Observatório, typecheck e build. Essa falha está fora do escopo dos cenários e não deve ser mascarada por alteração hidrológica oportunista dentro do PR do Observatório.
+O workflow dedicado `.github/workflows/observatory-foundation.yml` aceita `pull_request` para `main`, além de push em `main` e disparo manual. No PR #135, duas tentativas atuais encerraram antes de qualquer step: GitHub registrou `runner_id=0`, `runner_name=""` e `steps=[]`. O workflow geral `Qualidade` do mesmo HEAD também terminou sem runner/steps. Esse estado não constitui evidência de falha do código nem aprovação dos contratos, typecheck ou build.
 
-O workflow dedicado `.github/workflows/observatory-foundation.yml` mantém os contratos do Observatório, mas sua execução automática está configurada para push em `main` ou disparo manual. Portanto, antes de promover uma entrega, é necessário observar uma execução que alcance os checks específicos; não inferir aprovação a partir de commits ou de uma suíte geral abortada cedo.
+O PR #137 é deliberadamente empilhado sobre `work/observatory-share-scenarios`, portanto não é candidato a promoção direta para `main` enquanto #135 não estiver estabilizado. A validação dirigida do Comparador deve ocorrer quando houver runner utilizável ou por execução equivalente capaz de alcançar os contratos, typecheck e build; não mascarar indisponibilidade de runner com mudanças fora do escopo.
 
 ### 13.2 Estado de deploy
 
@@ -481,8 +483,8 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 
 ## 14. Próximas prioridades
 
-1. Fechar o PR #135 de cenários compartilháveis do Observatório, incluindo validação dirigida dos contratos, typecheck e build sem corrigir falhas hidrológicas fora do escopo apenas para produzir verde.
-2. Implementar e validar o Comparador A/B em fase própria, reutilizando o mesmo Cesium, câmera e contratos temporais; primeira versão deve usar split nativo para radar/satélite e manter raios/alertas/hidrologia fora do corte até existir contrato apropriado.
+1. Fechar o PR #135 de cenários compartilháveis do Observatório, incluindo validação dirigida dos contratos, typecheck e build quando houver runner, sem corrigir falhas fora do escopo apenas para produzir verde.
+2. Fechar a revisão do PR #137 do Comparador A/B Swipe: os quatro pontos levantados na revisão atual já estão tratados em código e contratos, mas a branch continua draft/empilhada até nova revisão e validação executável; não promover para `main` antes de #135.
 3. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
 4. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível, atalho no megamenu e permanência fora do sitemap.
 5. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático, ao sitemap/indexação ou ao footer.
@@ -506,6 +508,7 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 - `docs/TEMPO_PELOTAS_OBSERVATORIO_3D_ARCHITECTURE.md` — arquitetura e fases do Observatório PRO;
 - `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md` — fundação executável do Observatório e contratos do runtime Cesium;
 - `docs/TEMPO_PELOTAS_OBSERVATORIO_SCENARIO_SHARING_2026-09-12.md` — cenários compartilháveis, restauração temporal e preservação através do login;
+- `docs/TEMPO_PELOTAS_OBSERVATORIO_COMPARISON_AB_2026-09-12.md` — primeira fase do Comparador A/B Swipe, limites de split e regras de promoção;
 - `docs/DEFESA_CIVIL_DEDICATED_PAGE_GATE_2026-09-05.md` — gate editorial de páginas dedicadas;
 - `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração da Rede Defesa Civil RS;
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — resiliência, budgets e estados de dados;
