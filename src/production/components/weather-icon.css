@@ -3,8 +3,9 @@
  * Artwork: amCharts weather icons, CC BY 4.0.
  * License copy: /weather-icons/amcharts/LICENSE.txt
  *
- * Dense forecast lists stay static. Only the primary current-condition surfaces
- * receive restrained motion, and reduced-motion users always receive static art.
+ * Every canonical weather condition receives subtle condition-aware motion across
+ * the site. Primary hero surfaces add a second, restrained float layer, while
+ * prefers-reduced-motion always falls back to static artwork.
  */
 .weather-icon {
   display: block;
@@ -14,6 +15,44 @@
 
 .weather-icon--amcharts .weather-icon__asset {
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  will-change: transform, filter, opacity;
+}
+
+/*
+ * Condition-aware animation lives on the embedded asset rather than the SVG
+ * frame. This keeps sizing/layout stable while making the same WeatherIcon feel
+ * alive in hourly lists, INMET, weekly cards and internal forecast pages.
+ */
+.weather-icon--sun .weather-icon__asset {
+  animation: tp-weather-asset-sun 12s linear infinite;
+}
+
+.weather-icon--moon .weather-icon__asset {
+  animation: tp-weather-asset-moon 5.2s ease-in-out infinite;
+}
+
+.weather-icon--partly-cloudy .weather-icon__asset,
+.weather-icon--partly-cloudy-night .weather-icon__asset {
+  animation: tp-weather-asset-partly-cloudy 4.6s ease-in-out infinite;
+}
+
+.weather-icon--cloud .weather-icon__asset {
+  animation: tp-weather-asset-cloud 5.4s ease-in-out infinite;
+}
+
+.weather-icon--rain .weather-icon__asset {
+  animation: tp-weather-asset-rain 1.35s ease-in-out infinite;
+}
+
+.weather-icon--storm .weather-icon__asset {
+  animation: tp-weather-asset-storm 2.2s ease-in-out infinite;
+}
+
+.weather-icon--wind {
+  transform-origin: 50% 50%;
+  animation: tp-weather-icon-wind 2.8s ease-in-out infinite;
 }
 
 /*
@@ -126,29 +165,92 @@
   height: 44px !important;
 }
 
-/*
- * Motion remains restricted to primary summary surfaces. Dense hourly/daily
- * collections stay static so increasing the artwork does not add visual noise.
- */
+/* Primary surfaces gain a small independent float on top of the inner motion. */
 .tp-home-hero__condition-icon .weather-icon--amcharts,
 .today-retail-hero__weather-icon .weather-icon--amcharts,
 .tomorrow-retail-hero__weather-icon .weather-icon--amcharts,
-.rain-retail-hero__weather-icon .weather-icon--amcharts {
+.rain-retail-hero__weather-icon .weather-icon--amcharts,
+.seven-day-retail-hero__weather-icon .weather-icon--amcharts {
   transform-origin: 50% 50%;
   animation: tp-weather-icon-float 4.8s ease-in-out infinite;
 }
 
-.tp-home-hero__condition-icon .weather-icon--sun,
-.today-retail-hero__weather-icon .weather-icon--sun,
-.tomorrow-retail-hero__weather-icon .weather-icon--sun {
-  animation: tp-weather-icon-sun 18s linear infinite;
+@keyframes tp-weather-asset-sun {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.tp-home-hero__condition-icon .weather-icon--storm,
-.today-retail-hero__weather-icon .weather-icon--storm,
-.tomorrow-retail-hero__weather-icon .weather-icon--storm,
-.rain-retail-hero__weather-icon .weather-icon--storm {
-  animation: tp-weather-icon-storm 3.2s ease-in-out infinite;
+@keyframes tp-weather-asset-moon {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(-1.8px) rotate(2deg);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes tp-weather-asset-partly-cloudy {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(1.8px, -1px);
+  }
+}
+
+@keyframes tp-weather-asset-cloud {
+  0%,
+  100% {
+    transform: translateX(-1.2px);
+  }
+  50% {
+    transform: translateX(1.8px);
+  }
+}
+
+@keyframes tp-weather-asset-rain {
+  0%,
+  100% {
+    transform: translateY(-0.6px);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(1.5px);
+    filter: brightness(1.05);
+  }
+}
+
+@keyframes tp-weather-asset-storm {
+  0%,
+  38%,
+  62%,
+  100% {
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+  46% {
+    transform: translateY(-1px) scale(1.025);
+    filter: brightness(1.28);
+  }
+  52% {
+    transform: translateY(-0.4px) scale(1.01);
+    filter: brightness(1.08);
+  }
+}
+
+@keyframes tp-weather-icon-wind {
+  0%,
+  100% {
+    transform: translateX(-1px) rotate(-0.7deg);
+  }
+  50% {
+    transform: translateX(2px) rotate(0.7deg);
+  }
 }
 
 @keyframes tp-weather-icon-float {
@@ -158,22 +260,6 @@
   }
   50% {
     transform: translateY(-2px);
-  }
-}
-
-@keyframes tp-weather-icon-sun {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes tp-weather-icon-storm {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-1px) scale(1.025);
   }
 }
 
@@ -191,10 +277,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .weather-icon--amcharts .weather-icon__asset,
+  .weather-icon--wind,
   .tp-home-hero__condition-icon .weather-icon--amcharts,
   .today-retail-hero__weather-icon .weather-icon--amcharts,
   .tomorrow-retail-hero__weather-icon .weather-icon--amcharts,
-  .rain-retail-hero__weather-icon .weather-icon--amcharts {
-    animation: none;
+  .rain-retail-hero__weather-icon .weather-icon--amcharts,
+  .seven-day-retail-hero__weather-icon .weather-icon--amcharts {
+    animation: none !important;
+    filter: none;
   }
 }
