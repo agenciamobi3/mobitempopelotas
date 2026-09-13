@@ -100,6 +100,7 @@ async function renderComparisonRaster(
   runtime.setSplitPosition(comparison.splitPosition);
 
   const rendered: Partial<Record<"a" | "b", ReturnType<typeof selectTemporalFrame>>> = {};
+  const pendingRenders: Promise<void>[] = [];
 
   for (const side of COMPARISON_SIDES) {
     const sideState = comparison[side];
@@ -119,15 +120,18 @@ async function renderComparisonRaster(
       continue;
     }
 
-    await runtime.setImageLayer(targetId, {
-      imageUrl: frame.payload.imageUrl,
-      bounds: frame.payload.bounds,
-      opacity: layerState.opacity,
-      split: side === "a" ? "left" : "right",
-    });
+    pendingRenders.push(
+      runtime.setImageLayer(targetId, {
+        imageUrl: frame.payload.imageUrl,
+        bounds: frame.payload.bounds,
+        opacity: layerState.opacity,
+        split: side === "a" ? "left" : "right",
+      }),
+    );
     rendered[side] = frame;
   }
 
+  await Promise.all(pendingRenders);
   return rendered;
 }
 
