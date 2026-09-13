@@ -37,6 +37,8 @@ const geoJsonCollectionSchema = z
   })
   .passthrough();
 
+export type AnaRhnHydrographyCoordinates = number[][] | number[][][] | number[][][][];
+
 export type AnaRhnHydrographyFeature = {
   type: "Feature";
   properties: {
@@ -45,7 +47,7 @@ export type AnaRhnHydrographyFeature = {
   };
   geometry: {
     type: "LineString" | "MultiLineString" | "Polygon" | "MultiPolygon";
-    coordinates: unknown;
+    coordinates: AnaRhnHydrographyCoordinates;
   };
 };
 
@@ -127,6 +129,37 @@ function asText(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function isGeoJsonPosition(value: unknown): value is number[] {
+  return (
+    Array.isArray(value) &&
+    value.length >= 2 &&
+    value.every((coordinate) => typeof coordinate === "number" && Number.isFinite(coordinate))
+  );
+}
+
+function isCoordinateTree(value: unknown, depth: number): boolean {
+  if (depth === 1) return isGeoJsonPosition(value);
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((entry) => isCoordinateTree(entry, depth - 1))
+  );
+}
+
+function parseCoordinates(
+  geometryType: AnaRhnHydrographyFeature["geometry"]["type"],
+  value: unknown,
+): AnaRhnHydrographyCoordinates | null {
+  const depth =
+    geometryType === "LineString"
+      ? 2
+      : geometryType === "MultiLineString" || geometryType === "Polygon"
+        ? 3
+        : 4;
+
+  return isCoordinateTree(value, depth) ? (value as AnaRhnHydrographyCoordinates) : null;
+}
+
 function parseCollection(payload: unknown, kind: "river" | "water-body") {
   const parsed = geoJsonCollectionSchema.safeParse(payload);
   if (!parsed.success) return null;
@@ -140,6 +173,10 @@ function parseCollection(payload: unknown, kind: "river" | "water-body") {
         : geometryType === "Polygon" || geometryType === "MultiPolygon";
     if (!validGeometry) return [];
 
+    const typedGeometry = geometryType as AnaRhnHydrographyFeature["geometry"]["type"];
+    const coordinates = parseCoordinates(typedGeometry, feature.geometry.coordinates);
+    if (!coordinates) return [];
+
     const properties = feature.properties ?? {};
     const name =
       kind === "river"
@@ -151,8 +188,8 @@ function parseCollection(payload: unknown, kind: "river" | "water-body") {
         type: "Feature" as const,
         properties: { name, kind },
         geometry: {
-          type: geometryType as AnaRhnHydrographyFeature["geometry"]["type"],
-          coordinates: feature.geometry.coordinates,
+          type: typedGeometry,
+          coordinates,
         },
       },
     ];
