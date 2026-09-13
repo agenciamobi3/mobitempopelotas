@@ -156,7 +156,7 @@ test("visão de acesso cadastrado mostra recursos atuais e futuros sem paywall p
   assert.match(accessOverview, /Histórico pessoal/);
   assert.match(accessOverview, /Comparações, exportações e análises/);
   assert.match(accessOverview, /state:\s*"preparing"/);
-  assert.match(accessOverview, /planos futuros/);
+  assert.match(accessOverview, /uso contínuo/);
   assert.doesNotMatch(accessOverview, /Não incluído|assine agora|compre agora|desbloqueie para consultar/i);
 });
 
