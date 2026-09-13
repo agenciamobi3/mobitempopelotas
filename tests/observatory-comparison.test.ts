@@ -99,7 +99,7 @@ test("posição da cortina é normalizada para manter ambos os lados utilizávei
   assert.equal(createObservatoryComparison({ a: base, b: base, splitPosition: Number.NaN }).splitPosition, 0.5);
 });
 
-test("runtime usa split nativo do Cesium e continua com um único widget", () => {
+test("runtime usa split nativo, ordenação de imagery e um único widget", () => {
   assert.match(runtime, /SplitDirection/);
   assert.match(runtime, /layer\.splitDirection = splitDirection\(input\.split\)/);
   assert.match(runtime, /widget\.scene\.splitPosition/);
@@ -109,11 +109,12 @@ test("runtime usa split nativo do Cesium e continua com um único widget", () =>
   assert.equal((runtime.match(/new CesiumWidget\(/g) ?? []).length, 1);
 });
 
-test("runtime mantém a imagem anterior até o novo provider estar pronto", () => {
-  assert.match(
-    runtime,
-    /const generation = nextGeneration\(id\);\s+const provider = await SingleTileImageryProvider\.fromUrl[\s\S]+if \(widget\.isDestroyed\(\) \|\| layerGenerations\.get\(id\) !== generation\) return;\s+detachLayer\(id\);/,
-  );
+test("runtime só troca um grupo de imagery depois que todos os providers ficam prontos", () => {
+  assert.match(runtime, /async function setImageLayerGroup/);
+  assert.match(runtime, /const prepared = await Promise\.all/);
+  assert.match(runtime, /prepared\.some\(\(\{ id, generation \}\) => layerGenerations\.get\(id\) !== generation\)/);
+  assert.match(runtime, /for \(const \{ id \} of prepared\) detachLayer\(id\)/);
+  assert.match(runtime, /await setImageLayerGroup\(\[\{ id, input \}\]\)/);
 });
 
 test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônicos", () => {
@@ -124,6 +125,13 @@ test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônic
   assert.match(viewer, /split:[\s\S]+comparison\.mode === "swipe"[\s\S]+"left"[\s\S]+"right"[\s\S]+"none"/);
   assert.match(viewer, /removeComparisonRasterLayers/);
   assert.doesNotMatch(viewer, /new CesiumWidget/);
+});
+
+test("renders A/B são preparados e substituídos como grupo atômico", () => {
+  assert.match(viewer, /const pendingUpdates: ObservatoryCesiumImageLayerUpdate\[\] = \[\]/);
+  assert.match(viewer, /pendingUpdates\.push\(\{/);
+  assert.match(viewer, /await runtime\.setImageLayerGroup\(pendingUpdates\)/);
+  assert.doesNotMatch(viewer, /await runtime\.setImageLayer\(targetId/);
 });
 
 test("modo opacidade mantém todos os overlays B acima da base A", () => {
@@ -150,59 +158,48 @@ test("slider de opacidade ajusta alpha de B sem recarregar providers", () => {
     /runtime\.setLayerOpacity\(\s*comparisonLayerId\("b", id\),\s*layerState\.opacity \* comparison\.opacityMix/,
   );
   assert.match(viewer, /raiseComparisonOverlayLayers\(runtime, comparison\)/);
-  assert.match(viewer, /const comparisonModeKey = comparisonState \? "comparison" : "normal"/);
   assert.doesNotMatch(
     viewer,
-    /const comparisonContentKey = comparisonState[\s\S]{0,140}comparisonState\.opacityMix/,
+    /const comparisonContentKey = comparisonState[\s\S]{0,180}comparisonState\.opacityMix/,
   );
 });
 
-test("renders A/B iniciam juntos para que gerações antigas sejam invalidadas antes do await", () => {
-  assert.match(viewer, /const pendingRenders: Promise<void>\[\] = \[\]/);
-  assert.match(viewer, /pendingRenders\.push\(/);
-  assert.match(viewer, /await Promise\.all\(pendingRenders\)/);
-  assert.doesNotMatch(viewer, /await runtime\.setImageLayer\(targetId/);
-});
-
-test("falhas de imagem durante a timeline não ficam sem tratamento", () => {
+test("falha de provider preserva o último par A/B e publica degradação", () => {
   assert.match(viewer, /Falha ao atualizar comparação \$\{id\}/);
-  assert.match(viewer, /runtime\.removeLayer\(comparisonLayerId\("a", id\)\)/);
-  assert.match(viewer, /runtime\.removeLayer\(comparisonLayerId\("b", id\)\)/);
+  assert.match(viewer, /const previousMeta = renderedTemporalMetaRef\.current\[id\]/);
+  assert.match(viewer, /observedAt: previousMeta\?\.observedAt \?\? null/);
+  assert.match(viewer, /mantendo o último par disponível/);
   assert.match(viewer, /status: "degraded"/);
-  assert.match(viewer, /Falha ao atualizar quadro temporal \$\{id\}/);
 });
 
-test("carga inicial temporal não publica nem limpa estado depois que a timeline avançou", () => {
+test("carga inicial temporal não publica estado depois que timeline ou fonte mudaram", () => {
   assert.match(viewer, /let renderSelectionRevision: number \| null = null/);
+  assert.match(viewer, /let installedSourceRevision: number \| null = null/);
   assert.match(viewer, /renderSelectionRevision = timelineSelectionRevisionRef\.current/);
-  assert.match(
-    viewer,
-    /layerRevisionRef\.current !== revision \|\|\s+timelineSelectionRevisionRef\.current !== renderSelectionRevision/,
-  );
-  assert.match(
-    viewer,
-    /renderSelectionRevision !== null &&\s+timelineSelectionRevisionRef\.current !== renderSelectionRevision/,
-  );
+  assert.match(viewer, /temporalSourceRevisionRef\.current\[id\] !== installedSourceRevision/);
 });
 
-test("falha anterior ao fromUrl preserva cache e publica degradação", () => {
-  assert.match(viewer, /const loadSelectionRevision = timelineSelectionRevisionRef\.current/);
+test("falha de atualização preserva cache existente e primeira carga sem cache pode falhar", () => {
+  assert.match(viewer, /const cachedResultAtLoadStart = temporalLayersRef\.current\[id\]/);
+  assert.match(viewer, /const hadTemporalCacheAtLoadStart = cachedResultAtLoadStart !== undefined/);
   assert.match(
     viewer,
-    /const hadTemporalCacheAtLoadStart = temporalLayersRef\.current\[id\] !== undefined/,
-  );
-  assert.match(
-    viewer,
-    /const selectionChangedSinceLoadStarted =\s+timelineSelectionRevisionRef\.current !== loadSelectionRevision/,
-  );
-  assert.match(
-    viewer,
-    /renderSelectionRevision === null &&\s+selectionChangedSinceLoadStarted &&\s+\(hadTemporalCacheAtLoadStart \|\| hasTemporalCache\)/,
+    /const fallbackResult =\s+cachedResultAtLoadStart \?\?\s+\(installedSourceRevision === null \? currentCachedResult : undefined\)/,
   );
   assert.match(viewer, /Falha ao atualizar série temporal \$\{id\}; mantendo cache/);
-  assert.match(viewer, /const cachedFrame = cachedResult/);
+  assert.match(viewer, /Falha ao carregar série temporal \$\{id\}/);
   assert.match(viewer, /status: "degraded"/);
-  assert.match(viewer, /mantendo o último quadro já carregado/);
+  assert.match(viewer, /status: "unavailable"/);
+});
+
+test("renders que usam cache antigo são invalidados quando a fonte é substituída", () => {
+  assert.match(viewer, /const temporalSourceRevisionRef = useRef/);
+  assert.match(viewer, /installedSourceRevision = \(temporalSourceRevisionRef\.current\[id\] \?\? 0\) \+ 1/);
+  assert.match(viewer, /const sourceRevision = temporalSourceRevisionRef\.current\[id\] \?\? 0/);
+  assert.match(
+    viewer,
+    /\(temporalSourceRevisionRef\.current\[id\] \?\? 0\) !== sourceRevision/,
+  );
 });
 
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
@@ -229,15 +226,16 @@ test("shell oferece modo opacidade com controle explícito de B sobre A", () => 
   assert.match(shell, /comparisonState\.mode === "opacity"/);
 });
 
-test("comparação nasce de um horário pertencente a radar ou satélite habilitado", () => {
+test("comparação nasce somente de quadro raster que não esteja no futuro", () => {
   assert.match(shell, /resolveComparisonSeedTimestamp/);
   assert.match(shell, /for \(const id of \["radar", "satellite"\] as const\)/);
   assert.match(shell, /if \(!enabledLayers\.includes\(id\)\) continue/);
   assert.match(shell, /timelineSources\[id\] \?\? \[\]/);
+  assert.match(shell, /else return latestAtOrBefore/);
+  assert.doesNotMatch(shell, /latestAtOrBefore \?\? timestamp/);
   assert.match(shell, /const canEnterComparison = comparisonSeedTimelineAt !== null/);
   assert.match(shell, /if \(!comparisonSeedTimelineAt\) return/);
   assert.match(shell, /currentScenario\(comparisonSeedTimelineAt\)/);
-  assert.match(shell, /Aguarde radar ou satélite disponibilizar um quadro observacional/);
 });
 
 test("comparação não serializa estado ambíguo no compartilhamento normal", () => {
