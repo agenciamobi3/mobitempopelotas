@@ -52,12 +52,12 @@ function ObservatoryRoute() {
           <span className="eyebrow">Observatório</span>
           <h1 id="observatory-unavailable-title">O Observatório está temporariamente indisponível</h1>
           <p>
-            O portal público continua funcionando normalmente enquanto a área PRO recupera o acesso
-            da conta.
+            O portal público continua funcionando normalmente enquanto recuperamos o acesso da sua
+            conta cadastrada.
           </p>
         </section>
-        <Link className="login-page__back" to="/">
-          ← Voltar para a previsão
+        <Link className="login-page__back" to="/painel">
+          ← Voltar ao meu painel
         </Link>
       </main>
     );
@@ -76,20 +76,19 @@ function ObservatoryRoute() {
             height={1552}
           />
         </Link>
-        <section className="login-card" aria-labelledby="observatory-pro-title">
-          <span className="eyebrow">Tempo Pelotas PRO</span>
-          <h1 id="observatory-pro-title">Observatório disponível no plano PRO</h1>
+        <section className="login-card" aria-labelledby="observatory-account-title">
+          <span className="eyebrow">Conta cadastrada</span>
+          <h1 id="observatory-account-title">O acesso ao Observatório está pausado nesta conta</h1>
           <p>
-            Sua conta continua com acesso normal aos recursos públicos e gratuitos. O Observatório
-            adiciona uma experiência avançada para combinar camadas meteorológicas e hidrológicas,
-            navegar no tempo e compartilhar cenários de análise.
+            O Observatório faz parte da experiência cadastrada nesta fase. Verifique o estado da conta
+            no painel ou tente novamente quando o acesso estiver ativo.
           </p>
           <Link className="button" to="/painel">
             Voltar ao meu painel
           </Link>
         </section>
         <Link className="login-page__back" to="/">
-          ← Voltar para a previsão
+          ← Voltar para o portal
         </Link>
       </main>
     );
