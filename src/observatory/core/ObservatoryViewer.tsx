@@ -10,6 +10,12 @@ import {
   type ObservatoryTemporalLayerId,
   type ObservatoryTemporalLayerResult,
 } from "../data/observatory-temporal-layers";
+import {
+  comparisonActiveRasterLayerIds,
+  getComparisonLayerState,
+  type ObservatoryComparisonRasterLayerId,
+  type ObservatoryComparisonState,
+} from "./ObservatoryComparison";
 import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
 import type { ObservatoryCameraState } from "./ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
@@ -18,6 +24,7 @@ import { ObservatoryRenderGovernor } from "./ObservatoryRenderGovernor";
 import "./ObservatoryViewer.css";
 
 const CESIUM_BASE_URL = "/cesium/";
+const COMPARISON_SIDES = ["a", "b"] as const;
 
 type ViewerStatus = "loading" | "ready" | "error";
 type TerrainStatus = "loading" | "reearth" | "ellipsoid";
@@ -30,6 +37,7 @@ type ObservatoryViewerProps = {
   enabledLayers: readonly ObservatoryLayerId[];
   layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
   selectedTimelineAt: string | null;
+  comparisonState: ObservatoryComparisonState | null;
   cameraRestoreState: ObservatoryCameraState | null;
   onCameraStateChange: (state: ObservatoryCameraState) => void;
   onTimelineSourceChange: (id: ObservatoryTemporalLayerId, timestamps: string[]) => void;
@@ -44,6 +52,16 @@ function describeRuntimeError(error: unknown) {
     return error.message.trim().slice(0, 220);
   }
   return "Falha não identificada durante a inicialização do motor 3D.";
+}
+
+function comparisonLayerId(side: "a" | "b", id: ObservatoryComparisonRasterLayerId) {
+  return `compare:${side}:${id}`;
+}
+
+function removeComparisonRasterLayers(runtime: ObservatoryCesiumRuntime) {
+  for (const id of ["radar", "satellite"] as const) {
+    for (const side of COMPARISON_SIDES) runtime.removeLayer(comparisonLayerId(side, id));
+  }
 }
 
 async function renderTemporalFrame(
@@ -72,10 +90,52 @@ async function renderTemporalFrame(
   return frame;
 }
 
+async function renderComparisonRaster(
+  runtime: ObservatoryCesiumRuntime,
+  id: ObservatoryComparisonRasterLayerId,
+  result: ObservatoryTemporalLayerResult,
+  comparison: ObservatoryComparisonState,
+) {
+  runtime.removeLayer(id);
+  runtime.setSplitPosition(comparison.splitPosition);
+
+  const rendered: Partial<Record<"a" | "b", ReturnType<typeof selectTemporalFrame>>> = {};
+
+  for (const side of COMPARISON_SIDES) {
+    const sideState = comparison[side];
+    const layerState = getComparisonLayerState(sideState, id);
+    const targetId = comparisonLayerId(side, id);
+
+    if (!layerState?.enabled) {
+      runtime.removeLayer(targetId);
+      rendered[side] = null;
+      continue;
+    }
+
+    const frame = selectTemporalFrame(result, sideState.selectedAt);
+    if (!frame || frame.payload.kind !== "image") {
+      runtime.removeLayer(targetId);
+      rendered[side] = frame;
+      continue;
+    }
+
+    await runtime.setImageLayer(targetId, {
+      imageUrl: frame.payload.imageUrl,
+      bounds: frame.payload.bounds,
+      opacity: layerState.opacity,
+      split: side === "a" ? "left" : "right",
+    });
+    rendered[side] = frame;
+  }
+
+  return rendered;
+}
+
 export function ObservatoryViewer({
   enabledLayers,
   layerOpacities,
   selectedTimelineAt,
+  comparisonState,
   cameraRestoreState,
   onCameraStateChange,
   onTimelineSourceChange,
@@ -84,14 +144,18 @@ export function ObservatoryViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
   const cameraUnsubscribeRef = useRef<(() => void) | null>(null);
-  const temporalLayersRef = useRef<Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>>({});
+  const temporalLayersRef = useRef<
+    Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>
+  >({});
   const layerRevisionRef = useRef(0);
   const timelineSelectionRevisionRef = useRef(0);
   const layerOpacitiesRef = useRef(layerOpacities);
   const selectedTimelineAtRef = useRef(selectedTimelineAt);
+  const comparisonStateRef = useRef(comparisonState);
   const onCameraStateChangeRef = useRef(onCameraStateChange);
   layerOpacitiesRef.current = layerOpacities;
   selectedTimelineAtRef.current = selectedTimelineAt;
+  comparisonStateRef.current = comparisonState;
   onCameraStateChangeRef.current = onCameraStateChange;
 
   const [status, setStatus] = useState<ViewerStatus>("loading");
@@ -179,6 +243,26 @@ export function ObservatoryViewer({
         cameraRestoreState.roll,
       ].join("|")
     : "";
+  const comparisonRasterIds = comparisonState
+    ? comparisonActiveRasterLayerIds(comparisonState)
+    : [];
+  const effectiveLayerIds = comparisonState ? comparisonRasterIds : enabledLayers;
+  const effectiveLayerKey = [...effectiveLayerIds].sort().join("|");
+  const comparisonModeKey = comparisonState ? "comparison" : "normal";
+  const comparisonContentKey = comparisonState
+    ? [
+        comparisonState.a.selectedAt ?? "",
+        comparisonState.b.selectedAt ?? "",
+        ...comparisonRasterIds.flatMap((id) => {
+          const a = getComparisonLayerState(comparisonState.a, id);
+          const b = getComparisonLayerState(comparisonState.b, id);
+          return [
+            `${id}:a:${a?.enabled ? 1 : 0}:${a?.opacity ?? 1}`,
+            `${id}:b:${b?.enabled ? 1 : 0}:${b?.opacity ?? 1}`,
+          ];
+        }),
+      ].join("|")
+    : "";
 
   useEffect(() => {
     const runtime = runtimeRef.current;
@@ -192,29 +276,49 @@ export function ObservatoryViewer({
     if (!runtime || status !== "ready") return;
 
     const revision = ++layerRevisionRef.current;
-    const enabledSet = new Set(enabledLayers);
-    const allLayerIds: ObservatoryLayerId[] = ["radar", "satellite", "lightning", "alerts", "hydrology"];
+    const effectiveSet = new Set<ObservatoryLayerId>(effectiveLayerIds);
+    const allLayerIds: ObservatoryLayerId[] = [
+      "radar",
+      "satellite",
+      "lightning",
+      "alerts",
+      "hydrology",
+    ];
+
+    if (comparisonStateRef.current) {
+      for (const id of allLayerIds) runtime.removeLayer(id);
+    } else {
+      removeComparisonRasterLayers(runtime);
+    }
 
     for (const id of allLayerIds) {
-      if (enabledSet.has(id)) continue;
+      if (effectiveSet.has(id)) continue;
       runtime.removeLayer(id);
+      if (id === "radar" || id === "satellite") {
+        runtime.removeLayer(comparisonLayerId("a", id));
+        runtime.removeLayer(comparisonLayerId("b", id));
+      }
       if (isObservatoryTemporalLayerId(id)) {
         delete temporalLayersRef.current[id];
         onTimelineSourceChange(id, []);
       }
-      onLayerRuntimeChange(id, {
-        status: "disabled",
-        enabled: false,
-        observedAt: null,
-        detail: null,
-      });
+      if (!comparisonStateRef.current) {
+        onLayerRuntimeChange(id, {
+          status: "disabled",
+          enabled: false,
+          observedAt: null,
+          detail: null,
+        });
+      }
     }
 
-    for (const id of enabledLayers) {
+    for (const id of effectiveLayerIds) {
       onLayerRuntimeChange(id, {
         status: "loading",
         enabled: true,
-        detail: "Carregando fonte observacional…",
+        detail: comparisonStateRef.current
+          ? "Preparando comparação A/B…"
+          : "Carregando fonte observacional…",
       });
 
       if (isObservatoryTemporalLayerId(id)) {
@@ -224,6 +328,23 @@ export function ObservatoryViewer({
 
             temporalLayersRef.current[id] = result;
             onTimelineSourceChange(id, temporalTimestamps(result));
+
+            const comparison = comparisonStateRef.current;
+            if (comparison && (id === "radar" || id === "satellite")) {
+              const rendered = await renderComparisonRaster(runtime, id, result, comparison);
+              if (layerRevisionRef.current !== revision) return;
+              const frame = rendered.b ?? rendered.a ?? null;
+              onLayerRuntimeChange(id, {
+                status: result.status,
+                enabled: true,
+                observedAt: frame?.observedAt ?? null,
+                detail:
+                  frame?.detail ??
+                  result.error ??
+                  `${result.sourceLabel} sem quadro temporal utilizável.`,
+              });
+              return;
+            }
 
             const frame = await renderTemporalFrame(
               runtime,
@@ -238,7 +359,8 @@ export function ObservatoryViewer({
               status: result.status,
               enabled: true,
               observedAt: frame?.observedAt ?? null,
-              detail: frame?.detail ?? result.error ?? `${result.sourceLabel} sem quadro temporal utilizável.`,
+              detail:
+                frame?.detail ?? result.error ?? `${result.sourceLabel} sem quadro temporal utilizável.`,
             });
           })
           .catch((error) => {
@@ -247,6 +369,10 @@ export function ObservatoryViewer({
             delete temporalLayersRef.current[id];
             onTimelineSourceChange(id, []);
             runtime.removeLayer(id);
+            if (id === "radar" || id === "satellite") {
+              runtime.removeLayer(comparisonLayerId("a", id));
+              runtime.removeLayer(comparisonLayerId("b", id));
+            }
             onLayerRuntimeChange(id, {
               status: "unavailable",
               enabled: true,
@@ -293,12 +419,41 @@ export function ObservatoryViewer({
           });
         });
     }
-  }, [enabledKey, runtimeRevision, status, onLayerRuntimeChange, onTimelineSourceChange]);
+  }, [
+    effectiveLayerKey,
+    comparisonModeKey,
+    runtimeRevision,
+    status,
+    onLayerRuntimeChange,
+    onTimelineSourceChange,
+  ]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
-    if (!runtime || status !== "ready" || !selectedTimelineAt) return;
+    if (!runtime || status !== "ready") return;
 
+    const comparison = comparisonStateRef.current;
+    if (comparison) {
+      const revision = ++timelineSelectionRevisionRef.current;
+      for (const id of comparisonActiveRasterLayerIds(comparison)) {
+        const result = temporalLayersRef.current[id];
+        if (!result) continue;
+        void renderComparisonRaster(runtime, id, result, comparison).then((rendered) => {
+          if (timelineSelectionRevisionRef.current !== revision) return;
+          const frame = rendered.b ?? rendered.a ?? null;
+          if (!frame) return;
+          onLayerRuntimeChange(id, {
+            status: result.status,
+            enabled: true,
+            observedAt: frame.observedAt,
+            detail: frame.detail,
+          });
+        });
+      }
+      return;
+    }
+
+    if (!selectedTimelineAt) return;
     const revision = ++timelineSelectionRevisionRef.current;
     for (const id of enabledLayers) {
       if (!isObservatoryTemporalLayerId(id)) continue;
@@ -321,15 +476,28 @@ export function ObservatoryViewer({
         });
       });
     }
-  }, [selectedTimelineAt, enabledKey, runtimeRevision, status, onLayerRuntimeChange]);
+  }, [
+    selectedTimelineAt,
+    comparisonContentKey,
+    enabledKey,
+    runtimeRevision,
+    status,
+    onLayerRuntimeChange,
+  ]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
-    if (!runtime || status !== "ready") return;
+    if (!runtime || status !== "ready" || !comparisonState) return;
+    runtime.setSplitPosition(comparisonState.splitPosition);
+  }, [comparisonState?.splitPosition, runtimeRevision, status]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready" || comparisonState) return;
     for (const id of enabledLayers) {
       runtime.setLayerOpacity(id, layerOpacities[id] ?? 0.72);
     }
-  }, [opacityKey, runtimeRevision, status]);
+  }, [opacityKey, comparisonModeKey, runtimeRevision, status]);
 
   return (
     <div className="observatory-viewer" data-viewer-status={status} data-terrain={terrainStatus}>
