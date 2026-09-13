@@ -64,6 +64,15 @@ function removeComparisonRasterLayers(runtime: ObservatoryCesiumRuntime) {
   }
 }
 
+function raiseComparisonOverlayLayers(
+  runtime: ObservatoryCesiumRuntime,
+  comparison: ObservatoryComparisonState,
+) {
+  for (const id of comparisonActiveRasterLayerIds(comparison)) {
+    runtime.raiseLayer(comparisonLayerId("b", id));
+  }
+}
+
 async function renderTemporalFrame(
   runtime: ObservatoryCesiumRuntime,
   id: ObservatoryTemporalLayerId,
@@ -142,7 +151,7 @@ async function renderComparisonRaster(
   }
 
   await Promise.all(pendingRenders);
-  if (comparison.mode === "opacity") runtime.raiseLayer(comparisonLayerId("b", id));
+  if (comparison.mode === "opacity") raiseComparisonOverlayLayers(runtime, comparison);
   return rendered;
 }
 
@@ -263,11 +272,10 @@ export function ObservatoryViewer({
     : [];
   const effectiveLayerIds = comparisonState ? comparisonRasterIds : enabledLayers;
   const effectiveLayerKey = [...effectiveLayerIds].sort().join("|");
-  const comparisonModeKey = comparisonState ? `comparison:${comparisonState.mode}` : "normal";
+  const comparisonModeKey = comparisonState ? "comparison" : "normal";
   const comparisonContentKey = comparisonState
     ? [
         comparisonState.mode,
-        comparisonState.opacityMix,
         comparisonState.a.selectedAt ?? "",
         comparisonState.b.selectedAt ?? "",
         ...comparisonRasterIds.flatMap((id) => {
@@ -280,6 +288,16 @@ export function ObservatoryViewer({
         }),
       ].join("|")
     : "";
+  const comparisonOpacityKey =
+    comparisonState?.mode === "opacity"
+      ? [
+          comparisonState.opacityMix,
+          ...comparisonRasterIds.map((id) => {
+            const layerState = getComparisonLayerState(comparisonState.b, id);
+            return `${id}:${layerState?.enabled ? 1 : 0}:${layerState?.opacity ?? 1}`;
+          }),
+        ].join("|")
+      : "";
 
   useEffect(() => {
     const runtime = runtimeRef.current;
@@ -581,6 +599,22 @@ export function ObservatoryViewer({
     }
     runtime.setSplitPosition(comparisonState.splitPosition);
   }, [comparisonState?.mode, comparisonState?.splitPosition, runtimeRevision, status]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    const comparison = comparisonStateRef.current;
+    if (!runtime || status !== "ready" || !comparison || comparison.mode !== "opacity") return;
+
+    for (const id of comparisonActiveRasterLayerIds(comparison)) {
+      const layerState = getComparisonLayerState(comparison.b, id);
+      if (!layerState?.enabled) continue;
+      runtime.setLayerOpacity(
+        comparisonLayerId("b", id),
+        layerState.opacity * comparison.opacityMix,
+      );
+    }
+    raiseComparisonOverlayLayers(runtime, comparison);
+  }, [comparisonOpacityKey, runtimeRevision, status]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
