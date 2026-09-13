@@ -342,7 +342,6 @@ export function ObservatoryViewer({
       });
 
       if (isObservatoryTemporalLayerId(id)) {
-        const loadSelectionRevision = timelineSelectionRevisionRef.current;
         const cachedResultAtLoadStart = temporalLayersRef.current[id];
         const hadTemporalCacheAtLoadStart = cachedResultAtLoadStart !== undefined;
         let renderSelectionRevision: number | null = null;
@@ -419,8 +418,6 @@ export function ObservatoryViewer({
             ) {
               return;
             }
-            const selectionChangedSinceLoadStarted =
-              timelineSelectionRevisionRef.current !== loadSelectionRevision;
             const currentCachedResult = temporalLayersRef.current[id];
             const hasTemporalCache = currentCachedResult !== undefined;
             if (
@@ -430,7 +427,9 @@ export function ObservatoryViewer({
               return;
             }
 
-            const fallbackResult = cachedResultAtLoadStart ?? currentCachedResult;
+            const fallbackResult =
+              cachedResultAtLoadStart ??
+              (installedSourceRevision === null ? currentCachedResult : undefined);
             if (fallbackResult && (hadTemporalCacheAtLoadStart || hasTemporalCache)) {
               console.error(
                 `[observatory] Falha ao atualizar série temporal ${id}; mantendo cache.`,
@@ -458,8 +457,6 @@ export function ObservatoryViewer({
               });
               return;
             }
-
-            if (selectionChangedSinceLoadStarted && renderSelectionRevision === null) return;
 
             console.error(`[observatory] Falha ao carregar série temporal ${id}.`, error);
             temporalSourceRevisionRef.current[id] = (temporalSourceRevisionRef.current[id] ?? 0) + 1;
