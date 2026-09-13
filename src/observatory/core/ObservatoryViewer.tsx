@@ -385,7 +385,8 @@ export function ObservatoryViewer({
             if (layerRevisionRef.current !== revision) return;
             const selectionChangedSinceLoadStarted =
               timelineSelectionRevisionRef.current !== loadSelectionRevision;
-            const hasTemporalCache = temporalLayersRef.current[id] !== undefined;
+            const cachedResult = temporalLayersRef.current[id];
+            const hasTemporalCache = cachedResult !== undefined;
             if (
               renderSelectionRevision !== null &&
               timelineSelectionRevisionRef.current !== renderSelectionRevision
@@ -397,6 +398,23 @@ export function ObservatoryViewer({
               selectionChangedSinceLoadStarted &&
               (hadTemporalCacheAtLoadStart || hasTemporalCache)
             ) {
+              console.error(
+                `[observatory] Falha ao atualizar série temporal ${id}; mantendo cache.`,
+                error,
+              );
+              const currentComparison = comparisonStateRef.current;
+              const cachedFrame = cachedResult
+                ? currentComparison && (id === "radar" || id === "satellite")
+                  ? selectTemporalFrame(cachedResult, currentComparison.b.selectedAt) ??
+                    selectTemporalFrame(cachedResult, currentComparison.a.selectedAt)
+                  : selectTemporalFrame(cachedResult, selectedTimelineAtRef.current)
+                : null;
+              onLayerRuntimeChange(id, {
+                status: "degraded",
+                enabled: true,
+                observedAt: cachedFrame?.observedAt ?? null,
+                detail: "A atualização da fonte falhou; mantendo o último quadro já carregado.",
+              });
               return;
             }
             console.error(`[observatory] Falha ao carregar série temporal ${id}.`, error);
