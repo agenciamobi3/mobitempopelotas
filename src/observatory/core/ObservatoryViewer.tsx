@@ -11,6 +11,7 @@ import {
   type ObservatoryTemporalLayerResult,
 } from "../data/observatory-temporal-layers";
 import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
+import type { ObservatoryCameraState } from "./ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
 import type { ObservatoryCesiumRuntime } from "./observatory-cesium-runtime";
 import { ObservatoryRenderGovernor } from "./ObservatoryRenderGovernor";
@@ -29,6 +30,8 @@ type ObservatoryViewerProps = {
   enabledLayers: readonly ObservatoryLayerId[];
   layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
   selectedTimelineAt: string | null;
+  initialCameraState: ObservatoryCameraState | null;
+  onCameraStateChange: (state: ObservatoryCameraState) => void;
   onTimelineSourceChange: (id: ObservatoryTemporalLayerId, timestamps: string[]) => void;
   onLayerRuntimeChange: (
     id: ObservatoryLayerId,
@@ -73,6 +76,8 @@ export function ObservatoryViewer({
   enabledLayers,
   layerOpacities,
   selectedTimelineAt,
+  initialCameraState,
+  onCameraStateChange,
   onTimelineSourceChange,
   onLayerRuntimeChange,
 }: ObservatoryViewerProps) {
@@ -83,8 +88,12 @@ export function ObservatoryViewer({
   const timelineSelectionRevisionRef = useRef(0);
   const layerOpacitiesRef = useRef(layerOpacities);
   const selectedTimelineAtRef = useRef(selectedTimelineAt);
+  const initialCameraStateRef = useRef(initialCameraState);
+  const onCameraStateChangeRef = useRef(onCameraStateChange);
   layerOpacitiesRef.current = layerOpacities;
   selectedTimelineAtRef.current = selectedTimelineAt;
+  initialCameraStateRef.current = initialCameraState;
+  onCameraStateChangeRef.current = onCameraStateChange;
 
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
@@ -99,6 +108,7 @@ export function ObservatoryViewer({
 
     let cancelled = false;
     let runtime: ObservatoryCesiumRuntime | null = null;
+    let removeCameraChanged: (() => void) | null = null;
     const renderGovernor = new ObservatoryRenderGovernor();
 
     async function initialize() {
@@ -116,6 +126,13 @@ export function ObservatoryViewer({
         }
 
         runtimeRef.current = runtime;
+        if (initialCameraStateRef.current) runtime.setCameraState(initialCameraStateRef.current);
+        onCameraStateChangeRef.current(runtime.getCameraState());
+        removeCameraChanged = runtime.widget.camera.changed.addEventListener(() => {
+          const currentRuntime = runtimeRef.current;
+          if (!currentRuntime || currentRuntime.widget.isDestroyed()) return;
+          onCameraStateChangeRef.current(currentRuntime.getCameraState());
+        });
         setTerrainStatus(runtime.terrainStatus);
 
         renderGovernor.attach({ requestRender: () => runtimeRef.current?.widget.scene.requestRender() });
@@ -142,6 +159,7 @@ export function ObservatoryViewer({
       cancelled = true;
       layerRevisionRef.current += 1;
       timelineSelectionRevisionRef.current += 1;
+      removeCameraChanged?.();
       renderGovernor.destroy();
       runtimeRef.current?.clearDataLayers();
       if (runtime && !runtime.widget.isDestroyed()) runtime.widget.destroy();
@@ -155,6 +173,23 @@ export function ObservatoryViewer({
     .map((id) => `${id}:${layerOpacities[id] ?? 1}`)
     .sort()
     .join("|");
+  const initialCameraKey = initialCameraState
+    ? [
+        initialCameraState.longitude,
+        initialCameraState.latitude,
+        initialCameraState.height,
+        initialCameraState.heading,
+        initialCameraState.pitch,
+        initialCameraState.roll,
+      ].join("|")
+    : "";
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready" || !initialCameraState) return;
+    runtime.setCameraState(initialCameraState);
+    onCameraStateChangeRef.current(runtime.getCameraState());
+  }, [initialCameraKey, runtimeRevision, status]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
