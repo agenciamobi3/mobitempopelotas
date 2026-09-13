@@ -108,7 +108,7 @@ export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
     });
 
     const persistentAdminGrant = hasPersistentAdminGrant(access);
-    const entitlementGrant = access.entitlements.observatoryAccess;
+    const entitlementGrant = access.status === "active" && access.entitlements.observatoryAccess;
     const allowed = persistentAdminGrant || entitlementGrant;
 
     applyObservatoryPrivateHeaders(responseHeaders);
