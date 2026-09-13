@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import { useState, type DragEvent } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
@@ -183,11 +184,11 @@ export function AccountFavoritesPanel({
     <section className="account-favorites" aria-labelledby="account-favorites-title">
       <div className="account-dashboard__section-heading account-favorites__heading">
         <span className="eyebrow">Favoritos Vivos · Free</span>
-        <h2 id="account-favorites-title">O que você acompanha vem até o painel</h2>
+        <h2 id="account-favorites-title">O que você acompanha, sem procurar de novo</h2>
         <p>
-          Salve páginas, estações e ferramentas que você consulta com frequência. Quando existe uma
-          leitura canônica disponível, o favorito deixa de ser apenas um atalho e mostra o estado atual
-          diretamente aqui. O conteúdo público continua aberto para qualquer visitante.
+          Seus favoritos ficam no painel e, quando existe uma leitura canônica disponível, mostram o
+          estado atual diretamente aqui. O catálogo completo fica recolhido para não transformar a
+          visão geral em uma página infinita.
         </p>
       </div>
 
@@ -216,13 +217,12 @@ export function AccountFavoritesPanel({
                     : `${selectedResources.length} ${selectedResources.length === 1 ? "favorito" : "favoritos"}`}
                 </strong>
               </div>
-              <span>{liveLoading ? "Atualizando dados" : "Incluído no plano Free"}</span>
+              <span>{liveLoading ? "Atualizando dados" : "Incluído na conta Free"}</span>
             </div>
 
             {selectedResources.length === 0 ? (
               <p className="account-favorites__empty">
-                Marque a estrela nos recursos abaixo. Os que possuem leitura estruturada passam a mostrar
-                a condição atual aqui no painel.
+                Abra “Gerenciar favoritos” e marque os recursos que quer trazer para esta área.
               </p>
             ) : (
               <div className="account-favorites__shortcuts account-favorites__shortcuts--live">
@@ -280,42 +280,52 @@ export function AccountFavoritesPanel({
             </p>
           ) : null}
 
-          <div className="account-favorites__catalog">
-            {GROUPS.map((group) => {
-              const resources = FAVORITE_RESOURCES.filter((resource) => resource.group === group);
-              return (
-                <section key={group} className="account-favorites__group" aria-labelledby={`favorite-group-${group}`}>
-                  <h3 id={`favorite-group-${group}`}>{group}</h3>
-                  <div className="account-favorites__choices">
-                    {resources.map((resource) => {
-                      const selected = favoriteSet.has(resource.key);
-                      const pending = pendingKey === resource.key;
+          <details className="account-favorites__manager">
+            <summary>
+              <span>
+                <strong>Gerenciar favoritos</strong>
+                <small>Escolha o que deve aparecer no seu painel</small>
+              </span>
+              <ChevronDown size={18} aria-hidden="true" />
+            </summary>
 
-                      return (
-                        <article className={`account-favorites__choice${selected ? " is-selected" : ""}`} key={resource.key}>
-                          <div>
-                            <strong>{resource.title}</strong>
-                            <p>{resource.description}</p>
-                          </div>
-                          <button
-                            type="button"
-                            className="account-favorites__toggle"
-                            aria-pressed={selected}
-                            aria-label={`${selected ? "Remover" : "Adicionar"} ${resource.title} ${selected ? "dos" : "aos"} favoritos`}
-                            disabled={Boolean(pendingKey)}
-                            onClick={() => void toggleFavorite(resource.key)}
-                          >
-                            <span aria-hidden="true">{selected ? "★" : "☆"}</span>
-                            {pending ? "Salvando…" : selected ? "Salvo" : "Favoritar"}
-                          </button>
-                        </article>
-                      );
-                    })}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
+            <div className="account-favorites__catalog">
+              {GROUPS.map((group) => {
+                const resources = FAVORITE_RESOURCES.filter((resource) => resource.group === group);
+                return (
+                  <section key={group} className="account-favorites__group" aria-labelledby={`favorite-group-${group}`}>
+                    <h3 id={`favorite-group-${group}`}>{group}</h3>
+                    <div className="account-favorites__choices">
+                      {resources.map((resource) => {
+                        const selected = favoriteSet.has(resource.key);
+                        const pending = pendingKey === resource.key;
+
+                        return (
+                          <article className={`account-favorites__choice${selected ? " is-selected" : ""}`} key={resource.key}>
+                            <div>
+                              <strong>{resource.title}</strong>
+                              <p>{resource.description}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="account-favorites__toggle"
+                              aria-pressed={selected}
+                              aria-label={`${selected ? "Remover" : "Adicionar"} ${resource.title} ${selected ? "dos" : "aos"} favoritos`}
+                              disabled={Boolean(pendingKey)}
+                              onClick={() => void toggleFavorite(resource.key)}
+                            >
+                              <span aria-hidden="true">{selected ? "★" : "☆"}</span>
+                              {pending ? "Salvando…" : selected ? "Salvo" : "Favoritar"}
+                            </button>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </details>
         </>
       )}
     </section>
