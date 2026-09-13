@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -9,6 +10,10 @@ import {
   getComparisonLayerState,
 } from "../src/observatory/core/ObservatoryComparison.ts";
 import { createObservatoryScenario } from "../src/observatory/core/ObservatoryScenario.ts";
+
+const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
+const viewer = readFileSync("src/observatory/core/ObservatoryViewer.tsx", "utf8");
+const runtime = readFileSync("src/observatory/core/observatory-cesium-runtime.ts", "utf8");
 
 function scenario(input: {
   selectedAt: string;
@@ -69,4 +74,38 @@ test("posição da cortina é normalizada para manter ambos os lados utilizávei
   assert.equal(createObservatoryComparison({ a: base, b: base, splitPosition: -1 }).splitPosition, 0.1);
   assert.equal(createObservatoryComparison({ a: base, b: base, splitPosition: 2 }).splitPosition, 0.9);
   assert.equal(createObservatoryComparison({ a: base, b: base, splitPosition: Number.NaN }).splitPosition, 0.5);
+});
+
+test("runtime usa split nativo do Cesium e continua com um único widget", () => {
+  assert.match(runtime, /ImagerySplitDirection/);
+  assert.match(runtime, /layer\.splitDirection = splitDirection\(input\.split\)/);
+  assert.match(runtime, /widget\.scene\.splitPosition/);
+  assert.match(runtime, /setSplitPosition/);
+  assert.equal((runtime.match(/new CesiumWidget\(/g) ?? []).length, 1);
+});
+
+test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônicos", () => {
+  assert.match(viewer, /compare:\$\{side\}:\$\{id\}/);
+  assert.match(viewer, /selectTemporalFrame/);
+  assert.match(viewer, /loadObservatoryTemporalLayer/);
+  assert.match(viewer, /split: side === "a" \? "left" : "right"/);
+  assert.match(viewer, /removeComparisonRasterLayers/);
+  assert.doesNotMatch(viewer, /new CesiumWidget/);
+});
+
+test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
+  assert.match(shell, /createObservatoryComparison/);
+  assert.match(shell, /Sair da comparação/);
+  assert.match(shell, /Trocar A ↔ B/);
+  assert.match(shell, /comparisonSide/);
+  assert.match(shell, /Posição da divisão entre A e B/);
+  assert.match(shell, /setPointerCapture/);
+  assert.match(shell, /ArrowLeft/);
+  assert.match(shell, /ArrowRight/);
+  assert.match(shell, /comparisonState=\{comparisonState\}/);
+});
+
+test("comparação não serializa estado ambíguo no compartilhamento normal", () => {
+  assert.match(shell, /disabled=\{Boolean\(comparisonState\)\}/);
+  assert.match(shell, /typeof window === "undefined" \|\| comparisonState/);
 });
