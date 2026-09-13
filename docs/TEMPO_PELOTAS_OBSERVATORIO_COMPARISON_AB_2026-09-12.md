@@ -76,6 +76,8 @@ A renderização A/B não deve iniciar B somente depois de A concluir. Em trocas
 
 A implementação atual inicia as chamadas `setImageLayer()` de A e B no mesmo ciclo e somente depois aguarda `Promise.all()`. Como o runtime registra a geração da camada antes do primeiro `await`, qualquer render posterior ou remoção invalida corretamente as promises antigas. Um quadro antigo não pode reaparecer no lado B depois da limpeza do comparador.
 
+A carga inicial da série temporal tem uma proteção adicional. Antes de começar a materializar o primeiro frame, o viewer captura também a revisão atual da seleção temporal. Depois do `await`, tanto a revisão estrutural das camadas quanto a revisão da timeline precisam continuar iguais. Se o usuário avançar o relógio ou iniciar o play enquanto a imagem inicial ainda carrega, a continuação antiga não publica `observedAt`, não sobrescreve detalhes e uma rejeição antiga não remove uma geração mais nova que já venceu.
+
 ### Falha ao carregar um novo quadro
 
 A troca de horário pode falhar mesmo quando a série temporal já foi carregada, por exemplo se a imagem do quadro selecionado deixar de responder durante o play. Essa falha não deve gerar rejeição sem tratamento nem deixar a interface indicando um quadro atual que não foi renderizado.
@@ -160,6 +162,7 @@ Exemplos que exigem contrato adicional:
 - `scene.splitPosition` responde ao controle visual;
 - A e B usam uma única câmera e um único `CesiumWidget`;
 - renders A/B são iniciados antes do primeiro `await`, preservando a invalidação por geração do runtime;
+- carga inicial temporal só publica ou limpa estado se a revisão de camadas e a revisão da timeline ainda forem as mesmas;
 - o runtime só substitui a imagery anterior depois que o novo provider foi carregado;
 - falhas de imagem durante a timeline são tratadas e atualizam o estado da camada;
 - comparação não inicia sem timestamp temporal real;
@@ -177,7 +180,7 @@ Exemplos que exigem contrato adicional:
 
 O PR #137 permanece deliberadamente empilhado sobre `work/observatory-share-scenarios`. Não deve ser promovido diretamente para `main` antes da estabilização do PR #135.
 
-A primeira revisão automática apontou quatro itens: race de render A/B, slider dentro de `aria-hidden`, entrada antes de existir timestamp e ausência do comparador no estado mestre. Os quatro foram tratados em código, contratos e documentação. A segunda revisão apontou uma falha adicional: rejeições de carregamento de imagem durante atualizações da timeline A/B não tinham tratamento próprio. Esse caminho também passou a ser tratado e protegido por contrato.
+A primeira revisão automática apontou quatro itens: race de render A/B, slider dentro de `aria-hidden`, entrada antes de existir timestamp e ausência do comparador no estado mestre. Os quatro foram tratados em código, contratos e documentação. A segunda revisão apontou uma falha adicional: rejeições de carregamento de imagem durante atualizações da timeline A/B não tinham tratamento próprio. Esse caminho também passou a ser tratado e protegido por contrato. A revisão seguinte encontrou uma disputa entre a carga inicial da série e uma seleção temporal mais nova; o viewer agora invalida a continuação inicial também pela revisão da timeline, inclusive no caminho de erro.
 
 A validação executável continua obrigatória. Ausência de runner GitHub-hosted não deve ser reinterpretada como aprovação nem como falha funcional do comparador.
 

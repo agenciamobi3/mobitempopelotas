@@ -115,6 +115,19 @@ test("falhas de imagem durante a timeline não ficam sem tratamento", () => {
   assert.match(viewer, /Falha ao atualizar quadro temporal \$\{id\}/);
 });
 
+test("carga inicial temporal não publica nem limpa estado depois que a timeline avançou", () => {
+  assert.match(viewer, /let renderSelectionRevision: number \| null = null/);
+  assert.match(viewer, /renderSelectionRevision = timelineSelectionRevisionRef\.current/);
+  assert.match(
+    viewer,
+    /layerRevisionRef\.current !== revision \|\|\s+timelineSelectionRevisionRef\.current !== renderSelectionRevision/,
+  );
+  assert.match(
+    viewer,
+    /renderSelectionRevision !== null &&\s+timelineSelectionRevisionRef\.current !== renderSelectionRevision/,
+  );
+});
+
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
   assert.match(shell, /createObservatoryComparison/);
   assert.match(shell, /Sair da comparação/);
