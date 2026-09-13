@@ -77,7 +77,7 @@ test("posição da cortina é normalizada para manter ambos os lados utilizávei
 });
 
 test("runtime usa split nativo do Cesium e continua com um único widget", () => {
-  assert.match(runtime, /ImagerySplitDirection/);
+  assert.match(runtime, /SplitDirection/);
   assert.match(runtime, /layer\.splitDirection = splitDirection\(input\.split\)/);
   assert.match(runtime, /widget\.scene\.splitPosition/);
   assert.match(runtime, /setSplitPosition/);
