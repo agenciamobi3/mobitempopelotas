@@ -55,13 +55,22 @@ test("primary weather surfaces use restrained motion while dense lists stay stat
   assert.match(styles, /tp-weather-icon-sun/);
   assert.match(styles, /tp-weather-icon-storm/);
   assert.match(styles, /prefers-reduced-motion: reduce/);
-  assert.doesNotMatch(styles, /seven-day-retail-hero__weather-icon/);
 });
 
 test("hourly and INMET surfaces normalize icon sizing without adding list animations", () => {
   assert.match(styles, /\.tp-home-forecast-hour__weather \.weather-icon/);
   assert.match(styles, /\.tp-home-inmet \.tp-home-inmet__icon \.weather-icon/);
   assert.match(styles, /\.tp-home-inmet__icon\.is-featured \.weather-icon/);
+});
+
+test("weather icon scale policy covers home and internal forecast pages", () => {
+  assert.match(styles, /\.tp-home-trend-day__condition \.weather-icon/);
+  assert.match(styles, /\.seven-day-v2-days__condition \.weather-icon/);
+  assert.match(styles, /\.fifteen-day__condition \.weather-icon/);
+  assert.match(styles, /\.seven-day-retail-hero__weather-icon \.weather-icon/);
+  assert.match(styles, /\.wind-retail-hero__weather-icon \.weather-icon/);
+  assert.match(styles, /width: 56px !important/);
+  assert.match(styles, /width: 54px !important/);
 });
 
 test("INMET reuses the canonical weather icon system and respects day or night context", () => {
