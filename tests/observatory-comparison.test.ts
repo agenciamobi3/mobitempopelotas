@@ -126,16 +126,35 @@ test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônic
   assert.doesNotMatch(viewer, /new CesiumWidget/);
 });
 
-test("modo opacidade mantém A como base e controla B sem segundo viewer", () => {
+test("modo opacidade mantém todos os overlays B acima da base A", () => {
   assert.match(
     viewer,
     /comparison\.mode === "opacity" && side === "b"[\s\S]+layerState\.opacity \* comparison\.opacityMix/,
   );
+  assert.match(viewer, /function raiseComparisonOverlayLayers/);
   assert.match(
     viewer,
-    /if \(comparison\.mode === "opacity"\) runtime\.raiseLayer\(comparisonLayerId\("b", id\)\)/,
+    /for \(const id of comparisonActiveRasterLayerIds\(comparison\)\) \{\s+runtime\.raiseLayer\(comparisonLayerId\("b", id\)\)/,
   );
-  assert.match(viewer, /comparisonState\.opacityMix/);
+  assert.match(
+    viewer,
+    /if \(comparison\.mode === "opacity"\) raiseComparisonOverlayLayers\(runtime, comparison\)/,
+  );
+});
+
+test("slider de opacidade ajusta alpha de B sem recarregar providers", () => {
+  assert.match(viewer, /const comparisonOpacityKey =/);
+  assert.match(viewer, /comparisonState\?\.mode === "opacity"/);
+  assert.match(
+    viewer,
+    /runtime\.setLayerOpacity\(\s*comparisonLayerId\("b", id\),\s*layerState\.opacity \* comparison\.opacityMix/,
+  );
+  assert.match(viewer, /raiseComparisonOverlayLayers\(runtime, comparison\)/);
+  assert.match(viewer, /const comparisonModeKey = comparisonState \? "comparison" : "normal"/);
+  assert.doesNotMatch(
+    viewer,
+    /const comparisonContentKey = comparisonState[\s\S]{0,140}comparisonState\.opacityMix/,
+  );
 });
 
 test("renders A/B iniciam juntos para que gerações antigas sejam invalidadas antes do await", () => {
