@@ -62,9 +62,10 @@ test("inspetor usa o último horário modelado que não esteja no futuro do rel�
     "2026-09-13T01:00:00.000Z",
   );
   assert.equal(
-    selectObservatoryInspectorHour(hours, "2026-09-12T23:30:00.000Z")?.timestamp,
-    "2026-09-13T00:00:00.000Z",
+    selectObservatoryInspectorHour(hours, "2026-09-12T23:30:00.000Z"),
+    null,
   );
+  assert.equal(selectObservatoryInspectorHour(hours, "horário-inválido"), null);
 });
 
 test("consulta do ponto é protegida pelo mesmo gate PRO do Observatório", () => {
