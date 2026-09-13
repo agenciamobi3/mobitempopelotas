@@ -7,7 +7,6 @@ import {
   EllipsoidTerrainProvider,
   HeadingPitchRange,
   ImageryLayer,
-  ImagerySplitDirection,
   Math as CesiumMath,
   Matrix4,
   NearFarScalar,
@@ -15,6 +14,7 @@ import {
   PointPrimitiveCollection,
   Rectangle,
   SingleTileImageryProvider,
+  SplitDirection,
   type TerrainProvider,
 } from "cesium";
 
@@ -88,9 +88,9 @@ function clampCameraHeight(value: number) {
 }
 
 function splitDirection(value: ObservatoryImagerySplit | undefined) {
-  if (value === "left") return ImagerySplitDirection.LEFT;
-  if (value === "right") return ImagerySplitDirection.RIGHT;
-  return ImagerySplitDirection.NONE;
+  if (value === "left") return SplitDirection.LEFT;
+  if (value === "right") return SplitDirection.RIGHT;
+  return SplitDirection.NONE;
 }
 
 function parseCssColor(value: string | undefined, fallback: Color) {
