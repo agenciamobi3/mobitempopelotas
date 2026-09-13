@@ -8,7 +8,30 @@ on:
       - "src/observatory/**"
       - "src/routes/observatorio.tsx"
       - "src/lib/auth/account-access.ts"
+      - "src/components/auth/GoogleLoginCard.tsx"
       - "src/components/layout/SiteLayout.tsx"
+      - "PROJECT_CURRENT_STATE.md"
+      - "docs/TEMPO_PELOTAS_OBSERVATORIO_*.md"
+      - "tests/observatory-foundation.test.ts"
+      - "tests/observatory-timeline.test.ts"
+      - "tests/observatory-interface.test.ts"
+      - "tests/observatory-scenario.test.ts"
+      - "tests/account-access-entitlements.test.ts"
+      - "package.json"
+      - "package-lock.json"
+      - "bun.lock"
+      - "vite.config.ts"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/observatory-foundation.yml"
+      - "src/observatory/**"
+      - "src/routes/observatorio.tsx"
+      - "src/lib/auth/account-access.ts"
+      - "src/components/auth/GoogleLoginCard.tsx"
+      - "src/components/layout/SiteLayout.tsx"
+      - "PROJECT_CURRENT_STATE.md"
+      - "docs/TEMPO_PELOTAS_OBSERVATORIO_*.md"
       - "tests/observatory-foundation.test.ts"
       - "tests/observatory-timeline.test.ts"
       - "tests/observatory-interface.test.ts"
@@ -56,7 +79,7 @@ jobs:
           tests/observatory-scenario.test.ts
 
       - name: Sincronizar routeTree versionada
-        if: steps.contracts.outcome == 'success'
+        if: ${{ github.event_name == 'push' && steps.contracts.outcome == 'success' }}
         run: |
           if git diff --quiet -- src/routeTree.gen.ts; then
             echo "routeTree já está sincronizada."
