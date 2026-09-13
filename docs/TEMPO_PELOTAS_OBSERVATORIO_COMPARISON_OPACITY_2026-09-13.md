@@ -55,9 +55,18 @@ No modo `opacity`:
 - A e B usam `SplitDirection.NONE`;
 - A mantém a opacidade própria da camada;
 - B recebe `layer.opacity * opacityMix`;
-- depois que os dois providers estão prontos, B é elevado acima de A com `imageryLayers.raiseToTop` para evitar que a ordem assíncrona dos downloads altere a semântica visual.
+- depois de cada atualização raster, todos os overlays B ativos são elevados novamente acima de todos os layers A com `imageryLayers.raiseToTop`, de modo que radar e satélite não dependam da ordem em que seus downloads terminam;
+- alterar somente `opacityMix` usa `setLayerOpacity()` na imagery B já existente e não recria `SingleTileImageryProvider`.
 
-O runtime continua preservando a imagery anterior até o novo `SingleTileImageryProvider` estar pronto e mantém a proteção por geração contra renders antigos.
+A troca de cada par A/B usa `setImageLayerGroup()`: os providers são preparados antes da remoção da imagery anterior e a substituição acontece somente se todo o grupo continuar na geração atual. Se um provider falhar, o último par íntegro permanece visível e o estado pode degradar sem apagar a comparação vigente.
+
+A fase também herda o controle de revisão do conteúdo temporal do Swipe. Se uma recarga substitui o cache de radar ou satélite, callbacks que começaram sobre o resultado antigo não podem publicar `status`, `observedAt` ou `detail` depois que a fonte mais nova venceu.
+
+## Semente temporal
+
+A entrada A/B usa apenas timestamps pertencentes a radar ou satélite habilitados. O horário inicial é o último quadro comparável no mesmo instante ou anterior ao horário global selecionado.
+
+Se o horário global antecede todos os quadros comparáveis disponíveis, a semente é `null` e o botão permanece indisponível. O comparador não avança silenciosamente para uma observação futura apenas para abrir.
 
 ## UX
 
@@ -70,9 +79,12 @@ No modo Opacidade:
 
 - a cortina deixa de ser exibida;
 - surge um slider `B sobre A` de 0% a 100%;
+- o slider modifica somente o alpha visual de B;
 - A/B continuam selecionáveis para edição temporal;
 - `Trocar A ↔ B` continua disponível;
 - sair da comparação restaura o viewer normal sem recarregar a rota.
+
+Ao voltar de `Opacidade` para `Cortina`, os providers são materializados novamente com o split nativo adequado ao modo. `opacityMix` não entra na chave que recria os providers, portanto o arraste do slider permanece uma operação visual barata.
 
 ## Limites semânticos
 
@@ -87,9 +99,15 @@ A ferramenta não deve inferir automaticamente deslocamento, velocidade, volume 
 - normalização de `mode` e `opacityMix`;
 - manutenção de um único Cesium;
 - ausência de split no modo Opacidade;
-- B renderizado acima de A;
+- troca A/B por grupo atômico de imagery;
+- todos os overlays B acima de todos os A ativos;
 - controle explícito `B sobre A`;
-- preservação dos contratos de races, cache temporal e falhas de imagery herdados do Swipe.
+- alteração de alpha sem reload de provider durante o slider;
+- semente raster sem avanço para o futuro;
+- invalidação de callbacks por revisão da fonte temporal;
+- preservação do último par em falha de provider;
+- primeira carga realmente sem cache ainda podendo terminar em `unavailable`;
+- preservação dos contratos de races e cache herdados do Swipe.
 
 ## Dependência de promoção
 
