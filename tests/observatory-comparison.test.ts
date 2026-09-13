@@ -128,6 +128,22 @@ test("carga inicial temporal não publica nem limpa estado depois que a timeline
   );
 });
 
+test("falha anterior ao fromUrl não apaga cache temporal já renderizado", () => {
+  assert.match(viewer, /const loadSelectionRevision = timelineSelectionRevisionRef\.current/);
+  assert.match(
+    viewer,
+    /const hadTemporalCacheAtLoadStart = temporalLayersRef\.current\[id\] !== undefined/,
+  );
+  assert.match(
+    viewer,
+    /const selectionChangedSinceLoadStarted =\s+timelineSelectionRevisionRef\.current !== loadSelectionRevision/,
+  );
+  assert.match(
+    viewer,
+    /renderSelectionRevision === null &&\s+selectionChangedSinceLoadStarted &&\s+\(hadTemporalCacheAtLoadStart \|\| hasTemporalCache\)/,
+  );
+});
+
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
   assert.match(shell, /createObservatoryComparison/);
   assert.match(shell, /Sair da comparação/);
