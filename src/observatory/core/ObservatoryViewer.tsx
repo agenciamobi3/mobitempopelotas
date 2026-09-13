@@ -97,7 +97,7 @@ async function renderComparisonRaster(
   comparison: ObservatoryComparisonState,
 ) {
   runtime.removeLayer(id);
-  runtime.setSplitPosition(comparison.splitPosition);
+  if (comparison.mode === "swipe") runtime.setSplitPosition(comparison.splitPosition);
 
   const rendered: Partial<Record<"a" | "b", ReturnType<typeof selectTemporalFrame>>> = {};
   const pendingRenders: Promise<void>[] = [];
@@ -120,18 +120,29 @@ async function renderComparisonRaster(
       continue;
     }
 
+    const opacity =
+      comparison.mode === "opacity" && side === "b"
+        ? layerState.opacity * comparison.opacityMix
+        : layerState.opacity;
+
     pendingRenders.push(
       runtime.setImageLayer(targetId, {
         imageUrl: frame.payload.imageUrl,
         bounds: frame.payload.bounds,
-        opacity: layerState.opacity,
-        split: side === "a" ? "left" : "right",
+        opacity,
+        split:
+          comparison.mode === "swipe"
+            ? side === "a"
+              ? "left"
+              : "right"
+            : "none",
       }),
     );
     rendered[side] = frame;
   }
 
   await Promise.all(pendingRenders);
+  if (comparison.mode === "opacity") runtime.raiseLayer(comparisonLayerId("b", id));
   return rendered;
 }
 
@@ -252,9 +263,11 @@ export function ObservatoryViewer({
     : [];
   const effectiveLayerIds = comparisonState ? comparisonRasterIds : enabledLayers;
   const effectiveLayerKey = [...effectiveLayerIds].sort().join("|");
-  const comparisonModeKey = comparisonState ? "comparison" : "normal";
+  const comparisonModeKey = comparisonState ? `comparison:${comparisonState.mode}` : "normal";
   const comparisonContentKey = comparisonState
     ? [
+        comparisonState.mode,
+        comparisonState.opacityMix,
         comparisonState.a.selectedAt ?? "",
         comparisonState.b.selectedAt ?? "",
         ...comparisonRasterIds.flatMap((id) => {
@@ -545,9 +558,11 @@ export function ObservatoryViewer({
 
   useEffect(() => {
     const runtime = runtimeRef.current;
-    if (!runtime || status !== "ready" || !comparisonState) return;
+    if (!runtime || status !== "ready" || !comparisonState || comparisonState.mode !== "swipe") {
+      return;
+    }
     runtime.setSplitPosition(comparisonState.splitPosition);
-  }, [comparisonState?.splitPosition, runtimeRevision, status]);
+  }, [comparisonState?.mode, comparisonState?.splitPosition, runtimeRevision, status]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;
