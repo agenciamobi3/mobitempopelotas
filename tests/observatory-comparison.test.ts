@@ -128,7 +128,7 @@ test("carga inicial temporal não publica nem limpa estado depois que a timeline
   );
 });
 
-test("falha anterior ao fromUrl não apaga cache temporal já renderizado", () => {
+test("falha anterior ao fromUrl preserva cache e publica degradação", () => {
   assert.match(viewer, /const loadSelectionRevision = timelineSelectionRevisionRef\.current/);
   assert.match(
     viewer,
@@ -142,6 +142,10 @@ test("falha anterior ao fromUrl não apaga cache temporal já renderizado", () =
     viewer,
     /renderSelectionRevision === null &&\s+selectionChangedSinceLoadStarted &&\s+\(hadTemporalCacheAtLoadStart \|\| hasTemporalCache\)/,
   );
+  assert.match(viewer, /Falha ao atualizar série temporal \$\{id\}; mantendo cache/);
+  assert.match(viewer, /const cachedFrame = cachedResult/);
+  assert.match(viewer, /status: "degraded"/);
+  assert.match(viewer, /mantendo o último quadro já carregado/);
 });
 
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
