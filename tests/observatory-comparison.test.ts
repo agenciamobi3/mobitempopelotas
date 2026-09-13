@@ -104,6 +104,8 @@ test("runtime usa split nativo do Cesium e continua com um único widget", () =>
   assert.match(runtime, /layer\.splitDirection = splitDirection\(input\.split\)/);
   assert.match(runtime, /widget\.scene\.splitPosition/);
   assert.match(runtime, /setSplitPosition/);
+  assert.match(runtime, /raiseLayer/);
+  assert.match(runtime, /imageryLayers\.raiseToTop\(imageLayer\)/);
   assert.equal((runtime.match(/new CesiumWidget\(/g) ?? []).length, 1);
 });
 
@@ -118,9 +120,22 @@ test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônic
   assert.match(viewer, /compare:\$\{side\}:\$\{id\}/);
   assert.match(viewer, /selectTemporalFrame/);
   assert.match(viewer, /loadObservatoryTemporalLayer/);
-  assert.match(viewer, /split: side === "a" \? "left" : "right"/);
+  assert.match(viewer, /comparison\.mode === "swipe"/);
+  assert.match(viewer, /split:[\s\S]+comparison\.mode === "swipe"[\s\S]+"left"[\s\S]+"right"[\s\S]+"none"/);
   assert.match(viewer, /removeComparisonRasterLayers/);
   assert.doesNotMatch(viewer, /new CesiumWidget/);
+});
+
+test("modo opacidade mantém A como base e controla B sem segundo viewer", () => {
+  assert.match(
+    viewer,
+    /comparison\.mode === "opacity" && side === "b"[\s\S]+layerState\.opacity \* comparison\.opacityMix/,
+  );
+  assert.match(
+    viewer,
+    /if \(comparison\.mode === "opacity"\) runtime\.raiseLayer\(comparisonLayerId\("b", id\)\)/,
+  );
+  assert.match(viewer, /comparisonState\.opacityMix/);
 });
 
 test("renders A/B iniciam juntos para que gerações antigas sejam invalidadas antes do await", () => {
@@ -179,6 +194,16 @@ test("shell oferece comparação, lados independentes, troca e cortina acessíve
   assert.match(shell, /comparisonState=\{comparisonState\}/);
   assert.match(shell, /<div className="observatory-comparison__overlay">/);
   assert.doesNotMatch(shell, /observatory-comparison__overlay" aria-hidden="true"/);
+});
+
+test("shell oferece modo opacidade com controle explícito de B sobre A", () => {
+  assert.match(shell, /type ObservatoryComparisonMode/);
+  assert.match(shell, /\["swipe", "opacity"\] as const/);
+  assert.match(shell, /setComparisonMode/);
+  assert.match(shell, /setComparisonOpacityMix/);
+  assert.match(shell, /Opacidade do lado B sobre o lado A/);
+  assert.match(shell, /B sobre A/);
+  assert.match(shell, /comparisonState\.mode === "opacity"/);
 });
 
 test("comparação só pode iniciar depois que existe um horário temporal real", () => {
