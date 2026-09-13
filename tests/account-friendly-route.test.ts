@@ -10,6 +10,10 @@ const callbackRoute = readFileSync("src/routes/auth/callback.ts", "utf8");
 const accountAction = readFileSync("src/components/auth/AuthAccountAction.tsx", "utf8");
 const accountPage = readFileSync("src/components/auth/AccountPage.tsx", "utf8");
 const accountDashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
+const observatoryProduct = readFileSync(
+  "src/components/auth/AccountObservatoryProduct.tsx",
+  "utf8",
+);
 const loginCard = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 const siteLayout = readFileSync("src/components/layout/SiteLayout.tsx", "utf8");
 const privacyPage = readFileSync("src/routes/privacidade-e-dados.tsx", "utf8");
@@ -28,6 +32,7 @@ test("authenticated dashboard is a separate noindex route shared by Free and PRO
   assert.match(dashboardRoute, /createFileRoute\("\/painel"\)/);
   assert.match(dashboardRoute, /getAccountSnapshot/);
   assert.match(dashboardRoute, /getAccountFavorites/);
+  assert.match(dashboardRoute, /getObservatoryAccess/);
   assert.match(dashboardRoute, /to:\s*"\/conta"/);
   assert.match(
     dashboardRoute,
@@ -35,9 +40,20 @@ test("authenticated dashboard is a separate noindex route shared by Free and PRO
   );
   assert.match(
     dashboardRoute,
-    /<AccountDashboard[\s\S]*?snapshot=\{snapshot\}[\s\S]*?favorites=\{favorites\}/,
+    /<AccountDashboard[\s\S]*?snapshot=\{snapshot\}[\s\S]*?favorites=\{favorites\}[\s\S]*?observatory=\{observatory\}/,
   );
   assert.match(dashboardRoute, /noindex, nofollow/);
+});
+
+test("dashboard exposes the Observatorio as a real account product using the canonical access gate", () => {
+  assert.match(accountDashboard, /AccountObservatoryProduct/);
+  assert.match(accountDashboard, /<AccountObservatoryProduct access=\{observatory\} \/>/);
+  assert.match(observatoryProduct, /Observatório Tempo Pelotas/);
+  assert.match(observatoryProduct, /to="\/observatorio"/);
+  assert.match(observatoryProduct, /Disponível na sua conta/);
+  assert.match(observatoryProduct, /Produto PRO/);
+  assert.match(observatoryProduct, /Globo 3D/);
+  assert.match(observatoryProduct, /Cenários compartilháveis/);
 });
 
 test("legacy account URLs permanently redirect to the friendly route", () => {
