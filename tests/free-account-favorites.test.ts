@@ -82,14 +82,16 @@ test("painel autenticado carrega e renderiza favoritos Free reais", () => {
   );
 });
 
-test("painel Free nasce com valor pessoal primeiro e permite que o usuário reorganize depois", () => {
+test("painel Free nasce com valor pessoal, ferramentas e personalização", () => {
   assert.match(dashboard, /AccountLiveOverview/);
   assert.match(dashboard, /<AccountLiveOverview/);
   assert.match(dashboard, /DashboardPersonalizationBar/);
   assert.match(dashboard, /layout\.sections\.map/);
-  assert.match(dashboard, /Próximas camadas/);
+  assert.match(dashboard, /Em construção/);
   assert.match(dashboardLayout, /\["live", "favorites", "site"\]/);
-  assert.match(dashboard, /site:\s*"Para meu site"/);
+  assert.match(dashboard, /site:\s*"Ferramentas"/);
+  assert.match(dashboard, /Gerador de widgets/);
+  assert.match(dashboard, /AccountObservatoryProduct/);
 });
 
 test("painel vivo reutiliza dados reais e oferece aprofundamento", () => {
@@ -111,6 +113,8 @@ test("Favoritos Vivos enriquecem recursos salvos e atualizam após mutação", (
   assert.match(panel, /FavoriteLiveContent/);
   assert.match(panel, /liveCards\[resource\.key\]/);
   assert.match(panel, /await onFavoritesChanged\?\.\(\)/);
+  assert.match(panel, /Gerenciar favoritos/);
+  assert.match(panel, /<details className="account-favorites__manager">/);
   assert.match(liveFunctions, /favoriteKeys\.includes\("forecast-7-days"\)/);
   assert.match(liveFunctions, /favoriteKeys\.includes\("laranjal-level"\)/);
   assert.match(liveFunctions, /favoriteKeys\.includes\("guaiba-level"\)/);
@@ -123,8 +127,8 @@ test("componente permite adicionar e remover favoritos de forma acessível", () 
   assert.match(panel, /aria-pressed=\{selected\}/);
   assert.match(panel, /disabled=\{Boolean\(pendingKey\)\}/);
   assert.match(panel, /Favoritos Vivos · Free/);
-  assert.match(panel, /conteúdo público continua aberto/);
   assert.match(panel, /selectedResources/);
+  assert.match(panel, /Gerenciar favoritos/);
   assert.match(panel, /window\.location\.assign\("\/conta\?next=\/painel"\)/);
 });
 
@@ -139,23 +143,21 @@ test("favoritos e layout entram nos direitos LGPD da conta", () => {
   assert.match(accountExport, /\n\s*favorites,\n/);
 });
 
-test("visão de acesso Free deriva estados dos entitlements sem fingir recursos futuros", () => {
+test("visão de acesso cadastrado mostra recursos atuais e futuros sem paywall prematuro", () => {
   assert.match(accountPage, /AccountAccessOverview/);
   assert.match(accountPage, /<AccountAccessOverview snapshot=\{snapshot\} \/>/);
   assert.match(accessOverview, /aria-labelledby="account-access-title"/);
-  assert.match(accessOverview, /Plano \{access\.label\}/);
+  assert.match(accessOverview, /Conta \{access\.label\}/);
   assert.match(accessOverview, /access\.entitlements/);
   assert.match(accessOverview, /Favoritos pessoais/);
   assert.match(accessOverview, /Preferências da conta/);
   assert.match(accessOverview, /Gerador de widgets/);
+  assert.match(accessOverview, /Observatório/);
   assert.match(accessOverview, /Histórico pessoal/);
+  assert.match(accessOverview, /Comparações, exportações e análises/);
   assert.match(accessOverview, /state:\s*"preparing"/);
-  assert.match(accessOverview, /Comparações e análises avançadas/);
-  assert.match(accessOverview, /state:\s*hasAdvancedAccess \? "preparing" : "not-included"/);
-  assert.match(accessOverview, /Não incluído/);
-  assert.match(accessOverview, /Sua conta Free não tem cobrança/);
-  assert.match(accessOverview, /não é necessário para consultar informação pública/);
-  assert.doesNotMatch(accessOverview, /assine agora|compre agora|desbloqueie para consultar/i);
+  assert.match(accessOverview, /planos futuros/);
+  assert.doesNotMatch(accessOverview, /Não incluído|assine agora|compre agora|desbloqueie para consultar/i);
 });
 
 test("workspace de favoritos mantém responsividade e acessibilidade visual", () => {
