@@ -72,3 +72,4 @@ import "./styles/internal-dedicated-page-stabilization.css";
 import "./styles/internal-editorial-precedence-barrier.css";
 import "./styles/radar-satellite-editorial-final.css";
 import "./styles/portal-usability-polish.css";
+import "./styles/account-dashboard-shell.css";
