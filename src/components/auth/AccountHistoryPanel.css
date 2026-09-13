@@ -1,0 +1,246 @@
+.account-history {
+  scroll-margin-top: 24px;
+  display: grid;
+  gap: 18px;
+  padding: clamp(20px, 2.2vw, 30px);
+  border: 1px solid rgb(7 30 47 / 9%);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgb(23 189 204 / 9%), transparent 32%),
+    linear-gradient(145deg, #fff 0%, #fbfefd 58%, #f6fbfa 100%);
+  box-shadow: 0 14px 36px rgb(7 30 47 / 5%);
+}
+
+.account-history__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.account-history__header > div {
+  max-width: 820px;
+}
+
+.account-history__header h2 {
+  margin: 5px 0 7px;
+  color: #071e2f;
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  letter-spacing: -0.035em;
+}
+
+.account-history__header p {
+  margin: 0;
+  color: #607482;
+  font-size: 0.91rem;
+  line-height: 1.62;
+}
+
+.account-history__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid rgb(8 127 145 / 14%);
+  border-radius: 999px;
+  background: rgb(23 189 204 / 8%);
+  color: #087f91;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.account-history__controls {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.25fr) minmax(260px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid rgb(7 30 47 / 8%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 78%);
+}
+
+.account-history__controls label,
+.account-history__periods {
+  display: grid;
+  gap: 7px;
+}
+
+.account-history__controls label > span,
+.account-history__periods > span {
+  color: #6a7d88;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-history__controls select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 38px 0 12px;
+  border: 1px solid rgb(7 30 47 / 14%);
+  border-radius: 10px;
+  background: #fff;
+  color: #0a2638;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 720;
+}
+
+.account-history__periods > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.account-history__periods button,
+.account-history__refresh {
+  min-height: 42px;
+  border: 1px solid rgb(7 30 47 / 11%);
+  border-radius: 10px;
+  background: #fff;
+  color: #334d5c;
+  font: inherit;
+  font-size: 0.79rem;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.account-history__periods button.is-active {
+  border-color: #087f91;
+  background: #087f91;
+  color: #fff;
+}
+
+.account-history__periods button:disabled,
+.account-history__refresh:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.account-history__refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding-inline: 14px;
+}
+
+.account-history__context,
+.account-history__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.account-history__context > div {
+  display: grid;
+  gap: 3px;
+}
+
+.account-history__context strong {
+  color: #0a2638;
+  font-size: 0.94rem;
+}
+
+.account-history__context span,
+.account-history__meta span {
+  color: #70828c;
+  font-size: 0.76rem;
+}
+
+.account-history__context a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #087f91;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.account-history__state {
+  display: grid;
+  min-height: 230px;
+  place-content: center;
+  gap: 6px;
+  padding: 24px;
+  border: 1px dashed rgb(7 30 47 / 14%);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 56%);
+  text-align: center;
+}
+
+.account-history__state strong {
+  color: #17384a;
+}
+
+.account-history__state span {
+  color: #71838d;
+  font-size: 0.82rem;
+}
+
+.account-history__state.is-unavailable {
+  border-color: rgb(182 107 31 / 20%);
+  background: rgb(182 107 31 / 5%);
+}
+
+.account-history .hydrology-rich-chart {
+  margin: 0;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.account-history__meta {
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.account-history__meta span:last-child {
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .account-history__controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .account-history__refresh {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 680px) {
+  .account-history {
+    gap: 15px;
+    padding: 18px 14px;
+    border-radius: 14px;
+  }
+
+  .account-history__header,
+  .account-history__context,
+  .account-history__meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .account-history__badge {
+    order: -1;
+  }
+
+  .account-history__controls {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .account-history__refresh {
+    grid-column: auto;
+  }
+
+  .account-history__meta span:last-child {
+    text-align: left;
+  }
+}
