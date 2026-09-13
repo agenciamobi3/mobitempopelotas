@@ -31,7 +31,7 @@ Regras permanentes:
 | Transparência pública | `/status-dos-dados` é a página canônica de origem, uso, estado e horário das fontes; usa leitura editorial aberta em linhas, `ServiceStatus.state` descreve a integração e `dataCondition` descreve separadamente a condição publicável do dado para Laranjal, Guaíba, rede regional da Lagoa, Defesa Civil RS e ANA `87955001`; critérios gerais ficam no fechamento da página |
 | Rota de compatibilidade aposentada | `/metodologia` permanece redirect 301 para `/status-dos-dados`; `/estacao-embrapa-pelotas` voltou em 09/09 como página interna real, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer |
 | SEO técnico | **58 URLs indexáveis = 35 fixas + 23 municipais** em `src/lib/public-routes.ts`; a página Embrapa restaurada e o Observatório interno não alteram esse inventário |
-| Observatório PRO | Fase 1 em andamento em `/observatorio`: entitlement `observatoryAccess` (`Free=false`, `PRO ativo=true`), gate server-side, cache privado/no-store, robots estrito, shell standalone, contratos de camada, `LayerManager` e `RenderGovernor` abstrato já estão na `main`; rota segue fora de sitemap/navegação/public-routes e ainda **não possui Cesium, globo, base ou terreno reais** |
+| Observatório PRO | Fase executável em `/observatorio`: entitlement `observatoryAccess` (`Free=false`, `PRO ativo=true`), gate server-side, cache privado/no-store e robots estrito; CesiumJS 1.145 roda por lazy import em `CesiumWidget`, com OpenStreetMap keyless, Re:Earth Terrain e fallback elipsoidal; radar, satélite e raios usam séries temporais REDEMET sincronizadas por relógio global, enquanto alertas e hidrologia reutilizam integrações canônicas; cenários compartilháveis V1 transportam horário, camadas, opacidade e câmera no fragmento da URL, preservando o cenário através do login; rota segue fora de sitemap/navegação/public-routes |
 | Observação atual | Rede de Monitoramento Hidrometeorológico da Defesa Civil RS; apenas estações confirmadas de Pelotas com leitura de até 30 min podem compor o `Agora` |
 | Embrapa | Coletor operacional/scheduler continuam aposentados; `/estacao-embrapa-pelotas` voltou como consulta server-side direta, somente leitura, à página pública da Embrapa, sem alterar a fonte do `Agora` |
 | Previsão | Open-Meteo principal; MET Norway contingência quando aplicável |
@@ -53,13 +53,13 @@ Regras permanentes:
 | Widget Builder | Fundação V1 publicada; conta cria e gerencia widgets por token público |
 | Conta / Google | Fundação operacional parcial; E2E completo com contas descartáveis continua pendente |
 | Service Worker / Web Push | Suspensos até estabilidade sustentada |
-| GitHub Actions | Pushes atuais voltaram a abrir runs; a execução do Observatório precisa ser avaliada pelos steps/conclusão antes de declarar build/typecheck/testes aprovados |
+| GitHub Actions | Runs de qualidade voltaram a executar steps; no PR de cenários do Observatório a suíte geral é interrompida antes dos checks específicos por uma falha de contrato hidrológico fora do escopo, portanto testes/typecheck/build do Observatório não devem ser declarados aprovados apenas pelo estado do workflow geral |
 
 ## 3. Stack e budgets públicos
 
-Stack principal: React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro, Tailwind CSS 4, Supabase JS/SSR, MapLibre GL, Recharts e Zod.
+Stack principal: React 19, TypeScript 5.8, TanStack Start/Router, Vite 8, Nitro, Tailwind CSS 4, Supabase JS/SSR, MapLibre GL, CesiumJS 1.145, Recharts e Zod.
 
-**Cesium ainda não faz parte das dependências instaladas.** A arquitetura do Observatório prevê CesiumJS exclusivamente na superfície `/observatorio`, por lazy import, sem substituir MapLibre no portal convencional. A instalação foi adiada até poder atualizar `package.json`, `package-lock.json` e `bun.lock` de forma coerente com `npm ci`.
+CesiumJS fica restrito à superfície `/observatorio`: `ObservatoryShell` carrega `ObservatoryViewer` por `React.lazy`, o viewer importa o runtime Cesium dinamicamente e `scripts/prepare-cesium-assets.mjs` materializa `Assets`, `ThirdParty`, `Widgets` e `Workers` em `public/cesium` durante `dev`/`build`. O portal público convencional continua usando MapLibre quando aplicável e não carrega Cesium por padrão.
 
 Budgets atuais:
 
@@ -137,7 +137,7 @@ A apresentação pública foi reorganizada em 08/09 para uma leitura editorial a
 
 - `/metodologia` → 301 para `/status-dos-dados`;
 - `/estacao-embrapa-pelotas` → página interna ativa, `noindex`, fora do sitemap, descoberta no megamenu `Explorar` e ainda sem promoção no footer;
-- `/observatorio` → ferramenta interna PRO em Fase 1, `noindex/noarchive/nosnippet/noimageindex`, fora do sitemap, header, megamenu, footer e `public-routes`; não é superfície pública de descoberta.
+- `/observatorio` → ferramenta interna PRO em desenvolvimento, `noindex/noarchive/nosnippet/noimageindex`, fora do sitemap, header, megamenu, footer e `public-routes`; não é superfície pública de descoberta.
 
 A página Embrapa voltou como superfície funcional, não como restauração automática do antigo produto operacional. Reindexação, retorno ao footer e eventual uso como observação principal são decisões separadas.
 
@@ -423,6 +423,10 @@ Módulos V1:
 
 A fundação do Observatório PRO usa o mesmo sistema de conta já existente, sem criar autenticação paralela. `src/lib/auth/account-access.ts` deriva `observatoryAccess` do acesso efetivo; `src/observatory/data/observatory-access.functions.ts` resolve usuário e entitlement no servidor e falha fechado. Visitante é redirecionado a `/conta?next=/observatorio`; Free recebe estado privado sem montar `ObservatoryShell`; PRO ativo recebe o shell interno. Nenhuma migration ou alteração de Supabase foi necessária nesta fatia.
 
+O runtime 3D usa `CesiumWidget`, base OpenStreetMap sem chave e Re:Earth Terrain com fallback para elipsoide. `requestRenderMode` limita trabalho quando a cena está ociosa. Radar e satélite são materializados como imagery georreferenciada; raios e demais pontos usam primitivas. O relógio global agrega os timestamps das séries de radar, satélite e STSC e escolhe, para cada fonte, o último frame que não esteja no futuro em relação ao instante selecionado.
+
+Cenários compartilháveis V1 preservam o instante global, estado/opacidade das camadas e câmera Cesium no fragmento `#scenario=...`. O codec é versionado, limitado e fail-closed. Como hash não chega ao servidor, o fluxo Google preserva somente o parâmetro `scenario` do fragmento no retorno para o `nextPath` já sanitizado por `safeNextPath`, sem criar redirect externo nem API nova. Na restauração, o timestamp solicitado só é resolvido após todas as fontes temporais ativas do cenário assentarem, evitando selecionar cedo um frame aproximado enquanto outra fonte ainda carrega.
+
 Segurança ativa inclui RLS, secrets server-side, gate geográfico quando aplicável, CSP, rate limiting, allowlists/proxies de fontes e logs sanitizados. O Observatório acrescenta `Cache-Control: private, no-store`, `Vary: Cookie, Authorization` e `X-Robots-Tag` estrito na fundação de acesso.
 
 E2E autenticado completo de Widget Builder, conta, contribuição e Observatório continua pendente.
@@ -438,7 +442,7 @@ A consolidação de 08–12/09 atualizou contratos para:
 - visual editorial de `/status-dos-dados` em linhas abertas, sem antiga grade de duas colunas, com condição do dado separada do badge de estado, histórico em faixas/linhas e critérios de publicação no fechamento; protegido por `tests/data-status-editorial-visual.test.ts`;
 - redirect 301 de `/metodologia` mantido;
 - `/estacao-embrapa-pelotas` restaurada em 09/09 como página interna real, com reader server-side direto, `noindex`, fora do sitemap e do footer, novamente descoberta no megamenu `Explorar` e sem reativar o coletor aposentado; protegida por `tests/embrapa-station-page.test.ts` e pelo contrato de separação em `tests/retired-weather-source-cleanup.test.ts`;
-- fundação silenciosa do Observatório em `/observatorio`, com entitlement PRO, gate server-side, robots estrito, shell standalone, contratos de camada, `LayerManager` e `RenderGovernor`; protegida por `tests/observatory-foundation.test.ts`, incluído em `npm run test:contracts`; o teste também impede declarar Cesium instalado antes de os lockfiles serem atualizados corretamente;
+- Observatório em `/observatorio` com entitlement PRO, gate server-side, robots estrito, shell standalone, Cesium lazy, assets preparados no build, base keyless, terreno com fallback, camadas observacionais, timeline global e cenários compartilháveis; `tests/observatory-foundation.test.ts`, `tests/observatory-timeline.test.ts`, `tests/observatory-interface.test.ts` e `tests/observatory-scenario.test.ts` protegem a superfície e o workflow dedicado inclui esses contratos;
 - header canônico `HomeEditorialHeader` sem implementação paralela e com a Estação Embrapa novamente em `Explorar > Observação e contexto`;
 - footer compartilhado sem inventário repetido de fornecedores;
 - overlay fotográfico da Home em preto neutro, com opacidade geral reduzida e blur de 10 px mascarado para desaparecer antes da área direita da fotografia; protegido por `tests/home-hero-overlay-and-recovery.test.ts`;
@@ -460,9 +464,9 @@ A consolidação de 08–12/09 atualizou contratos para:
 
 ### 13.1 GitHub Actions
 
-Os pushes da fundação do Observatório voltaram a abrir runs do workflow `Qualidade` em 12/09. Isso é diferente do estado observado em 08/09, quando jobs encerravam sem steps.
+Os workflows gerais voltaram a executar steps. No PR #135, a execução de `Qualidade` é interrompida em um contrato de hierarquia Defesa Civil/SACE antes de chegar aos testes específicos do Observatório, typecheck e build. Essa falha está fora do escopo dos cenários e não deve ser mascarada por alteração hidrológica oportunista dentro do PR do Observatório.
 
-Até a execução atual concluir e os jobs/steps serem inspecionados, não declarar `npm test`, build, typecheck, lint, `routes:check` ou browser E2E como aprovados para esta entrega.
+O workflow dedicado `.github/workflows/observatory-foundation.yml` mantém os contratos do Observatório, mas sua execução automática está configurada para push em `main` ou disparo manual. Portanto, antes de promover uma entrega, é necessário observar uma execução que alcance os checks específicos; não inferir aprovação a partir de commits ou de uma suíte geral abortada cedo.
 
 ### 13.2 Estado de deploy
 
@@ -477,29 +481,31 @@ Não usar crawler, runtime marker isolado ou screenshot de preview como prova ú
 
 ## 14. Próximas prioridades
 
-1. Fechar a própria Fase 1 do Observatório: instalar Cesium pelo fluxo normal quando houver executor/créditos para regenerar `package-lock.json` e `bun.lock`, materializar assets, criar `ObservatoryViewer`, base keyless, Re:Earth Terrain com fallback, lazy import e validação de CSP/build sem iniciar radar/satélite/STSC antes disso.
-2. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
-3. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível, atalho no megamenu e permanência fora do sitemap.
-4. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático, ao sitemap/indexação ou ao footer.
-5. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
-6. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
-7. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
-8. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar Moderação V1 com conta autorizada e contribuição descartável.
-9. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
-10. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
-11. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
-12. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
-13. Validar visualmente a família `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas`, `/previsao-7-dias-pelotas`, `/previsao-15-dias-pelotas`, `/chuva-em-pelotas` e `/vento-em-pelotas` em desktop e mobile depois da propagação, conferindo rails, primeira dobra, estados indisponíveis e responsividade sem tratar preview isolado como prova de produção.
-14. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
-15. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
-16. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
-17. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
-18. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
+1. Fechar o PR #135 de cenários compartilháveis do Observatório, incluindo validação dirigida dos contratos, typecheck e build sem corrigir falhas hidrológicas fora do escopo apenas para produzir verde.
+2. Implementar e validar o Comparador A/B em fase própria, reutilizando o mesmo Cesium, câmera e contratos temporais; primeira versão deve usar split nativo para radar/satélite e manter raios/alertas/hidrologia fora do corte até existir contrato apropriado.
+3. Executar typecheck e os contratos de navegação/transparência assim que houver executor funcional, sem corrigir falhas fora do escopo apenas para produzir verde.
+4. Confirmar no domínio canônico o redirect 301 de `/metodologia` e a reabertura `noindex` de `/estacao-embrapa-pelotas`, incluindo leitura real, estado indisponível, atalho no megamenu e permanência fora do sitemap.
+5. Observar a estabilidade do `Current_Monitor.htm` em leituras consecutivas antes de discutir retorno da Embrapa ao `Agora`, ao histórico automático, ao sitemap/indexação ou ao footer.
+6. Confirmar propagação de `/nivel-do-rio-jaguarao` e `/nivel-do-canal-sao-goncalo`, incluindo HTTP, canonical, Schema, sitemap e links internos.
+7. Confirmar o smoke do hub `/nivel-da-lagoa-dos-patos` e das cinco páginas locais.
+8. Observar Search Console antes de promover outra estação da Defesa Civil; não expandir automaticamente Turuçu, Cristal, Arroio Grande, Bagé ou Santa Vitória do Palmar.
+9. Configurar `MOBI_PORTAL_ADMIN_EMAILS` no runtime e validar Moderação V1 com conta autorizada e contribuição descartável.
+10. Fazer E2E autenticado do Widget Builder e do fluxo de contribuição com conta descartável.
+11. Executar manualmente o workflow INMET Gmail em modo `check` quando houver runner funcional e comprovar uma mensagem real de previsão de Pelotas antes de reativar Web Push.
+12. Confirmar externamente o destino do LabHidroSens; somente com encerramento definitivo comprovado remover ThingsBoard e promover CIEX/FURG a fonte local única.
+13. Continuar a recuperação documental das enchentes de 2001 e 2015 pelos caminhos institucionais já identificados.
+14. Validar visualmente a família `/tempo-hoje-pelotas`, `/tempo-amanha-pelotas`, `/previsao-7-dias-pelotas`, `/previsao-15-dias-pelotas`, `/chuva-em-pelotas` e `/vento-em-pelotas` em desktop e mobile depois da propagação, conferindo rails, primeira dobra, estados indisponíveis e responsividade sem tratar preview isolado como prova de produção.
+15. Validar no preview/domínio o inventário e a hidrografia ANA de `/situacao-hidrologica-pelotas`, o retorno real de `Indice`/`Notas` para `87955000`, a ficha `87955001` e a cronologia 2024–2026 em `/nivel-da-lagoa-dos-patos-laranjal`.
+16. Para `87955001`, priorizar a recuperação de ficha de estação/ficha de campo e documentação de RN/nivelamento do sensor. Também buscar documento que ligue explicitamente o sensor ANA anunciado em 27/06/2025 ao código `87955001`; o início cadastral de telemetria em 08/06/2026 e o seletor de ficha observado no HAR estreitam a investigação, mas não substituem essa prova.
+17. Validar no preview e no domínio canônico o novo desenho editorial de `/status-dos-dados`, incluindo a linha `Condição do dado`, responsividade das linhas de fonte, histórico aberto e estados live/stale/unavailable, sem tratar preview isolado como prova de produção.
+18. Validar no preview e no domínio canônico `/radar-e-satelite-pelotas` depois da propagação: alternância Realçado/IR/Visível, estado noturno do Visível com próxima janela quando recebida, fonte/horário mudando com o produto, contingência INMET sem duplicação, radar REDEMET carregando/sequenciando, STSC distinguindo ausência de coleta de zero real e estabilidade do radar com budget interno de 4,2 s.
+19. Manter Service Worker/Web Push suspensos até estabilidade sustentada.
 
 ## 15. Documentos principais
 
 - `docs/TEMPO_PELOTAS_OBSERVATORIO_3D_ARCHITECTURE.md` — arquitetura e fases do Observatório PRO;
-- `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md` — estado executável da Fase 1, entregas e pendências do runtime Cesium;
+- `docs/TEMPO_PELOTAS_OBSERVATORIO_FOUNDATION_2026-09-12.md` — fundação executável do Observatório e contratos do runtime Cesium;
+- `docs/TEMPO_PELOTAS_OBSERVATORIO_SCENARIO_SHARING_2026-09-12.md` — cenários compartilháveis, restauração temporal e preservação através do login;
 - `docs/DEFESA_CIVIL_DEDICATED_PAGE_GATE_2026-09-05.md` — gate editorial de páginas dedicadas;
 - `docs/DEFESA_CIVIL_RS_HYDROMET_PLAN.md` — integração da Rede Defesa Civil RS;
 - `docs/PUBLIC_ROUTE_RESILIENCE.md` — resiliência, budgets e estados de dados;
