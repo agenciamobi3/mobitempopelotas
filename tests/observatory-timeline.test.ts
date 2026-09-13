@@ -3,6 +3,11 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  createObservatoryScenario,
+  buildObservatoryScenarioHash,
+  readObservatoryScenarioHash,
+} from "../src/observatory/core/ObservatoryScenario.ts";
+import {
   OBSERVATORY_TEMPORAL_LAYER_IDS,
   selectTemporalFrame,
   temporalTimestamps,
@@ -92,4 +97,34 @@ test("viewer troca frames temporais em memória sem recarregar camada a cada mov
   assert.match(viewer, /renderTemporalFrame/);
   assert.match(viewer, /selectedTimelineAt/);
   assert.match(viewer, /loadObservatoryTemporalLayer/);
+});
+
+test("cenário compartilhável preserva horário, camadas, opacidade e câmera", () => {
+  const scenario = createObservatoryScenario({
+    selectedAt: "2026-09-12T22:10:00.000Z",
+    layers: [
+      { id: "radar", enabled: true, opacity: 0.72 },
+      { id: "satellite", enabled: true, opacity: 0.64 },
+      { id: "lightning", enabled: false, opacity: 1 },
+      { id: "alerts", enabled: true, opacity: 1 },
+      { id: "hydrology", enabled: false, opacity: 1 },
+    ],
+    camera: {
+      longitude: -52.3421,
+      latitude: -31.7719,
+      height: 487321,
+      heading: 12.5,
+      pitch: -67.25,
+      roll: 0,
+    },
+  });
+
+  const restored = readObservatoryScenarioHash(buildObservatoryScenarioHash(scenario));
+  assert.ok(restored);
+  assert.equal(restored.selectedAt, "2026-09-12T22:10:00.000Z");
+  assert.deepEqual(
+    restored.layers.map(({ id, enabled, opacity }) => [id, enabled, opacity]),
+    scenario.layers.map(({ id, enabled, opacity }) => [id, enabled, opacity]),
+  );
+  assert.deepEqual(restored.camera, scenario.camera);
 });
