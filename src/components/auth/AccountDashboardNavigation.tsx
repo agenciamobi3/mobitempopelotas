@@ -104,7 +104,7 @@ export function AccountDashboardNavigation({ snapshot }: { snapshot: Authenticat
               <Camera aria-hidden="true" size={18} />
               <span>Câmeras</span>
             </Link>
-            <Link className="account-app-nav__item" to="/situacao-das-aguas">
+            <Link className="account-app-nav__item" to="/situacao-hidrologica-pelotas">
               <Waves aria-hidden="true" size={18} />
               <span>Situação das águas</span>
             </Link>
