@@ -46,7 +46,7 @@ export function AccountObservatoryProduct({ access }: { access: ObservatoryAcces
       <div className="account-tool-card__footer">
         <small>
           {allowed
-            ? "Disponível para sua conta cadastrada, sem cobrança nesta fase."
+            ? "Disponível para sua conta cadastrada."
             : "O acesso da conta precisa estar ativo para abrir a ferramenta."}
         </small>
         <Link to="/observatorio">
