@@ -22,11 +22,25 @@
  * from appearing to jump in size when conditions change.
  */
 .tp-home-forecast-hour__weather .weather-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.tp-home-forecast-hour__weather .weather-icon--moon {
+  transform: scale(1.06);
+  transform-origin: 50% 50%;
+}
+
+/*
+ * The compact strip inside the photographic hero needs stronger icon presence
+ * than the original 28px artwork, but stays smaller than the full hourly grid.
+ */
+.tp-home-hero__hour-icon .weather-icon {
   width: 34px;
   height: 34px;
 }
 
-.tp-home-forecast-hour__weather .weather-icon--moon {
+.tp-home-hero__hour-icon .weather-icon--moon {
   transform: scale(1.06);
   transform-origin: 50% 50%;
 }
