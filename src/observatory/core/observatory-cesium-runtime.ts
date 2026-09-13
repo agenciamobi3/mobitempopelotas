@@ -7,6 +7,7 @@ import {
   EllipsoidTerrainProvider,
   HeadingPitchRange,
   ImageryLayer,
+  ImagerySplitDirection,
   Math as CesiumMath,
   Matrix4,
   NearFarScalar,
@@ -28,6 +29,7 @@ const MINIMUM_CAMERA_HEIGHT_METERS = 5_000;
 const MAXIMUM_CAMERA_HEIGHT_METERS = 10_000_000;
 
 export type ObservatoryTerrainStatus = "reearth" | "ellipsoid";
+export type ObservatoryImagerySplit = "none" | "left" | "right";
 
 export type ObservatoryCesiumImageInput = {
   imageUrl: string;
@@ -38,6 +40,7 @@ export type ObservatoryCesiumImageInput = {
     north: number;
   };
   opacity: number;
+  split?: ObservatoryImagerySplit;
 };
 
 export type ObservatoryCesiumPointInput = {
@@ -61,12 +64,18 @@ export type ObservatoryCesiumRuntime = {
   getCameraState: () => ObservatoryCameraState;
   setCameraState: (state: ObservatoryCameraState) => void;
   subscribeCameraChange: (listener: (state: ObservatoryCameraState) => void) => () => void;
+  setSplitPosition: (position: number) => void;
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
   setLayerOpacity: (id: string, opacity: number) => void;
   removeLayer: (id: string) => void;
   clearDataLayers: () => void;
 };
+
+function clamp(value: number, minimum: number, maximum: number) {
+  if (!Number.isFinite(value)) return minimum;
+  return Math.min(maximum, Math.max(minimum, value));
+}
 
 function clampOpacity(value: number) {
   if (!Number.isFinite(value)) return 1;
@@ -76,6 +85,12 @@ function clampOpacity(value: number) {
 function clampCameraHeight(value: number) {
   if (!Number.isFinite(value)) return INITIAL_CAMERA_RANGE_METERS;
   return Math.min(MAXIMUM_CAMERA_HEIGHT_METERS, Math.max(MINIMUM_CAMERA_HEIGHT_METERS, value));
+}
+
+function splitDirection(value: ObservatoryImagerySplit | undefined) {
+  if (value === "left") return ImagerySplitDirection.LEFT;
+  if (value === "right") return ImagerySplitDirection.RIGHT;
+  return ImagerySplitDirection.NONE;
 }
 
 function parseCssColor(value: string | undefined, fallback: Color) {
@@ -134,6 +149,7 @@ export async function createObservatoryCesiumRuntime(
   widget.scene.maximumRenderTimeChange = Number.POSITIVE_INFINITY;
   widget.scene.globe.enableLighting = true;
   widget.scene.globe.showGroundAtmosphere = true;
+  widget.scene.splitPosition = 0.5;
   if (widget.scene.skyAtmosphere) widget.scene.skyAtmosphere.show = true;
 
   const cameraController = widget.scene.screenSpaceCameraController;
@@ -229,6 +245,12 @@ export async function createObservatoryCesiumRuntime(
     return () => widget.camera.moveEnd.removeEventListener(handleMoveEnd);
   }
 
+  function setSplitPosition(position: number) {
+    if (widget.isDestroyed()) return;
+    widget.scene.splitPosition = clamp(position, 0.1, 0.9);
+    requestRender();
+  }
+
   resetView();
 
   const imageLayers = new Map<string, ImageryLayer>();
@@ -279,6 +301,7 @@ export async function createObservatoryCesiumRuntime(
     const layer = new ImageryLayer(provider, {
       alpha: clampOpacity(input.opacity),
     });
+    layer.splitDirection = splitDirection(input.split);
     widget.scene.imageryLayers.add(layer);
     imageLayers.set(id, layer);
     requestRender();
@@ -337,6 +360,7 @@ export async function createObservatoryCesiumRuntime(
     getCameraState,
     setCameraState,
     subscribeCameraChange,
+    setSplitPosition,
     setImageLayer,
     setPointLayer,
     setLayerOpacity,
