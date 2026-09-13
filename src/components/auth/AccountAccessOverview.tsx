@@ -49,7 +49,7 @@ function buildAccessItems(entitlements: Entitlements): AccessItem[] {
     {
       title: "Comparações, exportações e análises",
       description:
-        "Esses módulos estão em desenvolvimento e só receberão regras de plano quando estiverem maduros e claramente definidos.",
+        "Esses módulos estão em desenvolvimento e serão liberados quando fontes, interface e validações estiverem prontas para uso consistente.",
       state: "preparing",
     },
   ];
@@ -78,7 +78,7 @@ export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAcc
         <p>
           O cadastro acrescenta organização pessoal e ferramentas de trabalho. Previsão, alertas,
           radar, câmeras e demais dados públicos continuam abertos sem login, enquanto os recursos de
-          conta podem evoluir em uma experiência própria.
+          conta ganham uma experiência própria.
         </p>
       </div>
 
@@ -94,8 +94,8 @@ export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAcc
 
       <div className="account-access-overview__footer">
         <p>
-          Nesta fase, os novos recursos nascem na experiência cadastrada. Limites e planos futuros só
-          serão aplicados quando cada produto estiver estável e com proposta de valor bem definida.
+          Os recursos da conta entram gradualmente conforme dados, fontes, experiência e segurança
+          ficam prontos para uso contínuo.
         </p>
         <Link to="/painel">Abrir recursos da minha conta →</Link>
       </div>
