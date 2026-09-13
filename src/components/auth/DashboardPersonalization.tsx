@@ -120,6 +120,12 @@ export function DashboardItemControls({
   );
 }
 
+function sectionAnchor(id: DashboardSectionId) {
+  if (id === "live") return "painel-vivo";
+  if (id === "favorites") return "favoritos";
+  return "ferramentas";
+}
+
 export function DashboardSectionFrame({
   id,
   label,
@@ -143,6 +149,7 @@ export function DashboardSectionFrame({
 }) {
   return (
     <div
+      id={sectionAnchor(id)}
       className={`dashboard-section-frame${editing ? " is-editing" : ""}`}
       data-dashboard-section={id}
       onDragOver={editing ? (event) => event.preventDefault() : undefined}
