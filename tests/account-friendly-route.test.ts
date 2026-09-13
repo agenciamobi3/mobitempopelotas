@@ -10,6 +10,10 @@ const callbackRoute = readFileSync("src/routes/auth/callback.ts", "utf8");
 const accountAction = readFileSync("src/components/auth/AuthAccountAction.tsx", "utf8");
 const accountPage = readFileSync("src/components/auth/AccountPage.tsx", "utf8");
 const accountDashboard = readFileSync("src/components/auth/AccountDashboard.tsx", "utf8");
+const dashboardNavigation = readFileSync(
+  "src/components/auth/AccountDashboardNavigation.tsx",
+  "utf8",
+);
 const observatoryProduct = readFileSync(
   "src/components/auth/AccountObservatoryProduct.tsx",
   "utf8",
@@ -28,7 +32,7 @@ test("friendly account route serves both visitor login and authenticated prefere
   assert.match(accountRoute, /noindex, nofollow/);
 });
 
-test("authenticated dashboard is a separate noindex route shared by Free and PRO", () => {
+test("authenticated dashboard is a separate noindex route shared by registered accounts", () => {
   assert.match(dashboardRoute, /createFileRoute\("\/painel"\)/);
   assert.match(dashboardRoute, /getAccountSnapshot/);
   assert.match(dashboardRoute, /getAccountFavorites/);
@@ -45,15 +49,30 @@ test("authenticated dashboard is a separate noindex route shared by Free and PRO
   assert.match(dashboardRoute, /noindex, nofollow/);
 });
 
-test("dashboard exposes the Observatorio as a real account product using the canonical access gate", () => {
+test("dashboard exposes the Observatorio as a Free registered product using the canonical access gate", () => {
   assert.match(accountDashboard, /AccountObservatoryProduct/);
   assert.match(accountDashboard, /<AccountObservatoryProduct access=\{observatory\} \/>/);
   assert.match(observatoryProduct, /Observatório Tempo Pelotas/);
   assert.match(observatoryProduct, /to="\/observatorio"/);
-  assert.match(observatoryProduct, /Disponível na sua conta/);
-  assert.match(observatoryProduct, /Produto PRO/);
+  assert.match(observatoryProduct, /Incluído na conta/);
+  assert.match(observatoryProduct, /sem cobrança nesta fase/);
   assert.match(observatoryProduct, /Globo 3D/);
-  assert.match(observatoryProduct, /Cenários compartilháveis/);
+  assert.doesNotMatch(observatoryProduct, /Produto PRO|plano PRO|experiência PRO/i);
+});
+
+test("painel autenticado usa navegação própria em vez do header e footer públicos", () => {
+  assert.match(accountDashboard, /AccountDashboardNavigation/);
+  assert.match(accountDashboard, /className="account-app-shell"/);
+  assert.doesNotMatch(accountDashboard, /<SiteHeader/);
+  assert.doesNotMatch(accountDashboard, /<SiteFooter/);
+  assert.match(dashboardNavigation, /Visão geral/);
+  assert.match(dashboardNavigation, /Painel Vivo/);
+  assert.match(dashboardNavigation, /Favoritos/);
+  assert.match(dashboardNavigation, /Observatório/);
+  assert.match(dashboardNavigation, /Widgets/);
+  assert.match(dashboardNavigation, /Radar e satélite/);
+  assert.match(dashboardNavigation, /Situação das águas/);
+  assert.match(dashboardNavigation, /account-app-mobile-nav/);
 });
 
 test("legacy account URLs permanently redirect to the friendly route", () => {
