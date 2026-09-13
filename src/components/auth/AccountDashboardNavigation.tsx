@@ -123,7 +123,7 @@ export function AccountDashboardNavigation({ snapshot }: { snapshot: Authenticat
           <Link className="account-app-nav__portal" to="/">
             Voltar ao portal
           </Link>
-          <small>Recursos da conta estão sendo ampliados antes da definição dos planos pagos.</small>
+          <small>Seu painel reúne recursos da conta e atalhos para o portal.</small>
         </div>
       </aside>
 
