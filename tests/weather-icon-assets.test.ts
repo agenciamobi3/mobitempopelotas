@@ -47,20 +47,39 @@ test("wind keeps the local icon and every weather glyph receives the shared fram
   assert.match(component, /`weather-icon--\$\{name\}`/);
 });
 
-test("primary weather surfaces use restrained motion while dense lists stay static", () => {
+test("canonical conditions receive global condition-aware motion", () => {
+  assert.match(styles, /\.weather-icon--sun \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--moon \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--partly-cloudy \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--partly-cloudy-night \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--cloud \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--rain \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--storm \.weather-icon__asset/);
+  assert.match(styles, /\.weather-icon--wind/);
+  assert.match(styles, /tp-weather-asset-sun/);
+  assert.match(styles, /tp-weather-asset-moon/);
+  assert.match(styles, /tp-weather-asset-partly-cloudy/);
+  assert.match(styles, /tp-weather-asset-cloud/);
+  assert.match(styles, /tp-weather-asset-rain/);
+  assert.match(styles, /tp-weather-asset-storm/);
+  assert.match(styles, /tp-weather-icon-wind/);
+  assert.match(styles, /prefers-reduced-motion: reduce/);
+});
+
+test("primary weather surfaces keep a restrained secondary float layer", () => {
   assert.match(styles, /\.tp-home-hero__condition-icon/);
   assert.match(styles, /\.today-retail-hero__weather-icon/);
   assert.match(styles, /\.tomorrow-retail-hero__weather-icon/);
   assert.match(styles, /\.rain-retail-hero__weather-icon/);
-  assert.match(styles, /tp-weather-icon-sun/);
-  assert.match(styles, /tp-weather-icon-storm/);
-  assert.match(styles, /prefers-reduced-motion: reduce/);
+  assert.match(styles, /\.seven-day-retail-hero__weather-icon/);
+  assert.match(styles, /tp-weather-icon-float/);
 });
 
-test("hourly and INMET surfaces normalize icon sizing without adding list animations", () => {
+test("hourly and INMET surfaces normalize sizing and inherit the global icon motion", () => {
   assert.match(styles, /\.tp-home-forecast-hour__weather \.weather-icon/);
   assert.match(styles, /\.tp-home-inmet \.tp-home-inmet__icon \.weather-icon/);
   assert.match(styles, /\.tp-home-inmet__icon\.is-featured \.weather-icon/);
+  assert.match(styles, /\.weather-icon--amcharts \.weather-icon__asset/);
 });
 
 test("weather icon scale policy covers home and internal forecast pages", () => {
