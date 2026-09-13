@@ -50,8 +50,31 @@ test("comparador A/B nasce em swipe e limita a primeira fase a raster", () => {
 
   assert.equal(comparison.mode, "swipe");
   assert.equal(comparison.splitPosition, 0.5);
+  assert.equal(comparison.opacityMix, 0.5);
   assert.deepEqual(comparisonActiveRasterLayerIds(comparison), ["radar", "satellite"]);
   assert.equal(comparisonSideHasRenderableRaster(comparison.a, "lightning"), false);
+});
+
+test("modo opacidade preserva o mesmo A/B e normaliza a mistura", () => {
+  const base = scenario({ selectedAt: "2026-09-12T22:00:00Z", radar: true });
+  const opacity = createObservatoryComparison({
+    a: base,
+    b: base,
+    mode: "opacity",
+    opacityMix: 2,
+  });
+
+  assert.equal(opacity.mode, "opacity");
+  assert.equal(opacity.opacityMix, 1);
+  assert.equal(
+    createObservatoryComparison({ a: base, b: base, mode: "opacity", opacityMix: -1 }).opacityMix,
+    0,
+  );
+  assert.equal(
+    createObservatoryComparison({ a: base, b: base, mode: "opacity", opacityMix: Number.NaN })
+      .opacityMix,
+    0.5,
+  );
 });
 
 test("cada lado preserva horário e estado das camadas sem duplicar câmera", () => {
