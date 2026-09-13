@@ -13,6 +13,7 @@ import {
 const shell = readFileSync("src/observatory/ui/ObservatoryShell.tsx", "utf8");
 const viewer = readFileSync("src/observatory/core/ObservatoryViewer.tsx", "utf8");
 const runtime = readFileSync("src/observatory/core/observatory-cesium-runtime.ts", "utf8");
+const loginCard = readFileSync("src/components/auth/GoogleLoginCard.tsx", "utf8");
 
 const scenario = createObservatoryScenario({
   selectedAt: "2026-09-12T22:20:00.000Z",
@@ -80,6 +81,24 @@ test("shell oferece link compartilhável e restaura o mesmo contexto ao abrir", 
   assert.match(shell, /buildObservatoryScenarioHash\(scenario\)/);
   assert.match(shell, /requestedTimelineAtRef/);
   assert.match(shell, /cameraRestoreState=\{cameraRestoreState\}/);
+});
+
+test("restauração aguarda todas as fontes temporais ativas antes de resolver o horário", () => {
+  assert.match(shell, /expectedScenarioTimelineLayersRef/);
+  assert.match(shell, /settledScenarioTimelineLayersRef/);
+  assert.match(shell, /allExpectedSettled/);
+  assert.match(shell, /requested && !allExpectedSettled/);
+  assert.match(shell, /setTimelineSettlementRevision/);
+  assert.match(shell, /isObservatoryTemporalLayerId\(layer\.id\)/);
+});
+
+test("cenário atravessa o login sem liberar redirect externo", () => {
+  assert.match(loginCard, /nextPathWithCurrentScenario/);
+  assert.match(loginCard, /safeNextPath\(nextPath, "\/conta"\)/);
+  assert.match(loginCard, /window\.location\.hash/);
+  assert.match(loginCard, /params\.get\("scenario"\)/);
+  assert.match(loginCard, /MAX_PRESERVED_SCENARIO_LENGTH/);
+  assert.match(loginCard, /window\.location\.replace\(nextPathWithCurrentScenario\(nextPath\)\)/);
 });
 
 test("viewer e runtime transportam a posição real da câmera Cesium", () => {
