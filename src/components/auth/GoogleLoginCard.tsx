@@ -15,6 +15,22 @@ const AUTH_ERRORS: Record<string, string> = {
   oauth: "Não foi possível concluir o acesso. Tente novamente.",
 };
 
+const MAX_PRESERVED_SCENARIO_LENGTH = 4096;
+
+function nextPathWithCurrentScenario(nextPath: string) {
+  const safePath = safeNextPath(nextPath, "/conta");
+  if (typeof window === "undefined" || safePath.includes("#")) return safePath;
+
+  const hash = window.location.hash;
+  if (!hash.startsWith("#")) return safePath;
+
+  const params = new URLSearchParams(hash.slice(1));
+  const scenario = params.get("scenario");
+  if (!scenario || scenario.length > MAX_PRESERVED_SCENARIO_LENGTH) return safePath;
+
+  return `${safePath}#scenario=${encodeURIComponent(scenario)}`;
+}
+
 export function GoogleLoginCard({
   nextPath,
   errorCode,
@@ -89,7 +105,7 @@ export function GoogleLoginCard({
               return;
             }
 
-            window.location.replace(safeNextPath(nextPath, "/conta"));
+            window.location.replace(nextPathWithCurrentScenario(nextPath));
           },
         });
 
