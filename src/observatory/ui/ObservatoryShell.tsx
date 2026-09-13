@@ -109,6 +109,21 @@ function nearestTimelineTimestamp(timestamps: readonly string[], requestedAt: st
   return nearest;
 }
 
+function resolveComparisonSeedTimestamp(timestamps: readonly string[], requestedAt: string | null) {
+  if (timestamps.length === 0) return null;
+  if (!requestedAt || !Number.isFinite(Date.parse(requestedAt))) return timestamps.at(-1) ?? null;
+
+  const requested = Date.parse(requestedAt);
+  let latestAtOrBefore: string | null = null;
+  for (const timestamp of timestamps) {
+    const parsed = Date.parse(timestamp);
+    if (!Number.isFinite(parsed)) continue;
+    if (parsed <= requested) latestAtOrBefore = timestamp;
+    else return latestAtOrBefore ?? timestamp;
+  }
+  return latestAtOrBefore ?? timestamps.at(-1) ?? null;
+}
+
 function timelineIndex(timestamps: readonly string[], selectedAt: string | null) {
   if (timestamps.length === 0) return 0;
   if (!selectedAt) return timestamps.length - 1;
@@ -293,7 +308,21 @@ export function ObservatoryShell() {
     layers.map((layer) => [layer.definition.id, layer.runtime.opacity]),
   ) as Partial<Record<ObservatoryLayerId, number>>;
   const hasComparableRaster = enabledLayers.some((id) => id === "radar" || id === "satellite");
-  const canEnterComparison = hasComparableRaster && Boolean(selectedTimelineAt);
+  const comparableTimelineTimestamps = (() => {
+    const unique = new Set<string>();
+    for (const id of ["radar", "satellite"] as const) {
+      if (!enabledLayers.includes(id)) continue;
+      for (const timestamp of timelineSources[id] ?? []) {
+        if (Number.isFinite(Date.parse(timestamp))) unique.add(timestamp);
+      }
+    }
+    return [...unique].sort((first, second) => Date.parse(first) - Date.parse(second));
+  })();
+  const comparisonSeedTimelineAt = resolveComparisonSeedTimestamp(
+    comparableTimelineTimestamps,
+    selectedTimelineAt,
+  );
+  const canEnterComparison = comparisonSeedTimelineAt !== null;
 
   const timelineTimestamps = useMemo(() => {
     const unique = new Set<string>();
@@ -416,9 +445,9 @@ export function ObservatoryShell() {
   );
 
   const currentScenario = useCallback(
-    () =>
+    (scenarioSelectedAt: string | null = selectedTimelineAt) =>
       createObservatoryScenario({
-        selectedAt: selectedTimelineAt,
+        selectedAt: scenarioSelectedAt,
         layers: layers.map((layer) => ({
           id: layer.definition.id as ObservatoryLayerId,
           enabled: layer.runtime.enabled,
@@ -430,12 +459,12 @@ export function ObservatoryShell() {
   );
 
   const enterComparison = useCallback(() => {
-    if (!hasComparableRaster || !selectedTimelineAt) return;
-    const scenario = currentScenario();
+    if (!comparisonSeedTimelineAt) return;
+    const scenario = currentScenario(comparisonSeedTimelineAt);
     setPlaying(false);
     setComparisonSide("b");
     setComparisonState(createObservatoryComparison({ a: scenario, b: scenario }));
-  }, [currentScenario, hasComparableRaster, selectedTimelineAt]);
+  }, [comparisonSeedTimelineAt, currentScenario]);
 
   const exitComparison = useCallback(() => {
     setPlaying(false);
@@ -537,7 +566,7 @@ export function ObservatoryShell() {
                 : canEnterComparison
                   ? "Comparar dois horários no mesmo mapa"
                   : hasComparableRaster
-                    ? "Aguarde o primeiro horário de radar ou satélite carregar"
+                    ? "Aguarde radar ou satélite disponibilizar um quadro observacional"
                     : "Ative radar ou satélite para comparar"
             }
           >
