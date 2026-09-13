@@ -115,19 +115,28 @@ test("historical archive remains service-role only and history authenticates bef
   assert.ok(adminIndex > authIndex, "service role must only be created after authentication");
   assert.match(historyFunctions, /\.eq\("variable_key", "water_level"\)/);
   assert.match(historyFunctions, /\.eq\("data_class", "observation"\)/);
+  assert.match(historyFunctions, /\.order\("observed_at", \{ ascending: false \}\)/);
   assert.match(historyFunctions, /Cache-Control", "private, no-store, max-age=0"/);
 });
 
-test("history sampling keeps real points and never synthesizes intermediate values", () => {
-  const source = Array.from({ length: 101 }, (_, index) => ({
+test("history sampling keeps extrema, recent cadence and only real source points", () => {
+  const source = Array.from({ length: 200 }, (_, index) => ({
     timestamp: new Date(Date.UTC(2026, 8, 1, 0, index)).toISOString(),
-    level: index / 10,
+    level: 1 + (index % 11) / 10,
   }));
-  const sampled = sampleAccountHistoryPoints(source, 12);
+  source[17] = { ...source[17]!, level: -9 };
+  source[63] = { ...source[63]!, level: 12 };
+
+  const sampled = sampleAccountHistoryPoints(source, 20);
 
   assert.equal(sampled[0], source[0]);
   assert.equal(sampled.at(-1), source.at(-1));
-  assert.ok(sampled.length <= 12);
+  assert.ok(sampled.includes(source[17]!));
+  assert.ok(sampled.includes(source[63]!));
+  for (const recentPoint of source.slice(-12)) {
+    assert.ok(sampled.includes(recentPoint));
+  }
+  assert.ok(sampled.length <= 20);
   assert.ok(sampled.every((point) => source.includes(point)));
 });
 
