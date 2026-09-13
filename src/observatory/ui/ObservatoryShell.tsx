@@ -292,6 +292,7 @@ export function ObservatoryShell() {
     layers.map((layer) => [layer.definition.id, layer.runtime.opacity]),
   ) as Partial<Record<ObservatoryLayerId, number>>;
   const hasComparableRaster = enabledLayers.some((id) => id === "radar" || id === "satellite");
+  const canEnterComparison = hasComparableRaster && Boolean(selectedTimelineAt);
 
   const timelineTimestamps = useMemo(() => {
     const unique = new Set<string>();
@@ -428,12 +429,12 @@ export function ObservatoryShell() {
   );
 
   const enterComparison = useCallback(() => {
-    if (!hasComparableRaster) return;
+    if (!hasComparableRaster || !selectedTimelineAt) return;
     const scenario = currentScenario();
     setPlaying(false);
     setComparisonSide("b");
     setComparisonState(createObservatoryComparison({ a: scenario, b: scenario }));
-  }, [currentScenario, hasComparableRaster]);
+  }, [currentScenario, hasComparableRaster, selectedTimelineAt]);
 
   const exitComparison = useCallback(() => {
     setPlaying(false);
@@ -511,14 +512,16 @@ export function ObservatoryShell() {
             type="button"
             className="observatory-shell__share observatory-comparison__trigger"
             onClick={comparisonState ? exitComparison : enterComparison}
-            disabled={!comparisonState && !hasComparableRaster}
+            disabled={!comparisonState && !canEnterComparison}
             aria-pressed={Boolean(comparisonState)}
             title={
               comparisonState
                 ? "Sair da comparação"
-                : hasComparableRaster
+                : canEnterComparison
                   ? "Comparar dois horários no mesmo mapa"
-                  : "Ative radar ou satélite para comparar"
+                  : hasComparableRaster
+                    ? "Aguarde o primeiro horário de radar ou satélite carregar"
+                    : "Ative radar ou satélite para comparar"
             }
           >
             {comparisonState ? <X aria-hidden="true" size={17} /> : <Columns2 aria-hidden="true" size={17} />}
@@ -678,7 +681,7 @@ export function ObservatoryShell() {
               <div className="observatory-comparison__label is-b" aria-hidden="true">
                 B
               </div>
-              <div className="observatory-comparison__overlay" aria-hidden="true">
+              <div className="observatory-comparison__overlay">
                 <button
                   type="button"
                   className="observatory-comparison__divider"
@@ -713,7 +716,7 @@ export function ObservatoryShell() {
                     }
                   }}
                 >
-                  <span />
+                  <span aria-hidden="true" />
                 </button>
               </div>
             </>
