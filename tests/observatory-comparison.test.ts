@@ -166,7 +166,7 @@ test("carga inicial temporal não publica nem limpa estado depois que a timeline
   );
 });
 
-test("falha anterior ao fromUrl não apaga cache temporal já renderizado", () => {
+test("falha anterior ao fromUrl preserva cache e publica degradação", () => {
   assert.match(viewer, /const loadSelectionRevision = timelineSelectionRevisionRef\.current/);
   assert.match(
     viewer,
@@ -180,6 +180,10 @@ test("falha anterior ao fromUrl não apaga cache temporal já renderizado", () =
     viewer,
     /renderSelectionRevision === null &&\s+selectionChangedSinceLoadStarted &&\s+\(hadTemporalCacheAtLoadStart \|\| hasTemporalCache\)/,
   );
+  assert.match(viewer, /Falha ao atualizar série temporal \$\{id\}; mantendo cache/);
+  assert.match(viewer, /const cachedFrame = cachedResult/);
+  assert.match(viewer, /status: "degraded"/);
+  assert.match(viewer, /mantendo o último quadro já carregado/);
 });
 
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
@@ -206,11 +210,15 @@ test("shell oferece modo opacidade com controle explícito de B sobre A", () => 
   assert.match(shell, /comparisonState\.mode === "opacity"/);
 });
 
-test("comparação só pode iniciar depois que existe um horário temporal real", () => {
-  assert.match(shell, /const canEnterComparison = hasComparableRaster && Boolean\(selectedTimelineAt\)/);
-  assert.match(shell, /if \(!hasComparableRaster \|\| !selectedTimelineAt\) return/);
-  assert.match(shell, /disabled=\{!comparisonState && !canEnterComparison\}/);
-  assert.match(shell, /Aguarde o primeiro horário de radar ou satélite carregar/);
+test("comparação nasce de um horário pertencente a radar ou satélite habilitado", () => {
+  assert.match(shell, /resolveComparisonSeedTimestamp/);
+  assert.match(shell, /for \(const id of \["radar", "satellite"\] as const\)/);
+  assert.match(shell, /if \(!enabledLayers\.includes\(id\)\) continue/);
+  assert.match(shell, /timelineSources\[id\] \?\? \[\]/);
+  assert.match(shell, /const canEnterComparison = comparisonSeedTimelineAt !== null/);
+  assert.match(shell, /if \(!comparisonSeedTimelineAt\) return/);
+  assert.match(shell, /currentScenario\(comparisonSeedTimelineAt\)/);
+  assert.match(shell, /Aguarde radar ou satélite disponibilizar um quadro observacional/);
 });
 
 test("comparação não serializa estado ambíguo no compartilhamento normal", () => {
