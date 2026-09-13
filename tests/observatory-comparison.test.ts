@@ -93,6 +93,13 @@ test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônic
   assert.doesNotMatch(viewer, /new CesiumWidget/);
 });
 
+test("renders A/B iniciam juntos para que gerações antigas sejam invalidadas antes do await", () => {
+  assert.match(viewer, /const pendingRenders: Promise<void>\[\] = \[\]/);
+  assert.match(viewer, /pendingRenders\.push\(/);
+  assert.match(viewer, /await Promise\.all\(pendingRenders\)/);
+  assert.doesNotMatch(viewer, /await runtime\.setImageLayer\(targetId/);
+});
+
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {
   assert.match(shell, /createObservatoryComparison/);
   assert.match(shell, /Sair da comparação/);
@@ -103,6 +110,15 @@ test("shell oferece comparação, lados independentes, troca e cortina acessíve
   assert.match(shell, /ArrowLeft/);
   assert.match(shell, /ArrowRight/);
   assert.match(shell, /comparisonState=\{comparisonState\}/);
+  assert.match(shell, /<div className="observatory-comparison__overlay">/);
+  assert.doesNotMatch(shell, /observatory-comparison__overlay" aria-hidden="true"/);
+});
+
+test("comparação só pode iniciar depois que existe um horário temporal real", () => {
+  assert.match(shell, /const canEnterComparison = hasComparableRaster && Boolean\(selectedTimelineAt\)/);
+  assert.match(shell, /if \(!hasComparableRaster \|\| !selectedTimelineAt\) return/);
+  assert.match(shell, /disabled=\{!comparisonState && !canEnterComparison\}/);
+  assert.match(shell, /Aguarde o primeiro horário de radar ou satélite carregar/);
 });
 
 test("comparação não serializa estado ambíguo no compartilhamento normal", () => {
