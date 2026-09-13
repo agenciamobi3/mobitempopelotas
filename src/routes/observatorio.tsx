@@ -80,8 +80,9 @@ function ObservatoryRoute() {
           <span className="eyebrow">Tempo Pelotas PRO</span>
           <h1 id="observatory-pro-title">Observatório disponível no plano PRO</h1>
           <p>
-            Sua conta continua com acesso normal aos recursos públicos e gratuitos. O Observatório é
-            uma ferramenta avançada do plano PRO e ainda está em desenvolvimento interno.
+            Sua conta continua com acesso normal aos recursos públicos e gratuitos. O Observatório
+            adiciona uma experiência avançada para combinar camadas meteorológicas e hidrológicas,
+            navegar no tempo e compartilhar cenários de análise.
           </p>
           <Link className="button" to="/painel">
             Voltar ao meu painel
