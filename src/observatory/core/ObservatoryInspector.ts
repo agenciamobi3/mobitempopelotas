@@ -52,9 +52,9 @@ export function selectObservatoryInspectorHour(
   if (hours.length === 0) return null;
 
   const requested = Date.parse(referenceAt ?? new Date().toISOString());
-  if (!Number.isFinite(requested)) return hours[0] ?? null;
+  if (!Number.isFinite(requested)) return null;
 
-  let selected = hours[0] ?? null;
+  let selected: ObservatoryInspectorHour | null = null;
   for (const hour of hours) {
     const timestamp = Date.parse(hour.timestamp);
     if (!Number.isFinite(timestamp)) continue;
