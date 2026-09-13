@@ -14,18 +14,18 @@ const repairMigration = readFileSync(
 );
 const accountFunctions = readFileSync("src/lib/auth/account.functions.ts", "utf8");
 
-test("authenticated account defaults safely to Free", () => {
+test("authenticated account defaults safely to Free with current registered tools", () => {
   const access = resolveAccountAccess(null);
   assert.equal(access.tier, "free");
   assert.equal(access.label, "Free");
   assert.equal(access.entitlements.panelAccess, true);
-  assert.equal(access.entitlements.observatoryAccess, false);
+  assert.equal(access.entitlements.observatoryAccess, true);
   assert.equal(access.entitlements.historyAccessDays, 60);
   assert.equal(access.entitlements.historyFull, false);
   assert.equal(access.entitlements.dataExport, false);
 });
 
-test("active PRO receives advanced entitlements without changing public data policy", () => {
+test("active PRO keeps advanced entitlements without changing public data policy", () => {
   const access = resolveAccountAccess({ tier: "pro", status: "active", source: "admin" });
   assert.equal(access.tier, "pro");
   assert.equal(access.label, "PRO");
@@ -36,10 +36,11 @@ test("active PRO receives advanced entitlements without changing public data pol
   assert.equal(access.entitlements.dataExport, true);
 });
 
-test("expired or suspended PRO fails closed to Free entitlements", () => {
+test("expired or suspended PRO falls back to the current Free capability set", () => {
   const suspended = resolveAccountAccess({ tier: "pro", status: "suspended" });
   assert.equal(suspended.tier, "free");
-  assert.equal(suspended.entitlements.observatoryAccess, false);
+  assert.equal(suspended.status, "suspended");
+  assert.equal(suspended.entitlements.observatoryAccess, true);
   assert.equal(suspended.entitlements.historyAccessDays, 60);
 
   const expired = resolveAccountAccess(
@@ -48,7 +49,7 @@ test("expired or suspended PRO fails closed to Free entitlements", () => {
   );
   assert.equal(expired.tier, "free");
   assert.equal(expired.status, "expired");
-  assert.equal(expired.entitlements.observatoryAccess, false);
+  assert.equal(expired.entitlements.observatoryAccess, true);
 });
 
 test("account_access is private, user-readable and automatically created as Free", () => {
