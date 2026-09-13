@@ -27,6 +27,7 @@ import {
 
 import {
   createObservatoryComparison,
+  type ObservatoryComparisonMode,
   type ObservatoryComparisonSideId,
   type ObservatoryComparisonState,
 } from "../core/ObservatoryComparison";
@@ -442,6 +443,11 @@ export function ObservatoryShell() {
     setComparisonSide("b");
   }, []);
 
+  const setComparisonMode = useCallback((mode: ObservatoryComparisonMode) => {
+    setPlaying(false);
+    setComparisonState((current) => (current ? { ...current, mode } : current));
+  }, []);
+
   const swapComparisonSides = useCallback(() => {
     setPlaying(false);
     setComparisonState((current) =>
@@ -462,6 +468,17 @@ export function ObservatoryShell() {
         ? {
             ...current,
             splitPosition: Math.min(0.9, Math.max(0.1, position)),
+          }
+        : current,
+    );
+  }, []);
+
+  const setComparisonOpacityMix = useCallback((opacityMix: number) => {
+    setComparisonState((current) =>
+      current
+        ? {
+            ...current,
+            opacityMix: Math.min(1, Math.max(0, opacityMix)),
           }
         : current,
     );
@@ -566,7 +583,9 @@ export function ObservatoryShell() {
           </div>
           <p>
             {comparisonState
-              ? "Comparação ativa. Radar e satélite usam os lados A e B; as outras camadas ficam ocultas até você sair da comparação."
+              ? comparisonState.mode === "opacity"
+                ? "Comparação por opacidade ativa. A fica como base e B é sobreposto; radar e satélite permanecem comparáveis no mesmo globo."
+                : "Comparação ativa. Radar e satélite usam os lados A e B; as outras camadas ficam ocultas até você sair da comparação."
               : "Ative apenas o que deseja visualizar no Globo. Radar, satélite, raios, alertas e hidrologia."}
           </p>
 
@@ -647,7 +666,29 @@ export function ObservatoryShell() {
           {comparisonState ? (
             <>
               <div className="observatory-comparison__toolbar" aria-label="Controles da comparação">
-                <div className="observatory-comparison__side-tabs" role="group" aria-label="Lado editado pela linha do tempo">
+                <div
+                  className="observatory-comparison__mode-tabs"
+                  role="group"
+                  aria-label="Modo de comparação"
+                >
+                  {(["swipe", "opacity"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      className={comparisonState.mode === mode ? "is-active" : ""}
+                      aria-pressed={comparisonState.mode === mode}
+                      onClick={() => setComparisonMode(mode)}
+                    >
+                      {mode === "swipe" ? "Cortina" : "Opacidade"}
+                    </button>
+                  ))}
+                </div>
+
+                <div
+                  className="observatory-comparison__side-tabs"
+                  role="group"
+                  aria-label="Lado editado pela linha do tempo"
+                >
                   {(["a", "b"] as const).map((side) => (
                     <button
                       key={side}
@@ -675,50 +716,70 @@ export function ObservatoryShell() {
                 </button>
               </div>
 
-              <div className="observatory-comparison__label is-a" aria-hidden="true">
-                A
-              </div>
-              <div className="observatory-comparison__label is-b" aria-hidden="true">
-                B
-              </div>
-              <div className="observatory-comparison__overlay">
-                <button
-                  type="button"
-                  className="observatory-comparison__divider"
-                  style={{ left: `${comparisonState.splitPosition * 100}%` }}
-                  role="slider"
-                  aria-label="Posição da divisão entre A e B"
-                  aria-valuemin={10}
-                  aria-valuemax={90}
-                  aria-valuenow={Math.round(comparisonState.splitPosition * 100)}
-                  onPointerDown={(event) => {
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                    updateSplitFromPointer(event.clientX);
-                  }}
-                  onPointerMove={(event) => {
-                    if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
-                    updateSplitFromPointer(event.clientX);
-                  }}
-                  onPointerUp={(event) => {
-                    updateSplitFromPointer(event.clientX);
-                    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-                      event.currentTarget.releasePointerCapture(event.pointerId);
+              {comparisonState.mode === "opacity" ? (
+                <label className="observatory-comparison__opacity-control">
+                  <span>B sobre A</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={comparisonState.opacityMix}
+                    aria-label="Opacidade do lado B sobre o lado A"
+                    onChange={(event) =>
+                      setComparisonOpacityMix(Number(event.currentTarget.value))
                     }
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "ArrowLeft") {
-                      event.preventDefault();
-                      setComparisonSplitPosition(comparisonState.splitPosition - 0.02);
-                    }
-                    if (event.key === "ArrowRight") {
-                      event.preventDefault();
-                      setComparisonSplitPosition(comparisonState.splitPosition + 0.02);
-                    }
-                  }}
-                >
-                  <span aria-hidden="true" />
-                </button>
-              </div>
+                  />
+                  <output>{Math.round(comparisonState.opacityMix * 100)}%</output>
+                </label>
+              ) : (
+                <>
+                  <div className="observatory-comparison__label is-a" aria-hidden="true">
+                    A
+                  </div>
+                  <div className="observatory-comparison__label is-b" aria-hidden="true">
+                    B
+                  </div>
+                  <div className="observatory-comparison__overlay">
+                    <button
+                      type="button"
+                      className="observatory-comparison__divider"
+                      style={{ left: `${comparisonState.splitPosition * 100}%` }}
+                      role="slider"
+                      aria-label="Posição da divisão entre A e B"
+                      aria-valuemin={10}
+                      aria-valuemax={90}
+                      aria-valuenow={Math.round(comparisonState.splitPosition * 100)}
+                      onPointerDown={(event) => {
+                        event.currentTarget.setPointerCapture(event.pointerId);
+                        updateSplitFromPointer(event.clientX);
+                      }}
+                      onPointerMove={(event) => {
+                        if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+                        updateSplitFromPointer(event.clientX);
+                      }}
+                      onPointerUp={(event) => {
+                        updateSplitFromPointer(event.clientX);
+                        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                          event.currentTarget.releasePointerCapture(event.pointerId);
+                        }
+                      }}
+                      onKeyDown={(event) => {
+                        if (event.key === "ArrowLeft") {
+                          event.preventDefault();
+                          setComparisonSplitPosition(comparisonState.splitPosition - 0.02);
+                        }
+                        if (event.key === "ArrowRight") {
+                          event.preventDefault();
+                          setComparisonSplitPosition(comparisonState.splitPosition + 0.02);
+                        }
+                      }}
+                    >
+                      <span aria-hidden="true" />
+                    </button>
+                  </div>
+                </>
+              )}
             </>
           ) : null}
         </section>
@@ -728,7 +789,11 @@ export function ObservatoryShell() {
         {timelineTimestamps.length > 0 ? (
           <>
             {comparisonState ? (
-              <div className="observatory-comparison__timeline-side" role="group" aria-label="Escolher lado da comparação">
+              <div
+                className="observatory-comparison__timeline-side"
+                role="group"
+                aria-label="Escolher lado da comparação"
+              >
                 {(["a", "b"] as const).map((side) => (
                   <button
                     key={side}
