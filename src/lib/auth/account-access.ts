@@ -53,7 +53,7 @@ const FREE_ENTITLEMENTS: AccountEntitlements = {
   widgetsWind: true,
   widgetsAdvancedThemes: true,
   widgetsRemoveBranding: false,
-  observatoryAccess: false,
+  observatoryAccess: true,
   historyAccessDays: 60,
   historyFull: false,
   historyCompare: false,
