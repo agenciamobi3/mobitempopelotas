@@ -9,7 +9,7 @@ export const OBSERVATORY_COMPARISON_VERSION = 1 as const;
 export const OBSERVATORY_COMPARISON_RASTER_LAYER_IDS = ["radar", "satellite"] as const;
 export type ObservatoryComparisonRasterLayerId =
   (typeof OBSERVATORY_COMPARISON_RASTER_LAYER_IDS)[number];
-export type ObservatoryComparisonMode = "swipe";
+export type ObservatoryComparisonMode = "swipe" | "opacity";
 export type ObservatoryComparisonSideId = "a" | "b";
 
 export type ObservatoryComparisonSide = {
@@ -21,6 +21,7 @@ export type ObservatoryComparisonState = {
   version: typeof OBSERVATORY_COMPARISON_VERSION;
   mode: ObservatoryComparisonMode;
   splitPosition: number;
+  opacityMix: number;
   a: ObservatoryComparisonSide;
   b: ObservatoryComparisonSide;
 };
@@ -34,6 +35,15 @@ function normalizeSplitPosition(value: unknown) {
   return Math.round(clamp(value, 0.1, 0.9) * 1000) / 1000;
 }
 
+function normalizeOpacityMix(value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 0.5;
+  return Math.round(clamp(value, 0, 1) * 1000) / 1000;
+}
+
+function normalizeMode(value: unknown): ObservatoryComparisonMode {
+  return value === "opacity" ? "opacity" : "swipe";
+}
+
 function comparisonSideFromScenario(scenario: ObservatoryScenarioState): ObservatoryComparisonSide {
   const normalized = createObservatoryScenario(scenario);
   return {
@@ -45,12 +55,15 @@ function comparisonSideFromScenario(scenario: ObservatoryScenarioState): Observa
 export function createObservatoryComparison(input: {
   a: ObservatoryScenarioState;
   b: ObservatoryScenarioState;
+  mode?: ObservatoryComparisonMode;
   splitPosition?: number;
+  opacityMix?: number;
 }): ObservatoryComparisonState {
   return {
     version: OBSERVATORY_COMPARISON_VERSION,
-    mode: "swipe",
+    mode: normalizeMode(input.mode),
     splitPosition: normalizeSplitPosition(input.splitPosition),
+    opacityMix: normalizeOpacityMix(input.opacityMix),
     a: comparisonSideFromScenario(input.a),
     b: comparisonSideFromScenario(input.b),
   };
