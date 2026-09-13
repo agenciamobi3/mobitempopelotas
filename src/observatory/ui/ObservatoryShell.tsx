@@ -118,9 +118,9 @@ function resolveComparisonSeedTimestamp(timestamps: readonly string[], requested
     const parsed = Date.parse(timestamp);
     if (!Number.isFinite(parsed)) continue;
     if (parsed <= requested) latestAtOrBefore = timestamp;
-    else return latestAtOrBefore ?? timestamp;
+    else return latestAtOrBefore;
   }
-  return latestAtOrBefore ?? timestamps.at(-1) ?? null;
+  return latestAtOrBefore;
 }
 
 function timelineIndex(timestamps: readonly string[], selectedAt: string | null) {
