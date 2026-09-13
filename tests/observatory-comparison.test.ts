@@ -158,11 +158,15 @@ test("shell oferece comparação, lados independentes, troca e cortina acessíve
   assert.doesNotMatch(shell, /observatory-comparison__overlay" aria-hidden="true"/);
 });
 
-test("comparação só pode iniciar depois que existe um horário temporal real", () => {
-  assert.match(shell, /const canEnterComparison = hasComparableRaster && Boolean\(selectedTimelineAt\)/);
-  assert.match(shell, /if \(!hasComparableRaster \|\| !selectedTimelineAt\) return/);
-  assert.match(shell, /disabled=\{!comparisonState && !canEnterComparison\}/);
-  assert.match(shell, /Aguarde o primeiro horário de radar ou satélite carregar/);
+test("comparação nasce de um horário pertencente a radar ou satélite habilitado", () => {
+  assert.match(shell, /resolveComparisonSeedTimestamp/);
+  assert.match(shell, /for \(const id of \["radar", "satellite"\] as const\)/);
+  assert.match(shell, /if \(!enabledLayers\.includes\(id\)\) continue/);
+  assert.match(shell, /timelineSources\[id\] \?\? \[\]/);
+  assert.match(shell, /const canEnterComparison = comparisonSeedTimelineAt !== null/);
+  assert.match(shell, /if \(!comparisonSeedTimelineAt\) return/);
+  assert.match(shell, /currentScenario\(comparisonSeedTimelineAt\)/);
+  assert.match(shell, /Aguarde radar ou satélite disponibilizar um quadro observacional/);
 });
 
 test("comparação não serializa estado ambíguo no compartilhamento normal", () => {
