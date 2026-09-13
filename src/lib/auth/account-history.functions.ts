@@ -122,17 +122,21 @@ async function loadHistoricalRows(
       .eq("variable_key", "water_level")
       .eq("data_class", "observation")
       .gte("observed_at", since)
-      .order("observed_at", { ascending: true })
+      .order("observed_at", { ascending: false })
       .range(from, to);
 
     if (error) throw new Error(error.message);
 
     const pageRows = data ?? [];
     rows.push(...pageRows);
-    if (pageRows.length < PAGE_SIZE) return { rows, truncated };
+    if (pageRows.length < PAGE_SIZE) {
+      rows.sort((first, second) => Date.parse(first.observed_at) - Date.parse(second.observed_at));
+      return { rows, truncated };
+    }
   }
 
   truncated = true;
+  rows.sort((first, second) => Date.parse(first.observed_at) - Date.parse(second.observed_at));
   return { rows, truncated };
 }
 

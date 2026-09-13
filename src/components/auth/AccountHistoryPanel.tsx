@@ -44,6 +44,7 @@ export function AccountHistoryPanel({ historyAccessDays }: { historyAccessDays: 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setSnapshot(null);
 
     void loadHistory({ data: { dataset: datasetKey, days: period } })
       .then((next) => {
@@ -150,7 +151,7 @@ export function AccountHistoryPanel({ historyAccessDays }: { historyAccessDays: 
         </a>
       </div>
 
-      {loading && !resolved ? (
+      {loading ? (
         <div className="account-history__state" role="status">
           <strong>Carregando observações arquivadas…</strong>
           <span>Buscando apenas a série necessária para este painel.</span>
