@@ -442,17 +442,30 @@ export function ObservatoryViewer({
       for (const id of comparisonActiveRasterLayerIds(comparison)) {
         const result = temporalLayersRef.current[id];
         if (!result) continue;
-        void renderComparisonRaster(runtime, id, result, comparison).then((rendered) => {
-          if (timelineSelectionRevisionRef.current !== revision) return;
-          const frame = rendered.b ?? rendered.a ?? null;
-          if (!frame) return;
-          onLayerRuntimeChange(id, {
-            status: result.status,
-            enabled: true,
-            observedAt: frame.observedAt,
-            detail: frame.detail,
+        void renderComparisonRaster(runtime, id, result, comparison)
+          .then((rendered) => {
+            if (timelineSelectionRevisionRef.current !== revision) return;
+            const frame = rendered.b ?? rendered.a ?? null;
+            if (!frame) return;
+            onLayerRuntimeChange(id, {
+              status: result.status,
+              enabled: true,
+              observedAt: frame.observedAt,
+              detail: frame.detail,
+            });
+          })
+          .catch((error) => {
+            if (timelineSelectionRevisionRef.current !== revision) return;
+            console.error(`[observatory] Falha ao atualizar comparação ${id}.`, error);
+            runtime.removeLayer(comparisonLayerId("a", id));
+            runtime.removeLayer(comparisonLayerId("b", id));
+            onLayerRuntimeChange(id, {
+              status: "degraded",
+              enabled: true,
+              observedAt: null,
+              detail: "Não foi possível carregar o novo quadro da comparação.",
+            });
           });
-        });
       }
       return;
     }
@@ -470,15 +483,26 @@ export function ObservatoryViewer({
         result,
         selectedTimelineAt,
         layerOpacitiesRef.current[id] ?? 0.72,
-      ).then((frame) => {
-        if (timelineSelectionRevisionRef.current !== revision || !frame) return;
-        onLayerRuntimeChange(id, {
-          status: result.status,
-          enabled: true,
-          observedAt: frame.observedAt,
-          detail: frame.detail,
+      )
+        .then((frame) => {
+          if (timelineSelectionRevisionRef.current !== revision || !frame) return;
+          onLayerRuntimeChange(id, {
+            status: result.status,
+            enabled: true,
+            observedAt: frame.observedAt,
+            detail: frame.detail,
+          });
+        })
+        .catch((error) => {
+          if (timelineSelectionRevisionRef.current !== revision) return;
+          console.error(`[observatory] Falha ao atualizar quadro temporal ${id}.`, error);
+          onLayerRuntimeChange(id, {
+            status: "degraded",
+            enabled: true,
+            observedAt: null,
+            detail: "Não foi possível carregar o novo quadro; mantendo a imagem anterior quando disponível.",
+          });
         });
-      });
     }
   }, [
     selectedTimelineAt,

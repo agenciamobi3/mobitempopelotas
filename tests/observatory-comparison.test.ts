@@ -84,6 +84,13 @@ test("runtime usa split nativo do Cesium e continua com um único widget", () =>
   assert.equal((runtime.match(/new CesiumWidget\(/g) ?? []).length, 1);
 });
 
+test("runtime mantém a imagem anterior até o novo provider estar pronto", () => {
+  assert.match(
+    runtime,
+    /const generation = nextGeneration\(id\);\s+const provider = await SingleTileImageryProvider\.fromUrl[\s\S]+if \(widget\.isDestroyed\(\) \|\| layerGenerations\.get\(id\) !== generation\) return;\s+detachLayer\(id\);/,
+  );
+});
+
 test("viewer mantém A e B no mesmo Cesium e reutiliza frames temporais canônicos", () => {
   assert.match(viewer, /compare:\$\{side\}:\$\{id\}/);
   assert.match(viewer, /selectTemporalFrame/);
@@ -98,6 +105,14 @@ test("renders A/B iniciam juntos para que gerações antigas sejam invalidadas a
   assert.match(viewer, /pendingRenders\.push\(/);
   assert.match(viewer, /await Promise\.all\(pendingRenders\)/);
   assert.doesNotMatch(viewer, /await runtime\.setImageLayer\(targetId/);
+});
+
+test("falhas de imagem durante a timeline não ficam sem tratamento", () => {
+  assert.match(viewer, /Falha ao atualizar comparação \$\{id\}/);
+  assert.match(viewer, /runtime\.removeLayer\(comparisonLayerId\("a", id\)\)/);
+  assert.match(viewer, /runtime\.removeLayer\(comparisonLayerId\("b", id\)\)/);
+  assert.match(viewer, /status: "degraded"/);
+  assert.match(viewer, /Falha ao atualizar quadro temporal \$\{id\}/);
 });
 
 test("shell oferece comparação, lados independentes, troca e cortina acessível", () => {

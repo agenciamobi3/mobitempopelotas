@@ -285,7 +285,6 @@ export async function createObservatoryCesiumRuntime(
 
   async function setImageLayer(id: string, input: ObservatoryCesiumImageInput) {
     const generation = nextGeneration(id);
-    detachLayer(id);
 
     const provider = await SingleTileImageryProvider.fromUrl(input.imageUrl, {
       rectangle: Rectangle.fromDegrees(
@@ -298,6 +297,7 @@ export async function createObservatoryCesiumRuntime(
 
     if (widget.isDestroyed() || layerGenerations.get(id) !== generation) return;
 
+    detachLayer(id);
     const layer = new ImageryLayer(provider, {
       alpha: clampOpacity(input.opacity),
     });
