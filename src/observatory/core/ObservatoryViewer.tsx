@@ -16,6 +16,7 @@ import {
   type ObservatoryComparisonRasterLayerId,
   type ObservatoryComparisonState,
 } from "./ObservatoryComparison";
+import type { ObservatoryInspectorPoint } from "./ObservatoryInspector";
 import type { ObservatoryLayerId } from "./ObservatoryLayerCatalog";
 import type { ObservatoryCameraState } from "./ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "./ObservatoryTypes";
@@ -25,6 +26,7 @@ import "./ObservatoryViewer.css";
 
 const CESIUM_BASE_URL = "/cesium/";
 const COMPARISON_SIDES = ["a", "b"] as const;
+const INSPECTOR_MARKER_LAYER_ID = "observatory:inspector-point";
 
 type ViewerStatus = "loading" | "ready" | "error";
 type TerrainStatus = "loading" | "reearth" | "ellipsoid";
@@ -38,6 +40,8 @@ type ObservatoryViewerProps = {
   layerOpacities: Partial<Record<ObservatoryLayerId, number>>;
   selectedTimelineAt: string | null;
   comparisonState: ObservatoryComparisonState | null;
+  inspectionPoint: ObservatoryInspectorPoint | null;
+  onInspectPoint: ((point: ObservatoryInspectorPoint) => void) | null;
   cameraRestoreState: ObservatoryCameraState | null;
   onCameraStateChange: (state: ObservatoryCameraState) => void;
   onTimelineSourceChange: (id: ObservatoryTemporalLayerId, timestamps: string[]) => void;
@@ -140,6 +144,8 @@ export function ObservatoryViewer({
   layerOpacities,
   selectedTimelineAt,
   comparisonState,
+  inspectionPoint,
+  onInspectPoint,
   cameraRestoreState,
   onCameraStateChange,
   onTimelineSourceChange,
@@ -148,6 +154,7 @@ export function ObservatoryViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<ObservatoryCesiumRuntime | null>(null);
   const cameraUnsubscribeRef = useRef<(() => void) | null>(null);
+  const mapClickUnsubscribeRef = useRef<(() => void) | null>(null);
   const temporalLayersRef = useRef<
     Partial<Record<ObservatoryTemporalLayerId, ObservatoryTemporalLayerResult>>
   >({});
@@ -157,10 +164,12 @@ export function ObservatoryViewer({
   const selectedTimelineAtRef = useRef(selectedTimelineAt);
   const comparisonStateRef = useRef(comparisonState);
   const onCameraStateChangeRef = useRef(onCameraStateChange);
+  const onInspectPointRef = useRef(onInspectPoint);
   layerOpacitiesRef.current = layerOpacities;
   selectedTimelineAtRef.current = selectedTimelineAt;
   comparisonStateRef.current = comparisonState;
   onCameraStateChangeRef.current = onCameraStateChange;
+  onInspectPointRef.current = onInspectPoint;
 
   const [status, setStatus] = useState<ViewerStatus>("loading");
   const [terrainStatus, setTerrainStatus] = useState<TerrainStatus>("loading");
@@ -224,6 +233,8 @@ export function ObservatoryViewer({
       timelineSelectionRevisionRef.current += 1;
       cameraUnsubscribeRef.current?.();
       cameraUnsubscribeRef.current = null;
+      mapClickUnsubscribeRef.current?.();
+      mapClickUnsubscribeRef.current = null;
       renderGovernor.destroy();
       runtimeRef.current?.clearDataLayers();
       if (runtime && !runtime.widget.isDestroyed()) runtime.widget.destroy();
@@ -246,6 +257,9 @@ export function ObservatoryViewer({
         cameraRestoreState.pitch,
         cameraRestoreState.roll,
       ].join("|")
+    : "";
+  const inspectionPointKey = inspectionPoint
+    ? `${inspectionPoint.latitude.toFixed(5)}|${inspectionPoint.longitude.toFixed(5)}`
     : "";
   const comparisonRasterIds = comparisonState
     ? comparisonActiveRasterLayerIds(comparisonState)
@@ -274,6 +288,48 @@ export function ObservatoryViewer({
     runtime.setCameraState(cameraRestoreState);
     onCameraStateChangeRef.current(runtime.getCameraState());
   }, [cameraRestoreKey, runtimeRevision, status]);
+
+  useEffect(() => {
+    mapClickUnsubscribeRef.current?.();
+    mapClickUnsubscribeRef.current = null;
+
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready" || !onInspectPoint) return;
+
+    mapClickUnsubscribeRef.current = runtime.subscribeMapClick((point) => {
+      onInspectPointRef.current?.(point);
+    });
+
+    return () => {
+      mapClickUnsubscribeRef.current?.();
+      mapClickUnsubscribeRef.current = null;
+    };
+  }, [Boolean(onInspectPoint), runtimeRevision, status]);
+
+  useEffect(() => {
+    const runtime = runtimeRef.current;
+    if (!runtime || status !== "ready") return;
+
+    if (!inspectionPoint || comparisonState) {
+      runtime.removeLayer(INSPECTOR_MARKER_LAYER_ID);
+      return;
+    }
+
+    runtime.setPointLayer(INSPECTOR_MARKER_LAYER_ID, [
+      {
+        id: "selected-point",
+        latitude: inspectionPoint.latitude,
+        longitude: inspectionPoint.longitude,
+        color: "#75e9df",
+        outlineColor: "#04121c",
+        pixelSize: 11,
+        label: "Ponto inspecionado",
+        detail: "Previsão por modelo para o ponto selecionado.",
+      },
+    ]);
+
+    return () => runtime.removeLayer(INSPECTOR_MARKER_LAYER_ID);
+  }, [inspectionPointKey, comparisonModeKey, runtimeRevision, status]);
 
   useEffect(() => {
     const runtime = runtimeRef.current;

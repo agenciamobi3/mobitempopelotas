@@ -1,0 +1,203 @@
+.observatory-inspector {
+  position: absolute;
+  z-index: 9;
+  right: 14px;
+  bottom: 14px;
+  width: min(360px, calc(100% - 28px));
+  max-height: calc(100% - 28px);
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(4, 14, 23, 0.94);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34);
+  color: #f2f8fb;
+  backdrop-filter: blur(18px);
+}
+
+.observatory-inspector__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.observatory-inspector__header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.observatory-inspector__eyebrow {
+  color: #75e9df;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.observatory-inspector__header strong {
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.observatory-inspector__header button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(242, 248, 251, 0.78);
+  cursor: pointer;
+}
+
+.observatory-inspector__header button:hover,
+.observatory-inspector__header button:focus-visible {
+  border-color: rgba(117, 233, 223, 0.42);
+  color: #9af5ee;
+}
+
+.observatory-inspector__header button:focus-visible {
+  outline: 2px solid #75e9df;
+  outline-offset: 2px;
+}
+
+.observatory-inspector__notice {
+  margin: 11px 0 0;
+  color: rgba(230, 240, 245, 0.66);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.observatory-inspector__state {
+  display: flex;
+  min-height: 88px;
+  align-items: center;
+  gap: 9px;
+  color: rgba(235, 244, 248, 0.72);
+  font-size: 0.76rem;
+}
+
+.observatory-inspector__state svg {
+  animation: observatory-inspector-spin 1s linear infinite;
+}
+
+.observatory-inspector__state.is-error {
+  color: #ffd2ce;
+}
+
+.observatory-inspector__time {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.observatory-inspector__time span {
+  color: rgba(230, 240, 245, 0.58);
+  font-size: 0.68rem;
+}
+
+.observatory-inspector__time strong {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.observatory-inspector__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin: 8px 0 0;
+}
+
+.observatory-inspector__grid > div {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.observatory-inspector__grid dt {
+  color: rgba(230, 240, 245, 0.58);
+  font-size: 0.64rem;
+}
+
+.observatory-inspector__grid dd {
+  margin: 3px 0 0;
+  color: rgba(247, 251, 253, 0.94);
+  font-size: 0.83rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.observatory-inspector__grid small {
+  display: block;
+  margin-top: 2px;
+  color: rgba(230, 240, 245, 0.52);
+  font-size: 0.62rem;
+}
+
+.observatory-inspector__source {
+  display: grid;
+  gap: 2px;
+  margin-top: 10px;
+  color: rgba(230, 240, 245, 0.52);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+
+.observatory-inspector__hint {
+  position: absolute;
+  z-index: 8;
+  left: 50%;
+  bottom: 16px;
+  max-width: calc(100% - 28px);
+  padding: 9px 12px;
+  border: 1px solid rgba(117, 233, 223, 0.26);
+  border-radius: 999px;
+  background: rgba(4, 14, 23, 0.9);
+  color: rgba(239, 248, 251, 0.86);
+  font-size: 0.72rem;
+  pointer-events: none;
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+
+.observatory-shell__viewer.is-inspecting .observatory-viewer__canvas canvas {
+  cursor: crosshair;
+}
+
+@keyframes observatory-inspector-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 600px) {
+  .observatory-inspector {
+    right: 10px;
+    bottom: 10px;
+    width: calc(100% - 20px);
+    max-height: min(58vh, 520px);
+  }
+
+  .observatory-inspector__hint {
+    bottom: 10px;
+    width: calc(100% - 20px);
+    border-radius: 12px;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .observatory-inspector__state svg {
+    animation: none;
+  }
+}

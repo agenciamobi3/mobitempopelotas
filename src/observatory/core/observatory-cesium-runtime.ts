@@ -1,5 +1,7 @@
 import {
+  Cartesian2,
   Cartesian3,
+  Cartographic,
   CesiumTerrainProvider,
   CesiumWidget,
   Color,
@@ -13,12 +15,15 @@ import {
   OpenStreetMapImageryProvider,
   PointPrimitiveCollection,
   Rectangle,
+  ScreenSpaceEventHandler,
+  ScreenSpaceEventType,
   SingleTileImageryProvider,
   SplitDirection,
   type TerrainProvider,
 } from "cesium";
 
 import { PELOTAS_LATITUDE, PELOTAS_LONGITUDE } from "@/lib/site-config";
+import type { ObservatoryInspectorPoint } from "./ObservatoryInspector";
 import type { ObservatoryCameraState } from "./ObservatoryScenario";
 
 const OSM_TILE_URL = "https://tile.openstreetmap.org/";
@@ -64,6 +69,7 @@ export type ObservatoryCesiumRuntime = {
   getCameraState: () => ObservatoryCameraState;
   setCameraState: (state: ObservatoryCameraState) => void;
   subscribeCameraChange: (listener: (state: ObservatoryCameraState) => void) => () => void;
+  subscribeMapClick: (listener: (point: ObservatoryInspectorPoint) => void) => () => void;
   setSplitPosition: (position: number) => void;
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
@@ -245,6 +251,26 @@ export async function createObservatoryCesiumRuntime(
     return () => widget.camera.moveEnd.removeEventListener(handleMoveEnd);
   }
 
+  function subscribeMapClick(listener: (point: ObservatoryInspectorPoint) => void) {
+    const handler = new ScreenSpaceEventHandler(widget.scene.canvas);
+    handler.setInputAction((movement: { position: Cartesian2 }) => {
+      if (widget.isDestroyed()) return;
+      const ray = widget.camera.getPickRay(movement.position);
+      if (!ray) return;
+      const cartesian = widget.scene.globe.pick(ray, widget.scene);
+      if (!cartesian) return;
+      const cartographic = Cartographic.fromCartesian(cartesian);
+      listener({
+        latitude: CesiumMath.toDegrees(cartographic.latitude),
+        longitude: CesiumMath.toDegrees(cartographic.longitude),
+      });
+    }, ScreenSpaceEventType.LEFT_CLICK);
+
+    return () => {
+      if (!handler.isDestroyed()) handler.destroy();
+    };
+  }
+
   function setSplitPosition(position: number) {
     if (widget.isDestroyed()) return;
     widget.scene.splitPosition = clamp(position, 0.1, 0.9);
@@ -360,6 +386,7 @@ export async function createObservatoryCesiumRuntime(
     getCameraState,
     setCameraState,
     subscribeCameraChange,
+    subscribeMapClick,
     setSplitPosition,
     setImageLayer,
     setPointLayer,

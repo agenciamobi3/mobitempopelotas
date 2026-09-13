@@ -45,79 +45,81 @@ function hasPersistentAdminGrant(access: EffectiveAccountAccess) {
   return access.status === "active" && access.source.trim().toLowerCase() === ADMIN_ACCESS_SOURCE;
 }
 
-export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
-  async (): Promise<ObservatoryAccessSnapshot> => {
-    const config = getSupabaseServerConfig();
-    if (!config.isPublicConfigured) {
-      applyObservatoryPrivateHeaders(new Headers());
-      return { status: "unavailable" };
-    }
+export async function resolveObservatoryAccessForRequest(): Promise<ObservatoryAccessSnapshot> {
+  const config = getSupabaseServerConfig();
+  if (!config.isPublicConfigured) {
+    applyObservatoryPrivateHeaders(new Headers());
+    return { status: "unavailable" };
+  }
 
-    const { client, responseHeaders } = createSupabaseRequestClient(getRequest());
-    const {
-      data: { user },
-    } = await client.auth.getUser();
+  const { client, responseHeaders } = createSupabaseRequestClient(getRequest());
+  const {
+    data: { user },
+  } = await client.auth.getUser();
 
-    if (!user) {
-      applyObservatoryPrivateHeaders(responseHeaders);
-      return { status: "unauthenticated" };
-    }
-
-    const isConfirmedAdmin = Boolean(
-      user.email_confirmed_at && isPortalOperatorEmail(user.email),
-    );
-
-    if (isConfirmedAdmin) {
-      applyObservatoryPrivateHeaders(responseHeaders);
-      return {
-        status: "authenticated",
-        allowed: true,
-        grant: "admin",
-        access: resolveAccountAccess(null),
-      };
-    }
-
-    let accessResult = await loadAccountAccess(client, user.id);
-
-    if (!accessResult.error && !accessResult.data) {
-      const { error: repairError } = await client.rpc("ensure_current_user_account_foundation");
-      if (repairError) {
-        console.error("[observatory] Falha ao reparar fundação da conta", {
-          code: repairError.code,
-          message: repairError.message,
-        });
-      } else {
-        accessResult = await loadAccountAccess(client, user.id);
-      }
-    }
-
-    if (accessResult.error || !accessResult.data) {
-      console.error("[observatory] Falha ao resolver acesso", {
-        message: accessResult.error?.message,
-        code: accessResult.error?.code,
-      });
-      applyObservatoryPrivateHeaders(responseHeaders);
-      return { status: "unavailable" };
-    }
-
-    const access = resolveAccountAccess({
-      tier: accessResult.data.tier,
-      status: accessResult.data.status,
-      source: accessResult.data.source,
-      validUntil: accessResult.data.valid_until,
-    });
-
-    const persistentAdminGrant = hasPersistentAdminGrant(access);
-    const entitlementGrant = access.entitlements.observatoryAccess;
-    const allowed = persistentAdminGrant || entitlementGrant;
-
+  if (!user) {
     applyObservatoryPrivateHeaders(responseHeaders);
+    return { status: "unauthenticated" };
+  }
 
+  const isConfirmedAdmin = Boolean(
+    user.email_confirmed_at && isPortalOperatorEmail(user.email),
+  );
+
+  if (isConfirmedAdmin) {
+    applyObservatoryPrivateHeaders(responseHeaders);
     return {
       status: "authenticated",
-      allowed,
-      grant: persistentAdminGrant ? "admin" : entitlementGrant ? "entitlement" : "none",
-      access,
+      allowed: true,
+      grant: "admin",
+      access: resolveAccountAccess(null),
     };
-  },
+  }
+
+  let accessResult = await loadAccountAccess(client, user.id);
+
+  if (!accessResult.error && !accessResult.data) {
+    const { error: repairError } = await client.rpc("ensure_current_user_account_foundation");
+    if (repairError) {
+      console.error("[observatory] Falha ao reparar fundação da conta", {
+        code: repairError.code,
+        message: repairError.message,
+      });
+    } else {
+      accessResult = await loadAccountAccess(client, user.id);
+    }
+  }
+
+  if (accessResult.error || !accessResult.data) {
+    console.error("[observatory] Falha ao resolver acesso", {
+      message: accessResult.error?.message,
+      code: accessResult.error?.code,
+    });
+    applyObservatoryPrivateHeaders(responseHeaders);
+    return { status: "unavailable" };
+  }
+
+  const access = resolveAccountAccess({
+    tier: accessResult.data.tier,
+    status: accessResult.data.status,
+    source: accessResult.data.source,
+    validUntil: accessResult.data.valid_until,
+  });
+
+  const persistentAdminGrant = hasPersistentAdminGrant(access);
+  const entitlementGrant = access.entitlements.observatoryAccess;
+  const allowed = persistentAdminGrant || entitlementGrant;
+
+  applyObservatoryPrivateHeaders(responseHeaders);
+
+  return {
+    status: "authenticated",
+    allowed,
+    grant: persistentAdminGrant ? "admin" : entitlementGrant ? "entitlement" : "none",
+    access,
+  };
+}
+
+export const getObservatoryAccess = createServerFn({ method: "GET" }).handler(
+  resolveObservatoryAccessForRequest,
 );

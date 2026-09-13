@@ -17,6 +17,7 @@ import {
   Radar,
   Radio,
   Satellite,
+  ScanSearch,
   Settings,
   Share2,
   TriangleAlert,
@@ -30,6 +31,10 @@ import {
   type ObservatoryComparisonSideId,
   type ObservatoryComparisonState,
 } from "../core/ObservatoryComparison";
+import {
+  normalizeObservatoryInspectorPoint,
+  type ObservatoryInspectorPoint,
+} from "../core/ObservatoryInspector";
 import {
   OBSERVATORY_LAYER_DEFINITIONS,
   OBSERVATORY_LAYER_IDS,
@@ -48,6 +53,7 @@ import {
   type ObservatoryTemporalLayerId,
 } from "../data/observatory-temporal-layers";
 import "./ObservatoryComparison.css";
+import { ObservatoryInspectorPanel } from "./ObservatoryInspectorPanel";
 import "./ObservatoryShell.css";
 import "./ObservatoryTimeline.css";
 
@@ -199,6 +205,8 @@ export function ObservatoryShell() {
   const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "error">("idle");
   const [comparisonState, setComparisonState] = useState<ObservatoryComparisonState | null>(null);
   const [comparisonSide, setComparisonSide] = useState<ObservatoryComparisonSideId>("b");
+  const [inspectorEnabled, setInspectorEnabled] = useState(false);
+  const [inspectionPoint, setInspectionPoint] = useState<ObservatoryInspectorPoint | null>(null);
   const [timelineSettlementRevision, setTimelineSettlementRevision] = useState(0);
   const scenarioAppliedRef = useRef(false);
   const requestedTimelineAtRef = useRef<string | null>(null);
@@ -284,6 +292,30 @@ export function ObservatoryShell() {
     },
     [],
   );
+
+  const handleInspectPoint = useCallback((point: ObservatoryInspectorPoint) => {
+    const normalized = normalizeObservatoryInspectorPoint(point);
+    if (!normalized) {
+      setInspectionPoint(null);
+      return;
+    }
+    setPlaying(false);
+    setInspectionPoint(normalized);
+  }, []);
+
+  const toggleInspector = useCallback(() => {
+    if (comparisonState) return;
+    setPlaying(false);
+    setInspectorEnabled((current) => {
+      if (current) setInspectionPoint(null);
+      return !current;
+    });
+  }, [comparisonState]);
+
+  const closeInspector = useCallback(() => {
+    setInspectorEnabled(false);
+    setInspectionPoint(null);
+  }, []);
 
   const enabledLayers = layers
     .filter((layer) => layer.runtime.enabled)
@@ -432,6 +464,8 @@ export function ObservatoryShell() {
     if (!hasComparableRaster || !selectedTimelineAt) return;
     const scenario = currentScenario();
     setPlaying(false);
+    setInspectorEnabled(false);
+    setInspectionPoint(null);
     setComparisonSide("b");
     setComparisonState(createObservatoryComparison({ a: scenario, b: scenario }));
   }, [currentScenario, hasComparableRaster, selectedTimelineAt]);
@@ -508,6 +542,23 @@ export function ObservatoryShell() {
           <h1>Observatório</h1>
         </div>
         <div className="observatory-shell__header-actions">
+          <button
+            type="button"
+            className={`observatory-shell__share${inspectorEnabled ? " is-active" : ""}`}
+            onClick={toggleInspector}
+            disabled={Boolean(comparisonState)}
+            aria-pressed={inspectorEnabled}
+            title={
+              comparisonState
+                ? "Saia da comparação para inspecionar um ponto"
+                : inspectorEnabled
+                  ? "Desativar inspeção de ponto"
+                  : "Consultar a previsão em um ponto do globo"
+            }
+          >
+            <ScanSearch aria-hidden="true" size={17} />
+            <span>{inspectorEnabled ? "Inspeção ativa" : "Inspecionar ponto"}</span>
+          </button>
           <button
             type="button"
             className="observatory-shell__share observatory-comparison__trigger"
@@ -628,7 +679,7 @@ export function ObservatoryShell() {
 
         <section
           ref={viewerSectionRef}
-          className="observatory-shell__viewer"
+          className={`observatory-shell__viewer${inspectorEnabled && !comparisonState ? " is-inspecting" : ""}`}
           aria-label="Área 3D do Observatório"
         >
           <Suspense fallback={<ViewerLoadingState />}>
@@ -637,12 +688,28 @@ export function ObservatoryShell() {
               layerOpacities={layerOpacities}
               selectedTimelineAt={selectedTimelineAt}
               comparisonState={comparisonState}
+              inspectionPoint={inspectionPoint}
+              onInspectPoint={inspectorEnabled && !comparisonState ? handleInspectPoint : null}
               cameraRestoreState={cameraRestoreState}
               onCameraStateChange={setCameraState}
               onTimelineSourceChange={handleTimelineSourceChange}
               onLayerRuntimeChange={handleLayerRuntimeChange}
             />
           </Suspense>
+
+          {inspectorEnabled && !comparisonState && !inspectionPoint ? (
+            <div className="observatory-inspector__hint" role="status">
+              Clique em um ponto do globo para consultar a previsão horária daquele local.
+            </div>
+          ) : null}
+
+          {inspectorEnabled && !comparisonState && inspectionPoint ? (
+            <ObservatoryInspectorPanel
+              point={inspectionPoint}
+              selectedAt={selectedTimelineAt}
+              onClose={closeInspector}
+            />
+          ) : null}
 
           {comparisonState ? (
             <>
