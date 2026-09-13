@@ -55,7 +55,7 @@ test("dashboard exposes the Observatorio as a Free registered product using the 
   assert.match(observatoryProduct, /Observatório Tempo Pelotas/);
   assert.match(observatoryProduct, /to="\/observatorio"/);
   assert.match(observatoryProduct, /Incluído na conta/);
-  assert.match(observatoryProduct, /sem cobrança nesta fase/);
+  assert.match(observatoryProduct, /Disponível para sua conta cadastrada/);
   assert.match(observatoryProduct, /Globo 3D/);
   assert.doesNotMatch(observatoryProduct, /Produto PRO|plano PRO|experiência PRO/i);
 });
