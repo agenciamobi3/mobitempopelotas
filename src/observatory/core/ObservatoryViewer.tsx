@@ -326,6 +326,7 @@ export function ObservatoryViewer({
       });
 
       if (isObservatoryTemporalLayerId(id)) {
+        let renderSelectionRevision: number | null = null;
         void loadObservatoryTemporalLayer(id)
           .then(async (result) => {
             if (layerRevisionRef.current !== revision || !runtimeRef.current) return;
@@ -334,9 +335,15 @@ export function ObservatoryViewer({
             onTimelineSourceChange(id, temporalTimestamps(result));
 
             const comparison = comparisonStateRef.current;
+            renderSelectionRevision = timelineSelectionRevisionRef.current;
             if (comparison && (id === "radar" || id === "satellite")) {
               const rendered = await renderComparisonRaster(runtime, id, result, comparison);
-              if (layerRevisionRef.current !== revision) return;
+              if (
+                layerRevisionRef.current !== revision ||
+                timelineSelectionRevisionRef.current !== renderSelectionRevision
+              ) {
+                return;
+              }
               const frame = rendered.b ?? rendered.a ?? null;
               onLayerRuntimeChange(id, {
                 status: result.status,
@@ -357,7 +364,12 @@ export function ObservatoryViewer({
               selectedTimelineAtRef.current,
               layerOpacitiesRef.current[id] ?? 0.72,
             );
-            if (layerRevisionRef.current !== revision) return;
+            if (
+              layerRevisionRef.current !== revision ||
+              timelineSelectionRevisionRef.current !== renderSelectionRevision
+            ) {
+              return;
+            }
 
             onLayerRuntimeChange(id, {
               status: result.status,
@@ -369,6 +381,12 @@ export function ObservatoryViewer({
           })
           .catch((error) => {
             if (layerRevisionRef.current !== revision) return;
+            if (
+              renderSelectionRevision !== null &&
+              timelineSelectionRevisionRef.current !== renderSelectionRevision
+            ) {
+              return;
+            }
             console.error(`[observatory] Falha ao carregar série temporal ${id}.`, error);
             delete temporalLayersRef.current[id];
             onTimelineSourceChange(id, []);
