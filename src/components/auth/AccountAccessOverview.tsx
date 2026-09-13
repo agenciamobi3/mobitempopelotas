@@ -8,55 +8,49 @@ type Entitlements = AuthenticatedAccount["access"]["entitlements"];
 type AccessItem = {
   title: string;
   description: string;
-  state: "available" | "preparing" | "not-included";
+  state: "available" | "preparing";
 };
 
 function accessStateLabel(state: AccessItem["state"]) {
-  if (state === "available") return "Disponível";
-  if (state === "preparing") return "Em preparação";
-  return "Não incluído";
+  return state === "available" ? "Disponível" : "Em preparação";
 }
 
 function buildAccessItems(entitlements: Entitlements): AccessItem[] {
-  const hasAdvancedAccess =
-    entitlements.historyCompare ||
-    entitlements.stationCompare ||
-    entitlements.variableCompare ||
-    entitlements.dataExport ||
-    entitlements.forecastAccuracy ||
-    entitlements.advancedCharts;
-
   return [
     {
       title: "Favoritos pessoais",
       description: "Salve páginas, estações, locais e ferramentas no seu painel.",
-      state: entitlements.favorites ? "available" : "not-included",
+      state: entitlements.favorites ? "available" : "preparing",
     },
     {
       title: "Preferências da conta",
       description: "Escolha comunicações opcionais e mantenha suas decisões registradas.",
-      state: entitlements.preferences ? "available" : "not-included",
+      state: entitlements.preferences ? "available" : "preparing",
     },
     {
       title: "Gerador de widgets",
-      description: "Crie widgets permitidos pela sua camada e gerencie-os pela conta.",
+      description: "Crie widgets responsivos e gerencie a publicação pela sua conta.",
       state:
-        entitlements.widgetsAccess && entitlements.widgetsCreate ? "available" : "not-included",
+        entitlements.widgetsAccess && entitlements.widgetsCreate ? "available" : "preparing",
+    },
+    {
+      title: "Observatório",
+      description: "Explore radar, satélite, raios, alertas e hidrologia em uma experiência geoespacial 3D.",
+      state: entitlements.observatoryAccess ? "available" : "preparing",
     },
     {
       title: "Histórico pessoal",
       description:
         entitlements.historyAccessDays === null
-          ? "A camada prevê histórico completo, mas a superfície pessoal ainda está em construção."
-          : `A camada prevê até ${entitlements.historyAccessDays} dias nos recursos que forem liberados para o painel.`,
+          ? "A conta prevê histórico amplo; a experiência pessoal está sendo integrada ao painel."
+          : `A experiência pessoal está sendo preparada com uma janela inicial de até ${entitlements.historyAccessDays} dias.`,
       state: "preparing",
     },
     {
-      title: "Comparações e análises avançadas",
-      description: hasAdvancedAccess
-        ? "Sua camada prevê recursos avançados, mas cada módulo só aparece como disponível depois de implementado e validado para as fontes envolvidas."
-        : "Comparações, exportações e análises avançadas não fazem parte da camada Free atual.",
-      state: hasAdvancedAccess ? "preparing" : "not-included",
+      title: "Comparações, exportações e análises",
+      description:
+        "Esses módulos estão em desenvolvimento e só receberão regras de plano quando estiverem maduros e claramente definidos.",
+      state: "preparing",
     },
   ];
 }
@@ -64,7 +58,6 @@ function buildAccessItems(entitlements: Entitlements): AccessItem[] {
 export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAccount }) {
   const { access } = snapshot;
   const items = buildAccessItems(access.entitlements);
-  const isFree = access.tier === "free";
 
   return (
     <section className="account-access-overview" aria-labelledby="account-access-title">
@@ -72,20 +65,20 @@ export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAcc
         <div>
           <span className="eyebrow">Seu acesso</span>
           <div className="account-access-overview__title-row">
-            <h2 id="account-access-title">Plano {access.label}</h2>
+            <h2 id="account-access-title">Conta {access.label}</h2>
             <span className={`account-access-overview__badge is-${access.tier}`}>
               {access.status === "active"
-                ? "Ativo"
+                ? "Ativa"
                 : access.status === "expired"
-                  ? "Expirado"
-                  : "Suspenso"}
+                  ? "Expirada"
+                  : "Suspensa"}
             </span>
           </div>
         </div>
         <p>
-          {isFree
-            ? "O cadastro gratuito acrescenta organização pessoal e ferramentas de conta. Previsão, alertas oficiais, radar, câmeras e dados públicos continuam acessíveis sem login."
-            : "Sua camada de acesso é aplicada por capacidades. O conteúdo público continua aberto, enquanto ferramentas adicionais são liberadas apenas quando estiverem implementadas e permitidas pelas fontes."}
+          O cadastro acrescenta organização pessoal e ferramentas de trabalho. Previsão, alertas,
+          radar, câmeras e demais dados públicos continuam abertos sem login, enquanto os recursos de
+          conta podem evoluir em uma experiência própria.
         </p>
       </div>
 
@@ -101,9 +94,8 @@ export function AccountAccessOverview({ snapshot }: { snapshot: AuthenticatedAcc
 
       <div className="account-access-overview__footer">
         <p>
-          {isFree
-            ? "Sua conta Free não tem cobrança. O PRO permanece separado e não é necessário para consultar informação pública do Tempo Pelotas."
-            : "O painel mostra apenas recursos realmente disponíveis. Entitlements futuros não são apresentados como produto concluído antes da implementação."}
+          Nesta fase, os novos recursos nascem na experiência cadastrada. Limites e planos futuros só
+          serão aplicados quando cada produto estiver estável e com proposta de valor bem definida.
         </p>
         <Link to="/painel">Abrir recursos da minha conta →</Link>
       </div>
