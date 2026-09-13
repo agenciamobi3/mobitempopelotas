@@ -1,13 +1,11 @@
-import type { ReactNode } from "react";
-
+import { WeatherIcon } from "@/production/components/weather-icon";
+import type { WeatherIconName } from "@/production/lib/weather-data";
 import type {
   InmetForecastPeriod,
   InmetStationReference,
 } from "@/lib/weather/official-sources.types";
 
 import "./inmet-official-forecast-home.css";
-
-type ForecastIconName = "sun" | "cloud" | "rain" | "storm" | "fog" | "wind";
 
 function formatDate(value: string | null) {
   if (!value) return { weekday: "Data", date: "não informada" };
@@ -50,63 +48,33 @@ function forecastWindSpeedLabel(value: number | null) {
   return `${Math.round(value)} km/h previstos pelo modelo horário`;
 }
 
-function resolveForecastIcon(summary: string): ForecastIconName {
-  const normalized = summary
+function normalizeWeatherCopy(value: string) {
+  return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("pt-BR");
-
-  if (/trovoad|temporal|raio/.test(normalized)) return "storm";
-  if (/chuva|garoa|precipit|pancada/.test(normalized)) return "rain";
-  if (/nevoeiro|nevoa|cerra[cç][aã]o/.test(normalized)) return "fog";
-  if (/vento|rajada/.test(normalized)) return "wind";
-  if (/sol|ensolarado|ceu claro|poucas nuvens/.test(normalized)) return "sun";
-  return "cloud";
 }
 
-function ForecastIcon({ name }: { name: ForecastIconName }) {
-  const paths = {
-    sun: (
-      <>
-        <circle cx="12" cy="12" r="3.5" />
-        <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4" />
-      </>
-    ),
-    cloud: <path d="M6.5 18h10.1a4.4 4.4 0 0 0 .7-8.7A5.7 5.7 0 0 0 6.5 11 3.5 3.5 0 0 0 6.5 18Z" />,
-    rain: (
-      <>
-        <path d="M6.5 15h10.1a4.4 4.4 0 0 0 .7-8.7A5.7 5.7 0 0 0 6.5 8 3.5 3.5 0 0 0 6.5 15Z" />
-        <path d="m8 18-1 2M12 18l-1 2M16 18l-1 2" />
-      </>
-    ),
-    storm: (
-      <>
-        <path d="M6.5 14h10.1a4.4 4.4 0 0 0 .7-8.7A5.7 5.7 0 0 0 6.5 7 3.5 3.5 0 0 0 6.5 14Z" />
-        <path d="m13 15-3 4h3l-2 3" />
-      </>
-    ),
-    fog: (
-      <>
-        <path d="M6.5 13h10.1a4.4 4.4 0 0 0 .7-8.7A5.7 5.7 0 0 0 6.5 6 3.5 3.5 0 0 0 6.5 13Z" />
-        <path d="M4 17h16M6 20h12" />
-      </>
-    ),
-    wind: <path d="M3 8h11c3.5 0 3.5-5 .2-5-1.8 0-2.7.9-2.7 2.5M3 13h15c3.5 0 3.5 6 .2 6-1.8 0-2.7-.9-2.7-2.5M3 18h7" />,
-  } satisfies Record<ForecastIconName, ReactNode>;
+function resolveForecastIcon(summary: string, periodLabel: string): WeatherIconName {
+  const normalized = normalizeWeatherCopy(summary);
+  const normalizedPeriod = normalizeWeatherCopy(periodLabel);
+  const isNight = /noite|madrugada/.test(normalizedPeriod);
 
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <g
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.65"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {paths[name]}
-      </g>
-    </svg>
-  );
+  if (/trovoad|temporal|raio|tempest/.test(normalized)) return "storm";
+  if (/chuva|garoa|precipit|pancada/.test(normalized)) return "rain";
+  if (/vento|rajada/.test(normalized)) return "wind";
+  if (/nevoeiro|nevoa|cerracao/.test(normalized)) return "cloud";
+
+  if (/poucas nuvens|parcialmente|nuvens esparsas|entre nuvens/.test(normalized)) {
+    return isNight ? "partly-cloudy-night" : "partly-cloudy";
+  }
+
+  if (/ceu claro|ceu aberto|tempo claro|limpo|ensolarado|predominio de sol|sol/.test(normalized)) {
+    return isNight ? "moon" : "sun";
+  }
+
+  if (/muitas nuvens|nublado|encoberto|nuvens/.test(normalized)) return "cloud";
+  return isNight ? "moon" : "cloud";
 }
 
 function PeriodMetrics({
@@ -182,7 +150,10 @@ export function InmetOfficialForecastPanel({
 
             <div className="tp-home-inmet__featured-summary">
               <span className="tp-home-inmet__icon is-featured">
-                <ForecastIcon name={resolveForecastIcon(featuredPeriod.summary)} />
+                <WeatherIcon
+                  name={resolveForecastIcon(featuredPeriod.summary, featuredPeriod.period)}
+                  title={featuredPeriod.summary}
+                />
               </span>
               <div>
                 <small>Síntese oficial</small>
@@ -211,7 +182,10 @@ export function InmetOfficialForecastPanel({
 
                   <div className="tp-home-inmet__compact-summary">
                     <span className="tp-home-inmet__icon">
-                      <ForecastIcon name={resolveForecastIcon(period.summary)} />
+                      <WeatherIcon
+                        name={resolveForecastIcon(period.summary, period.period)}
+                        title={period.summary}
+                      />
                     </span>
                     <h3>{period.summary}</h3>
                   </div>

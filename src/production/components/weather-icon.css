@@ -6,8 +6,44 @@
  * Dense forecast lists stay static. Only the primary current-condition surfaces
  * receive restrained motion, and reduced-motion users always receive static art.
  */
+.weather-icon {
+  display: block;
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
 .weather-icon--amcharts .weather-icon__asset {
   pointer-events: none;
+}
+
+/*
+ * Small forecast surfaces use a fixed optical frame. The source SVGs have
+ * different internal whitespace, so the shared frame prevents moon/cloud/rain
+ * from appearing to jump in size when conditions change.
+ */
+.tp-home-forecast-hour__weather .weather-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.tp-home-forecast-hour__weather .weather-icon--moon {
+  transform: scale(1.06);
+  transform-origin: 50% 50%;
+}
+
+.tp-home-inmet .tp-home-inmet__icon .weather-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.tp-home-inmet .tp-home-inmet__icon.is-featured .weather-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.tp-home-inmet .tp-home-inmet__compact-summary .tp-home-inmet__icon .weather-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .tp-home-hero__condition-icon .weather-icon--amcharts,

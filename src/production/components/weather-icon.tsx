@@ -29,6 +29,7 @@ function WindIcon({ className, title }: Pick<WeatherIconProps, "className" | "ti
       xmlns="http://www.w3.org/2000/svg"
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
+      focusable="false"
       data-weather-icon="wind"
     >
       {title ? <title>{title}</title> : null}
@@ -42,13 +43,18 @@ function WindIcon({ className, title }: Pick<WeatherIconProps, "className" | "ti
 }
 
 export function WeatherIcon({ name, className = "", title }: WeatherIconProps) {
-  if (name === "wind") {
-    return <WindIcon className={className} title={title} />;
-  }
-
-  const iconClassName = ["weather-icon", "weather-icon--amcharts", `weather-icon--${name}`, className]
+  const iconClassName = [
+    "weather-icon",
+    name === "wind" ? "weather-icon--local" : "weather-icon--amcharts",
+    `weather-icon--${name}`,
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
+
+  if (name === "wind") {
+    return <WindIcon className={iconClassName} title={title} />;
+  }
 
   return (
     <svg
@@ -58,6 +64,7 @@ export function WeatherIcon({ name, className = "", title }: WeatherIconProps) {
       xmlns="http://www.w3.org/2000/svg"
       role={title ? "img" : undefined}
       aria-hidden={title ? undefined : true}
+      focusable="false"
       data-weather-icon={name}
     >
       {title ? <title>{title}</title> : null}
