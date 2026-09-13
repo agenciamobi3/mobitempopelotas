@@ -133,7 +133,7 @@ test("componente permite adicionar e remover favoritos de forma acessível", () 
 });
 
 test("favoritos e layout entram nos direitos LGPD da conta", () => {
-  assert.match(accountPage, /Favoritos e widgets já estão disponíveis no painel/);
+  assert.match(accountPage, /Favoritos, Observatório e widgets já estão disponíveis/);
   assert.match(accountPage, /perfil, preferências, favoritos, histórico de consentimentos/);
   assert.match(accountPage, /remove perfil, preferências, favoritos, consentimentos/);
   assert.match(accountExport, /loadFavorites/);
