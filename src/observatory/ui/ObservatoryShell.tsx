@@ -35,7 +35,10 @@ import {
   type ObservatoryCameraState,
 } from "../core/ObservatoryScenario";
 import type { ObservatoryLayerRuntimeState } from "../core/ObservatoryTypes";
-import type { ObservatoryTemporalLayerId } from "../data/observatory-temporal-layers";
+import {
+  isObservatoryTemporalLayerId,
+  type ObservatoryTemporalLayerId,
+} from "../data/observatory-temporal-layers";
 import "./ObservatoryShell.css";
 import "./ObservatoryTimeline.css";
 
@@ -177,8 +180,11 @@ export function ObservatoryShell() {
   const [cameraState, setCameraState] = useState<ObservatoryCameraState | null>(null);
   const [cameraRestoreState, setCameraRestoreState] = useState<ObservatoryCameraState | null>(null);
   const [shareFeedback, setShareFeedback] = useState<"idle" | "copied" | "error">("idle");
+  const [timelineSettlementRevision, setTimelineSettlementRevision] = useState(0);
   const scenarioAppliedRef = useRef(false);
   const requestedTimelineAtRef = useRef<string | null>(null);
+  const expectedScenarioTimelineLayersRef = useRef<Set<ObservatoryTemporalLayerId>>(new Set());
+  const settledScenarioTimelineLayersRef = useRef<Set<ObservatoryTemporalLayerId>>(new Set());
 
   const refreshLayers = useCallback(() => {
     setLayers(manager.list());
@@ -199,7 +205,13 @@ export function ObservatoryShell() {
     }
     refreshLayers();
 
-    requestedTimelineAtRef.current = scenario.selectedAt;
+    const expectedTemporalLayers = scenario.layers
+      .filter((layer) => layer.enabled && isObservatoryTemporalLayerId(layer.id))
+      .map((layer) => layer.id as ObservatoryTemporalLayerId);
+    expectedScenarioTimelineLayersRef.current = new Set(expectedTemporalLayers);
+    settledScenarioTimelineLayersRef.current = new Set();
+    requestedTimelineAtRef.current =
+      expectedTemporalLayers.length > 0 ? scenario.selectedAt : null;
     if (scenario.selectedAt) setSelectedTimelineAt(scenario.selectedAt);
     if (scenario.camera) setCameraRestoreState(scenario.camera);
   }, [manager, refreshLayers]);
@@ -238,6 +250,10 @@ export function ObservatoryShell() {
 
   const handleTimelineSourceChange = useCallback(
     (id: ObservatoryTemporalLayerId, timestamps: string[]) => {
+      if (expectedScenarioTimelineLayersRef.current.has(id)) {
+        settledScenarioTimelineLayersRef.current.add(id);
+        setTimelineSettlementRevision((value) => value + 1);
+      }
       setTimelineSources((current) => {
         const next = { ...current };
         if (timestamps.length === 0) delete next[id];
@@ -267,14 +283,25 @@ export function ObservatoryShell() {
   const timelineKey = timelineTimestamps.join("|");
 
   useEffect(() => {
+    const requested = requestedTimelineAtRef.current;
+    const expected = expectedScenarioTimelineLayersRef.current;
+    const settled = settledScenarioTimelineLayersRef.current;
+    const allExpectedSettled = [...expected].every((id) => settled.has(id));
+
     if (timelineTimestamps.length === 0) {
       setPlaying(false);
-      if (!requestedTimelineAtRef.current) setSelectedTimelineAt(null);
+      if (requested && allExpectedSettled) {
+        requestedTimelineAtRef.current = null;
+        setSelectedTimelineAt(null);
+      } else if (!requested) {
+        setSelectedTimelineAt(null);
+      }
       return;
     }
 
+    if (requested && !allExpectedSettled) return;
+
     setSelectedTimelineAt((current) => {
-      const requested = requestedTimelineAtRef.current;
       if (requested) {
         requestedTimelineAtRef.current = null;
         return nearestTimelineTimestamp(timelineTimestamps, requested);
@@ -285,7 +312,7 @@ export function ObservatoryShell() {
       }
       return timelineTimestamps.at(-1) ?? null;
     });
-  }, [timelineKey]);
+  }, [timelineKey, timelineSettlementRevision]);
 
   useEffect(() => {
     if (!playing || timelineTimestamps.length < 2) return;
