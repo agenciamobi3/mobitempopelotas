@@ -69,6 +69,8 @@ Modelo disponível: 22:00, 23:00
 Inspetor usa: 22:00
 ```
 
+Se o relógio do Observatório estiver antes do primeiro horário disponível na série carregada, o inspetor não antecipa o primeiro frame do modelo. Nesse caso o painel fica sem horário utilizável para aquela referência, em vez de mostrar previsão futura como se ela correspondesse ao instante selecionado.
+
 ## Cesium
 
 `observatory-cesium-runtime.ts` passa a expor `subscribeMapClick`.
@@ -116,7 +118,7 @@ A UI usa revisão de requisição para ignorar respostas antigas se o usuário e
 `tests/observatory-inspector.test.ts` protege:
 
 - bounds regionais e normalização das coordenadas;
-- seleção temporal conservadora;
+- seleção temporal conservadora e ausência de frame futuro quando a referência precede a série;
 - uso do mesmo gate PRO do Observatório;
 - clique Cesium convertido em coordenada;
 - manutenção de um único `CesiumWidget`;
