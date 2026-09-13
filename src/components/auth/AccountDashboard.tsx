@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
+import { PanelsTopLeft } from "lucide-react";
 import { useCallback, useEffect, useState, type DragEvent, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
+import { AccountDashboardNavigation } from "@/components/auth/AccountDashboardNavigation";
 import { AccountFavoritesPanel } from "@/components/auth/AccountFavoritesPanel";
 import { AccountLiveOverview } from "@/components/auth/AccountLiveOverview";
 import { AccountObservatoryProduct } from "@/components/auth/AccountObservatoryProduct";
@@ -27,43 +29,20 @@ import { saveAccountDashboardLayout } from "@/lib/auth/dashboard-layout.function
 import type { AccountFavoritesSnapshot } from "@/lib/auth/favorites.functions";
 import type { HistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
 import type { ObservatoryAccessSnapshot } from "@/observatory/data/observatory-access.functions";
-import { SiteFooter } from "@/production/components/site-footer";
-import { SiteHeader } from "@/production/components/site-header";
-import type { WeatherData } from "@/production/lib/weather-data";
-
-const dashboardFooterSource = {
-  name: "Tempo Pelotas",
-  url: "/status-dos-dados",
-  isFallback: false,
-  observationName: "Dados e fontes do portal",
-  observationUrl: "/status-dos-dados",
-  forecastName: "Dados e fontes do portal",
-  forecastUrl: "/status-dos-dados",
-} satisfies WeatherData["source"];
 
 type AuthenticatedAccount = Extract<AccountSnapshot, { status: "authenticated" }>;
 type AuthenticatedFavorites = Extract<AccountFavoritesSnapshot, { status: "authenticated" }>;
-type DashboardPath = "/widgets";
 
-type DashboardModule = {
+type FutureModule = {
   title: string;
   description: string;
-  state: "available" | "preparing" | "pro";
-  href?: DashboardPath;
-  actionLabel?: string;
 };
 
 const SECTION_LABELS: Record<DashboardSectionId, string> = {
   live: "Painel Vivo",
-  favorites: "Favoritos Vivos",
-  site: "Para meu site",
+  favorites: "Favoritos",
+  site: "Ferramentas",
 };
-
-function moduleStateLabel(state: DashboardModule["state"]) {
-  if (state === "available") return "Disponível";
-  if (state === "pro") return "PRO";
-  return "Em evolução";
-}
 
 function layoutsEqual(first: DashboardLayout, second: DashboardLayout) {
   return JSON.stringify(first) === JSON.stringify(second);
@@ -91,7 +70,6 @@ export function AccountDashboard({
   const [layoutSaving, setLayoutSaving] = useState(false);
   const [layoutFeedback, setLayoutFeedback] = useState<string | null>(null);
   const [draggedSection, setDraggedSection] = useState<DashboardSectionId | null>(null);
-  const isPro = snapshot.access.tier === "pro";
   const historyLimit = snapshot.access.entitlements.historyAccessDays;
   const favoriteCount = favorites.storageReady ? favorites.favoriteKeys.length : 0;
   const layoutDirty = !layoutsEqual(layout, savedLayout);
@@ -118,36 +96,23 @@ export function AccountDashboard({
     void refreshLiveSnapshot();
   }, [refreshLiveSnapshot]);
 
-  const siteModules: DashboardModule[] = [
-    {
-      title: "Gerador de widgets e distribuição",
-      description:
-        "Crie widgets responsivos, incorpore dados do Tempo Pelotas em outros sites e acompanhe a rede de distribuição dos seus embeds.",
-      state: "available",
-      href: "/widgets",
-      actionLabel: "Criar meus widgets →",
-    },
-  ];
-  const futureModules: DashboardModule[] = [
+  const futureModules: FutureModule[] = [
     {
       title: "Histórico pessoal",
       description:
         historyLimit === null
-          ? "Sua camada prevê acesso completo ao acervo quando a experiência histórica pessoal estiver consolidada no painel."
-          : `Sua camada prevê históricos de até ${historyLimit} dias nos recursos pessoais que forem liberados.`,
-      state: "preparing",
+          ? "A conta já prevê acesso amplo ao acervo. A experiência histórica pessoal está sendo integrada ao workspace."
+          : `A experiência pessoal está sendo preparada com uma janela inicial de até ${historyLimit} dias.`,
     },
     {
       title: "Comparações avançadas",
       description:
-        "Comparações entre períodos, estações e variáveis serão uma camada de profundidade para quem precisa investigar os dados, não apenas consultá-los.",
-      state: isPro ? "preparing" : "pro",
+        "Comparações entre períodos, estações e variáveis vão permitir investigar os dados sem perder o contexto das fontes.",
     },
     {
       title: "Exportações e análises",
       description:
-        "Exportação estruturada e análises avançadas serão adicionadas sobre o acervo e as fontes que permitem esse tipo de uso.",
-      state: isPro ? "preparing" : "pro",
+        "Exportações estruturadas e análises aprofundadas entrarão conforme cada fonte estiver pronta para esse tipo de uso.",
     },
   ];
 
@@ -208,33 +173,51 @@ export function AccountDashboard({
     setLayoutFeedback("Layout padrão preparado. Salve para manter essa organização.");
   }
 
-  function siteSection(): ReactNode {
+  function toolsSection(): ReactNode {
     return (
-      <section className="account-dashboard__modules" aria-labelledby="dashboard-site-title">
-        <div className="account-dashboard__section-heading">
-          <span className="eyebrow">Para meu site</span>
-          <h2 id="dashboard-site-title">Distribua o Tempo Pelotas fora do portal</h2>
+      <section className="account-dashboard__tools" aria-labelledby="dashboard-tools-title">
+        <div className="account-dashboard__section-heading account-dashboard__section-heading--compact">
+          <div>
+            <span className="eyebrow">Ferramentas da conta</span>
+            <h2 id="dashboard-tools-title">Recursos para usar, explorar e publicar</h2>
+          </div>
           <p>
-            Esta área reúne ferramentas de publicação vinculadas à sua conta. O painel pessoal
-            fica acima; aqui entram os recursos para quem também mantém um site, portal ou projeto digital.
+            As ferramentas novas entram primeiro na experiência cadastrada. Regras de planos ficam
+            para quando cada recurso estiver maduro e bem definido.
           </p>
         </div>
 
-        <div className="account-dashboard__grid">
-          {siteModules.map((module) => (
-            <article className="account-dashboard__module" key={module.title}>
-              <div className="account-dashboard__module-topline">
-                <span>{moduleStateLabel(module.state)}</span>
+        <div className="account-dashboard__tools-grid">
+          <AccountObservatoryProduct access={observatory} />
+
+          <article className="account-tool-card account-tool-card--widgets">
+            <div className="account-tool-card__topline">
+              <span className="account-tool-card__icon" aria-hidden="true">
+                <PanelsTopLeft size={20} />
+              </span>
+              <span className="account-tool-card__status is-unlocked">Incluído na conta</span>
+            </div>
+
+            <div className="account-tool-card__body">
+              <span className="eyebrow">Ferramenta</span>
+              <h3>Gerador de widgets</h3>
+              <p>
+                Monte widgets responsivos do Tempo Pelotas, publique em outros sites e acompanhe sua
+                rede de distribuição sem sair da conta.
+              </p>
+              <div className="account-tool-card__features" aria-label="Recursos dos widgets">
+                <span>Responsivos</span>
+                <span>Embeds</span>
+                <span>Temas</span>
+                <span>Distribuição</span>
               </div>
-              <h3>{module.title}</h3>
-              <p>{module.description}</p>
-              {module.href ? (
-                <Link to={module.href} className="account-dashboard__module-link">
-                  {module.actionLabel}
-                </Link>
-              ) : null}
-            </article>
-          ))}
+            </div>
+
+            <div className="account-tool-card__footer">
+              <small>Disponível para contas cadastradas.</small>
+              <Link to="/widgets">Criar meus widgets →</Link>
+            </div>
+          </article>
         </div>
       </section>
     );
@@ -268,126 +251,132 @@ export function AccountDashboard({
       );
     }
 
-    return siteSection();
+    return toolsSection();
   }
 
   return (
-    <div className="site-shell site-shell--account">
-      <SiteHeader advisoryLevel="normal" />
+    <div className="account-app-shell">
+      <AccountDashboardNavigation snapshot={snapshot} />
 
-      <main className="account-page account-dashboard" id="conteudo-principal" tabIndex={-1}>
-        <section className="account-dashboard__hero" aria-labelledby="dashboard-title">
-          <div>
-            <span className="eyebrow">Meu Tempo Pelotas</span>
-            <div className="account-dashboard__title-row">
-              <h1 id="dashboard-title">Olá, {snapshot.identity.displayName}</h1>
-              <span className={`account-tier-badge is-${snapshot.access.tier}`}>
-                {snapshot.access.label}
-              </span>
+      <div className="account-app-main">
+        <main className="account-page account-dashboard" id="conteudo-principal" tabIndex={-1}>
+          <header className="account-dashboard__topbar" id="visao-geral">
+            <div className="account-dashboard__topbar-copy">
+              <span className="eyebrow">Meu Tempo Pelotas</span>
+              <div className="account-dashboard__title-row">
+                <h1>Olá, {snapshot.identity.displayName}</h1>
+                <span className={`account-tier-badge is-${snapshot.access.tier}`}>
+                  {snapshot.access.label}
+                </span>
+              </div>
+              <p>
+                Seu espaço pessoal para acompanhar o que importa, abrir ferramentas e organizar os
+                recursos do Tempo Pelotas sem transformar o painel em outra versão do portal público.
+              </p>
             </div>
-            <p>
-              Este é o seu ponto de partida no Tempo Pelotas: um resumo vivo do que acontece agora,
-              seus recursos favoritos e as ferramentas vinculadas à sua conta. O conteúdo público
-              continua aberto; a conta serve para organizar e aprofundar a experiência.
-            </p>
-          </div>
 
-          <div className="account-dashboard__actions">
-            <Link
-              className="account-dashboard__primary"
-              to="/conta"
-              search={{ erro: undefined, next: "/conta" }}
-            >
-              Configurar minha conta
-            </Link>
-            <Link className="account-dashboard__secondary" to="/">
-              Ver portal público
-            </Link>
-          </div>
-        </section>
+            <div className="account-dashboard__topbar-actions">
+              <Link
+                className="account-dashboard__primary"
+                to="/conta"
+                search={{ erro: undefined, next: "/conta" }}
+              >
+                Configurar conta
+              </Link>
+              <Link className="account-dashboard__secondary" to="/">
+                Portal público
+              </Link>
+            </div>
+          </header>
 
-        <section className="account-dashboard__summary" aria-label="Resumo da minha conta">
-          <div>
-            <small>Camada atual</small>
-            <strong>{snapshot.access.label}</strong>
-            <span>{isPro ? "Recursos conforme entitlements PRO" : "Conta Free com painel pessoal"}</span>
-          </div>
-          <div>
-            <small>Favoritos</small>
-            <strong>{favorites.storageReady ? favoriteCount : "Indisponível"}</strong>
-            <span>Recursos que você escolheu acompanhar mais de perto</span>
-          </div>
-          <div>
-            <small>Painel vivo</small>
-            <strong>Incluído</strong>
-            <span>Resumo meteorológico recuperado das mesmas fontes do portal</span>
-          </div>
-          <div>
-            <small>Layout pessoal</small>
-            <strong>Personalizável</strong>
-            <span>Ordem e tamanho dos cards ficam salvos na sua conta</span>
-          </div>
-        </section>
+          <section className="account-dashboard__summary" aria-label="Resumo da minha conta">
+            <div>
+              <small>Conta</small>
+              <strong>{snapshot.access.label}</strong>
+              <span>Recursos cadastrados ativos nesta experiência</span>
+            </div>
+            <div>
+              <small>Favoritos</small>
+              <strong>{favorites.storageReady ? favoriteCount : "Indisponível"}</strong>
+              <span>Atalhos e leituras que você acompanha</span>
+            </div>
+            <div>
+              <small>Ferramentas</small>
+              <strong>2 disponíveis</strong>
+              <span>Observatório e gerador de widgets</span>
+            </div>
+            <div>
+              <small>Painel</small>
+              <strong>Personalizável</strong>
+              <span>Ordem e tamanho dos cards ficam salvos</span>
+            </div>
+          </section>
 
-        <AccountObservatoryProduct access={observatory} />
-
-        <DashboardPersonalizationBar
-          editing={customizing}
-          dirty={layoutDirty}
-          saving={layoutSaving}
-          feedback={layoutFeedback}
-          onEdit={() => {
-            setCustomizing(true);
-            setLayoutFeedback(null);
-          }}
-          onSave={() => void persistLayout()}
-          onCancel={cancelCustomization}
-          onReset={resetCustomization}
-        />
-
-        {layout.sections.map((section, index) => (
-          <DashboardSectionFrame
-            key={section}
-            id={section}
-            label={SECTION_LABELS[section]}
+          <DashboardPersonalizationBar
             editing={customizing}
-            index={index}
-            total={layout.sections.length}
-            onMove={updateSectionOrder}
-            onDragStart={startSectionDrag}
-            onDrop={dropSection}
-          >
-            {personalizedSection(section)}
-          </DashboardSectionFrame>
-        ))}
+            dirty={layoutDirty}
+            saving={layoutSaving}
+            feedback={layoutFeedback}
+            onEdit={() => {
+              setCustomizing(true);
+              setLayoutFeedback(null);
+            }}
+            onSave={() => void persistLayout()}
+            onCancel={cancelCustomization}
+            onReset={resetCustomization}
+          />
 
-        <section className="account-dashboard__modules" aria-labelledby="dashboard-evolution-title">
-          <div className="account-dashboard__section-heading">
-            <span className="eyebrow">Próximas camadas</span>
-            <h2 id="dashboard-evolution-title">Mais profundidade, sem empobrecer o Free</h2>
-            <p>
-              O Free precisa continuar útil por si só. As próximas camadas entram para ampliar histórico,
-              comparação e capacidade de trabalho, sem esconder atrás de assinatura os dados públicos básicos.
-            </p>
-          </div>
+          {layout.sections.map((section, index) => (
+            <DashboardSectionFrame
+              key={section}
+              id={section}
+              label={SECTION_LABELS[section]}
+              editing={customizing}
+              index={index}
+              total={layout.sections.length}
+              onMove={updateSectionOrder}
+              onDragStart={startSectionDrag}
+              onDrop={dropSection}
+            >
+              {personalizedSection(section)}
+            </DashboardSectionFrame>
+          ))}
 
-          <div className="account-dashboard__grid">
-            {futureModules.map((module) => (
-              <article className="account-dashboard__module" key={module.title}>
-                <div className="account-dashboard__module-topline">
-                  <span>{moduleStateLabel(module.state)}</span>
-                </div>
-                <h3>{module.title}</h3>
-                <p>{module.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+          <section className="account-dashboard__roadmap" aria-labelledby="dashboard-roadmap-title">
+            <div className="account-dashboard__section-heading account-dashboard__section-heading--compact">
+              <div>
+                <span className="eyebrow">Em construção</span>
+                <h2 id="dashboard-roadmap-title">Próximos recursos da conta</h2>
+              </div>
+              <p>
+                Primeiro deixamos as ferramentas úteis e estáveis. A definição comercial pode vir
+                depois, com limites e planos baseados no uso real do produto.
+              </p>
+            </div>
 
-        <HistoricalModerationPanel snapshot={moderation} />
-      </main>
+            <div className="account-dashboard__roadmap-grid">
+              {futureModules.map((module) => (
+                <article className="account-dashboard__roadmap-card" key={module.title}>
+                  <span>Em desenvolvimento</span>
+                  <h3>{module.title}</h3>
+                  <p>{module.description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
 
-      <SiteFooter source={dashboardFooterSource} />
+          <HistoricalModerationPanel snapshot={moderation} />
+
+          <footer className="account-dashboard__footer">
+            <p>Tempo Pelotas · seu painel pessoal de tempo, água e ferramentas.</p>
+            <div>
+              <Link to="/status-dos-dados">Dados e fontes</Link>
+              <Link to="/privacidade-e-dados">Privacidade</Link>
+              <Link to="/">Voltar ao portal</Link>
+            </div>
+          </footer>
+        </main>
+      </div>
     </div>
   );
 }
