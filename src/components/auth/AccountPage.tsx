@@ -162,7 +162,7 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
               <strong>{displayName}</strong>
               <span>{snapshot.identity.email}</span>
               <span className={`account-tier-badge is-${snapshot.access.tier}`}>
-                Plano {snapshot.access.label}
+                Conta {snapshot.access.label}
               </span>
             </div>
           </div>
@@ -171,10 +171,10 @@ export function AccountPage({ snapshot }: { snapshot: AuthenticatedAccount }) {
         <div className="account-dashboard-entry">
           <div>
             <span className="eyebrow">Área pessoal</span>
-            <strong>Seu painel {snapshot.access.label} já organiza o que você acompanha.</strong>
+            <strong>Seu painel já organiza o que você acompanha.</strong>
             <p>
-              Favoritos e widgets já estão disponíveis no painel. Novos históricos e ferramentas
-              entram somente quando o dataset e a camada de acesso estiverem prontos.
+              Favoritos, Observatório e widgets já estão disponíveis. Novos históricos e ferramentas
+              entram conforme dados, fontes e experiência ficam prontos para uso contínuo.
             </p>
           </div>
           <Link to="/painel">Abrir meu painel →</Link>
