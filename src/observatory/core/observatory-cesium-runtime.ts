@@ -43,6 +43,11 @@ export type ObservatoryCesiumImageInput = {
   split?: ObservatoryImagerySplit;
 };
 
+export type ObservatoryCesiumImageLayerUpdate = {
+  id: string;
+  input: ObservatoryCesiumImageInput;
+};
+
 export type ObservatoryCesiumPointInput = {
   id: string;
   latitude: number;
@@ -66,6 +71,7 @@ export type ObservatoryCesiumRuntime = {
   subscribeCameraChange: (listener: (state: ObservatoryCameraState) => void) => () => void;
   setSplitPosition: (position: number) => void;
   setImageLayer: (id: string, input: ObservatoryCesiumImageInput) => Promise<void>;
+  setImageLayerGroup: (updates: ObservatoryCesiumImageLayerUpdate[]) => Promise<void>;
   setPointLayer: (id: string, points: ObservatoryCesiumPointInput[]) => void;
   setLayerOpacity: (id: string, opacity: number) => void;
   removeLayer: (id: string) => void;
@@ -283,28 +289,45 @@ export async function createObservatoryCesiumRuntime(
     requestRender();
   }
 
-  async function setImageLayer(id: string, input: ObservatoryCesiumImageInput) {
-    const generation = nextGeneration(id);
+  async function setImageLayerGroup(updates: ObservatoryCesiumImageLayerUpdate[]) {
+    if (updates.length === 0 || widget.isDestroyed()) return;
 
-    const provider = await SingleTileImageryProvider.fromUrl(input.imageUrl, {
-      rectangle: Rectangle.fromDegrees(
-        input.bounds.west,
-        input.bounds.south,
-        input.bounds.east,
-        input.bounds.north,
-      ),
-    });
+    const generations = updates.map(({ id }) => ({ id, generation: nextGeneration(id) }));
+    const prepared = await Promise.all(
+      updates.map(async ({ id, input }, index) => {
+        const provider = await SingleTileImageryProvider.fromUrl(input.imageUrl, {
+          rectangle: Rectangle.fromDegrees(
+            input.bounds.west,
+            input.bounds.south,
+            input.bounds.east,
+            input.bounds.north,
+          ),
+        });
+        return { id, input, provider, generation: generations[index]?.generation ?? 0 };
+      }),
+    );
 
-    if (widget.isDestroyed() || layerGenerations.get(id) !== generation) return;
+    if (
+      widget.isDestroyed() ||
+      prepared.some(({ id, generation }) => layerGenerations.get(id) !== generation)
+    ) {
+      return;
+    }
 
-    detachLayer(id);
-    const layer = new ImageryLayer(provider, {
-      alpha: clampOpacity(input.opacity),
-    });
-    layer.splitDirection = splitDirection(input.split);
-    widget.scene.imageryLayers.add(layer);
-    imageLayers.set(id, layer);
+    for (const { id } of prepared) detachLayer(id);
+    for (const { id, input, provider } of prepared) {
+      const layer = new ImageryLayer(provider, {
+        alpha: clampOpacity(input.opacity),
+      });
+      layer.splitDirection = splitDirection(input.split);
+      widget.scene.imageryLayers.add(layer);
+      imageLayers.set(id, layer);
+    }
     requestRender();
+  }
+
+  async function setImageLayer(id: string, input: ObservatoryCesiumImageInput) {
+    await setImageLayerGroup([{ id, input }]);
   }
 
   function setPointLayer(id: string, points: ObservatoryCesiumPointInput[]) {
@@ -362,6 +385,7 @@ export async function createObservatoryCesiumRuntime(
     subscribeCameraChange,
     setSplitPosition,
     setImageLayer,
+    setImageLayerGroup,
     setPointLayer,
     setLayerOpacity,
     removeLayer,
