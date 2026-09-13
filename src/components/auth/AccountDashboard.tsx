@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { AccountFavoritesPanel } from "@/components/auth/AccountFavoritesPanel";
 import { AccountLiveOverview } from "@/components/auth/AccountLiveOverview";
+import { AccountObservatoryProduct } from "@/components/auth/AccountObservatoryProduct";
 import {
   DashboardPersonalizationBar,
   DashboardSectionFrame,
@@ -25,6 +26,7 @@ import {
 import { saveAccountDashboardLayout } from "@/lib/auth/dashboard-layout.functions";
 import type { AccountFavoritesSnapshot } from "@/lib/auth/favorites.functions";
 import type { HistoricalModerationSnapshot } from "@/lib/history/moderation.functions";
+import type { ObservatoryAccessSnapshot } from "@/observatory/data/observatory-access.functions";
 import { SiteFooter } from "@/production/components/site-footer";
 import { SiteHeader } from "@/production/components/site-header";
 import type { WeatherData } from "@/production/lib/weather-data";
@@ -71,10 +73,12 @@ export function AccountDashboard({
   snapshot,
   moderation,
   favorites,
+  observatory,
 }: {
   snapshot: AuthenticatedAccount;
   moderation: HistoricalModerationSnapshot;
   favorites: AuthenticatedFavorites;
+  observatory: ObservatoryAccessSnapshot;
 }) {
   const loadLiveSnapshot = useServerFn(getAccountDashboardLiveSnapshot);
   const saveLayout = useServerFn(saveAccountDashboardLayout);
@@ -324,6 +328,8 @@ export function AccountDashboard({
             <span>Ordem e tamanho dos cards ficam salvos na sua conta</span>
           </div>
         </section>
+
+        <AccountObservatoryProduct access={observatory} />
 
         <DashboardPersonalizationBar
           editing={customizing}
