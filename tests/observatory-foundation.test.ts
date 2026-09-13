@@ -33,19 +33,19 @@ const assetPrep = readFileSync("scripts/prepare-cesium-assets.mjs", "utf8");
 const csp = readFileSync("src/lib/security/content-security-policy.server.ts", "utf8");
 const packageJson = readFileSync("package.json", "utf8");
 
-test("Observatório é negado ao Free e concedido ao PRO ativo", () => {
-  assert.equal(resolveAccountAccess(null).entitlements.observatoryAccess, false);
+test("Observatório integra o conjunto Free cadastrado nesta fase", () => {
+  assert.equal(resolveAccountAccess(null).entitlements.observatoryAccess, true);
   assert.equal(
     resolveAccountAccess({ tier: "pro", status: "active" }).entitlements.observatoryAccess,
     true,
   );
   assert.equal(
     resolveAccountAccess({ tier: "pro", status: "suspended" }).entitlements.observatoryAccess,
-    false,
+    true,
   );
 });
 
-test("admin confirmado pode acessar sem assinatura por allowlist server-only", () => {
+test("admin confirmado pode acessar por allowlist server-only", () => {
   assert.match(operatorAuthorization, /process\.env\.MOBI_PORTAL_ADMIN_EMAILS/);
   assert.match(operatorAuthorization, /export function isPortalOperatorEmail/);
   assert.doesNotMatch(operatorAuthorization, /VITE_.*PORTAL_ADMIN_EMAILS/);
@@ -55,11 +55,11 @@ test("admin confirmado pode acessar sem assinatura por allowlist server-only", (
   assert.match(accessFunctions, /allowed: true/);
   assert.ok(
     accessFunctions.indexOf("if (isConfirmedAdmin)") < accessFunctions.indexOf("loadAccountAccess(client, user.id)"),
-    "admin de allowlist precisa ser liberado antes da consulta de assinatura",
+    "admin de allowlist precisa ser liberado antes da consulta de acesso persistido",
   );
 });
 
-test("admin persistente pode acessar como Free sem forjar tier PRO", () => {
+test("gate exige conta ativa para o entitlement cadastrado e preserva grant administrativo", () => {
   assert.match(accountAccessMigration, /source[^\n]*system, admin ou billing/);
   assert.match(accountAccessMigration, /revoke all on table public\.account_access from public, anon, authenticated/);
   assert.match(accountAccessMigration, /grant select on table public\.account_access to authenticated/);
@@ -68,6 +68,10 @@ test("admin persistente pode acessar como Free sem forjar tier PRO", () => {
   assert.match(accessFunctions, /hasPersistentAdminGrant/);
   assert.match(accessFunctions, /access\.status === "active"/);
   assert.match(accessFunctions, /access\.source\.trim\(\)\.toLowerCase\(\) === ADMIN_ACCESS_SOURCE/);
+  assert.match(
+    accessFunctions,
+    /entitlementGrant = access\.status === "active" && access\.entitlements\.observatoryAccess/,
+  );
   assert.match(accessFunctions, /persistentAdminGrant \|\| entitlementGrant/);
   assert.match(accessFunctions, /persistentAdminGrant \? "admin"/);
 });
@@ -97,11 +101,13 @@ test("gate do Observatório resolve sessão e entitlement no servidor", () => {
   assert.doesNotMatch(accessFunctions, /service_role|SUPABASE_SERVICE_ROLE_KEY/i);
 });
 
-test("usuário sem entitlement não monta o shell avançado", () => {
+test("conta sem acesso ativo não monta o shell avançado", () => {
   const deniedGate = route.indexOf("if (!access.allowed)");
   const shellMount = route.lastIndexOf("return <ObservatoryShell />");
   assert.ok(deniedGate >= 0, "rota precisa tratar acesso negado explicitamente");
-  assert.ok(shellMount > deniedGate, "shell só pode ser montado depois do gate de entitlement");
+  assert.ok(shellMount > deniedGate, "shell só pode ser montado depois do gate de acesso");
+  assert.doesNotMatch(route, /Tempo Pelotas PRO|plano PRO|experiência PRO/i);
+  assert.match(route, /faz parte da experiência cadastrada nesta fase/);
 });
 
 test("Layer Manager começa tipado e sem camadas meteorológicas implícitas", () => {
