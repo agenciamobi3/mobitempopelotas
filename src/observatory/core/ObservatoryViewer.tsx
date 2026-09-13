@@ -350,6 +350,34 @@ export function ObservatoryViewer({
           .then(async (result) => {
             if (layerRevisionRef.current !== revision || !runtimeRef.current) return;
 
+            if (
+              (id === "radar" || id === "satellite") &&
+              result.frames.length === 0 &&
+              cachedResultAtLoadStart
+            ) {
+              console.warn(
+                `[observatory] Série temporal ${id} retornou sem quadros; mantendo cache anterior.`,
+                result.error,
+              );
+              const previousMeta = renderedTemporalMetaRef.current[id];
+              const currentComparison = comparisonStateRef.current;
+              const cachedFrame = currentComparison
+                ? selectTemporalFrame(cachedResultAtLoadStart, currentComparison.b.selectedAt) ??
+                  selectTemporalFrame(cachedResultAtLoadStart, currentComparison.a.selectedAt)
+                : selectTemporalFrame(cachedResultAtLoadStart, selectedTimelineAtRef.current);
+              onTimelineSourceChange(id, temporalTimestamps(cachedResultAtLoadStart));
+              onLayerRuntimeChange(id, {
+                status: "degraded",
+                enabled: true,
+                observedAt: previousMeta?.observedAt ?? cachedFrame?.observedAt ?? null,
+                detail:
+                  result.error ??
+                  previousMeta?.detail ??
+                  "A fonte não trouxe novos quadros; mantendo o último quadro já carregado.",
+              });
+              return;
+            }
+
             installedSourceRevision = (temporalSourceRevisionRef.current[id] ?? 0) + 1;
             temporalSourceRevisionRef.current[id] = installedSourceRevision;
             temporalLayersRef.current[id] = result;
@@ -410,7 +438,7 @@ export function ObservatoryViewer({
               detail,
             });
           })
-          .catch((error) => {
+          .catch(async (error) => {
             if (layerRevisionRef.current !== revision) return;
             if (
               installedSourceRevision !== null &&
@@ -435,12 +463,72 @@ export function ObservatoryViewer({
                 `[observatory] Falha ao atualizar série temporal ${id}; mantendo cache.`,
                 error,
               );
+
+              let restoredSourceRevision = temporalSourceRevisionRef.current[id] ?? 0;
               if (installedSourceRevision !== null && cachedResultAtLoadStart) {
-                const restoredRevision = (temporalSourceRevisionRef.current[id] ?? 0) + 1;
-                temporalSourceRevisionRef.current[id] = restoredRevision;
+                restoredSourceRevision += 1;
+                temporalSourceRevisionRef.current[id] = restoredSourceRevision;
                 temporalLayersRef.current[id] = cachedResultAtLoadStart;
                 onTimelineSourceChange(id, temporalTimestamps(cachedResultAtLoadStart));
+
+                try {
+                  const currentComparison = comparisonStateRef.current;
+                  let restoredFrame = null;
+                  if (currentComparison && (id === "radar" || id === "satellite")) {
+                    const rendered = await renderComparisonRaster(
+                      runtime,
+                      id,
+                      cachedResultAtLoadStart,
+                      currentComparison,
+                    );
+                    restoredFrame = rendered.b ?? rendered.a ?? null;
+                  } else {
+                    restoredFrame = await renderTemporalFrame(
+                      runtime,
+                      id,
+                      cachedResultAtLoadStart,
+                      selectedTimelineAtRef.current,
+                      layerOpacitiesRef.current[id] ?? 0.72,
+                    );
+                  }
+
+                  if (
+                    layerRevisionRef.current !== revision ||
+                    temporalSourceRevisionRef.current[id] !== restoredSourceRevision
+                  ) {
+                    return;
+                  }
+
+                  renderedTemporalMetaRef.current[id] = {
+                    observedAt: restoredFrame?.observedAt ?? null,
+                    detail:
+                      restoredFrame?.detail ??
+                      "A atualização da fonte falhou; o último quadro disponível foi restaurado.",
+                  };
+                } catch (restoreError) {
+                  console.error(
+                    `[observatory] Falha ao rematerializar cache temporal ${id}.`,
+                    restoreError,
+                  );
+                  temporalSourceRevisionRef.current[id] = restoredSourceRevision + 1;
+                  delete temporalLayersRef.current[id];
+                  delete renderedTemporalMetaRef.current[id];
+                  onTimelineSourceChange(id, []);
+                  runtime.removeLayer(id);
+                  if (id === "radar" || id === "satellite") {
+                    runtime.removeLayer(comparisonLayerId("a", id));
+                    runtime.removeLayer(comparisonLayerId("b", id));
+                  }
+                  onLayerRuntimeChange(id, {
+                    status: "unavailable",
+                    enabled: true,
+                    observedAt: null,
+                    detail: describeRuntimeError(restoreError),
+                  });
+                  return;
+                }
               }
+
               const currentComparison = comparisonStateRef.current;
               const cachedFrame = currentComparison && (id === "radar" || id === "satellite")
                 ? selectTemporalFrame(fallbackResult, currentComparison.b.selectedAt) ??
