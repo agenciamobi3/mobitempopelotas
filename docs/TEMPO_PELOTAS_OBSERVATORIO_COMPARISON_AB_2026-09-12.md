@@ -72,17 +72,21 @@ As camadas normais do Observatório são ocultadas enquanto o comparador está a
 
 ### Concorrência e invalidação de quadros
 
-A renderização A/B não deve iniciar B somente depois de A concluir. Em trocas rápidas de horário, principalmente durante o play, isso abriria uma janela para um render antigo começar o lado B depois de um render mais novo ou até depois da saída do comparador.
+A renderização A/B não pode substituir um lado antes de saber se o outro quadro do mesmo par também está pronto. Em trocas rápidas de horário, principalmente durante o play, uma atualização parcial permitiria misturar um A novo com um B antigo ou reintroduzir imagery depois da saída do comparador.
 
-A implementação atual inicia as chamadas `setImageLayer()` de A e B no mesmo ciclo e somente depois aguarda `Promise.all()`. Como o runtime registra a geração da camada antes do primeiro `await`, qualquer render posterior ou remoção invalida corretamente as promises antigas. Um quadro antigo não pode reaparecer no lado B depois da limpeza do comparador.
+O runtime agora expõe `setImageLayerGroup()`. Para cada par A/B, todas as gerações são registradas antes da espera, os `SingleTileImageryProvider` são preparados em conjunto e nenhuma imagery anterior é removida até que todos os providers do grupo estejam prontos e ainda pertençam à geração atual. Só então o grupo antigo é substituído. Se qualquer provider falhar, o par já renderizado permanece intacto.
 
-A carga inicial da série temporal tem uma proteção adicional. Antes de começar a materializar o primeiro frame, o viewer captura também a revisão atual da seleção temporal. Depois do `await`, tanto a revisão estrutural das camadas quanto a revisão da timeline precisam continuar iguais. Se o usuário avançar o relógio ou iniciar o play enquanto a imagem inicial ainda carrega, a continuação antiga não publica `observedAt`, não sobrescreve detalhes e uma rejeição antiga não remove uma geração mais nova que já venceu.
+Além da revisão de seleção temporal, cada fonte temporal possui uma revisão própria de conteúdo. Quando uma recarga substitui `temporalLayersRef.current[id]`, a revisão da fonte avança. Callbacks que começaram sobre um cache antigo precisam validar tanto a revisão da timeline quanto a revisão da fonte antes de publicar `status`, `observedAt` ou `detail`. Assim, metadados de um resultado antigo não podem sobrescrever um quadro mais novo que já venceu a corrida no runtime.
+
+A carga inicial da série temporal mantém a proteção estrutural. Depois do `await`, a revisão das camadas, a revisão da seleção temporal e a revisão do conteúdo da fonte precisam continuar compatíveis com a geração que iniciou o render.
 
 ### Falha ao carregar um novo quadro
 
-A troca de horário pode falhar mesmo quando a série temporal já foi carregada, por exemplo se a imagem do quadro selecionado deixar de responder durante o play. Essa falha não deve gerar rejeição sem tratamento nem deixar a interface indicando um quadro atual que não foi renderizado.
+A troca de horário pode falhar mesmo quando a série temporal já foi carregada, por exemplo se a imagem do quadro selecionado deixar de responder durante o play.
 
-O runtime prepara o novo `SingleTileImageryProvider` antes de remover a imagery anterior. Se a nova imagem falhar, a imagem anterior permanece visível quando já existia. O viewer captura a falha, marca a camada como `degraded` e evita propagar uma promise rejeitada. No comparador, uma falha na atualização limpa o par A/B afetado para não manter uma composição parcialmente atualizada como se estivesse íntegra.
+Se já existe um par A/B válido, uma falha transitória não o remove. O runtime mantém a imagery anterior, o viewer conserva o último `observedAt` efetivamente renderizado e publica `degraded`. A interface deixa claro que a atualização falhou sem apagar uma comparação válida que ainda está na tela.
+
+Quando uma recarga de série substitui temporariamente o cache, mas a materialização do novo quadro falha, o viewer restaura o último resultado temporal utilizável e avança novamente a revisão da fonte para invalidar callbacks que dependiam do resultado descartado. Uma primeira carga realmente sem cache e sem imagery válida continua podendo terminar em `unavailable`.
 
 ## UX da primeira versão
 
@@ -101,7 +105,7 @@ Ao ativar:
 - `Trocar A ↔ B` inverte os estados;
 - `Sair da comparação` restaura o viewer normal sem recarregar a rota.
 
-O botão `Comparar` só fica disponível depois que radar ou satélite está ativo **e** existe um timestamp temporal real. Isso impede criar A/B com `selectedAt=null` durante o primeiro carregamento e evita rótulos `Horário indisponível` enquanto a imagem já caiu silenciosamente no frame mais recente.
+O botão `Comparar` só fica disponível quando radar ou satélite habilitado possui um quadro comparável coerente com o horário global. A semente usa o último quadro raster no mesmo instante ou anterior ao horário selecionado. Se o horário global for anterior ao primeiro frame disponível de radar/satélite, a semente é `null` e a entrada permanece desabilitada. O comparador nunca avança silenciosamente A/B para um quadro futuro apenas para conseguir abrir.
 
 As camadas ficam congeladas no painel enquanto a comparação está ativa. Isso evita alterar silenciosamente a composição que originou A e B.
 
@@ -159,13 +163,14 @@ Exemplos que exigem contrato adicional:
 
 - fundação tipada coberta por `tests/observatory-comparison.test.ts`;
 - runtime mantém imagery A e B simultaneamente;
+- pares A/B são preparados e substituídos como grupo atômico, sem composição parcialmente atualizada quando um provider falha;
 - `scene.splitPosition` responde ao controle visual;
 - A e B usam uma única câmera e um único `CesiumWidget`;
-- renders A/B são iniciados antes do primeiro `await`, preservando a invalidação por geração do runtime;
-- carga inicial temporal só publica ou limpa estado se a revisão de camadas e a revisão da timeline ainda forem as mesmas;
-- o runtime só substitui a imagery anterior depois que o novo provider foi carregado;
-- falhas de imagem durante a timeline são tratadas e atualizam o estado da camada;
-- comparação não inicia sem timestamp temporal real;
+- callbacks temporais validam revisão da timeline e revisão do conteúdo da fonte;
+- carga inicial temporal só publica ou limpa estado se a geração estrutural e temporal ainda for válida;
+- falha de atualização com cache preserva imagery e último timestamp efetivamente renderizado, publicando `degraded`;
+- primeira carga realmente sem cache continua podendo publicar `unavailable`;
+- comparação não usa frame futuro como semente quando o horário global precede todos os quadros raster disponíveis;
 - timeline altera apenas o lado selecionado;
 - sair do modo comparação restaura o viewer normal;
 - mobile mantém controle utilizável por toque;
@@ -180,7 +185,7 @@ Exemplos que exigem contrato adicional:
 
 O PR #137 permanece deliberadamente empilhado sobre `work/observatory-share-scenarios`. Não deve ser promovido diretamente para `main` antes da estabilização do PR #135.
 
-A primeira revisão automática apontou quatro itens: race de render A/B, slider dentro de `aria-hidden`, entrada antes de existir timestamp e ausência do comparador no estado mestre. Os quatro foram tratados em código, contratos e documentação. A segunda revisão apontou uma falha adicional: rejeições de carregamento de imagem durante atualizações da timeline A/B não tinham tratamento próprio. Esse caminho também passou a ser tratado e protegido por contrato. A revisão seguinte encontrou uma disputa entre a carga inicial da série e uma seleção temporal mais nova; o viewer agora invalida a continuação inicial também pela revisão da timeline, inclusive no caminho de erro.
+As revisões automáticas foram usadas como barreira de endurecimento do runtime. Além dos primeiros pontos de acessibilidade, entrada temporal e estado mestre, a implementação agora cobre rejeições de provider, invalidação por seleção temporal, falhas antes da materialização da imagem, semente raster sem salto para o futuro e invalidação de callbacks que usaram cache substituído. A troca A/B também passou a ser atômica por grupo de imagery para conservar o último par íntegro durante falhas transitórias.
 
 A validação executável continua obrigatória. Ausência de runner GitHub-hosted não deve ser reinterpretada como aprovação nem como falha funcional do comparador.
 
