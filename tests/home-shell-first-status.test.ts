@@ -18,13 +18,34 @@ test("home mantém WeatherHero na primeira dobra antes da recuperação meteorol
 });
 
 test("home adia a descoberta da câmera até existir meteorologia utilizável", () => {
-  assert.match(home, /useEffect\(\(\) => \{[\s\S]*if \(!hasUsableWeather\) \{[\s\S]*setCameraData\(null\);[\s\S]*return;[\s\S]*getWeatherCameras\(\)/);
+  assert.match(home, /if \(!hasUsableWeather\) \{[\s\S]*setCameraData\(null\);[\s\S]*return;/);
+  assert.match(home, /import\("@\/lib\/cameras\/cameras\.functions"\)/);
+  assert.match(home, /requestIdleCallback\(discoverCamera/);
   assert.match(home, /\}, \[hasUsableWeather\]\);/);
 });
 
+test("recuperações secundárias saem do bundle inicial da Home", () => {
+  assert.match(home, /import\("@\/lib\/weather\/weather-intelligence\.functions"\)/);
+  assert.match(home, /import\("@\/lib\/hydrology\/guaiba\.functions"\)/);
+  assert.match(home, /import\("@\/lib\/hydrology\/lagoon-network\.functions"\)/);
+  assert.match(home, /import\("@\/lib\/hydrology\/laranjal-level\.functions"\)/);
+  assert.doesNotMatch(home, /import \{ getWeatherIntelligence \} from/);
+  assert.doesNotMatch(home, /import \{ getWeatherCameras \} from/);
+});
+
+test("blocos abaixo da dobra usam code splitting e Suspense", () => {
+  assert.match(home, /const LazyHomeExplorePortal = lazy/);
+  assert.match(home, /const LazyHomeDataGuide = lazy/);
+  assert.match(home, /const LazyHomeWaterEditorial = lazy/);
+  assert.match(home, /const LazyHomeLiveCameraBackground = lazy/);
+  assert.match(home, /function DeferredHomeTail\(\)/);
+  assert.match(home, /<Suspense fallback=\{null\}>[\s\S]*<LazyHomeExplorePortal \/>[\s\S]*<LazyHomeDataGuide \/>/);
+});
+
 test("home continua navegável durante a recuperação", () => {
-  assert.match(home, /<HomeExplorePortal \/>/);
-  assert.match(home, /<HomeDataGuide \/>/);
+  assert.match(home, /to="\/situacao-hidrologica-pelotas"/);
+  assert.match(home, /to="\/cameras-ao-vivo-pelotas"/);
+  assert.match(home, /to="\/status-dos-dados"/);
   assert.match(home, /<SiteFooter source=\{hasUsableWeather \? weather\.source : unavailableSource\} \/>/);
 });
 
