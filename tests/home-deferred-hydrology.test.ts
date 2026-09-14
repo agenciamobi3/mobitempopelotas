@@ -19,17 +19,18 @@ test("home não consulta meteorologia ou hidrologia externa no loader inicial", 
 });
 
 test("home recupera meteorologia consolidada no navegador antes da contingência direta", () => {
-  assert.match(home, /import \{ getWeatherIntelligence \}/);
-  assert.match(home, /void getWeatherIntelligence\(\)/);
+  assert.match(home, /import\("@\/lib\/weather\/weather-intelligence\.functions"\)/);
+  assert.match(home, /module\.getWeatherIntelligence\(\)/);
   assert.match(home, /hasUsableWeatherIntelligence\(nextData\)/);
   assert.match(home, /useOpenMeteoIntelligenceRecovery\(serverRecoveredData\)/);
 });
 
-test("home mantém fallback meteorológico auditável para recuperação no navegador", () => {
+test("home mantém fallback meteorológico auditável sem retirar o hero inicial", () => {
   assert.match(route, /createUnavailableWeatherIntelligence/);
   assert.match(home, /useOpenMeteoIntelligenceRecovery\(serverRecoveredData\)/);
-  assert.match(home, /Dados meteorológicos temporariamente indisponíveis/);
-  assert.match(home, /O portal continuará consultando automaticamente as fontes meteorológicas/);
+  assert.match(home, /<WeatherHero/);
+  assert.match(home, /Atualizando dados meteorológicos/);
+  assert.match(home, /A primeira dobra permanece disponível/);
 });
 
 test("home mantém a seção de águas isolada e recupera dados reais após hidratação", () => {
@@ -39,9 +40,9 @@ test("home mantém a seção de águas isolada e recupera dados reais após hidr
   assert.match(home, /<DeferredHomeWater hydrology=\{hydrology\} \/>/);
   assert.match(home, /result\.status === "ready"/);
   assert.match(home, /<HomeWaterClientRecovery \/>/);
-  assert.match(home, /getLaranjalLevelData\(\)/);
-  assert.match(home, /getGuaibaObservation\(\)/);
-  assert.match(home, /getLagoonMonitoringNetwork\(\)/);
+  assert.match(home, /laranjalModule\.getLaranjalLevelData\(\)/);
+  assert.match(home, /guaibaModule\.getGuaibaObservation\(\)/);
+  assert.match(home, /lagoonModule\.getLagoonMonitoringNetwork\(\)/);
   assert.match(home, /Promise\.all\(\[/);
   assert.match(home, /Dados hidrológicos temporariamente indisponíveis/);
 });
