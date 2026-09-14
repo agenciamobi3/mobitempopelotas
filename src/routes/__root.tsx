@@ -198,13 +198,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       {
         rel: "icon",
-        href: "/brand/tempo-pelotas-icon.svg",
-        type: "image/svg+xml",
-        sizes: "any",
+        href: "/brand/tempo-pelotas-icon.png",
+        type: "image/png",
+        sizes: "512x512",
+      },
+      {
+        rel: "shortcut icon",
+        href: "/brand/tempo-pelotas-icon.png",
+        type: "image/png",
       },
       {
         rel: "apple-touch-icon",
-        href: "/brand/tempo-pelotas-icon.svg",
+        href: "/brand/tempo-pelotas-icon.png",
+        sizes: "512x512",
       },
       {
         rel: "alternate",
