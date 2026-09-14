@@ -8,6 +8,7 @@ import "@/components/weather/FifteenDayForecastEditorialRefinement.css";
 import { createPageHead } from "@/lib/page-meta";
 import { createEditorialPageJsonLd } from "@/lib/structured-data";
 import { loadPublicExtendedForecastPage } from "@/lib/weather/extended-forecast-page-loader";
+import { useExtendedForecastBrowserRecovery } from "@/production/lib/extended-forecast-browser-recovery";
 
 const PAGE_TITLE = "Previsão do tempo em Pelotas: 10 e 15 dias";
 const PAGE_DESCRIPTION =
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/previsao-15-dias-pelotas")({
 
 function PrevisaoQuinzeDiasPage() {
   const { weather, extendedForecast } = Route.useLoaderData();
+  const recoveredExtendedForecast = useExtendedForecastBrowserRecovery(extendedForecast);
 
   return (
     <InternalWeatherPageShell
@@ -50,14 +52,14 @@ function PrevisaoQuinzeDiasPage() {
       pageClassName="internal-weather-shell--fifteen-day"
       hero={({ advisoryLevel }) => (
         <FifteenDayForecastHero
-          forecast={extendedForecast}
+          forecast={recoveredExtendedForecast}
           advisoryLevel={advisoryLevel}
         />
       )}
     >
       <>
-        <FifteenDayForecastPage forecast={extendedForecast} />
-        <RegisteredExtendedForecastEnrichment forecast={extendedForecast} />
+        <FifteenDayForecastPage forecast={recoveredExtendedForecast} />
+        <RegisteredExtendedForecastEnrichment forecast={recoveredExtendedForecast} />
       </>
     </InternalWeatherPageShell>
   );
