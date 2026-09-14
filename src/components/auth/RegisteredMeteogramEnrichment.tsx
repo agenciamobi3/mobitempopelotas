@@ -141,11 +141,11 @@ export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: Meteog
     <section className="registered-enrichment" aria-labelledby="registered-meteogram">
       <div className="registered-enrichment__heading">
         <div>
-          <span className="eyebrow">Leitura técnica · Conta Free</span>
+          <span className="eyebrow">Leitura Inteligente</span>
           <h2 id="registered-meteogram">Os principais extremos das próximas 48 horas</h2>
           <p>
             O objetivo não é substituir o gráfico hora a hora, mas destacar as janelas e extremos que merecem
-            uma segunda olhada antes de atividades sensíveis ao tempo.
+            uma segunda olhada.
           </p>
         </div>
         <span className="registered-enrichment__badge">Free</span>
@@ -195,42 +195,9 @@ export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: Meteog
               <strong>{summary.pressure ? `${formatNumber(summary.pressure.minimum, 0)}–${formatNumber(summary.pressure.maximum, 0)} hPa` : "—"}</strong>
               <p>Extremos encontrados somente entre os horários efetivamente retornados nesta atualização.</p>
             </article>
-            <article>
-              <small>Cobertura</small>
-              <strong>{summary.hours.length}/{meteogram.source.forecastHours} horários</strong>
-              <p>Resolução de {meteogram.source.temporalResolutionMinutes} min · fuso {meteogram.source.timezone}.</p>
-            </article>
-            <article>
-              <small>Modelo selecionado</small>
-              <strong>{meteogram.source.model}</strong>
-              <p>{meteogram.source.name} · a seleção pode mudar quando a fonte principal ou a contingência mudarem.</p>
-            </article>
-          </div>
-
-          <div className="registered-enrichment__context">
-            <div>
-              <strong>Campos que ajudam a investigar</strong>
-              <ul>
-                <li>Visibilidade, nuvens baixas e ponto de orvalho ajudam a contextualizar condições de baixa visibilidade.</li>
-                <li>CAPE ajuda a observar potencial de instabilidade, mas sozinho não confirma tempestade.</li>
-                <li>Rajada, chuva e direção do vento devem ser lidas junto da evolução horária.</li>
-              </ul>
-            </div>
-            <div>
-              <strong>Limite da síntese</strong>
-              <ul>
-                <li>Todos os valores são previsão, não observação futura garantida.</li>
-                <li>O resumo não cria alertas meteorológicos próprios.</li>
-                <li>Quando um campo não vem do modelo, ele permanece ausente em vez de ser preenchido artificialmente.</li>
-              </ul>
-            </div>
           </div>
         </>
       )}
-
-      <p className="registered-enrichment__footnote">
-        Fonte: {meteogram.source.name} · {meteogram.source.model}. A Conta Free resume o mesmo meteograma público e não adiciona uma fonte oculta.
-      </p>
     </section>
   );
 }
