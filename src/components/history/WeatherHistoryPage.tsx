@@ -16,6 +16,7 @@ import {
   Wind,
 } from "lucide-react";
 
+import { ORGANIZATION_JSON_LD_ID, absoluteUrl } from "@/lib/site-config";
 import type { HistoricalWeatherDay, WeatherHistoryData } from "@/lib/weather/history.types";
 
 import { WeatherHistoryChart } from "./WeatherHistoryChart";
@@ -176,6 +177,19 @@ export function WeatherHistoryPage({ history }: WeatherHistoryPageProps) {
         temporalCoverage: `${history.source.periodStart}/${history.source.periodEnd}`,
         dateModified: history.source.fetchedAt,
         isBasedOn: history.source.url,
+        creator: {
+          "@type": "Organization",
+          name: history.source.name,
+          url: history.source.url,
+        },
+        publisher: { "@id": ORGANIZATION_JSON_LD_ID },
+        license: {
+          "@type": "CreativeWork",
+          name: "Termos e licenças das fontes do Tempo Pelotas",
+          url: absoluteUrl("/status-dos-dados"),
+          description:
+            "Dados e produtos de terceiros permanecem sujeitos às licenças e aos termos das fontes originais. O Tempo Pelotas organiza e publica esta consolidação sem relicenciar conteúdo de terceiros.",
+        },
         isAccessibleForFree: true,
       }
     : null;
