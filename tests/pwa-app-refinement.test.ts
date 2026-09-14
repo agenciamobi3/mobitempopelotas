@@ -21,6 +21,7 @@ test("manifest e metadados moveis permanecem ativos", () => {
   assert.match(rootRoute, /mobile-web-app-capable/);
   assert.match(rootRoute, /apple-mobile-web-app-capable/);
   assert.match(rootRoute, /viewport-fit=cover/);
+  assert.match(rootRoute, /href: "\/brand\/tempo-pelotas-icon\.svg"/);
 });
 
 test("PwaManager nao registra novo worker e remove apenas residuos do Tempo Pelotas", () => {
@@ -55,14 +56,17 @@ test("Web Push permanece fora do root", () => {
 });
 
 test("arquivo do worker fica versionado apenas como artefato dormente", () => {
-  assert.match(serviceWorker, /CACHE_NUMBER = 9/);
+  assert.match(serviceWorker, /CACHE_NUMBER = 10/);
   assert.match(serviceWorker, /fetch\(event\.request, \{ cache: "no-store" \}\)/);
+  assert.match(serviceWorker, /\/brand\/tempo-pelotas-icon\.svg/);
   assert.doesNotMatch(manager, /serviceWorker\.register/);
 });
 
-test("manifest mantém atalhos públicos", () => {
+test("manifest mantém atalhos públicos e o ícone canônico", () => {
   assert.match(manifest, /"name": "Tempo Pelotas"/);
   assert.match(manifest, /"orientation": "any"/);
+  assert.match(manifest, /"src": "\/brand\/tempo-pelotas-icon\.svg"/);
+  assert.match(manifest, /"type": "image\/svg\+xml"/);
   assert.match(manifest, /"name": "Tempo agora em Pelotas"/);
   assert.match(manifest, /"name": "Radar e satélite"/);
   assert.match(manifest, /"name": "Situação das águas"/);
@@ -73,4 +77,5 @@ test("offline page continua explicita sobre desatualizacao", () => {
   assert.match(offlinePage, /Aplicativo Tempo Pelotas/);
   assert.match(offlinePage, /Aguardando conexão/);
   assert.match(offlinePage, /Esta tela não representa a situação meteorológica atual/);
+  assert.match(offlinePage, /src="\/brand\/tempo-pelotas-icon\.svg"/);
 });
