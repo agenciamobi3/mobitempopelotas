@@ -95,6 +95,7 @@ const publicCacheRowSchema = z.object({
 });
 
 type PersistedCacheRow = z.infer<typeof publicCacheRowSchema>;
+type ForecastPayload = z.infer<typeof forecastPayloadSchema>;
 
 const edgeResponseSchema = z.object({
   success: z.literal(true),
@@ -130,24 +131,49 @@ function currentPelotasDate() {
   }).format(new Date());
 }
 
-function startsOnCurrentPelotasDate(payload: z.infer<typeof forecastPayloadSchema>) {
-  return payload.daily.time[0] === currentPelotasDate();
+/**
+ * Um cache de 15 dias não perde todo o valor à meia-noite. Se ele ainda contém
+ * a data corrente, preservamos somente os dias futuros remanescentes e mantemos
+ * todos os arrays diários alinhados. Isso evita cair diretamente para 7 dias só
+ * porque o primeiro item do snapshot foi gerado em uma data anterior.
+ */
+function alignForecastToCurrentPelotasDate(payload: ForecastPayload): ForecastPayload | null {
+  const currentDate = currentPelotasDate();
+  const startIndex = payload.daily.time.indexOf(currentDate);
+  if (startIndex < 0) return null;
+  if (startIndex === 0) return payload;
+
+  const alignedDaily = Object.fromEntries(
+    Object.entries(payload.daily).map(([key, value]) => [
+      key,
+      Array.isArray(value) ? value.slice(startIndex) : value,
+    ]),
+  );
+  const aligned = forecastPayloadSchema.safeParse({
+    ...payload,
+    daily: alignedDaily,
+  });
+  return aligned.success ? aligned.data : null;
 }
 
 function normalizePersistedRow(row: PersistedCacheRow): OpenMeteoExtendedEdgePayload | null {
   const parsedPayload = cachedPayloadSchema.safeParse(row.payload);
   if (!parsedPayload.success) return null;
-  if (!startsOnCurrentPelotasDate(parsedPayload.data.forecast)) return null;
+
+  const alignedForecast = alignForecastToCurrentPelotasDate(parsedPayload.data.forecast);
+  if (!alignedForecast) return null;
 
   const referenceTime = row.last_success_at ?? row.fetched_at;
   if (!referenceTime) return null;
 
   const fresh = row.status === "live" && ageMs(referenceTime) <= CACHE_FRESH_MS;
   return {
-    payload: parsedPayload.data.forecast,
+    payload: alignedForecast,
     fetchedAt: row.fetched_at,
     cacheStatus: fresh ? "fresh" : "stale",
-    warning: fresh ? null : "Usando a última previsão estendida válida persistida do Open-Meteo.",
+    warning: fresh
+      ? null
+      : "Usando os dias futuros remanescentes da última previsão estendida válida do Open-Meteo.",
     model: parsedPayload.data.model,
   };
 }
@@ -243,12 +269,13 @@ async function fetchViaEdge(
   if (!parsed.success) {
     throw new Error("A Edge Function Open-Meteo estendida respondeu em formato inválido.");
   }
-  if (!startsOnCurrentPelotasDate(parsed.data.payload)) {
-    throw new Error("A Edge Function Open-Meteo estendida respondeu com janela iniciada em outro dia.");
+  const alignedPayload = alignForecastToCurrentPelotasDate(parsed.data.payload);
+  if (!alignedPayload) {
+    throw new Error("A Edge Function Open-Meteo estendida não contém a data atual na janela retornada.");
   }
 
   return {
-    payload: parsed.data.payload,
+    payload: alignedPayload,
     fetchedAt: parsed.data.fetchedAt ?? null,
     cacheStatus: parsed.data.cacheStatus,
     warning: parsed.data.warning ?? null,
