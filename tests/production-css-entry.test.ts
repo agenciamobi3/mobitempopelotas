@@ -24,7 +24,7 @@ test("home não recebe MapLibre como folha bloqueante global", async () => {
 
   assert.ok(appLink >= 0, "styles.css precisa continuar no head global");
   assert.ok(productionLink > appLink, "a pilha editorial deve vir depois do CSS base");
-  assert.doesNotMatch(rootRoute, /links:\s*\[[\s\S]*\{ rel: "stylesheet", href: mapLibreCss \}/);
+  assert.doesNotMatch(rootRoute, /\{ rel: "stylesheet", href: mapLibreCss \},/);
   assert.match(rootRoute, /const shouldLoadMapLibreCss = pathname !== "\/"/);
   assert.match(
     rootRoute,
