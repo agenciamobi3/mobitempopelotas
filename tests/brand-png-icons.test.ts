@@ -1,55 +1,52 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 const root = readFileSync("src/routes/__root.tsx", "utf8");
 const manifest = readFileSync("public/manifest.webmanifest", "utf8");
-const serviceWorker = readFileSync("public/sw.js", "utf8");
-const offline = readFileSync("public/offline.html", "utf8");
+const canonicalIcon = readFileSync("public/brand/tempo-pelotas-icon.svg", "utf8");
 const iconRoute = readFileSync("src/routes/brand/tempo-pelotas-icon[.]png.ts", "utf8");
 const maskableRoute = readFileSync("src/routes/brand/tempo-pelotas-maskable[.]png.ts", "utf8");
 
-test("site head prioritizes the uploaded PNG for favicon and Apple touch icon", () => {
-  assert.match(root, /rel: "icon",[\s\S]*href: "\/brand\/tempo-pelotas-icon\.png"/);
-  assert.match(root, /rel: "apple-touch-icon",[\s\S]*href: "\/brand\/tempo-pelotas-icon\.png"/);
-  assert.doesNotMatch(root, /rel: "apple-touch-icon", href: "\/brand\/tempo-pelotas-icon\.svg"/);
+const CANONICAL_ICON = "/brand/tempo-pelotas-icon.svg";
+
+test("favicon e Apple touch icon usam o mesmo ícone canônico", () => {
+  assert.match(root, /rel: "icon",[\s\S]*href: "\/brand\/tempo-pelotas-icon\.svg"/);
+  assert.match(root, /type: "image\/svg\+xml"/);
+  assert.match(root, /rel: "apple-touch-icon",[\s\S]*href: "\/brand\/tempo-pelotas-icon\.svg"/);
+  assert.doesNotMatch(root, /tempo-pelotas-icon\.png/);
 });
 
-test("PWA manifest exposes PNG any and maskable icons", () => {
+test("manifest PWA publica uma única identidade compacta", () => {
   const parsed = JSON.parse(manifest) as {
     icons: Array<{ src: string; sizes: string; type: string; purpose: string }>;
   };
 
-  assert.ok(
-    parsed.icons.some(
-      (icon) =>
-        icon.src === "/brand/tempo-pelotas-icon.png" &&
-        icon.type === "image/png" &&
-        icon.purpose === "any",
-    ),
-  );
-  assert.ok(
-    parsed.icons.some(
-      (icon) =>
-        icon.src === "/brand/tempo-pelotas-maskable.png" &&
-        icon.type === "image/png" &&
-        icon.purpose === "maskable",
-    ),
-  );
+  assert.equal(parsed.icons.length, 1);
+  assert.deepEqual(parsed.icons[0], {
+    src: CANONICAL_ICON,
+    sizes: "any",
+    type: "image/svg+xml",
+    purpose: "any",
+  });
 });
 
-test("PNG icon routes return immutable image responses", () => {
+test("ícone canônico corresponde ao desenho 2026 enviado no commit de marca", () => {
+  assert.match(canonicalIcon, /viewBox="0 0 798 927"/);
+  assert.match(canonicalIcon, /rgb\(95,45,237\)/);
+  assert.match(canonicalIcon, /fill:white/);
+});
+
+test("URLs PNG legadas apenas redirecionam para o ícone canônico", () => {
   for (const route of [iconRoute, maskableRoute]) {
-    assert.match(route, /createFileRoute\("\/brand\/tempo-pelotas-[^\"]+\.png"\)/);
-    assert.match(route, /Content-Type": "image\/png"/);
-    assert.match(route, /max-age=31536000, immutable/);
-    assert.match(route, /Uint8Array\.from\(Buffer\.from\(ICON_BASE64, "base64"\)\)/);
+    assert.match(route, /const CANONICAL_ICON = "\/brand\/tempo-pelotas-icon\.svg"/);
+    assert.match(route, /status: 308/);
+    assert.match(route, /Location: CANONICAL_ICON/);
+    assert.doesNotMatch(route, /ICON_BASE64|image\/png/);
   }
 });
 
-test("installed and offline experiences cache and display the PNG identity", () => {
-  assert.match(serviceWorker, /tempo-pelotas-v6/);
-  assert.match(serviceWorker, /\/brand\/tempo-pelotas-icon\.png/);
-  assert.match(serviceWorker, /\/brand\/tempo-pelotas-maskable\.png/);
-  assert.match(offline, /src="\/brand\/tempo-pelotas-icon\.png"/);
+test("não mantém favicon estático concorrente", () => {
+  assert.equal(existsSync("public/favicon.ico"), false);
+  assert.equal(existsSync("public/brand/favicon_tempopelotas.svg"), false);
 });
