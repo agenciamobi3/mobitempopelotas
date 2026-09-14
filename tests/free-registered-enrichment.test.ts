@@ -4,6 +4,8 @@ import test from "node:test";
 
 const access = readFileSync("src/lib/auth/registered-enrichment.functions.ts", "utf8");
 const component = readFileSync("src/components/auth/RegisteredWeatherEnrichment.tsx", "utf8");
+const weekStrip = readFileSync("src/components/auth/RegisteredWeekMetricStrip.tsx", "utf8");
+const weekStripStyles = readFileSync("src/components/auth/RegisteredWeekMetricStrip.css", "utf8");
 const hydrology = readFileSync("src/components/auth/RegisteredHydrologyEnrichment.tsx", "utf8");
 const hydrologySeries = readFileSync(
   "src/components/auth/RegisteredSeriesHydrologyEnrichment.tsx",
@@ -75,8 +77,25 @@ test("páginas meteorológicas dedicadas recebem enriquecimento contextual", () 
   assert.match(rain, /variant="rain"/);
   assert.match(wind, /RegisteredWeatherEnrichment/);
   assert.match(wind, /variant="wind"/);
-  assert.match(week, /RegisteredWeatherEnrichment/);
-  assert.match(week, /variant="week"/);
+  assert.match(week, /RegisteredWeekMetricStrip/);
+  assert.doesNotMatch(week, /RegisteredWeatherEnrichment/);
+});
+
+test("previsão de 7 dias mantém somente os quatro dados consolidados logo antes do conteúdo", () => {
+  assert.match(weekStrip, /data\.weather\.daily\.slice\(0, 7\)/);
+  assert.match(weekStrip, /Chuva prevista · 7 dias/);
+  assert.match(weekStrip, /Maior máxima/);
+  assert.match(weekStrip, /Menor mínima/);
+  assert.match(weekStrip, /Rajada mais forte/);
+  assert.match(weekStrip, /access\.status !== "authenticated"/);
+  assert.doesNotMatch(
+    weekStrip,
+    /Mais contexto sobre os mesmos dados|Qualidade da consolidação|Previsão usada|Diferenças entre fontes|Contexto da coleta/,
+  );
+  assert.ok(week.indexOf("<RegisteredWeekMetricStrip") < week.indexOf("<SevenDayForecastPageV2"));
+  assert.match(weekStripStyles, /grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(weekStripStyles, /@media \(max-width: 1040px\)/);
+  assert.match(weekStripStyles, /@media \(max-width: 620px\)/);
 });
 
 test("enriquecimento preserva semântica meteorológica e rastreabilidade", () => {
