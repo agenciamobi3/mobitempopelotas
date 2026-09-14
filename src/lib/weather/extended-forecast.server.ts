@@ -12,10 +12,10 @@ const FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/forecast";
 const GFS_FORECAST_ENDPOINT = "https://api.open-meteo.com/v1/gfs";
 const OPEN_METEO_URL = "https://open-meteo.com/";
 const TIMEZONE = "America/Sao_Paulo";
-const REQUEST_TIMEOUT_MS = 2_200;
-const TOTAL_FETCH_BUDGET_MS = 2_550;
-const EXTENDED_EDGE_MAX_WAIT_MS = 900;
-const LEGACY_EDGE_MAX_WAIT_MS = 500;
+const REQUEST_TIMEOUT_MS = 3_500;
+const TOTAL_FETCH_BUDGET_MS = 4_200;
+const EXTENDED_EDGE_MAX_WAIT_MS = 1_200;
+const LEGACY_EDGE_MAX_WAIT_MS = 600;
 export const EXTENDED_FORECAST_DAYS = 15 as const;
 
 const PELOTAS = {
@@ -34,7 +34,7 @@ const extendedForecastResponseSchema = z
       weather_code: nullableFiniteNumberArray,
       temperature_2m_max: nullableFiniteNumberArray,
       temperature_2m_min: nullableFiniteNumberArray,
-      precipitation_probability_max: nullableFiniteNumberArray,
+      precipitation_probability_max: nullableFiniteNumberArray.optional(),
       precipitation_sum: nullableFiniteNumberArray,
       wind_gusts_10m_max: nullableFiniteNumberArray,
     }),
@@ -42,7 +42,7 @@ const extendedForecastResponseSchema = z
   .superRefine((data, context) => {
     const expectedLength = data.daily.time.length;
     for (const [key, values] of Object.entries(data.daily)) {
-      if (values.length !== expectedLength) {
+      if (Array.isArray(values) && values.length !== expectedLength) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["daily", key],
@@ -54,9 +54,16 @@ const extendedForecastResponseSchema = z
 
 type ExtendedForecastResponse = z.infer<typeof extendedForecastResponseSchema>;
 
+type DirectForecastModel = Extract<
+  ExtendedForecastModel,
+  "Open-Meteo Best Match" | "NOAA GFS" | "ECMWF IFS"
+>;
+
 type DirectForecastCandidate = {
   endpoint: string;
-  model: Extract<ExtendedForecastModel, "Open-Meteo Best Match" | "NOAA GFS">;
+  model: DirectForecastModel;
+  models?: string;
+  supportsPrecipitationProbability?: boolean;
 };
 
 function weatherCodeToIcon(code: number | null | undefined): WeatherIconName {
@@ -134,7 +141,7 @@ function normalizeDays(response: ExtendedForecastResponse): DailyForecast[] {
       return;
     }
 
-    const rainChance = response.daily.precipitation_probability_max[index];
+    const rainChance = response.daily.precipitation_probability_max?.[index];
     const windGust = response.daily.wind_gusts_10m_max[index];
 
     days.push({
@@ -179,7 +186,18 @@ export function normalizeExtendedForecast(
   };
 }
 
-function buildExtendedForecastUrl(endpoint: string) {
+function buildExtendedForecastUrl(candidate: Pick<DirectForecastCandidate, "endpoint" | "models" | "supportsPrecipitationProbability">) {
+  const dailyFields = [
+    "weather_code",
+    "temperature_2m_max",
+    "temperature_2m_min",
+    ...(candidate.supportsPrecipitationProbability === false
+      ? []
+      : ["precipitation_probability_max"]),
+    "precipitation_sum",
+    "wind_gusts_10m_max",
+  ];
+
   const params = new URLSearchParams({
     latitude: String(PELOTAS.latitude),
     longitude: String(PELOTAS.longitude),
@@ -190,25 +208,28 @@ function buildExtendedForecastUrl(endpoint: string) {
     precipitation_unit: "mm",
     timeformat: "iso8601",
     cell_selection: "land",
-    daily: [
-      "weather_code",
-      "temperature_2m_max",
-      "temperature_2m_min",
-      "precipitation_probability_max",
-      "precipitation_sum",
-      "wind_gusts_10m_max",
-    ].join(","),
+    daily: dailyFields.join(","),
   });
 
-  return `${endpoint}?${params.toString()}`;
+  if (candidate.models) params.set("models", candidate.models);
+
+  return `${candidate.endpoint}?${params.toString()}`;
 }
 
 export function createExtendedForecastUrl() {
-  return buildExtendedForecastUrl(FORECAST_ENDPOINT);
+  return buildExtendedForecastUrl({ endpoint: FORECAST_ENDPOINT });
 }
 
 export function createGfsExtendedForecastUrl() {
-  return buildExtendedForecastUrl(GFS_FORECAST_ENDPOINT);
+  return buildExtendedForecastUrl({ endpoint: GFS_FORECAST_ENDPOINT });
+}
+
+export function createEcmwfExtendedForecastUrl() {
+  return buildExtendedForecastUrl({
+    endpoint: FORECAST_ENDPOINT,
+    models: "ecmwf_ifs",
+    supportsPrecipitationProbability: false,
+  });
 }
 
 function logInvalidPayload(prefix: string, error: z.ZodError) {
@@ -224,7 +245,7 @@ async function fetchDirectExtendedForecast(
   candidate: DirectForecastCandidate,
 ): Promise<ExtendedForecastData | null> {
   try {
-    const response = await fetch(buildExtendedForecastUrl(candidate.endpoint), {
+    const response = await fetch(buildExtendedForecastUrl(candidate), {
       cache: "no-store",
       headers: {
         Accept: "application/json",
@@ -365,18 +386,25 @@ export async function fetchPelotasExtendedForecast(): Promise<ExtendedForecastDa
     endpoint: GFS_FORECAST_ENDPOINT,
     model: "NOAA GFS",
   };
+  const ecmwfCandidate: DirectForecastCandidate = {
+    endpoint: FORECAST_ENDPOINT,
+    model: "ECMWF IFS",
+    models: "ecmwf_ifs",
+    supportsPrecipitationProbability: false,
+  };
 
   // O cache estendido começa a ser lido junto com as consultas diretas. Assim,
-  // se os upstreams consumirem quase todo o budget de 2,2 s, a contingência já
-  // teve tempo para responder e não precisa começar do zero no fim da janela.
+  // se os upstreams consumirem quase todo o budget, a contingência já teve tempo
+  // para responder e não precisa começar do zero no fim da janela.
   const extendedEdgePromise = fetchExtendedForecastEdgeFallback();
 
-  const [bestMatch, gfs] = await Promise.all([
+  const [bestMatch, gfs, ecmwf] = await Promise.all([
     fetchDirectExtendedForecast(bestMatchCandidate),
     fetchDirectExtendedForecast(gfsCandidate),
+    fetchDirectExtendedForecast(ecmwfCandidate),
   ]);
 
-  const direct = preferBroaderForecast([bestMatch, gfs]);
+  const direct = preferBroaderForecast([bestMatch, gfs, ecmwf]);
   if (direct?.status === "live") return direct;
 
   const extendedEdge = await settleWithin(
