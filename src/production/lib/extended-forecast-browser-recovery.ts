@@ -236,7 +236,9 @@ export function useExtendedForecastBrowserRecovery(baseline: ExtendedForecastDat
       try {
         const serverRecovered = await getPelotasExtendedForecast();
         best = preferBroaderForecast([best, serverRecovered]) ?? best;
-        if (active && best.days.length > baseline.days.length) setForecast(best);
+        if (active) {
+          setForecast((current) => preferBroaderForecast([current, best]) ?? current);
+        }
         if (hasCompleteExtendedForecast(best)) return;
       } catch {
         // A recuperação direta abaixo não depende do sucesso da server function.
@@ -246,7 +248,9 @@ export function useExtendedForecastBrowserRecovery(baseline: ExtendedForecastDat
         BROWSER_CANDIDATES.map((candidate) => fetchCandidate(candidate, controller.signal)),
       );
       best = preferBroaderForecast([best, ...recovered]) ?? best;
-      if (active && best.days.length >= forecast.days.length) setForecast(best);
+      if (active) {
+        setForecast((current) => preferBroaderForecast([current, best]) ?? current);
+      }
     })()
       .catch(() => {
         // O baseline continua publicável mesmo se todas as recuperações falharem.
