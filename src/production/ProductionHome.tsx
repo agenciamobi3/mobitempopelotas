@@ -37,7 +37,6 @@ import "@/production/styles/home-water-deferred.css";
 
 const CAMERA_DISCOVERY_IDLE_TIMEOUT_MS = 2_000;
 const CAMERA_DISCOVERY_FALLBACK_DELAY_MS = 900;
-const WEATHER_RECOVERY_GRACE_MS = 12_250;
 
 const advisoryRank: Record<AdvisoryLevel, number> = { normal: 0, attention: 1, warning: 2 };
 const officialSeverityRank: Record<InmetAlertSeverity, number> = {
@@ -150,8 +149,9 @@ function HomeWaterClientRecovery() {
         if (!active) return;
         setResult({ status: "ready", laranjal, guaiba, lagoon });
       })
-      .catch((error) => {
-        console.error("Falha ao recuperar hidrologia da Home:", error);
+      .catch(() => {
+        // Indisponibilidade operacional das fontes de água é um estado esperado da UI,
+        // não um erro fatal que deva poluir o console do navegador.
         if (active) setResult({ status: "unavailable" });
       });
 
@@ -189,6 +189,26 @@ function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyResu
         }
       </Await>
     </Suspense>
+  );
+}
+
+function HomeWeatherRecoveryStatus({ message }: { message: string | null }) {
+  return (
+    <section
+      className="status-page production-weather-unavailable"
+      aria-labelledby="weather-recovery-title"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <p className="status-kicker">Tempo em Pelotas</p>
+      <h2 id="weather-recovery-title">Atualizando dados meteorológicos...</h2>
+      <p>{message ?? "Estamos consultando as fontes meteorológicas para montar a leitura atual."}</p>
+      <p>A primeira dobra permanece disponível enquanto temperatura, condição e previsão são atualizadas.</p>
+      <p>
+        Enquanto a previsão não atualiza, use os atalhos abaixo para consultar águas, câmeras, avisos e
+        dados e fontes.
+      </p>
+    </section>
   );
 }
 
@@ -230,9 +250,17 @@ export function ProductionHome({
     () => toProductionWeatherData(recoveredData.weather),
     [recoveredData.weather],
   );
+  const hasUsableWeather = Boolean(
+    weather.current.available || weather.hourly.length > 0 || weather.daily.length > 0,
+  );
   const [cameraData, setCameraData] = useState<WeatherCameraData | null>(null);
 
   useEffect(() => {
+    if (!hasUsableWeather) {
+      setCameraData(null);
+      return;
+    }
+
     let mounted = true;
     const idleWindow = window as IdleWindow;
     let idleHandle: number | null = null;
@@ -265,98 +293,41 @@ export function ProductionHome({
       if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
       if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
     };
-  }, []);
+  }, [hasUsableWeather]);
 
   const liveLaranjalCamera = useMemo(
     () => (cameraData ? getLiveLaranjalCamera(cameraData) : null),
     [cameraData],
   );
-  const hasUsableWeather = Boolean(
-    weather.current.available || weather.hourly.length > 0 || weather.daily.length > 0,
-  );
-  const [weatherRecoveryExpired, setWeatherRecoveryExpired] = useState(false);
 
-  useEffect(() => {
-    if (hasUsableWeather) {
-      setWeatherRecoveryExpired(false);
-      return;
-    }
-
-    setWeatherRecoveryExpired(false);
-    const timeout = window.setTimeout(
-      () => setWeatherRecoveryExpired(true),
-      WEATHER_RECOVERY_GRACE_MS,
-    );
-    return () => window.clearTimeout(timeout);
-  }, [hasUsableWeather]);
-
-  if (!hasUsableWeather) {
-    const recoveryPending = !weatherRecoveryExpired;
-    return (
-      <div className="site-shell site-shell--home site-shell--home-editorial">
-        <SiteHeader advisoryLevel="normal" variant="hero" />
-        <main className="home-editorial-main" id="conteudo-principal" tabIndex={-1}>
-          <section
-            className="status-page production-weather-unavailable"
-            aria-labelledby="weather-unavailable-title"
-            aria-live="polite"
-            aria-busy={recoveryPending}
-          >
-            <p className="status-kicker">Tempo em Pelotas</p>
-            <h1 id="weather-unavailable-title">
-              {recoveryPending
-                ? "Atualizando dados meteorológicos..."
-                : "Dados meteorológicos temporariamente indisponíveis"}
-            </h1>
-            {recoveryPending ? (
-              <>
-                <p>Estamos consultando as fontes meteorológicas para montar a leitura atual.</p>
-                <p>A página permanece navegável enquanto a atualização acontece.</p>
-              </>
-            ) : (
-              <>
-                <p>{recoveredData.weather.message ?? recoveredData.brief.summary}</p>
-                <p>O portal continuará consultando automaticamente as fontes meteorológicas.</p>
-              </>
-            )}
-            <p>
-              Enquanto a previsão não atualiza, use os atalhos abaixo para consultar águas, câmeras,
-              avisos e dados e fontes.
-            </p>
-          </section>
-          <HomeExplorePortal />
-          <HomeDataGuide />
-        </main>
-        <SiteFooter source={unavailableSource} />
-      </div>
-    );
-  }
-
-  const summaries = toProductionSummaries(recoveredData);
-  const inmetAlerts = toProductionAlerts(recoveredData.weather);
-  const advisory = getWeatherAdvisory(weather);
-  const pelotasOfficialAlerts = inmetAlerts.alerts.filter((alert) => alert.relevance === "pelotas");
+  const summaries = hasUsableWeather ? toProductionSummaries(recoveredData) : null;
+  const inmetAlerts = hasUsableWeather ? toProductionAlerts(recoveredData.weather) : null;
+  const advisory = hasUsableWeather ? getWeatherAdvisory(weather) : null;
+  const pelotasOfficialAlerts =
+    inmetAlerts?.alerts.filter((alert) => alert.relevance === "pelotas") ?? [];
   const hasPelotasOfficialAlerts = pelotasOfficialAlerts.length > 0;
-  const hasHomeInmetAlert = inmetAlerts.status === "live" && inmetAlerts.alerts.length > 0;
+  const hasHomeInmetAlert = Boolean(
+    inmetAlerts && inmetAlerts.status === "live" && inmetAlerts.alerts.length > 0,
+  );
   const primaryOfficialSeverity = pelotasOfficialAlerts.reduce<InmetAlertSeverity>(
     (highest, alert) =>
       officialSeverityRank[alert.severity] > officialSeverityRank[highest] ? alert.severity : highest,
     "unknown",
   );
 
-  // A cor oficial do INMET é tratada separadamente do advisory meteorológico local.
-  // Somente "Grande perigo" exige o nível genérico warning; amarelo/laranja continuam
-  // identificados pela sua própria classe oficial no header e no painel do INMET.
   const officialLevel: AdvisoryLevel =
     primaryOfficialSeverity === "great-danger"
       ? "warning"
       : hasPelotasOfficialAlerts
         ? "attention"
         : "normal";
-  const headerLevel =
-    advisoryRank[officialLevel] > advisoryRank[advisory.level] ? officialLevel : advisory.level;
-  const cppmetToday = recoveredData.weather.officialForecast[0] ?? null;
-  const forecastWindSpeedKmh = strongestHourlyWindSpeed(weather);
+  const headerLevel: AdvisoryLevel = advisory
+    ? advisoryRank[officialLevel] > advisoryRank[advisory.level]
+      ? officialLevel
+      : advisory.level
+    : "normal";
+  const cppmetToday = hasUsableWeather ? (recoveredData.weather.officialForecast[0] ?? null) : null;
+  const forecastWindSpeedKmh = hasUsableWeather ? strongestHourlyWindSpeed(weather) : null;
   const mainClassName = hasPelotasOfficialAlerts
     ? "home-editorial-main has-official-alerts"
     : "home-editorial-main";
@@ -368,6 +339,7 @@ export function ProductionHome({
         officialAlertSeverity={primaryOfficialSeverity}
         variant="hero"
       />
+
       <div className={`tp-home-hero-shell${liveLaranjalCamera ? " has-live-camera" : ""}`}>
         <WeatherHero
           weather={weather}
@@ -401,27 +373,39 @@ export function ProductionHome({
       </div>
 
       <main className={mainClassName} id="conteudo-principal" tabIndex={-1}>
-        {hasHomeInmetAlert ? (
-          <div className="tp-home-alert-index-shell">
-            <InmetAlertsPanel data={inmetAlerts} variant="home" advisoryLevel={headerLevel} />
-            <HomeSectionNavigation />
-          </div>
+        {hasUsableWeather && inmetAlerts && summaries ? (
+          <>
+            {hasHomeInmetAlert ? (
+              <div className="tp-home-alert-index-shell">
+                <InmetAlertsPanel data={inmetAlerts} variant="home" advisoryLevel={headerLevel} />
+                <HomeSectionNavigation />
+              </div>
+            ) : (
+              <HomeSectionNavigation />
+            )}
+            <HomeForecastEditorial weather={weather} />
+            <InmetOfficialForecastPanel
+              periods={recoveredData.weather.inmetForecast}
+              station={recoveredData.weather.inmetStation}
+              forecastWindSpeedKmh={forecastWindSpeedKmh}
+            />
+            <HomeForecastTrend weather={weather} narrative={summaries.tomorrow} />
+            <DeferredHomeWater hydrology={hydrology} />
+            <HomeExplorePortal />
+            <HomeDataGuide />
+          </>
         ) : (
-          <HomeSectionNavigation />
+          <>
+            <HomeWeatherRecoveryStatus
+              message={recoveredData.weather.message ?? recoveredData.brief.summary ?? null}
+            />
+            <HomeExplorePortal />
+            <HomeDataGuide />
+          </>
         )}
-        <HomeForecastEditorial weather={weather} />
-        <InmetOfficialForecastPanel
-          periods={recoveredData.weather.inmetForecast}
-          station={recoveredData.weather.inmetStation}
-          forecastWindSpeedKmh={forecastWindSpeedKmh}
-        />
-        <HomeForecastTrend weather={weather} narrative={summaries.tomorrow} />
-        <DeferredHomeWater hydrology={hydrology} />
-        <HomeExplorePortal />
-        <HomeDataGuide />
       </main>
 
-      <SiteFooter source={weather.source} />
+      <SiteFooter source={hasUsableWeather ? weather.source : unavailableSource} />
     </div>
   );
 }
