@@ -5,6 +5,7 @@ export type ExtendedForecastStatus = "live" | "partial" | "unavailable";
 export type ExtendedForecastModel =
   | "Open-Meteo Best Match"
   | "NOAA GFS"
+  | "ECMWF IFS"
   | "Open-Meteo Extended Cache"
   | "Open-Meteo 7-day Cache";
 
