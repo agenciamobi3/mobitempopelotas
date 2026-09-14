@@ -4,6 +4,10 @@ import test from "node:test";
 
 const extendedServer = readFileSync("src/lib/weather/extended-forecast.server.ts", "utf8");
 const extendedTypes = readFileSync("src/lib/weather/extended-forecast.types.ts", "utf8");
+const browserRecovery = readFileSync(
+  "src/production/lib/extended-forecast-browser-recovery.ts",
+  "utf8",
+);
 const extendedEdgeClient = readFileSync(
   "src/lib/weather/open-meteo-extended-edge.server.ts",
   "utf8",
@@ -17,24 +21,28 @@ const extendedCacheMigration = readFileSync(
   "utf8",
 );
 
-test("previsão de 15 dias possui Best Match, NOAA GFS e cache Edge estendido", () => {
+test("previsão de 15 dias possui Best Match, NOAA GFS, ECMWF e cache Edge estendido", () => {
   assert.match(extendedServer, /GFS_FORECAST_ENDPOINT = "https:\/\/api\.open-meteo\.com\/v1\/gfs"/);
   assert.match(extendedServer, /model: "Open-Meteo Best Match"/);
   assert.match(extendedServer, /model: "NOAA GFS"/);
+  assert.match(extendedServer, /model: "ECMWF IFS"/);
+  assert.match(extendedServer, /models: "ecmwf_ifs"/);
+  assert.match(extendedServer, /createEcmwfExtendedForecastUrl/);
   assert.match(extendedServer, /fetchOpenMeteoExtendedPayloadViaEdge/);
   assert.match(extendedServer, /fetchExtendedForecastEdgeFallback\(\)/);
   assert.match(extendedServer, /fetchLegacySevenDayEdgeFallback\(\)/);
   assert.match(extendedServer, /preferBroaderForecast/);
-  assert.match(extendedServer, /Promise\.all\(\[/);
+  assert.match(extendedServer, /const \[bestMatch, gfs, ecmwf\] = await Promise\.all\(\[/);
   assert.match(extendedServer, /candidate\.days\.length > selected\.days\.length/);
 });
 
-test("cache estendido começa em paralelo aos upstreams diretos para preservar o budget", () => {
-  assert.match(extendedServer, /TOTAL_FETCH_BUDGET_MS = 2_550/);
-  assert.match(extendedServer, /EXTENDED_EDGE_MAX_WAIT_MS = 900/);
+test("cache estendido começa em paralelo e os upstreams recebem budget suficiente", () => {
+  assert.match(extendedServer, /REQUEST_TIMEOUT_MS = 3_500/);
+  assert.match(extendedServer, /TOTAL_FETCH_BUDGET_MS = 4_200/);
+  assert.match(extendedServer, /EXTENDED_EDGE_MAX_WAIT_MS = 1_200/);
   assert.match(
     extendedServer,
-    /const extendedEdgePromise = fetchExtendedForecastEdgeFallback\(\);[\s\S]*const \[bestMatch, gfs\] = await Promise\.all\(\[/,
+    /const extendedEdgePromise = fetchExtendedForecastEdgeFallback\(\);[\s\S]*const \[bestMatch, gfs, ecmwf\] = await Promise\.all\(\[/,
   );
   assert.match(
     extendedServer,
@@ -50,8 +58,24 @@ test("consulta estendida continua diária e não amplia o payload compartilhado"
   assert.match(extendedServer, /precipitation_probability_max/);
   assert.match(extendedServer, /precipitation_sum/);
   assert.match(extendedServer, /wind_gusts_10m_max/);
+  assert.match(extendedServer, /supportsPrecipitationProbability: false/);
+  assert.match(extendedServer, /precipitation_probability_max:\s*nullableFiniteNumberArray\.optional\(\)/);
   assert.doesNotMatch(extendedServer, /\bhourly:\s*\[/);
   assert.doesNotMatch(extendedServer, /\bcurrent:\s*\[/);
+});
+
+test("navegador recupera a segunda semana quando o SSR cai na contingência curta", () => {
+  assert.match(browserRecovery, /getPelotasExtendedForecast/);
+  assert.match(browserRecovery, /BROWSER_CANDIDATES/);
+  assert.match(browserRecovery, /"Open-Meteo Best Match"/);
+  assert.match(browserRecovery, /"NOAA GFS"/);
+  assert.match(browserRecovery, /"ECMWF IFS"/);
+  assert.match(browserRecovery, /models: "ecmwf_ifs"/);
+  assert.match(browserRecovery, /forecast_days:\s*String\(EXTENDED_FORECAST_DAYS\)/);
+  assert.match(browserRecovery, /Promise\.all\(/);
+  assert.match(browserRecovery, /hasCompleteExtendedForecast/);
+  assert.match(browserRecovery, /useExtendedForecastBrowserRecovery/);
+  assert.doesNotMatch(browserRecovery, /Math\.random|mock|demo|exemplo/i);
 });
 
 test("Edge estendido compara Best Match e GFS e persiste a janela mais ampla", () => {
@@ -94,9 +118,10 @@ test("cache estendido usa provider próprio sem abrir a tabela privada", () => {
   assert.match(extendedEdgeClient, /readPublicPersistedPayload/);
 });
 
-test("proveniência interna distingue Best Match, GFS e contingência legada", () => {
+test("proveniência interna distingue Best Match, GFS, ECMWF e contingência legada", () => {
   assert.match(extendedTypes, /"Open-Meteo Best Match"/);
   assert.match(extendedTypes, /"NOAA GFS"/);
+  assert.match(extendedTypes, /"ECMWF IFS"/);
   assert.match(extendedTypes, /"Open-Meteo 7-day Cache"/);
   assert.match(extendedTypes, /requestedDays: 15/);
   assert.match(extendedServer, /model: "Open-Meteo 7-day Cache"/);
