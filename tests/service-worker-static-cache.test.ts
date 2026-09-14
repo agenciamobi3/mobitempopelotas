@@ -6,9 +6,9 @@ const serviceWorker = readFileSync("public/sw.js", "utf8");
 const productionServer = readFileSync("src/server-brazil.ts", "utf8");
 
 test("service worker usa nova geracao e precacheia a marca oficial", () => {
-  assert.match(serviceWorker, /CACHE_NUMBER = 11/);
+  assert.match(serviceWorker, /CACHE_NUMBER = 12/);
   assert.match(serviceWorker, /CACHE_VERSION = `tempo-pelotas-v\$\{CACHE_NUMBER\}`/);
-  assert.match(serviceWorker, /"\/brand\/tempo-pelotas-icon\.png"/);
+  assert.match(serviceWorker, /"\/brand\/tempo-pelotas-favicon-2026\.png"/);
   assert.match(serviceWorker, /"\/brand\/tempo-pelotas-purple\.svg"/);
   assert.match(serviceWorker, /await self\.skipWaiting\(\)/);
 });
