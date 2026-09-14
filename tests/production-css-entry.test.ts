@@ -10,7 +10,7 @@ function extractStyleImports(content: string, pattern: RegExp) {
   return [...content.matchAll(pattern)].map((match) => match[1]);
 }
 
-test("carrega as folhas estruturais no head global antes da hidratação", async () => {
+test("home não recebe MapLibre como folha bloqueante global", async () => {
   const rootRoute = await readFile(ROOT_ROUTE_PATH, "utf8");
 
   assert.match(rootRoute, /import mapLibreCss from "maplibre-gl\/dist\/maplibre-gl\.css\?url";/);
@@ -20,14 +20,29 @@ test("carrega as folhas estruturais no head global antes da hidratação", async
   );
 
   const appLink = rootRoute.indexOf('{ rel: "stylesheet", href: appCss }');
-  const mapLink = rootRoute.indexOf('{ rel: "stylesheet", href: mapLibreCss }');
   const productionLink = rootRoute.indexOf('{ rel: "stylesheet", href: productionCss }');
 
-  assert.ok(appLink >= 0, "styles.css precisa estar no head global");
-  assert.ok(mapLink > appLink, "MapLibre deve ser carregado depois do CSS base");
-  assert.ok(
-    productionLink > mapLink,
-    "a pilha editorial deve ser a última para preservar a cascata de produção",
+  assert.ok(appLink >= 0, "styles.css precisa continuar no head global");
+  assert.ok(productionLink > appLink, "a pilha editorial deve vir depois do CSS base");
+  assert.doesNotMatch(rootRoute, /links:\s*\[[\s\S]*\{ rel: "stylesheet", href: mapLibreCss \}/);
+  assert.match(rootRoute, /const shouldLoadMapLibreCss = pathname !== "\/"/);
+  assert.match(
+    rootRoute,
+    /shouldLoadMapLibreCss \? <link rel="stylesheet" href=\{mapLibreCss\} \/> : null/,
+  );
+});
+
+test("AdSense mantém verificação no head mas baixa o runtime somente em idle", async () => {
+  const rootRoute = await readFile(ROOT_ROUTE_PATH, "utf8");
+
+  assert.match(rootRoute, /name: "google-adsense-account"/);
+  assert.match(rootRoute, /function GoogleAdSenseLoader\(\)/);
+  assert.match(rootRoute, /requestIdleCallback\(loadAdSense/);
+  assert.match(rootRoute, /GOOGLE_ADSENSE_FALLBACK_DELAY_MS/);
+  assert.match(rootRoute, /script\.dataset\.tempoPelotasAdsense = "true"/);
+  assert.doesNotMatch(
+    rootRoute,
+    /<script\s+async\s+src=\{`https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/,
   );
 });
 
