@@ -98,7 +98,7 @@ function MeteogramaPelotasPage() {
         <>
           <MeteogramForecastHighlights meteogram={meteogram} />
           <MeteogramPage weather={recoveredWeather} meteogram={meteogram} />
-          <RegisteredMeteogramEnrichment meteogram={meteogram} />
+          <RegisteredMeteogramEnrichment meteogram={meteogram} weather={recoveredWeather} />
           <SimagroModelProducts />
         </>
       )}
