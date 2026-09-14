@@ -26,6 +26,7 @@ import {
 } from "@/lib/hydrology/level-movement";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
 import type { SaceGuaibaData } from "@/lib/hydrology/sace-guaiba.server";
+import { ORGANIZATION_JSON_LD_ID, absoluteUrl } from "@/lib/site-config";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
 import { HydrologyLevelChart } from "./HydrologyLevelChart";
@@ -266,6 +267,31 @@ export function HydrologyOverviewV2({
         ],
         dateModified: level.source.fetchedAt,
         isBasedOn: [level.source.url, lagoon.source.url, sace.source.url],
+        creator: [
+          {
+            "@type": "Organization",
+            name: level.source.name,
+            url: level.source.url,
+          },
+          {
+            "@type": "Organization",
+            name: lagoon.source.organizations,
+            url: lagoon.source.url,
+          },
+          {
+            "@type": "Organization",
+            name: sace.source.name,
+            url: sace.source.url,
+          },
+        ],
+        publisher: { "@id": ORGANIZATION_JSON_LD_ID },
+        license: {
+          "@type": "CreativeWork",
+          name: "Termos e licenças das fontes do Tempo Pelotas",
+          url: absoluteUrl("/status-dos-dados"),
+          description:
+            "Dados e produtos de terceiros permanecem sujeitos às licenças e aos termos das fontes originais. O Tempo Pelotas organiza e publica esta consolidação sem relicenciar conteúdo de terceiros.",
+        },
         isAccessibleForFree: true,
       }
     : null;
