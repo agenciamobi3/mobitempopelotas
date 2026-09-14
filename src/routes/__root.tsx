@@ -198,18 +198,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       {
         rel: "icon",
-        href: "/brand/tempo-pelotas-icon.png",
+        href: "/brand/tempo-pelotas-favicon-2026.png",
         type: "image/png",
         sizes: "512x512",
       },
       {
         rel: "shortcut icon",
-        href: "/brand/tempo-pelotas-icon.png",
+        href: "/brand/tempo-pelotas-favicon-2026.png",
         type: "image/png",
       },
       {
         rel: "apple-touch-icon",
-        href: "/brand/tempo-pelotas-icon.png",
+        href: "/brand/tempo-pelotas-favicon-2026.png",
         sizes: "512x512",
       },
       {
