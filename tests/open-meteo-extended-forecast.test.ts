@@ -101,6 +101,14 @@ test("Edge estendido compara Best Match e GFS e persiste a janela mais ampla", (
   assert.match(extendedEdgeFunction, /payload:\s*next/);
 });
 
+test("cache estendido reaproveita dias futuros mesmo quando o snapshot começou em data anterior", () => {
+  assert.match(extendedEdgeClient, /function alignForecastToCurrentPelotasDate/);
+  assert.match(extendedEdgeClient, /payload\.daily\.time\.indexOf\(currentDate\)/);
+  assert.match(extendedEdgeClient, /Array\.isArray\(value\) \? value\.slice\(startIndex\) : value/);
+  assert.match(extendedEdgeClient, /alignForecastToCurrentPelotasDate\(parsedPayload\.data\.forecast\)/);
+  assert.match(extendedEdgeClient, /dias futuros remanescentes/);
+});
+
 test("cache estendido usa provider próprio sem abrir a tabela privada", () => {
   assert.match(extendedCacheMigration, /'open-meteo', 'open-meteo-extended'/);
   assert.match(extendedCacheMigration, /values \('open-meteo-extended'\)/);
