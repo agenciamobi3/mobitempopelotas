@@ -12,6 +12,8 @@
   margin: 0 auto;
   padding: clamp(50px, 5.5vw, 72px) 0 clamp(46px, 5vw, 64px);
   color: #071e2f;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 560px;
 }
 
 .tp-home-trend__header {
@@ -226,6 +228,7 @@
     width: calc(100% - 32px);
     padding-top: 42px;
     padding-bottom: 44px;
+    contain-intrinsic-size: auto 620px;
   }
 
   .tp-home-trend__header h2 {
