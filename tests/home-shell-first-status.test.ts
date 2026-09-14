@@ -3,6 +3,11 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const home = readFileSync("src/production/ProductionHome.tsx", "utf8");
+const inmetCss = readFileSync(
+  "src/production/components/inmet-official-forecast-home.css",
+  "utf8",
+);
+const trendCss = readFileSync("src/production/components/home-forecast-trend.css", "utf8");
 
 test("home mantém WeatherHero na primeira dobra antes da recuperação meteorológica", () => {
   const heroIndex = home.indexOf("<WeatherHero");
@@ -40,6 +45,13 @@ test("blocos abaixo da dobra usam code splitting e Suspense", () => {
   assert.match(home, /const LazyHomeLiveCameraBackground = lazy/);
   assert.match(home, /function DeferredHomeTail\(\)/);
   assert.match(home, /<Suspense fallback=\{null\}>[\s\S]*<LazyHomeExplorePortal \/>[\s\S]*<LazyHomeDataGuide \/>/);
+});
+
+test("capítulos meteorológicos fora da primeira dobra pulam renderização até se aproximarem da viewport", () => {
+  assert.match(inmetCss, /\.tp-home-inmet\s*\{[\s\S]*content-visibility:\s*auto/);
+  assert.match(inmetCss, /contain-intrinsic-size:\s*auto 620px/);
+  assert.match(trendCss, /\.tp-home-trend\s*\{[\s\S]*content-visibility:\s*auto/);
+  assert.match(trendCss, /contain-intrinsic-size:\s*auto 560px/);
 });
 
 test("home continua navegável durante a recuperação", () => {
