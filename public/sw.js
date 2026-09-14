@@ -1,6 +1,6 @@
 /* global self, caches, fetch, Response, URL */
 
-const CACHE_NUMBER = 9;
+const CACHE_NUMBER = 10;
 const CACHE_VERSION = `tempo-pelotas-v${CACHE_NUMBER}`;
 const CACHE_PREFIX = "tempo-pelotas-v";
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
@@ -8,7 +8,7 @@ const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_FALLBACK_URL = "/offline.html";
 const OPTIONAL_APP_SHELL_URLS = [
   "/manifest.webmanifest",
-  "/brand/tempo-pelotas-icon.png",
+  "/brand/tempo-pelotas-icon.svg",
   "/brand/tempo-pelotas-purple.svg",
 ];
 const IN_FLIGHT_ASSET_REQUESTS = new Map();
@@ -237,8 +237,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "Tempo Pelotas";
   const options = {
     body: data.body || "Há uma nova informação para Pelotas.",
-    icon: data.icon || "/brand/tempo-pelotas-icon.png",
-    badge: data.badge || "/brand/tempo-pelotas-icon.png",
+    icon: data.icon || "/brand/tempo-pelotas-icon.svg",
+    badge: data.badge || "/brand/tempo-pelotas-icon.svg",
     tag: data.tag || "tempo-pelotas",
     renotify: Boolean(data.renotify),
     requireInteraction: Boolean(data.requireInteraction),
