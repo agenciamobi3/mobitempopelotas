@@ -3,7 +3,7 @@ import type { ExtendedForecastData } from "./extended-forecast.types";
 import { createUnavailableWeatherIntelligence } from "./weather-intelligence-fallback";
 import { getWeatherIntelligence } from "./weather-intelligence.functions";
 
-const PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800;
+const PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_500;
 
 function unavailableExtendedForecast(message: string): ExtendedForecastData {
   return {
@@ -45,10 +45,10 @@ async function settlePageDependency<T>(
 }
 
 /**
- * O documento público recebe um teto local curto e degrada cada domínio sem
- * depender do sucesso das integrações. Os budgets internos continuam maiores e
- * podem ser usados pelos coletores/caches; a navegação do visitante não espera
- * por eles até o limite do runtime.
+ * O documento público continua com deadline próprio, mas a previsão estendida
+ * recebe tempo suficiente para completar Best Match/GFS/ECMWF antes de degradar.
+ * Se o runtime ainda cair em uma janela curta, a rota possui recuperação depois
+ * da hidratação e não fica presa à contingência de 7 dias.
  */
 export async function loadPublicExtendedForecastPage() {
   const unavailableForecast = () =>
