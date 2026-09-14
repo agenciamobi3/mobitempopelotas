@@ -184,7 +184,7 @@ test("previsão de 15 dias separa planejamento próximo da segunda semana", () =
   assert.match(extendedForecast, /não transforme uma previsão distante em alerta ou certeza operacional/i);
 });
 
-test("meteograma Free resume somente as horas realmente recebidas", () => {
+test("meteograma Free mantém só a leitura inteligente útil das horas realmente recebidas", () => {
   assert.match(meteogramRoute, /RegisteredMeteogramEnrichment/);
   assert.match(meteogramRoute, /meteogram=\{meteogram\}/);
   assert.match(meteogramEnrichment, /meteogram\.hours\.slice\(0, 48\)/);
@@ -194,9 +194,17 @@ test("meteograma Free resume somente as horas realmente recebidas", () => {
   assert.match(meteogramEnrichment, /hour\.dewPoint/);
   assert.match(meteogramEnrichment, /hour\.pressure/);
   assert.match(meteogramEnrichment, /hour\.windGust/);
+  assert.match(meteogramEnrichment, /Leitura Inteligente/);
+  assert.match(
+    meteogramEnrichment,
+    /O objetivo não é substituir o gráfico hora a hora, mas destacar as janelas e extremos que merecem[\s\S]*uma segunda olhada\./,
+  );
   assert.match(meteogramEnrichment, /proximidade indica ar mais próximo da saturação, não confirmação de neblina/);
-  assert.match(meteogramEnrichment, /não cria alertas meteorológicos próprios/);
-  assert.match(meteogramEnrichment, /permanece ausente em vez de ser preenchido artificialmente/);
+  assert.doesNotMatch(
+    meteogramEnrichment,
+    /Leitura técnica · Conta Free|Cobertura|Modelo selecionado|Campos que ajudam a investigar|Limite da síntese|Fonte: \{meteogram\.source\.name\}/,
+  );
+  assert.doesNotMatch(meteogramEnrichment, /antes de atividades sensíveis ao tempo/);
 });
 
 test("segunda leva reaproveita o payload da página e não cria funções de dados privadas", () => {
