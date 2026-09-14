@@ -8,6 +8,10 @@ const extendedPageLoader = readFileSync(
   "src/lib/weather/extended-forecast-page-loader.ts",
   "utf8",
 );
+const browserRecovery = readFileSync(
+  "src/production/lib/extended-forecast-browser-recovery.ts",
+  "utf8",
+);
 const standardOpenMeteo = readFileSync("src/lib/weather/open-meteo.server.ts", "utf8");
 const route = readFileSync("src/routes/previsao-15-dias-pelotas.tsx", "utf8");
 const page = readFileSync("src/components/weather/FifteenDayForecastPage.tsx", "utf8");
@@ -44,10 +48,12 @@ test("previsão estendida preserva ausência e diferencia janela parcial", () =>
   assert.doesNotMatch(extendedServer, /windGust:\s*.*\?\?\s*0/);
 });
 
-test("previsão estendida tenta duas janelas de 15 dias antes da contingência legada", () => {
+test("previsão estendida tenta três janelas de 15 dias antes da contingência legada", () => {
   assert.match(extendedServer, /GFS_FORECAST_ENDPOINT/);
   assert.match(extendedServer, /model:\s*"Open-Meteo Best Match"/);
   assert.match(extendedServer, /model:\s*"NOAA GFS"/);
+  assert.match(extendedServer, /model:\s*"ECMWF IFS"/);
+  assert.match(extendedServer, /models:\s*"ecmwf_ifs"/);
   assert.match(extendedServer, /fetchOpenMeteoExtendedPayloadViaEdge/);
   assert.match(extendedServer, /fetchOpenMeteoPayloadViaEdge/);
   assert.match(extendedServer, /const extendedEdgePromise = fetchExtendedForecastEdgeFallback\(\)/);
@@ -69,8 +75,8 @@ test("função pública usa cache longo só para janela completa e recupera ráp
   assert.match(extendedFunctions, /createUnavailableExtendedForecast/);
 });
 
-test("loader público de 15 dias degrada as duas consultas de forma independente e limita a espera SSR", () => {
-  assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 2_800/);
+test("loader público de 15 dias dá budget real à previsão sem travar a página", () => {
+  assert.match(extendedPageLoader, /PUBLIC_EXTENDED_FORECAST_PAGE_DEADLINE_MS = 4_500/);
   assert.match(extendedPageLoader, /settlePageDependency/);
   assert.match(extendedPageLoader, /Promise\.race/);
   assert.match(extendedPageLoader, /const \[weather, extendedForecast\] = await Promise\.all\(\[/);
@@ -82,10 +88,23 @@ test("loader público de 15 dias degrada as duas consultas de forma independente
   assert.match(extendedPageLoader, /requestedDays:\s*15/);
 });
 
-test("rota de 15 dias usa shell próprio sem camada editorial duplicada", () => {
+test("rota de 15 dias recupera a segunda semana depois da hidratação", () => {
   assert.match(route, /createFileRoute\("\/previsao-15-dias-pelotas"\)/);
   assert.match(route, /Previsão do tempo em Pelotas: 10 e 15 dias/);
   assert.match(route, /loadPublicExtendedForecastPage\(\)/);
+  assert.match(route, /useExtendedForecastBrowserRecovery/);
+  assert.match(route, /recoveredExtendedForecast/);
+  assert.match(route, /forecast=\{recoveredExtendedForecast\}/);
+  assert.match(browserRecovery, /getPelotasExtendedForecast/);
+  assert.match(browserRecovery, /BROWSER_CANDIDATES/);
+  assert.match(browserRecovery, /"Open-Meteo Best Match"/);
+  assert.match(browserRecovery, /"NOAA GFS"/);
+  assert.match(browserRecovery, /"ECMWF IFS"/);
+  assert.match(browserRecovery, /forecast_days:\s*String\(EXTENDED_FORECAST_DAYS\)/);
+  assert.match(browserRecovery, /useExtendedForecastBrowserRecovery/);
+});
+
+test("rota de 15 dias usa shell próprio sem camada editorial duplicada", () => {
   assert.match(route, /<InternalWeatherPageShell/);
   assert.match(route, /pageClassName="internal-weather-shell--fifteen-day"/);
   assert.match(route, /<FifteenDayForecastHero/);
