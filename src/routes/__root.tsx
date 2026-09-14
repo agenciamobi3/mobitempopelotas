@@ -38,6 +38,8 @@ const GOOGLE_ANALYTICS_MEASUREMENT_ID = "G-97YX7HPD90";
 const GOOGLE_ANALYTICS_IDLE_TIMEOUT_MS = 3_000;
 const GOOGLE_ANALYTICS_FALLBACK_DELAY_MS = 1_500;
 const GOOGLE_ADSENSE_CLIENT_ID = "ca-pub-4545997973925216";
+const GOOGLE_ADSENSE_IDLE_TIMEOUT_MS = 4_000;
+const GOOGLE_ADSENSE_FALLBACK_DELAY_MS = 2_000;
 const PUBLIC_RUNTIME_RELEASE = "2026-08-30-public-stability-met-norway-v1";
 
 type AnalyticsWindow = Window & {
@@ -79,6 +81,44 @@ function GoogleAnalyticsLoader() {
     return () => {
       if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
       if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+    };
+  }, []);
+
+  return null;
+}
+
+function GoogleAdSenseLoader() {
+  useEffect(() => {
+    const idleWindow = window as IdleWindow;
+    let idleHandle: number | null = null;
+    let fallbackTimer: number | null = null;
+    let script: HTMLScriptElement | null = null;
+
+    const loadAdSense = () => {
+      idleHandle = null;
+      fallbackTimer = null;
+      if (document.querySelector("script[data-tempo-pelotas-adsense]")) return;
+
+      script = document.createElement("script");
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT_ID}`;
+      script.dataset.tempoPelotasAdsense = "true";
+      document.head.appendChild(script);
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      idleHandle = idleWindow.requestIdleCallback(loadAdSense, {
+        timeout: GOOGLE_ADSENSE_IDLE_TIMEOUT_MS,
+      });
+    } else {
+      fallbackTimer = window.setTimeout(loadAdSense, GOOGLE_ADSENSE_FALLBACK_DELAY_MS);
+    }
+
+    return () => {
+      if (idleHandle !== null) idleWindow.cancelIdleCallback?.(idleHandle);
+      if (fallbackTimer !== null) window.clearTimeout(fallbackTimer);
+      script?.remove();
     };
   }, []);
 
@@ -193,7 +233,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "stylesheet", href: mapLibreCss },
       { rel: "stylesheet", href: productionCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       {
@@ -233,6 +272,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const shouldLoadMapLibreCss = pathname !== "/";
   const analyticsBootstrap = `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
@@ -246,11 +287,7 @@ gtag('config', '${GOOGLE_ANALYTICS_MEASUREMENT_ID}', {
     <html lang="pt-BR">
       <head>
         <HeadContent />
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${GOOGLE_ADSENSE_CLIENT_ID}`}
-          crossOrigin="anonymous"
-        />
+        {shouldLoadMapLibreCss ? <link rel="stylesheet" href={mapLibreCss} /> : null}
         <script dangerouslySetInnerHTML={{ __html: analyticsBootstrap }} />
       </head>
       <body>
@@ -282,6 +319,7 @@ function RootComponent() {
       </a>
       <PublicDocumentNavigationGuard />
       <GoogleAnalyticsLoader />
+      <GoogleAdSenseLoader />
       <GoogleAnalyticsPageviews />
       <WeatherMinuteRefresh />
       <ViewportScrollRoot>
