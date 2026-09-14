@@ -7,6 +7,7 @@ import {
   type RegisteredEnrichmentAccess,
 } from "@/lib/auth/registered-enrichment.functions";
 import type { MeteogramData, MeteogramHour } from "@/lib/weather/meteogram.server";
+import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 
 import "./RegisteredWeatherEnrichment.css";
 
@@ -72,7 +73,42 @@ function pressureRange(hours: readonly MeteogramHour[]) {
   return { minimum: Math.min(...values), maximum: Math.max(...values) };
 }
 
-export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: MeteogramData }) {
+function fallbackHours(weather: WeatherIntelligenceData): MeteogramHour[] {
+  const sourceTime = Date.parse(weather.weather.source.fetchedAt);
+
+  return weather.weather.hourly.map((hour, index) => ({
+    timestamp:
+      hour.timestamp ??
+      new Date((Number.isFinite(sourceTime) ? sourceTime : Date.now()) + index * 3_600_000).toISOString(),
+    temperature: hour.temperature,
+    feelsLike: null,
+    relativeHumidity: hour.relativeHumidity ?? null,
+    dewPoint: hour.dewPoint ?? null,
+    precipitationProbability: hour.precipitationProbability,
+    precipitationMm: hour.precipitationMm ?? null,
+    pressure: hour.pressure ?? null,
+    cloudCover: hour.cloudCover ?? null,
+    cloudCoverLow: hour.cloudCoverLow ?? null,
+    cloudCoverMid: hour.cloudCoverMid ?? null,
+    cloudCoverHigh: hour.cloudCoverHigh ?? null,
+    visibilityKm: hour.visibilityKm ?? null,
+    cape: hour.cape ?? null,
+    boundaryLayerHeight: hour.boundaryLayerHeight ?? null,
+    windSpeed: hour.windSpeed,
+    windGust: hour.windGust,
+    windDirectionDegrees: hour.windDirectionDegrees ?? null,
+    weatherCode: null,
+    isDay: null,
+  }));
+}
+
+export function RegisteredMeteogramEnrichment({
+  meteogram,
+  weather,
+}: {
+  meteogram: MeteogramData;
+  weather: WeatherIntelligenceData;
+}) {
   const loadAccess = useServerFn(getRegisteredEnrichmentAccess);
   const [access, setAccess] = useState<RegisteredEnrichmentAccess | null>(null);
 
@@ -91,7 +127,10 @@ export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: Meteog
   }, [loadAccess]);
 
   const summary = useMemo(() => {
-    const hours = meteogram.hours.slice(0, 48);
+    const hours =
+      meteogram.status === "live" && meteogram.hours.length > 0
+        ? meteogram.hours.slice(0, 48)
+        : fallbackHours(weather).slice(0, 48);
     const next12 = hours.slice(0, 12);
     const next24 = hours.slice(0, 24);
     const visibility = minHour(hours, (hour) => hour.visibilityKm);
@@ -113,7 +152,7 @@ export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: Meteog
       saturation,
       pressure: pressureRange(hours),
     };
-  }, [meteogram.hours]);
+  }, [meteogram.hours, meteogram.status, weather]);
 
   if (!access || access.status === "unavailable") return null;
 
@@ -135,7 +174,7 @@ export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: Meteog
     );
   }
 
-  const unavailable = meteogram.status === "unavailable" || summary.hours.length === 0;
+  const unavailable = summary.hours.length === 0;
 
   return (
     <section className="registered-enrichment" aria-labelledby="registered-meteogram">
@@ -153,7 +192,7 @@ export function RegisteredMeteogramEnrichment({ meteogram }: { meteogram: Meteog
 
       {unavailable ? (
         <p className="registered-enrichment__footnote">
-          O meteograma não trouxe horários utilizáveis nesta atualização. Nenhuma estimativa artificial foi exibida.
+          Ainda não há horários utilizáveis para montar esta leitura nesta atualização.
         </p>
       ) : (
         <>
