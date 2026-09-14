@@ -1,28 +1,19 @@
 import { Await, Link } from "@tanstack/react-router";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
-import { HomeExplorePortal } from "@/components/weather/HomeExplorePortal";
-import { getWeatherCameras } from "@/lib/cameras/cameras.functions";
 import type { WeatherCameraData } from "@/lib/cameras/cameras.types";
-import { getGuaibaObservation } from "@/lib/hydrology/guaiba.functions";
 import type { GuaibaObservationData } from "@/lib/hydrology/guaiba.server";
-import { getLagoonMonitoringNetwork } from "@/lib/hydrology/lagoon-network.functions";
 import type { LagoonMonitoringNetworkData } from "@/lib/hydrology/lagoon-network.server";
-import { getLaranjalLevelData } from "@/lib/hydrology/laranjal-level.functions";
 import type { LaranjalLevelData } from "@/lib/hydrology/laranjal-level.server";
-import { getWeatherIntelligence } from "@/lib/weather/weather-intelligence.functions";
 import type { WeatherIntelligenceData } from "@/lib/weather/weather-intelligence.types";
 import {
   toProductionAlerts,
   toProductionSummaries,
   toProductionWeatherData,
 } from "@/production/adapters/home";
-import { HomeDataGuide } from "@/production/components/home-data-guide";
 import { HomeForecastEditorial } from "@/production/components/home-forecast-editorial";
 import { HomeForecastTrend } from "@/production/components/home-forecast-trend";
-import { HomeLiveCameraBackground } from "@/production/components/home-live-camera-background";
 import { HomeSectionNavigation } from "@/production/components/home-section-navigation";
-import { HomeWaterEditorial } from "@/production/components/home-water-editorial";
 import { InmetAlertsPanel } from "@/production/components/inmet-alerts-panel";
 import { InmetOfficialForecastPanel } from "@/production/components/inmet-official-forecast-panel";
 import { SiteFooter } from "@/production/components/site-footer";
@@ -34,6 +25,27 @@ import type { WeatherData } from "@/production/lib/weather-data";
 import { getWeatherAdvisory, type AdvisoryLevel } from "@/production/lib/weather-insights";
 import "@/production/styles/home-editorial-status-refinements.css";
 import "@/production/styles/home-water-deferred.css";
+
+const LazyHomeExplorePortal = lazy(() =>
+  import("@/components/weather/HomeExplorePortal").then((module) => ({
+    default: module.HomeExplorePortal,
+  })),
+);
+const LazyHomeDataGuide = lazy(() =>
+  import("@/production/components/home-data-guide").then((module) => ({
+    default: module.HomeDataGuide,
+  })),
+);
+const LazyHomeLiveCameraBackground = lazy(() =>
+  import("@/production/components/home-live-camera-background").then((module) => ({
+    default: module.HomeLiveCameraBackground,
+  })),
+);
+const LazyHomeWaterEditorial = lazy(() =>
+  import("@/production/components/home-water-editorial").then((module) => ({
+    default: module.HomeWaterEditorial,
+  })),
+);
 
 const CAMERA_DISCOVERY_IDLE_TIMEOUT_MS = 2_000;
 const CAMERA_DISCOVERY_FALLBACK_DELAY_MS = 900;
@@ -141,10 +153,17 @@ function HomeWaterClientRecovery() {
     let active = true;
 
     void Promise.all([
-      getLaranjalLevelData(),
-      getGuaibaObservation(),
-      getLagoonMonitoringNetwork(),
+      import("@/lib/hydrology/guaiba.functions"),
+      import("@/lib/hydrology/lagoon-network.functions"),
+      import("@/lib/hydrology/laranjal-level.functions"),
     ])
+      .then(([guaibaModule, lagoonModule, laranjalModule]) =>
+        Promise.all([
+          laranjalModule.getLaranjalLevelData(),
+          guaibaModule.getGuaibaObservation(),
+          lagoonModule.getLagoonMonitoringNetwork(),
+        ]),
+      )
       .then(([laranjal, guaiba, lagoon]) => {
         if (!active) return;
         setResult({ status: "ready", laranjal, guaiba, lagoon });
@@ -164,7 +183,7 @@ function HomeWaterClientRecovery() {
   if (result.status === "unavailable") return <HomeWaterUnavailable />;
 
   return (
-    <HomeWaterEditorial
+    <LazyHomeWaterEditorial
       laranjal={result.laranjal}
       guaiba={result.guaiba}
       lagoon={result.lagoon}
@@ -178,7 +197,7 @@ function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyResu
       <Await promise={hydrology}>
         {(result) =>
           result.status === "ready" ? (
-            <HomeWaterEditorial
+            <LazyHomeWaterEditorial
               laranjal={result.laranjal}
               guaiba={result.guaiba}
               lagoon={result.lagoon}
@@ -188,6 +207,15 @@ function DeferredHomeWater({ hydrology }: { hydrology: Promise<HomeHydrologyResu
           )
         }
       </Await>
+    </Suspense>
+  );
+}
+
+function DeferredHomeTail() {
+  return (
+    <Suspense fallback={null}>
+      <LazyHomeExplorePortal />
+      <LazyHomeDataGuide />
     </Suspense>
   );
 }
@@ -205,9 +233,17 @@ function HomeWeatherRecoveryStatus({ message }: { message: string | null }) {
       <p>{message ?? "Estamos consultando as fontes meteorológicas para montar a leitura atual."}</p>
       <p>A primeira dobra permanece disponível enquanto temperatura, condição e previsão são atualizadas.</p>
       <p>
-        Enquanto a previsão não atualiza, use os atalhos abaixo para consultar águas, câmeras, avisos e
-        dados e fontes.
+        Enquanto a previsão não atualiza, você ainda pode consultar as áreas essenciais do portal.
       </p>
+      <Link className="home-water-deferred__link" to="/situacao-hidrologica-pelotas">
+        Situação das águas
+      </Link>
+      <Link className="home-water-deferred__link" to="/cameras-ao-vivo-pelotas">
+        Câmeras ao vivo
+      </Link>
+      <Link className="home-water-deferred__link" to="/status-dos-dados">
+        Dados e fontes
+      </Link>
     </section>
   );
 }
@@ -231,7 +267,8 @@ export function ProductionHome({
       };
     }
 
-    void getWeatherIntelligence()
+    void import("@/lib/weather/weather-intelligence.functions")
+      .then((module) => module.getWeatherIntelligence())
       .then((nextData) => {
         if (!active || !hasUsableWeatherIntelligence(nextData)) return;
         setServerRecoveredData(nextData);
@@ -270,7 +307,8 @@ export function ProductionHome({
       idleHandle = null;
       fallbackTimer = null;
 
-      void getWeatherCameras()
+      void import("@/lib/cameras/cameras.functions")
+        .then((module) => module.getWeatherCameras())
         .then((nextCameraData) => {
           if (mounted) setCameraData(nextCameraData);
         })
@@ -351,10 +389,12 @@ export function ProductionHome({
           }
           liveCameraBackground={
             liveLaranjalCamera ? (
-              <HomeLiveCameraBackground
-                embedUrl={liveLaranjalCamera.embedUrl}
-                title={liveLaranjalCamera.streamTitle ?? liveLaranjalCamera.name}
-              />
+              <Suspense fallback={null}>
+                <LazyHomeLiveCameraBackground
+                  embedUrl={liveLaranjalCamera.embedUrl}
+                  title={liveLaranjalCamera.streamTitle ?? liveLaranjalCamera.name}
+                />
+              </Suspense>
             ) : null
           }
         />
@@ -391,16 +431,14 @@ export function ProductionHome({
             />
             <HomeForecastTrend weather={weather} narrative={summaries.tomorrow} />
             <DeferredHomeWater hydrology={hydrology} />
-            <HomeExplorePortal />
-            <HomeDataGuide />
+            <DeferredHomeTail />
           </>
         ) : (
           <>
             <HomeWeatherRecoveryStatus
               message={recoveredData.weather.message ?? recoveredData.brief.summary ?? null}
             />
-            <HomeExplorePortal />
-            <HomeDataGuide />
+            <DeferredHomeTail />
           </>
         )}
       </main>
